@@ -1,4 +1,4 @@
-spiritual-gui
+Spiritual GUI
 =============
 
-UI framework for browser clients.
+Experimental UI framework for browsers.
