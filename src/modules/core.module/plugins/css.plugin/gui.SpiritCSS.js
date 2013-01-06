@@ -188,7 +188,7 @@ gui.SpiritCSS = gui.SpiritPlugin.extend ( "gui.SpiritCSS", {
 				}
 				element.className = now.join ( " " );
 			}
-		};
+		}
 	},
 
 	/**
@@ -458,21 +458,23 @@ gui.SpiritCSS = gui.SpiritPlugin.extend ( "gui.SpiritCSS", {
  */
 ( function shorthands () {
 	
+	function getset ( prop ) {
+		Object.defineProperty ( gui.SpiritCSS.prototype, prop, {
+			enumerable : true,
+			configurable : true,
+			get : function get () {
+				return parseInt ( this.get ( prop ), 10 );
+			},
+			set : function set ( val ) {
+				this.set ( prop, val );
+			}
+		});
+	}
+
 	var shorts = gui.SpiritCSS._shorthands;
 	for ( var prop in shorts ) {
 		if ( shorts.hasOwnProperty ( prop )) {
-			( function ( prop ) {
-				Object.defineProperty ( gui.SpiritCSS.prototype, prop, {
-					enumerable : true,
-					configurable : true,
-					get : function get () {
-						return parseInt ( this.get ( prop ));
-					},
-					set : function set ( val ) {
-						this.set ( prop, val );
-					}
-				});
-			}) ( prop );
+			getset ( prop );
 		}
 	}
 	

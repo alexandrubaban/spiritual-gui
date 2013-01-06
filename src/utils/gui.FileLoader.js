@@ -17,13 +17,13 @@ gui.FileLoader = gui.Exemplar.create ( "gui.FileLoader", Object.prototype, {
 
 	/**
 	 * Load file as text/plain and serve to callback.
-	 * @param {String} href Relative to document URL
+	 * @param {String} src Relative to document URL
 	 * @param {function} callback
 	 * @param @optional {object} thisp
 	 */
 	load : function ( src, callback, thisp ) {
 		
-		var url = new gui.URL ( this._document, href );
+		var url = new gui.URL ( this._document, src );
 		if ( this._cache.has ( url.location )) {
 			this._cached ( url, callback, thisp );
 		} else {

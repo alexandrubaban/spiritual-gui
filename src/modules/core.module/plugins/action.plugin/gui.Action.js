@@ -11,8 +11,8 @@ gui.Action = function SpiritAction ( target, type, data, direction, global ) {
 	this.target = target;
 	this.type = type;
 	this.data = data;
-	this.direction = direction || "ascending",
-	this.global = global || false
+	this.direction = direction || "ascending";
+	this.global = global || false;
 };
 
 gui.Action.prototype = {
@@ -132,4 +132,4 @@ gui.Action.dispatch = function dispatch ( target, type, data, direction, global 
 		}
 	});
 	return action;
-}
+};

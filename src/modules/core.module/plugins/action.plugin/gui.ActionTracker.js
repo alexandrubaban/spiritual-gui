@@ -101,8 +101,6 @@ gui.ActionTracker = gui.SpiritTracker.extend ( "gui.ActionTracker", {
 				direction || "ascend",
 				this._global 
 			);
-		} else {
-			alert(type)
 		}
 	},
 

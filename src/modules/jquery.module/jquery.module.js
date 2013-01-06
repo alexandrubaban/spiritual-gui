@@ -128,12 +128,12 @@ gui.module ( "jquery", {
 	 */
 	_instance : function ( jq ) {
 
-		var init = jq.fn.init;
+		var Init = jq.fn.init;
 		var home = jq.__rootnode.ownerDocument.defaultView;
 
 		if ( home.gui.debug ) {
 			jq.fn.init = function ( selector, context, rootjQuery ){
-				var inst = new init ( selector, context, rootjQuery );
+				var inst = new Init ( selector, context, rootjQuery );
 				var test = inst [ 0 ];
 				if ( test && test.nodeType === Node.ELEMENT_NODE ) {
 					if ( test.ownerDocument !== home.document ) {

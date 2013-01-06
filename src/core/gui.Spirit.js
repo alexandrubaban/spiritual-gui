@@ -237,13 +237,13 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 		
 		// bonus plugins second
 		var prefixes = [], plugins = this.constructor.__plugins__;
-		gui.Object.each ( plugins, function ( prefix, plugin ) {
-			switch ( plugin ) {
+		gui.Object.each ( plugins, function ( prefix, Plugin ) {
+			switch ( Plugin ) {
 				case gui.SpiritLifeTracker :
 				case gui.SpiritConfig :
 					break;
 				default :
-					this [ prefix ] = new plugin ( this );
+					this [ prefix ] = new Plugin ( this );
 					prefixes.push ( prefix );
 					break;
 			}
@@ -386,7 +386,6 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 					break;
 				default :
 					throw new TypeError ( C + ": Bad definition: " + prefix );
-					break;
 			}
 		}, this );
 		return C;
@@ -498,19 +497,20 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 		} else {
 			console.error ( "Plugin naming crash in " + this + ": " + prefix );
 		}
-	},
+	}
 
 	/**
-	 * TODO: move to EDB
+	 * TODO: move to Spiritual EDB
 	 * @type {String}
-	 */
+	 *
 	script : null,
+	*/
 
 	/**
-	 * TODO: move to EDB.
+	 * TODO: move to Spiritual EDB.
 	 * @param {Document} doc
 	 * @returns {String}
-	 */
+	 *
 	run : function ( doc ) {
 
 		var func = edb.Function.get ( this.script, doc.defaultView );
@@ -518,9 +518,9 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 			return i > 0;
 		});
 		var html = func.apply ( {}, args );
-		alert(html);
 		return this.animate ( this.parse ( doc, html ));
 	}
+	*/
 	
 
 }, { // STATICS (NON-RECURRING) ..................................................
@@ -574,9 +574,9 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 				}
 				return subtree ?
 					gui.Crawler.CONTINUE :
-					gui.Crawler.STOP
+					gui.Crawler.STOP;
 			}
-		})
+		});
 	},
 
 	/**

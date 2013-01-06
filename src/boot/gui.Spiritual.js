@@ -550,30 +550,36 @@ gui.Spiritual.prototype = {
 	_index : function ( internal, external, channels ) {
 		
 		var indexes = [];
+
+		function index ( def ) { // isolated from loop to pass JsHint...
+			switch ( def ) {
+				case "signature" :
+				case "context" :
+					// must be kept unique in each window context
+					break;
+				default :
+					var thing = external [ def ] = internal [ def ];
+					if ( gui.Type.isSpiritConstructor ( thing )) {
+						if ( thing.portals ) {
+							channels.forEach ( function ( channel, index ) {
+								if ( channel [ 1 ] === thing ) {
+									indexes.push ( index );
+								}
+							});
+						}
+					}
+					break;
+			}
+		}
+
 		for ( var def in internal ) {
 			if ( !this.constructor.prototype.hasOwnProperty ( def )) {
 				if ( !def.startsWith ( "_" )) {
-					switch ( def ) {
-						case "signature" :
-						case "context" :
-							// must be kept unique in each window context
-							break;
-						default :
-							var thing = external [ def ] = internal [ def ];
-							if ( gui.Type.isSpiritConstructor ( thing )) {
-								if ( thing.portals ) {
-									channels.forEach ( function ( channel, index ) {
-										if ( channel [ 1 ] === thing ) {
-											indexes.push ( index );
-										}
-									});
-								}
-							}
-							break;
-					}
+					index ( def );
 				}
 			}
 		}
+
 		return indexes;
 	},
 	

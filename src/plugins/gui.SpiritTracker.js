@@ -57,6 +57,9 @@ gui.SpiritTracker = gui.SpiritPlugin.extend ( "gui.SpiritTracker", {
 	destruct : function () {
 		
 		this._super.destruct ();
+
+		/*
+		 * JsHint complains about this, but test stuff below!
 		var type, list;
 		for ( type in this._xxx ) {
 			list = this._xxx [ type ];
@@ -64,6 +67,13 @@ gui.SpiritTracker = gui.SpiritPlugin.extend ( "gui.SpiritTracker", {
 				this._cleanup ( type, checks );
 			}, this );
 		}
+		*/
+	
+		gui.Object.each ( this._xxx, function ( type, list ) {
+			list.slice ( 0 ).forEach ( function ( checks ) {
+				this._cleanup ( type, checks );
+			}, this );
+		}, this );
 	},
 	
 	/**

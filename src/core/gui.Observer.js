@@ -5,16 +5,16 @@
 gui.Observer = {
 
 	/**
-   * Enable monitoring? DISABLED FOR NOW
-   * @type {boolean}
-   */
-  observes : false, // gui.Client.hasMutations,
+	 * Enable monitoring? DISABLED FOR NOW
+	 * @type {boolean}
+	 */
+	observes : false, // gui.Client.hasMutations,
 
-  /**
-   * Throw exception on mutations not intercepted by the framework.
-   * @type {boolean}
-   */
-  fails : false,
+	/**
+	 * Throw exception on mutations not intercepted by the framework.
+	 * @type {boolean}
+	 */
+	fails : false,
 
 	/**
 	 * Observe document mutations in given window context.
@@ -28,8 +28,8 @@ gui.Observer = {
 
 		if ( this.observes && win.gui.debug ) {
 			if ( !gui.Type.isDefined ( obs )) {
-				var observer = this._mutationobserver ();
-				obs = this._observers [ sig ] = new observer ( function ( mutations ) {
+				var Observer = this._mutationobserver ();
+				obs = this._observers [ sig ] = new Observer ( function ( mutations ) {
 					mutations.forEach ( function ( mutation ) {
 						gui.Observer._handleMutation ( mutation );
 					});
@@ -40,13 +40,13 @@ gui.Observer = {
 	},
 
 	/**
-   * Suspend mutation monitoring of document associated to node;
-   * enable monitoring again after executing provided function.
-   * @param {Node} node
-   * @param @optional {function} action
-   * @param @optional {object} thisp
-   * @returns {object} if action was defined, we might return something
-   */
+	 * Suspend mutation monitoring of document associated to node;
+	 * enable monitoring again after executing provided function.
+	 * @param {Node} node
+	 * @param @optional {function} action
+	 * @param @optional {object} thisp
+	 * @returns {object} if action was defined, we might return something
+	 */
 	suspend : function ( node, action, thisp ) {
 
 		var res;
@@ -69,9 +69,9 @@ gui.Observer = {
 	},
 
 	/**
-   * Resume monitoring of mutations in document associated to node.
-   * @param {Node} node
-   */
+	 * Resume monitoring of mutations in document associated to node.
+	 * @param {Node} node
+	 */
 	resume : function ( node ) {
 
 		if ( node.nodeType ) {
@@ -97,28 +97,28 @@ gui.Observer = {
 	_suspend : 0,
 
 	/**
-   * Tracking MutationObservers for window contexts by gui.signature
-   * @type {Map<String,MutationObserver}
-   */
-  _observers : Object.create ( null ),
+	 * Tracking MutationObservers for window contexts by gui.signature
+	 * @type {Map<String,MutationObserver}
+	 */
+	_observers : Object.create ( null ),
 
-  /**
-   * Get observer.
-   * @returns {function} MutationObserver
-   */
-  _mutationobserver : function () {
+	/**
+	 * Get observer.
+	 * @returns {function} MutationObserver
+	 */
+	_mutationobserver : function () {
 
-  	return window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;
-  },
+		return window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;
+	},
 
-  /**
-   * Connect and disconnect observer.
-   * @param {Node} node
-   * @param {boolean} connect
-   */
-  _connect : function ( node, connect ) {
+	/**
+	 * Connect and disconnect observer.
+	 * @param {Node} node
+	 * @param {boolean} connect
+	 */
+	_connect : function ( node, connect ) {
 
-  	var doc = node.ownerDocument || node;
+		var doc = node.ownerDocument || node;
 		var win = doc.defaultView;
 		var sig = win.gui.signature;
 		var obs = this._observers [ sig ];
@@ -132,12 +132,12 @@ gui.Observer = {
 				obs.disconnect ();
 			}			
 		}
-  },
+	},
 
-  /**
-   * Handle mutation.
-   * @param {MutationRecord} mutation
-   */
+	/**
+	 * Handle mutation.
+	 * @param {MutationRecord} mutation
+	 */
 	_handleMutation : function ( mutation ) {
 		
 		var action = false;

@@ -31,9 +31,8 @@ gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
 		if ( gui.Type.isString ( src )) {
 			if ( gui.IframeSpirit.isExternal ( src )) {
 				src = gui.IframeSpirit.sign ( src, this.signature );
-			};
-			//this.element.contentDocument.location.replace(src); // TODO: only replace() first time!
-			this.element.src = src; // stopped working in Aurora :(
+			}
+			this.element.src = src;
 		}
 		return this.element.src;
 	}
@@ -135,7 +134,7 @@ gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
 	 */
 	getParam : function ( url, name ) {
 		
-		name = name.replace ( /[\[]/, "\\\[" ).replace( /[\]]/, "\\\]" );
+		name = name.replace( /(\[|\])/g, "\\$1" ); // was: name = name.replace ( /[\[]/, "\\\[" ).replace( /[\]]/, "\\\]" ); (http://stackoverflow.com/questions/2338547/why-does-jslint-returns-bad-escapement-on-this-line-of-code)
 		var results = new RegExp ( "[\\?&]" + name + "=([^&#]*)" ).exec ( url );
 		return results === null ? null : results [ 1 ];
 	},

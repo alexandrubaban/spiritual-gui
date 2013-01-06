@@ -220,7 +220,8 @@ gui.Exemplar = {
 			name = name.substring ( index + 1 );
 		}
 
-		var named = new Function (
+		var Invokable = Function; // TODO: shouldn't this be scoped to a window?
+		var named = new Invokable (
 			"return function " + name + " () {" +
 				"var con = this.__construct__ || this.onconstruct;" +
 				"if ( gui.Type.isFunction ( con )) {" +
@@ -256,7 +257,7 @@ gui.Exemplar = {
 			what.toString = function toString () {
 				return "[" + type + " " + name + "]";
 			};
-		};
+		}
 		if ( !what.hasOwnProperty ( "displayName" )) {
 			Object.defineProperty ( what, "displayName", {
 				enumerable : false,
@@ -265,6 +266,6 @@ gui.Exemplar = {
 					return name;
 				}
 			});
-		};
+		}
 	}
 };

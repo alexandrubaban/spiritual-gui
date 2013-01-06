@@ -38,8 +38,8 @@ gui.ActionSpirit = gui.Spirit.infuse ( "gui.ActionSpirit", {
 			case "click" :
 				var onaction = this.att.get ( "onaction" );
 				if ( gui.Type.isString ( onaction )) {
-					var invokable = this.window.Function;
-					new invokable ( onaction ).call ( this );
+					var Invokable = this.window.Function;
+					new Invokable ( onaction ).call ( this );
 				}
 				break;
 		}

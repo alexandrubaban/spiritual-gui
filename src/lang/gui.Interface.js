@@ -21,15 +21,14 @@ gui.Interface = {
 			case "boolean" :
 			case "undefined" :
 				throw new Error ( "Expected " + expected + ", got " + type + ": " + object );
-				break;
 			default :
 				try {
-					var missing = null, type = null;
+					var missing = null, t = null;
 					is = Object.keys ( interfais ).every ( function ( name ) {
-						missing = name; type = gui.Type.of ( interfais [ name ]);
-						return gui.Type.of ( object [ name ]) === type;
+						missing = name; t = gui.Type.of ( interfais [ name ]);
+						return gui.Type.of ( object [ name ]) === t;
 					});
-					if ( !is ) {w
+					if ( !is ) {
 						throw new Error ( "Expected " + expected + ". A required " + type + " \"" + missing + "\" is missing" );
 					}
 				} catch ( exception ) {

@@ -126,7 +126,7 @@ gui.TickTracker = gui.SpiritTracker.extend ( "gui.TickTracker", {
 
 		var tick, sig = this.spirit.signature;
 		if ( this._global ) {
-			tick = gui.Tick.dispatch ( type, time, sig )
+			tick = gui.Tick.dispatch ( type, time, sig );
 		} else {
 			tick = gui.Tick.dispatchGlobal ( type, time );
 		}

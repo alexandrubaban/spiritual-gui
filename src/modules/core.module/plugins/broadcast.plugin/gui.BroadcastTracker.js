@@ -151,15 +151,16 @@ gui.BroadcastTracker = gui.SpiritTracker.extend ( "gui.BroadcastTracker", {
 
 /**
  * TODO: get rid of this.
- */
-( function () {
+ *
+function GETRIDOFTHIS () {
+
 	var temp_backup = {
 
 		/**
 		 * Encode all broadcasted objects as JSON strings. This will come in 
 		 * handy if we plan to use cross-domain broadcasting at some point.
 		 * @returns {gui.BroadcastTracker}
-		 */
+		 *
 		encode : function () {
 
 			this._encoding = true;
@@ -169,7 +170,7 @@ gui.BroadcastTracker = gui.SpiritTracker.extend ( "gui.BroadcastTracker", {
 		/**
 		 * Don't encode broadcasted objects as JSON.
 		 * @returns {gui.BroadcastTracker}
-		 */
+		 *
 		normalize : function () {
 			
 			this._encoding = false;
@@ -180,14 +181,14 @@ gui.BroadcastTracker = gui.SpiritTracker.extend ( "gui.BroadcastTracker", {
 		 * Auto-encode broadcast data as JSON string. This will conjure an exception if the 
 		 * object could not be stringified. Strings, numbers and booleans are left untouched.
 		 * @type {Boolean}
-		 */
+		 *
 		_encoding : false,
 
 		/**
 		 * JSON encode broadcast data?
 		 * @param {object} data
 		 * @returns {String}
-		 */
+		 *
 		_encode : function ( data ) {
 
 			if ( this._encoding ) {
@@ -204,15 +205,14 @@ gui.BroadcastTracker = gui.SpiritTracker.extend ( "gui.BroadcastTracker", {
 							data = JSON.stringify ( data, null, debug ? "\t" : null ); // TODO: catch parse exception
 						} catch ( jsonex ) {
 							throw new Error ( "JSON encoding of broadcast failed: " + jsonex );
-							data = null;
 						}
 						break;
 					default :
 						throw new Error ( "Will not JSON encode broadcast of type: " + type );
-						break;
 				}
 			}
 			return data;
 		}
 	};
-});
+}
+*/

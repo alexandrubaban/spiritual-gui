@@ -65,7 +65,7 @@ gui.SpiritConfig = gui.SpiritPlugin.extend ( "gui.SpiritConfig", {
 				}
 			} else {
 				console.error ( "No definition for \"" + name + "\": " + this.spirit.toString ());
-			};
+			}
 		}
 	},
 

@@ -156,7 +156,7 @@ gui.SpiritLifeTracker = gui.SpiritTracker.extend ( "gui.SpiritLifeTracker", {
 					delete this._handlers [ type ];
 					break;
 			}
-		};
+		}
 	}	
 });
 

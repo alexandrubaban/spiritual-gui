@@ -63,7 +63,7 @@ gui.EventSummary.prototype = {
 			type = target.nodeType;
 		
 		if ( gui.Type.isDefined ( type )) {
-			doc = ( type == Node.DOCUMENT_NODE ? target : target.ownerDocument );
+			doc = ( type === Node.DOCUMENT_NODE ? target : target.ownerDocument );
 			win = doc.defaultView;
 		} else {
 			win = target;
