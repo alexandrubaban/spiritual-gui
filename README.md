@@ -1,4 +1,4 @@
 Spiritual GUI
 =============
 
-Experimental UI framework for browsers.
+Experimental UI framework for browsers clients.
