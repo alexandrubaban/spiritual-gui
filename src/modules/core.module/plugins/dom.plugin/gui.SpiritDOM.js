@@ -341,6 +341,7 @@ gui.Object.each ({
 	 */
 	q : function ( selector, type ) {
 		
+		var result;
 		selector = this._qualify ( selector );
 		if ( type ) {
 			result = this.qall ( selector, type )[ 0 ] || null;
@@ -448,7 +449,7 @@ gui.Object.each ({
 	previous : function ( type ) {
 		
 		var result = null,
-			spirit = null;
+			spirit = null,
 			el = this.spirit.element;
 		if ( type ) {
 			while (( el = el.previousElementSibling ) !== null ) {
@@ -610,7 +611,7 @@ gui.Object.each ({
 	 */
 	ancestors : function ( type ) {
 		
-		result = [];
+		var result = [];
 		if ( type ) {	
 			new gui.Crawler ().ascend ( this.element, {
 				handleSpirit : function ( spirit ) {

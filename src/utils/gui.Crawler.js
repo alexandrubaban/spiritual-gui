@@ -53,7 +53,7 @@ gui.Crawler.prototype = {
 					elm = elm.defaultView.frameElement;
 					if ( elm ) {
 						try {
-							elm.ownerDocument;
+							var assignment = elm.ownerDocument;
 						} catch ( accessDeniedException ) {
 							console.warn ( "TODO: Ascend cross domain" );
 							elm = null;
@@ -119,7 +119,7 @@ gui.Crawler.prototype = {
 				} else {
 					if ( this.global && elm.localName === "iframe" ) {
 						try {
-							elm.contentDocument;
+							var assignment = elm.contentDocument;
 						} catch ( accessDeniedException ) {
 							console.warn ( "TODO: Descend cross domain" );
 						}

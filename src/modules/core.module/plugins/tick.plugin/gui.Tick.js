@@ -123,15 +123,17 @@ gui.Tick.remove = function ( type, handler, sig ) {
  */
 gui.Tick.start = function ( type, time ) {
 	
-	// TODO
 	console.error ( "TODO:gui.Tick.start" );
 	return;
+
+	/* TODO: something like this...
 	if ( time && !this._global.types [ type ]) {
 		this._global.types [ type ] = setInterval ( function () {
 			gui.Tick.dispatch ( type );
 		}, time );
 	}
 	return this;
+	*/
 };
 
 /**
@@ -235,7 +237,7 @@ gui.Tick._add = function ( type, handler, one, sig ) {
 			map = this._local [ sig ] = {
 				types : Object.create ( null ),
 				handlers : Object.create ( null )
-			}
+			};
 		}
 		list = map.handlers [ type ];
 		if ( !list ) {

@@ -38,7 +38,7 @@ gui.Type = {
 	 */
 	cast : function ( string ) {
 		
-		result = String ( string );
+		var result = String ( string );
 		switch ( result ) {
 			case "null" :
 				result = null;
@@ -48,8 +48,8 @@ gui.Type = {
 				result = ( result === "true" );
 				break;
 			default :
-				if ( String ( parseInt ( result )) === result ) {
-					result = parseInt ( result );
+				if ( String ( parseInt ( result, 10 )) === result ) {
+					result = parseInt ( result, 10 );
 				} else if ( String ( parseFloat ( result )) === result ) {
 					result = parseFloat ( result );
 				}

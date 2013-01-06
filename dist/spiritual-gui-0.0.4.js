@@ -156,7 +156,7 @@ gui.SpiritualAid = {
 		this._extras	( win );
 		
 		if ( !worker ) {
-			this._element ( win );
+			//this._element ( win );
 			this._effects ( win );
 		}
 	},
@@ -281,16 +281,16 @@ gui.SpiritualAid = {
 				var fSlice = win.Array.prototype.slice,
 					aArgs = fSlice.call ( arguments, 1 ),
 					fToBind = this,
-					fNOP = function () {},
+					Fnop = function () {},
 					fBound = function () {
 						return fToBind.apply(
-							this instanceof fNOP ? this : oThis || win,
+							this instanceof Fnop ? this : oThis || win,
 							aArgs.concat ( fSlice.call ( arguments ))
 						);
 					};
 					
-				fNOP.prototype = this.prototype;
-				fBound.prototype = new fNOP();
+				Fnop.prototype = this.prototype;
+				fBound.prototype = new Fnop();
 			    return fBound;
 			}
 		});
@@ -358,8 +358,9 @@ gui.SpiritualAid = {
 					}
 				};
 				return Set;
-			})(),
+			})()
 			
+			/*
 			WeakMap : ( function () { // TODO: clean this up
 				
 				function WeakMap () {
@@ -387,15 +388,14 @@ gui.SpiritualAid = {
 				      has(key) ? values[i] = value : values[keys.push(key) - 1] = value;
 				    }
 
-				    return create(WeakMapPrototype, {
-				    	isNative : {value : false},
-				    	"delete": {value: del},
-				    	del: {value: del},
-				    	get: {value: get},
-				    	has: {value: has},
-				    	set: {value: set}
-				    });
-
+						return create(WeakMapPrototype, {
+							isNative : {value : false},
+							"delete": {value: del},
+							del: {value: del},
+							get: {value: get},
+							has: {value: has},
+							set: {value: set}
+						});
 				  }
 
 				  function WeakMapInstance () {}
@@ -404,13 +404,16 @@ gui.SpiritualAid = {
 				    create = Object.create, indexOf = [].indexOf, i;
 
 				  // used to follow FF behavior where WeakMap.prototype is a WeakMap itself
-				  WeakMap.prototype = WeakMapInstance.prototype = WeakMapPrototype = WeakMap();
+				  WeakMap.prototype = WeakMapInstance.prototype = WeakMapPrototype = new WeakMap();
 				  return WeakMap;
 				
 			})()
+			*/
+
 		});
 	},
 	
+	/*
 	_element : function ( win ) {
 		
 		function camelcase ( string ) {
@@ -419,14 +422,14 @@ gui.SpiritualAid = {
 			});
 		}
 		
+
 		this._extend ( win.Element.prototype, {
-			
 			dataset : {
 				get : function () {
 					var set = Object.create ( null );
 					Array.forEach ( this.attributes, function ( att ) {
 						if ( att.name.startsWith ( "data-" )) {
-							alert ( att );
+							// alert ( att );
 						}
 					});
 					return set;
@@ -437,6 +440,7 @@ gui.SpiritualAid = {
 			}
 		});
 	},
+	*/
 	
 	/**
 	 * Patching cheap DHTML effects with super-simplistic polyfills.
@@ -518,7 +522,7 @@ gui.SpiritualAid = {
 		// ie doesn't have this
 		this._extend ( XMLHttpRequest.prototype, {
 			overrideMimeType : function () {}
-		})
+		});
 		
 		// Safari on iPad has no constants to reflect request state
 		this._extend ( win.XMLHttpRequest, {
@@ -1084,30 +1088,36 @@ gui.Spiritual.prototype = {
 	_index : function ( internal, external, channels ) {
 		
 		var indexes = [];
+
+		function index ( def ) { // isolated from loop to pass JsHint...
+			switch ( def ) {
+				case "signature" :
+				case "context" :
+					// must be kept unique in each window context
+					break;
+				default :
+					var thing = external [ def ] = internal [ def ];
+					if ( gui.Type.isSpiritConstructor ( thing )) {
+						if ( thing.portals ) {
+							channels.forEach ( function ( channel, index ) {
+								if ( channel [ 1 ] === thing ) {
+									indexes.push ( index );
+								}
+							});
+						}
+					}
+					break;
+			}
+		}
+
 		for ( var def in internal ) {
 			if ( !this.constructor.prototype.hasOwnProperty ( def )) {
 				if ( !def.startsWith ( "_" )) {
-					switch ( def ) {
-						case "signature" :
-						case "context" :
-							// must be kept unique in each window context
-							break;
-						default :
-							var thing = external [ def ] = internal [ def ];
-							if ( gui.Type.isSpiritConstructor ( thing )) {
-								if ( thing.portals ) {
-									channels.forEach ( function ( channel, index ) {
-										if ( channel [ 1 ] === thing ) {
-											indexes.push ( index );
-										}
-									});
-								}
-							}
-							break;
-					}
+					index ( def );
 				}
 			}
 		}
+
 		return indexes;
 	},
 	
@@ -1482,7 +1492,8 @@ gui.Exemplar = {
 			name = name.substring ( index + 1 );
 		}
 
-		var named = new Function (
+		var Invokable = Function; // TODO: shouldn't this be scoped to a window?
+		var named = new Invokable (
 			"return function " + name + " () {" +
 				"var con = this.__construct__ || this.onconstruct;" +
 				"if ( gui.Type.isFunction ( con )) {" +
@@ -1518,7 +1529,7 @@ gui.Exemplar = {
 			what.toString = function toString () {
 				return "[" + type + " " + name + "]";
 			};
-		};
+		}
 		if ( !what.hasOwnProperty ( "displayName" )) {
 			Object.defineProperty ( what, "displayName", {
 				enumerable : false,
@@ -1527,7 +1538,7 @@ gui.Exemplar = {
 					return name;
 				}
 			});
-		};
+		}
 	}
 };
 
@@ -1555,15 +1566,14 @@ gui.Interface = {
 			case "boolean" :
 			case "undefined" :
 				throw new Error ( "Expected " + expected + ", got " + type + ": " + object );
-				break;
 			default :
 				try {
-					var missing = null, type = null;
+					var missing = null, t = null;
 					is = Object.keys ( interfais ).every ( function ( name ) {
-						missing = name; type = gui.Type.of ( interfais [ name ]);
-						return gui.Type.of ( object [ name ]) === type;
+						missing = name; t = gui.Type.of ( interfais [ name ]);
+						return gui.Type.of ( object [ name ]) === t;
 					});
-					if ( !is ) {w
+					if ( !is ) {
 						throw new Error ( "Expected " + expected + ". A required " + type + " \"" + missing + "\" is missing" );
 					}
 				} catch ( exception ) {
@@ -1700,7 +1710,7 @@ gui.Object = {
    */
   copy : function ( source ) {
 
-  	return this.extend ( Object.create ( null ), source );
+		return this.extend ( Object.create ( null ), source );
   },
   
 	/**
@@ -1842,7 +1852,7 @@ gui.Super.disclaimer = "/**\n" +
 	"  * The runtime execution of this method \n" +
 	"  * has been overloaded by the framework. \n" +
 	"  * This is an approximation of the code. \n" +
-	"  */\n"
+	"  */\n";
 
 /**
  * @static
@@ -2057,7 +2067,7 @@ gui.Type = {
 	 */
 	cast : function ( string ) {
 		
-		result = String ( string );
+		var result = String ( string );
 		switch ( result ) {
 			case "null" :
 				result = null;
@@ -2067,8 +2077,8 @@ gui.Type = {
 				result = ( result === "true" );
 				break;
 			default :
-				if ( String ( parseInt ( result )) === result ) {
-					result = parseInt ( result );
+				if ( String ( parseInt ( result, 10 )) === result ) {
+					result = parseInt ( result, 10 );
 				} else if ( String ( parseFloat ( result )) === result ) {
 					result = parseFloat ( result );
 				}
@@ -2662,13 +2672,13 @@ gui.FileLoader = gui.Exemplar.create ( "gui.FileLoader", Object.prototype, {
 
 	/**
 	 * Load file as text/plain and serve to callback.
-	 * @param {String} href Relative to document URL
+	 * @param {String} src Relative to document URL
 	 * @param {function} callback
 	 * @param @optional {object} thisp
 	 */
 	load : function ( src, callback, thisp ) {
 		
-		var url = new gui.URL ( this._document, href );
+		var url = new gui.URL ( this._document, src );
 		if ( this._cache.has ( url.location )) {
 			this._cached ( url, callback, thisp );
 		} else {
@@ -2831,7 +2841,7 @@ gui.BlobLoader = {
 		if ( callback ) {
 			script.onload = function () {
 				callback.call ( thisp );
-			}
+			};
 		}
 	}
 };
@@ -2902,7 +2912,7 @@ gui.EventSummary.prototype = {
 			type = target.nodeType;
 		
 		if ( gui.Type.isDefined ( type )) {
-			doc = ( type == Node.DOCUMENT_NODE ? target : target.ownerDocument );
+			doc = ( type === Node.DOCUMENT_NODE ? target : target.ownerDocument );
 			win = doc.defaultView;
 		} else {
 			win = target;
@@ -2972,7 +2982,7 @@ gui.Crawler.prototype = {
 					elm = elm.defaultView.frameElement;
 					if ( elm ) {
 						try {
-							elm.ownerDocument;
+							var assignment = elm.ownerDocument;
 						} catch ( accessDeniedException ) {
 							console.warn ( "TODO: Ascend cross domain" );
 							elm = null;
@@ -3038,7 +3048,7 @@ gui.Crawler.prototype = {
 				} else {
 					if ( this.global && elm.localName === "iframe" ) {
 						try {
-							elm.contentDocument;
+							var assignment = elm.contentDocument;
 						} catch ( accessDeniedException ) {
 							console.warn ( "TODO: Descend cross domain" );
 						}
@@ -3169,7 +3179,7 @@ gui.KeyMaster = {
 	 */
 	extractKey : function ( string ) {
 
-		return /key\d{9}/.exec ( string );
+		return ( /key\d{9}/ ).exec ( string );
 	},
 	
 	/**
@@ -3181,7 +3191,7 @@ gui.KeyMaster = {
 	generateGUID : function () {
 		
 		return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace ( /[xy]/g, function ( c ) {
-			var r = Math.random () * 16 | 0, v = c == "x" ? r : ( r&0x3 | 0x8 );
+			var r = Math.random () * 16 | 0, v = c === "x" ? r : ( r&0x3 | 0x8 );
 			return v.toString ( 16 );
 		}).toUpperCase();
 	},
@@ -3433,13 +3443,13 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 		
 		// bonus plugins second
 		var prefixes = [], plugins = this.constructor.__plugins__;
-		gui.Object.each ( plugins, function ( prefix, plugin ) {
-			switch ( plugin ) {
+		gui.Object.each ( plugins, function ( prefix, Plugin ) {
+			switch ( Plugin ) {
 				case gui.SpiritLifeTracker :
 				case gui.SpiritConfig :
 					break;
 				default :
-					this [ prefix ] = new plugin ( this );
+					this [ prefix ] = new Plugin ( this );
 					prefixes.push ( prefix );
 					break;
 			}
@@ -3582,7 +3592,6 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 					break;
 				default :
 					throw new TypeError ( C + ": Bad definition: " + prefix );
-					break;
 			}
 		}, this );
 		return C;
@@ -3694,19 +3703,20 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 		} else {
 			console.error ( "Plugin naming crash in " + this + ": " + prefix );
 		}
-	},
+	}
 
 	/**
-	 * TODO: move to EDB
+	 * TODO: move to Spiritual EDB
 	 * @type {String}
-	 */
+	 *
 	script : null,
+	*/
 
 	/**
-	 * TODO: move to EDB.
+	 * TODO: move to Spiritual EDB.
 	 * @param {Document} doc
 	 * @returns {String}
-	 */
+	 *
 	run : function ( doc ) {
 
 		var func = edb.Function.get ( this.script, doc.defaultView );
@@ -3714,9 +3724,9 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 			return i > 0;
 		});
 		var html = func.apply ( {}, args );
-		alert(html);
 		return this.animate ( this.parse ( doc, html ));
 	}
+	*/
 	
 
 }, { // STATICS (NON-RECURRING) ..................................................
@@ -3770,9 +3780,9 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 				}
 				return subtree ?
 					gui.Crawler.CONTINUE :
-					gui.Crawler.STOP
+					gui.Crawler.STOP;
 			}
-		})
+		});
 	},
 
 	/**
@@ -3931,6 +3941,9 @@ gui.SpiritTracker = gui.SpiritPlugin.extend ( "gui.SpiritTracker", {
 	destruct : function () {
 		
 		this._super.destruct ();
+
+		/*
+		 * JsHint complains about this, but test stuff below!
 		var type, list;
 		for ( type in this._xxx ) {
 			list = this._xxx [ type ];
@@ -3938,6 +3951,13 @@ gui.SpiritTracker = gui.SpiritPlugin.extend ( "gui.SpiritTracker", {
 				this._cleanup ( type, checks );
 			}, this );
 		}
+		*/
+	
+		gui.Object.each ( this._xxx, function ( type, list ) {
+			list.slice ( 0 ).forEach ( function ( checks ) {
+				this._cleanup ( type, checks );
+			}, this );
+		}, this );
 	},
 	
 	/**
@@ -4289,7 +4309,7 @@ gui.SpiritLifeTracker = gui.SpiritTracker.extend ( "gui.SpiritLifeTracker", {
 					delete this._handlers [ type ];
 					break;
 			}
-		};
+		}
 	}	
 });
 
@@ -4423,7 +4443,7 @@ gui.SpiritConfig = gui.SpiritPlugin.extend ( "gui.SpiritConfig", {
 				}
 			} else {
 				console.error ( "No definition for \"" + name + "\": " + this.spirit.toString ());
-			};
+			}
 		}
 	},
 
@@ -4467,8 +4487,8 @@ gui.Action = function SpiritAction ( target, type, data, direction, global ) {
 	this.target = target;
 	this.type = type;
 	this.data = data;
-	this.direction = direction || "ascending",
-	this.global = global || false
+	this.direction = direction || "ascending";
+	this.global = global || false;
 };
 
 gui.Action.prototype = {
@@ -4588,7 +4608,7 @@ gui.Action.dispatch = function dispatch ( target, type, data, direction, global 
 		}
 	});
 	return action;
-}
+};
 
 
 /**
@@ -4694,8 +4714,6 @@ gui.ActionTracker = gui.SpiritTracker.extend ( "gui.ActionTracker", {
 				direction || "ascend",
 				this._global 
 			);
-		} else {
-			alert(type)
 		}
 	},
 
@@ -5479,15 +5497,16 @@ gui.BroadcastTracker = gui.SpiritTracker.extend ( "gui.BroadcastTracker", {
 
 /**
  * TODO: get rid of this.
- */
-( function () {
+ *
+function GETRIDOFTHIS () {
+
 	var temp_backup = {
 
 		/**
 		 * Encode all broadcasted objects as JSON strings. This will come in 
 		 * handy if we plan to use cross-domain broadcasting at some point.
 		 * @returns {gui.BroadcastTracker}
-		 */
+		 *
 		encode : function () {
 
 			this._encoding = true;
@@ -5497,7 +5516,7 @@ gui.BroadcastTracker = gui.SpiritTracker.extend ( "gui.BroadcastTracker", {
 		/**
 		 * Don't encode broadcasted objects as JSON.
 		 * @returns {gui.BroadcastTracker}
-		 */
+		 *
 		normalize : function () {
 			
 			this._encoding = false;
@@ -5508,14 +5527,14 @@ gui.BroadcastTracker = gui.SpiritTracker.extend ( "gui.BroadcastTracker", {
 		 * Auto-encode broadcast data as JSON string. This will conjure an exception if the 
 		 * object could not be stringified. Strings, numbers and booleans are left untouched.
 		 * @type {Boolean}
-		 */
+		 *
 		_encoding : false,
 
 		/**
 		 * JSON encode broadcast data?
 		 * @param {object} data
 		 * @returns {String}
-		 */
+		 *
 		_encode : function ( data ) {
 
 			if ( this._encoding ) {
@@ -5532,18 +5551,17 @@ gui.BroadcastTracker = gui.SpiritTracker.extend ( "gui.BroadcastTracker", {
 							data = JSON.stringify ( data, null, debug ? "\t" : null ); // TODO: catch parse exception
 						} catch ( jsonex ) {
 							throw new Error ( "JSON encoding of broadcast failed: " + jsonex );
-							data = null;
 						}
 						break;
 					default :
 						throw new Error ( "Will not JSON encode broadcast of type: " + type );
-						break;
 				}
 			}
 			return data;
 		}
 	};
-});
+}
+*/
 
 
 /**
@@ -5758,7 +5776,7 @@ gui.SpiritCSS = gui.SpiritPlugin.extend ( "gui.SpiritCSS", {
 				}
 				element.className = now.join ( " " );
 			}
-		};
+		}
 	},
 
 	/**
@@ -6028,21 +6046,23 @@ gui.SpiritCSS = gui.SpiritPlugin.extend ( "gui.SpiritCSS", {
  */
 ( function shorthands () {
 	
+	function getset ( prop ) {
+		Object.defineProperty ( gui.SpiritCSS.prototype, prop, {
+			enumerable : true,
+			configurable : true,
+			get : function get () {
+				return parseInt ( this.get ( prop ), 10 );
+			},
+			set : function set ( val ) {
+				this.set ( prop, val );
+			}
+		});
+	}
+
 	var shorts = gui.SpiritCSS._shorthands;
 	for ( var prop in shorts ) {
 		if ( shorts.hasOwnProperty ( prop )) {
-			( function ( prop ) {
-				Object.defineProperty ( gui.SpiritCSS.prototype, prop, {
-					enumerable : true,
-					configurable : true,
-					get : function get () {
-						return parseInt ( this.get ( prop ));
-					},
-					set : function set ( val ) {
-						this.set ( prop, val );
-					}
-				});
-			}) ( prop );
+			getset ( prop );
 		}
 	}
 	
@@ -6392,6 +6412,7 @@ gui.Object.each ({
 	 */
 	q : function ( selector, type ) {
 		
+		var result;
 		selector = this._qualify ( selector );
 		if ( type ) {
 			result = this.qall ( selector, type )[ 0 ] || null;
@@ -6499,7 +6520,7 @@ gui.Object.each ({
 	previous : function ( type ) {
 		
 		var result = null,
-			spirit = null;
+			spirit = null,
 			el = this.spirit.element;
 		if ( type ) {
 			while (( el = el.previousElementSibling ) !== null ) {
@@ -6661,7 +6682,7 @@ gui.Object.each ({
 	 */
 	ancestors : function ( type ) {
 		
-		result = [];
+		var result = [];
 		if ( type ) {	
 			new gui.Crawler ().ascend ( this.element, {
 				handleSpirit : function ( spirit ) {
@@ -7095,15 +7116,17 @@ gui.Tick.remove = function ( type, handler, sig ) {
  */
 gui.Tick.start = function ( type, time ) {
 	
-	// TODO
 	console.error ( "TODO:gui.Tick.start" );
 	return;
+
+	/* TODO: something like this...
 	if ( time && !this._global.types [ type ]) {
 		this._global.types [ type ] = setInterval ( function () {
 			gui.Tick.dispatch ( type );
 		}, time );
 	}
 	return this;
+	*/
 };
 
 /**
@@ -7207,7 +7230,7 @@ gui.Tick._add = function ( type, handler, one, sig ) {
 			map = this._local [ sig ] = {
 				types : Object.create ( null ),
 				handlers : Object.create ( null )
-			}
+			};
 		}
 		list = map.handlers [ type ];
 		if ( !list ) {
@@ -7449,7 +7472,7 @@ gui.TickTracker = gui.SpiritTracker.extend ( "gui.TickTracker", {
 
 		var tick, sig = this.spirit.signature;
 		if ( this._global ) {
-			tick = gui.Tick.dispatch ( type, time, sig )
+			tick = gui.Tick.dispatch ( type, time, sig );
 		} else {
 			tick = gui.Tick.dispatchGlobal ( type, time );
 		}
@@ -7886,7 +7909,7 @@ gui.TransitionPlugin = gui.SpiritPlugin.extend ( "gui.TransitionPlugin", {
 		 * Firefox needs a break before setting the styles.
 		 * http://stackoverflow.com/questions/6700137/css-3-transitions-with-opacity-chrome-and-firefox
 		 */
-		var that = this, then = this._then, spirit = this.spirit;
+		var that = this, spirit = this.spirit;
 		if (( this._count = Object.keys ( css ).length )) {
 			setImmediate ( function () {
 				spirit.css.style ( css );
@@ -7896,7 +7919,7 @@ gui.TransitionPlugin = gui.SpiritPlugin.extend ( "gui.TransitionPlugin", {
 					});
 				}
 			});
-		};
+		}
 
 		return then;
 	},
@@ -9348,9 +9371,8 @@ gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
 		if ( gui.Type.isString ( src )) {
 			if ( gui.IframeSpirit.isExternal ( src )) {
 				src = gui.IframeSpirit.sign ( src, this.signature );
-			};
-			//this.element.contentDocument.location.replace(src); // TODO: only replace() first time!
-			this.element.src = src; // stopped working in Aurora :(
+			}
+			this.element.src = src;
 		}
 		return this.element.src;
 	}
@@ -9452,7 +9474,7 @@ gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
 	 */
 	getParam : function ( url, name ) {
 		
-		name = name.replace ( /[\[]/, "\\\[" ).replace( /[\]]/, "\\\]" );
+		name = name.replace( /(\[|\])/g, "\\$1" ); // was: name = name.replace ( /[\[]/, "\\\[" ).replace( /[\]]/, "\\\]" ); (http://stackoverflow.com/questions/2338547/why-does-jslint-returns-bad-escapement-on-this-line-of-code)
 		var results = new RegExp ( "[\\?&]" + name + "=([^&#]*)" ).exec ( url );
 		return results === null ? null : results [ 1 ];
 	},
@@ -9714,8 +9736,8 @@ gui.ActionSpirit = gui.Spirit.infuse ( "gui.ActionSpirit", {
 			case "click" :
 				var onaction = this.att.get ( "onaction" );
 				if ( gui.Type.isString ( onaction )) {
-					var invokable = this.window.Function;
-					new invokable ( onaction ).call ( this );
+					var Invokable = this.window.Function;
+					new Invokable ( onaction ).call ( this );
 				}
 				break;
 		}
@@ -9942,12 +9964,12 @@ gui.module ( "jquery", {
 	 */
 	_instance : function ( jq ) {
 
-		var init = jq.fn.init;
+		var Init = jq.fn.init;
 		var home = jq.__rootnode.ownerDocument.defaultView;
 
 		if ( home.gui.debug ) {
 			jq.fn.init = function ( selector, context, rootjQuery ){
-				var inst = new init ( selector, context, rootjQuery );
+				var inst = new Init ( selector, context, rootjQuery );
 				var test = inst [ 0 ];
 				if ( test && test.nodeType === Node.ELEMENT_NODE ) {
 					if ( test.ownerDocument !== home.document ) {
@@ -10325,6 +10347,7 @@ gui.UPGRADE = function () { // TODO: name this thing
 			);
 		},
 		setAttribute : function ( base ) {
+			/* before JsHint...
 			return ( 
 				ifembedded ( 
 					ifspirit ( setattafter ( base )),
@@ -10332,14 +10355,29 @@ gui.UPGRADE = function () { // TODO: name this thing
 				),
 				otherwise ( base )
 			);
+			*/
+			return ( 
+				ifembedded ( 
+					ifspirit ( setattafter ( base )),
+					otherwise ( base ),
+				otherwise ( base ))
+			);
 		},
 		removeAttribute : function ( base ) {
+			/* before JsHint...
 			return ( 
 				ifembedded ( 
 					ifspirit ( delattafter ( base )), 
 					otherwise ( base )
 				),
 				otherwise ( base )
+			);
+			*/
+			return ( 
+				ifembedded ( 
+					ifspirit ( delattafter ( base )), 
+					otherwise ( base ),
+				otherwise ( base ))
 			);
 		},
 
@@ -10371,7 +10409,7 @@ gui.UPGRADE = function () { // TODO: name this thing
 };
 
 
-/**
+	/**
  * Patching bad WebKit support for DOM getters and setters.
  * @see http://code.google.com/p/chromium/issues/detail?id=13175
  */
@@ -10473,7 +10511,7 @@ gui.WEBKIT = { // TODO: name this thing
 				replace ( /"/g, "&quot" )
 			);
 		}
-	},
+	}
 };
 
 
@@ -10484,16 +10522,16 @@ gui.WEBKIT = { // TODO: name this thing
 gui.Observer = {
 
 	/**
-   * Enable monitoring? DISABLED FOR NOW
-   * @type {boolean}
-   */
-  observes : false, // gui.Client.hasMutations,
+	 * Enable monitoring? DISABLED FOR NOW
+	 * @type {boolean}
+	 */
+	observes : false, // gui.Client.hasMutations,
 
-  /**
-   * Throw exception on mutations not intercepted by the framework.
-   * @type {boolean}
-   */
-  fails : false,
+	/**
+	 * Throw exception on mutations not intercepted by the framework.
+	 * @type {boolean}
+	 */
+	fails : false,
 
 	/**
 	 * Observe document mutations in given window context.
@@ -10507,8 +10545,8 @@ gui.Observer = {
 
 		if ( this.observes && win.gui.debug ) {
 			if ( !gui.Type.isDefined ( obs )) {
-				var observer = this._mutationobserver ();
-				obs = this._observers [ sig ] = new observer ( function ( mutations ) {
+				var Observer = this._mutationobserver ();
+				obs = this._observers [ sig ] = new Observer ( function ( mutations ) {
 					mutations.forEach ( function ( mutation ) {
 						gui.Observer._handleMutation ( mutation );
 					});
@@ -10519,13 +10557,13 @@ gui.Observer = {
 	},
 
 	/**
-   * Suspend mutation monitoring of document associated to node;
-   * enable monitoring again after executing provided function.
-   * @param {Node} node
-   * @param @optional {function} action
-   * @param @optional {object} thisp
-   * @returns {object} if action was defined, we might return something
-   */
+	 * Suspend mutation monitoring of document associated to node;
+	 * enable monitoring again after executing provided function.
+	 * @param {Node} node
+	 * @param @optional {function} action
+	 * @param @optional {object} thisp
+	 * @returns {object} if action was defined, we might return something
+	 */
 	suspend : function ( node, action, thisp ) {
 
 		var res;
@@ -10548,9 +10586,9 @@ gui.Observer = {
 	},
 
 	/**
-   * Resume monitoring of mutations in document associated to node.
-   * @param {Node} node
-   */
+	 * Resume monitoring of mutations in document associated to node.
+	 * @param {Node} node
+	 */
 	resume : function ( node ) {
 
 		if ( node.nodeType ) {
@@ -10576,28 +10614,28 @@ gui.Observer = {
 	_suspend : 0,
 
 	/**
-   * Tracking MutationObservers for window contexts by gui.signature
-   * @type {Map<String,MutationObserver}
-   */
-  _observers : Object.create ( null ),
+	 * Tracking MutationObservers for window contexts by gui.signature
+	 * @type {Map<String,MutationObserver}
+	 */
+	_observers : Object.create ( null ),
 
-  /**
-   * Get observer.
-   * @returns {function} MutationObserver
-   */
-  _mutationobserver : function () {
+	/**
+	 * Get observer.
+	 * @returns {function} MutationObserver
+	 */
+	_mutationobserver : function () {
 
-  	return window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;
-  },
+		return window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;
+	},
 
-  /**
-   * Connect and disconnect observer.
-   * @param {Node} node
-   * @param {boolean} connect
-   */
-  _connect : function ( node, connect ) {
+	/**
+	 * Connect and disconnect observer.
+	 * @param {Node} node
+	 * @param {boolean} connect
+	 */
+	_connect : function ( node, connect ) {
 
-  	var doc = node.ownerDocument || node;
+		var doc = node.ownerDocument || node;
 		var win = doc.defaultView;
 		var sig = win.gui.signature;
 		var obs = this._observers [ sig ];
@@ -10611,12 +10649,12 @@ gui.Observer = {
 				obs.disconnect ();
 			}			
 		}
-  },
+	},
 
-  /**
-   * Handle mutation.
-   * @param {MutationRecord} mutation
-   */
+	/**
+	 * Handle mutation.
+	 * @param {MutationRecord} mutation
+	 */
 	_handleMutation : function ( mutation ) {
 		
 		var action = false;
@@ -11172,7 +11210,7 @@ gui.Guide = {
 				if ( !spirits ) {
 					spirits = this._windows [ sig ] = [];
 					spirits.__loading__ = 0;
-				};
+				}
 				spirits.push ( b.target );
 				spirits.__loading__ ++;
 				break;
@@ -11183,7 +11221,7 @@ gui.Guide = {
 						spirit.channel ();
 					}
 					this._step2 ( b.target.document );
-				};
+				}
 				break;
 		}
 	},
@@ -11194,7 +11232,7 @@ gui.Guide = {
 	 * TODO: JUMP DETACHED SPIRIT IF MATCHING ID!
 	 * @param {Element} elm
 	 * @param {boolean} skip Eval descendants only
- 	 */
+	 */
 	attach : function ( elm ) {
 		
 		this._attach ( elm, false, false );

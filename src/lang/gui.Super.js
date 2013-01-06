@@ -35,7 +35,7 @@ gui.Super.disclaimer = "/**\n" +
 	"  * The runtime execution of this method \n" +
 	"  * has been overloaded by the framework. \n" +
 	"  * This is an approximation of the code. \n" +
-	"  */\n"
+	"  */\n";
 
 /**
  * @static

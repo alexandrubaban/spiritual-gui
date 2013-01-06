@@ -19,7 +19,7 @@ gui.SpiritualAid = {
 		this._extras	( win );
 		
 		if ( !worker ) {
-			this._element ( win );
+			//this._element ( win );
 			this._effects ( win );
 		}
 	},
@@ -144,16 +144,16 @@ gui.SpiritualAid = {
 				var fSlice = win.Array.prototype.slice,
 					aArgs = fSlice.call ( arguments, 1 ),
 					fToBind = this,
-					fNOP = function () {},
+					Fnop = function () {},
 					fBound = function () {
 						return fToBind.apply(
-							this instanceof fNOP ? this : oThis || win,
+							this instanceof Fnop ? this : oThis || win,
 							aArgs.concat ( fSlice.call ( arguments ))
 						);
 					};
 					
-				fNOP.prototype = this.prototype;
-				fBound.prototype = new fNOP();
+				Fnop.prototype = this.prototype;
+				fBound.prototype = new Fnop();
 			    return fBound;
 			}
 		});
@@ -221,8 +221,9 @@ gui.SpiritualAid = {
 					}
 				};
 				return Set;
-			})(),
+			})()
 			
+			/*
 			WeakMap : ( function () { // TODO: clean this up
 				
 				function WeakMap () {
@@ -250,15 +251,14 @@ gui.SpiritualAid = {
 				      has(key) ? values[i] = value : values[keys.push(key) - 1] = value;
 				    }
 
-				    return create(WeakMapPrototype, {
-				    	isNative : {value : false},
-				    	"delete": {value: del},
-				    	del: {value: del},
-				    	get: {value: get},
-				    	has: {value: has},
-				    	set: {value: set}
-				    });
-
+						return create(WeakMapPrototype, {
+							isNative : {value : false},
+							"delete": {value: del},
+							del: {value: del},
+							get: {value: get},
+							has: {value: has},
+							set: {value: set}
+						});
 				  }
 
 				  function WeakMapInstance () {}
@@ -267,13 +267,16 @@ gui.SpiritualAid = {
 				    create = Object.create, indexOf = [].indexOf, i;
 
 				  // used to follow FF behavior where WeakMap.prototype is a WeakMap itself
-				  WeakMap.prototype = WeakMapInstance.prototype = WeakMapPrototype = WeakMap();
+				  WeakMap.prototype = WeakMapInstance.prototype = WeakMapPrototype = new WeakMap();
 				  return WeakMap;
 				
 			})()
+			*/
+
 		});
 	},
 	
+	/*
 	_element : function ( win ) {
 		
 		function camelcase ( string ) {
@@ -282,14 +285,14 @@ gui.SpiritualAid = {
 			});
 		}
 		
+
 		this._extend ( win.Element.prototype, {
-			
 			dataset : {
 				get : function () {
 					var set = Object.create ( null );
 					Array.forEach ( this.attributes, function ( att ) {
 						if ( att.name.startsWith ( "data-" )) {
-							alert ( att );
+							// alert ( att );
 						}
 					});
 					return set;
@@ -300,6 +303,7 @@ gui.SpiritualAid = {
 			}
 		});
 	},
+	*/
 	
 	/**
 	 * Patching cheap DHTML effects with super-simplistic polyfills.
@@ -381,7 +385,7 @@ gui.SpiritualAid = {
 		// ie doesn't have this
 		this._extend ( XMLHttpRequest.prototype, {
 			overrideMimeType : function () {}
-		})
+		});
 		
 		// Safari on iPad has no constants to reflect request state
 		this._extend ( win.XMLHttpRequest, {

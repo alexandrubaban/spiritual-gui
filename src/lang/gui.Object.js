@@ -45,7 +45,7 @@ gui.Object = {
    */
   copy : function ( source ) {
 
-  	return this.extend ( Object.create ( null ), source );
+		return this.extend ( Object.create ( null ), source );
   },
   
 	/**

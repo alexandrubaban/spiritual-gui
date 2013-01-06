@@ -26,7 +26,7 @@ gui.BlobLoader = {
 		if ( callback ) {
 			script.onload = function () {
 				callback.call ( thisp );
-			}
+			};
 		}
 	}
 };

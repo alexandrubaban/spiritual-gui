@@ -130,7 +130,7 @@ gui.TransitionPlugin = gui.SpiritPlugin.extend ( "gui.TransitionPlugin", {
 		 * Firefox needs a break before setting the styles.
 		 * http://stackoverflow.com/questions/6700137/css-3-transitions-with-opacity-chrome-and-firefox
 		 */
-		var that = this, then = this._then, spirit = this.spirit;
+		var that = this, spirit = this.spirit;
 		if (( this._count = Object.keys ( css ).length )) {
 			setImmediate ( function () {
 				spirit.css.style ( css );
@@ -140,7 +140,7 @@ gui.TransitionPlugin = gui.SpiritPlugin.extend ( "gui.TransitionPlugin", {
 					});
 				}
 			});
-		};
+		}
 
 		return then;
 	},

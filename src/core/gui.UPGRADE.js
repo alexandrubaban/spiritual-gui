@@ -122,6 +122,7 @@ gui.UPGRADE = function () { // TODO: name this thing
 			);
 		},
 		setAttribute : function ( base ) {
+			/* before JsHint...
 			return ( 
 				ifembedded ( 
 					ifspirit ( setattafter ( base )),
@@ -129,14 +130,29 @@ gui.UPGRADE = function () { // TODO: name this thing
 				),
 				otherwise ( base )
 			);
+			*/
+			return ( 
+				ifembedded ( 
+					ifspirit ( setattafter ( base )),
+					otherwise ( base ),
+				otherwise ( base ))
+			);
 		},
 		removeAttribute : function ( base ) {
+			/* before JsHint...
 			return ( 
 				ifembedded ( 
 					ifspirit ( delattafter ( base )), 
 					otherwise ( base )
 				),
 				otherwise ( base )
+			);
+			*/
+			return ( 
+				ifembedded ( 
+					ifspirit ( delattafter ( base )), 
+					otherwise ( base ),
+				otherwise ( base ))
 			);
 		},
 

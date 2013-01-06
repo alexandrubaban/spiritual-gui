@@ -77,7 +77,7 @@ gui.Guide = {
 				if ( !spirits ) {
 					spirits = this._windows [ sig ] = [];
 					spirits.__loading__ = 0;
-				};
+				}
 				spirits.push ( b.target );
 				spirits.__loading__ ++;
 				break;
@@ -88,7 +88,7 @@ gui.Guide = {
 						spirit.channel ();
 					}
 					this._step2 ( b.target.document );
-				};
+				}
 				break;
 		}
 	},
@@ -99,7 +99,7 @@ gui.Guide = {
 	 * TODO: JUMP DETACHED SPIRIT IF MATCHING ID!
 	 * @param {Element} elm
 	 * @param {boolean} skip Eval descendants only
- 	 */
+	 */
 	attach : function ( elm ) {
 		
 		this._attach ( elm, false, false );
