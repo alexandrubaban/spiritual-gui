@@ -1,0 +1,89 @@
+/**
+ * Tracking DOM events.
+ * TODO: Corresponding static class for non-plugin use. 
+ * @extends {gui.SpiritTracker}
+ */
+gui.EventTracker = gui.SpiritTracker.extend ( "gui.EventTracker", {
+   
+	/**
+	 * Add one or more DOM event handlers.
+	 * TODO: Don't assume spirit handler
+	 * TODO: reverse handler and capture args
+	 * @param {object} arg String, array or whitespace-separated-string
+	 * @param @optional {object} target Node, Window or XmlHttpRequest. Defaults to spirit element
+	 * @param @optional {object} handler implements EventListener interface, defaults to spirit
+	 * @param @optional {boolean} capture Defaults to false
+	 * @returns {gui.Spirit}
+	 */
+	add : function ( arg, target, handler, capture ) {
+		
+		target = target ? target : this.spirit.element;
+		handler = handler ? handler : this.spirit;
+		capture = capture ? capture : false;
+		if ( target instanceof gui.Spirit ) {
+			target = target.element;
+		}
+		if ( gui.Interface.validate ( gui.IEventHandler, handler )) {
+			var checks = [ target, handler, capture ];
+			this._breakdown ( arg ).forEach ( function ( type ) {
+				if ( this._addchecks ( type, checks )) {
+					target.addEventListener ( type, handler, capture );
+				}
+			}, this );
+		}
+		return this;
+	},
+		
+	/**
+	 * Add one or more DOM event handlers.
+	 * @param {object} arg String, array or whitespace-separated-string
+	 * @param @optional {object} target Node, Window or XmlHttpRequest. Defaults to spirit element
+	 * @param @optional {object} handler implements EventListener interface, defaults to spirit
+	 * @param @optional {boolean} capture Defaults to false
+	 */
+	remove : function ( arg, target, handler, capture ) {
+		
+		target = target ? target : this.spirit.element;
+		handler = handler ? handler : this.spirit;
+		capture = capture ? capture : false;
+		if ( target instanceof gui.Spirit ) {
+			target = target.element;
+		}
+		if ( gui.Interface.validate ( gui.IEventHandler, handler )) {
+			var checks = [ target, handler, capture ];
+			this._breakdown ( arg ).forEach ( function ( type ) {
+				if ( this._removechecks ( type, checks )) {
+					target.removeEventListener ( type, handler, capture );
+				}
+			}, this );
+		}
+		return this;
+	},
+	
+	/**
+	 * Toggle one or more DOM event handlers.
+	 * @param {object} arg String, array or whitespace-separated-string
+	 * @param @optional {object} target Node, Window or XmlHttpRequest. Defaults to spirit element
+	 * @param @optional {object} handler implements EventListener interface, defaults to spirit
+	 * @param @optional {boolean} capture Defaults to false
+	 */
+	toggle : function ( arg, target, handler, capture ) {
+		
+		target = target ? target : this.spirit.element;
+		handler = handler ? handler : this.spirit;
+		capture = capture ? capture : false;
+		if ( target instanceof gui.Spirit ) {
+			target = target.element;
+		}
+		var checks = [ target, handler, capture ];
+		this._breakdown ( arg ).forEach ( function ( type ) {
+			if ( this._contains ( type, checks )) {
+				this.add ( type, target, handler, capture );
+			} else {
+				this.remove ( type, target, handler, capture );
+			}
+		}, this );
+		return this;
+	}
+
+});
