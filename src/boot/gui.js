@@ -2,9 +2,10 @@ var gui = { // namespace object
 
 	/**
 	 * Spiritual version. Hardcoded for now.
+	 * TODO: Deprecate or generate buildtime.
 	 * @type {String}
 	 */
-	version : "0.0.3",
+	version : "0.0.4",
 
 	/**
 	 * Spirit management mode. 
@@ -83,10 +84,7 @@ var gui = { // namespace object
 	 */
 	ACTION_DRAG_START : "gui-action-drag-start",
 	ACTION_COMMAND : "gui-action-command",
-
-	// ACTION_APPEAR : "gui-action-appear",
-	// ACTION_DISAPPEAR : "gui-action-disappear",
-
+	
 	/*
 	 * Crawler types
 	 */
