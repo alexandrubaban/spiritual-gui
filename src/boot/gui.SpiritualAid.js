@@ -221,9 +221,8 @@ gui.SpiritualAid = {
 					}
 				};
 				return Set;
-			})()
+			})(),
 			
-			/*
 			WeakMap : ( function () { // TODO: clean this up
 				
 				function WeakMap () {
@@ -251,14 +250,15 @@ gui.SpiritualAid = {
 				      has(key) ? values[i] = value : values[keys.push(key) - 1] = value;
 				    }
 
-						return create(WeakMapPrototype, {
-							isNative : {value : false},
-							"delete": {value: del},
-							del: {value: del},
-							get: {value: get},
-							has: {value: has},
-							set: {value: set}
-						});
+				    return create(WeakMapPrototype, {
+				    	isNative : {value : false},
+				    	"delete": {value: del},
+				    	del: {value: del},
+				    	get: {value: get},
+				    	has: {value: has},
+				    	set: {value: set}
+				    });
+
 				  }
 
 				  function WeakMapInstance () {}
@@ -267,11 +267,10 @@ gui.SpiritualAid = {
 				    create = Object.create, indexOf = [].indexOf, i;
 
 				  // used to follow FF behavior where WeakMap.prototype is a WeakMap itself
-				  WeakMap.prototype = WeakMapInstance.prototype = WeakMapPrototype = new WeakMap();
+				  WeakMap.prototype = WeakMapInstance.prototype = WeakMapPrototype = WeakMap();
 				  return WeakMap;
 				
 			})()
-			*/
 
 		});
 	},
