@@ -115,6 +115,7 @@ gui.Exemplar = {
 	
 	/**
 	 * Assign method or property to prototype, checking for naming collision.
+	 * TODO: http://www.nczonline.net/blog/2012/12/11/are-your-mixins-ecmascript-5-compatible
 	 * @param {String} name
 	 * @param {object} value
 	 * @param @optional {boolean} override Disable collision detection
@@ -220,7 +221,7 @@ gui.Exemplar = {
 			name = name.substring ( index + 1 );
 		}
 
-		var Invokable = Function; // TODO: shouldn't this be scoped to a window?
+		var Invokable = Function; // TODO: perhaps scope this to a context?
 		var named = new Invokable (
 			"return function " + name + " () {" +
 				"var con = this.__construct__ || this.onconstruct;" +

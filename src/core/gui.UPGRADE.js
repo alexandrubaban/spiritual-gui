@@ -122,45 +122,25 @@ gui.UPGRADE = function () { // TODO: name this thing
 			);
 		},
 		setAttribute : function ( base ) {
-			
 			return ( 
 				ifembedded ( 
-					ifspirit ( setattafter ( base )),
-					otherwise ( base )
-				),
-				otherwise ( base )
-			);
-			/*
-			return ( 
-				ifembedded ( 
-					ifspirit ( setattafter ( base )),
-					otherwise ( base ),
+					ifspirit ( setattafter ( base ), 
+					otherwise ( base )),
 				otherwise ( base ))
 			);
-			*/
 		},
 		removeAttribute : function ( base ) {
-			
 			return ( 
 				ifembedded ( 
-					ifspirit ( delattafter ( base )), 
-					otherwise ( base )
-				),
-				otherwise ( base )
-			);
-			/*
-			return ( 
-				ifembedded ( 
-					ifspirit ( delattafter ( base )), 
-					otherwise ( base ),
+					ifspirit ( delattafter ( base ),
+					otherwise ( base )),
 				otherwise ( base ))
 			);
-			*/
 		},
 
 		/*
-		 * Property setters are ignored for WebKit; this stuff works only because properties 
-		 * have been re-implemented using methods (see above) in all WebKit based browsers :)
+		 * Property setters are skipped for WebKit. The stuff works only because properties 
+		 * have been re-implemented using methods (see above) in all WebKit based browsers.
 		 */
 
 		innerHTML : function ( base ) {

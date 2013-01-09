@@ -27,6 +27,14 @@ gui.World = {
 	 */
 	descend : function descend ( win ) {
 
+		/*
+		var ms = "";
+		gui.Object.methods(win.DocumentFragment.prototype).forEach(function(m){
+			ms += m + "\n";
+		});
+		alert(ms);
+		*/
+
 		var element = win.Element.prototype;
 		if ( gui.Type.isDefined ( element.spirit )) {
 			throw new Error ( "Spiritual loaded twice?" );
@@ -317,132 +325,3 @@ gui.World = {
 		}));
 	}
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-/**
-	 * Fix property descriptors in IE.
-	 * TODO: compact this
-	 *
-	_exploder : function () {
-
-		var inner = Object.getOwnPropertyDescriptor ( win.HTMLElement.prototype, "innerHTML" );
-		Object.defineProperty ( win.HTMLElement.prototype, "innerHTML", {
-			get: function () {
-				return inner.get.call ( this );
-			},
-			set: function ( html ) {
-				var is = dom.embedded ( this );
-				if ( is ) {
-					guide.detachSub ( this );
-				}
-				gui.Observer.suspend ( this, function() {
-					inner.set.call ( this, html );
-				}, this );
-				if ( is ) {
-					guide.attachSub ( this );
-				}
-			}
-		});
-
-		var outer = Object.getOwnPropertyDescriptor ( win.HTMLElement.prototype, "outerHTML" );
-		Object.defineProperty ( win.HTMLElement.prototype, "outerHTML", {
-			get: function () {
-				return outer.get.call ( this );
-			},
-			set: function ( html ) {
-				var is = dom.embedded ( this );
-				if ( is ) {
-					guide.detach ( this );
-				}
-				var parent = this.parentNode;
-				gui.Observer.suspend ( this, function() {
-					outer.set.call ( this, html );
-				}, this );
-				if ( is ) {
-					guide.attachSub ( parent ); // TODO: optimize!
-				}
-			}
-		});
-
-		var text = Object.getOwnPropertyDescriptor ( win.HTMLElement.prototype, "textContent" );
-		Object.defineProperty ( win.HTMLElement.prototype, "textContent", {
-			get: function () {
-				return outer.get.call ( this );
-			},
-			set: function ( html ) {
-				var is = dom.embedded ( this );
-				if ( is ) {
-					guide.detach ( this );
-				}
-				gui.Observer.suspend ( this, function() {
-					text.set.call ( this, html );
-				}, this );
-			}
-		});
-	}
-
-	/**
-	 * Fix property descriptors in Opera and Firefox.
-	 * @param {Element} elm Fetch native descriptors from this element
-	 * @param {Object} proto Element.prototype (but FF is complicated)
-	 * TODO: compact this
-	 *
-	_operagecko : function ( elm, proto ) {
-
-		var dom = gui.SpiritDOM;
-		var guide = gui.Guide;
-
-		// innerHTML
-		var inner = elm.__lookupSetter__ ( "innerHTML" );
-		proto.__defineSetter__ ( "innerHTML", function ( html ) {
-			var is = dom.embedded ( this );
-			if ( is ) {
-				guide.detachSub ( this );
-			}
-			gui.Observer.suspend ( this, function() {
-				inner.call ( this, html );
-			}, this );
-			if ( is ) {
-				guide.attachSub ( this );
-			}
-		});
-		
-		// outerHTML
-		var outer = elm.__lookupSetter__ ( "outerHTML" );
-		proto.__defineSetter__ ( "outerHTML", function ( html ) {
-			var is = dom.embedded ( this );
-			if ( is ) {
-				guide.detach ( this );
-			}
-			var parent = this.parentNode;
-			gui.Observer.suspend ( this, function() {
-				outer.call ( this, html );
-			}, this );
-			if ( is ) {
-				guide.attachSub ( parent ); // TODO: optimize!
-			}
-		});
-
-		// textContent
-		var content = elm.__lookupSetter__ ( "textContent" );
-		proto.__defineSetter__ ( "textContent", function ( text ) {
-			if ( dom.embedded ( this )) {
-				guide.detach ( this );
-			}
-			gui.Observer.suspend ( this, function() {
-				content.call ( this, text );
-			}, this );
-		});
-	}
-	*/

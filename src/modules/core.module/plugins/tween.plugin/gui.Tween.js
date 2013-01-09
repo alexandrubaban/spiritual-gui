@@ -1,17 +1,26 @@
 /**
  * @param {String} type
+ * @param @optional {object} data
  */
-gui.Tween = function ( type ) {
+gui.Tween = function ( type, data ) {
 
 	this.type = type;
+	this.data = data;
 };
 
 gui.Tween.prototype = {
 
 	/**
+	 * Tween type.
 	 * @type {String}
 	 */
 	type : null,
+
+	/**
+	 * Optional tween data.
+	 * @type {object}
+	 */
+	data : null,
 
 	/**
 	 * Between zero and one.
@@ -51,40 +60,41 @@ gui.Tween.removeGlobal = function ( type, handler ) {
  * @param {ui.Animation} animation
  * @returns {gui.Tween} but why?
  */
-gui.Tween.dispatchGlobal = function(type,data){
+gui.Tween.dispatchGlobal = function ( type, data ){
 
 	var that = this;
-	var start = new Date().getTime();
-	var tween = new gui.Tween(type);
+	var start = new Date ().getTime ();
+	var tween = new gui.Tween ( type, data );
 	var duration = data ? ( data.duration || 200 ) : 200;
 	var timing = data ? ( data.timing || "none" ) : "none";
-
-	tween.data = data; // ?
-
-	function step(time) {
-		var value = 1, progress = time-start;
-		if(progress<duration){
-			value = progress/duration;
-			if(timing !== "none"){
-				value = value*90*Math.PI/180;
-				switch(timing){
+	
+	function step () {
+		var time = new Date ().getTime ();
+		var value = 1, progress = time - start;
+		if ( progress < duration ) {
+			value = progress / duration;
+			if ( timing !== "none" ){
+				value = value * 90 * Math.PI / 180;
+				switch ( timing ) {
 					case "ease-in" :
-						value = 1-Math.cos(value);
+						value = 1-Math.cos ( value );
 						break;
 					case "ease-out" :
-						value = Math.sin(value);
+						value = Math.sin ( value );
 						break;
 				}
 			}
 		}
-		tween.value = value;
-		if(value===1){
+		if ( value === 1 ) {
+			tween.value = 1;
 			tween.done = true;
 		} else {
-			requestAnimationFrame(step);
+			tween.value = value;
+			requestAnimationFrame ( step );
 		}
-		gui.Broadcast.dispatchGlobal(null,gui.BROADCAST_TWEEN,tween);
+		gui.Broadcast.dispatchGlobal ( null,gui.BROADCAST_TWEEN,tween );
 	}
-	step(start);
+
+	step ( start );
 	return tween;
 };
