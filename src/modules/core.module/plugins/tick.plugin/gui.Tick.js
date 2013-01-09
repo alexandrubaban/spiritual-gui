@@ -328,7 +328,6 @@ gui.Tick._dispatch = function ( type, time, sig ) {
 				if ( list._one && list._one [ i ]) {
 					delete list._one [ i ];
 					list.remove ( i );
-					//list.remove ( handler )
 				}
 			}, this );
 		}
