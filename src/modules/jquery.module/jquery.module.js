@@ -137,7 +137,7 @@ gui.module ( "jquery", {
 				var test = inst [ 0 ];
 				if ( test && test.nodeType === Node.ELEMENT_NODE ) {
 					if ( test.ownerDocument !== home.document ) {
-						throw new Error ( test.spirit + " must use the local version of JQuery (this.window.$)" );
+						throw new Error ( "JQuery was used to handle elements in another window. Please use a locally loaded version of JQuery." );
 					}
 				}
 				return inst;
@@ -145,11 +145,6 @@ gui.module ( "jquery", {
 		}
 	},
 
-	/**
-	 * Overloading DOM manipulation methods.
-	 * TODO: attr and removeAttr must be hooked into gui.SpiritAtt setup...
-	 * @param {function} jq Constructor
-	 */
 	/**
 	 * Overloading DOM manipulation methods.
 	 * TODO: attr and removeAttr must be hooked into gui.SpiritAtt setup...
@@ -204,39 +199,57 @@ gui.module ( "jquery", {
 					}
 					res = suber ();
 				} else {
-					var arg = set ? jq ( args [ 0 ]) : undefined;
+					var arg = function() { return set ? jq ( args [ 0 ]) : undefined; };
 					var guide = gui.Guide;
 					jq.__suspend = true;
 					switch ( name ) {
 						case "append" :
 						case "prepend" :
 							res = suber ();
-							this.__attachSub ();
+							this.__attachSub (); // TODO: optimize!!!
 							break;
 						case "after" :
 						case "before" :
-							res = suber ();
-							this.parent ().__attachSub (); // TODO: optimize!
+							// Can't use arguments here since JQuery inserts clones thereof.
+							// Stuff becomes extra tricky since "this" can itself be a list.
+							( function () {
+								var is = name === "after";
+								var key = "isattached";
+								var olds = is ? this.nextAll () : this.prevAll ();
+								olds.data ( key, "true" ); // mark current siblings
+								res = suber ();
+								var news = is ? this.nextAll () : this.prevAll ();
+								news.each(function ( i, m ) {
+									m = jq ( m );
+									if ( !m.data ( key )) {
+										m.__attach (); // attach unmarked sibling
+										m.data ( key, "true" );
+									}
+								});
+								gui.Tick.next ( function () {
+									news.removeData ( key ); // cleanup all this
+								});
+							}).call ( this );
 							break;
 						case "appendTo" :
 							res = suber ();
-							arg.each ( function ( i, m ) {
+							arg().each ( function ( i, m ) {
 								jq ( m ).last ().__attach ();
 							});
 							break;
 						case "prependTo" :
 							res = suber ();
-							arg.each ( function ( i, m ) {
+							arg().each ( function ( i, m ) {
 								jq ( m ).first ().__attach ();
 							});
 							break;
 						case "insertAfter" :
 							res = suber ();
-							arg.next ().__attach ();
+							arg().next ().__attach ();
 							break;
 						case "insertBefore" :
 							res = suber ();
-							arg.prev ().__attach ();
+							arg().prev ().__attach ();
 							break;
 						case "detach" :
 						case "remove" :
@@ -244,17 +257,16 @@ gui.module ( "jquery", {
 							res = suber ();
 							break;
 						case "replaceAll" :
-							arg.__detach ();
+							arg().__detach ();
 							res = suber ();
-							this.parent ().__attachSub (); // optimize!
+							this.parent ().__attachSub (); // TODO: optimize!
 							break;
 						case "replaceWith" :
 							this.__detach ();
 							var p = this.parent ();
 							res = suber ();
-							p.__attachSub (); // optimize!
+							p.__attachSub (); // TODO: optimize!
 							break;
-						//case "text" :
 						case "empty" :
 							this.__detachSub ();
 							res = suber ();
@@ -290,6 +302,23 @@ gui.module ( "jquery", {
 			};
 		});
 	},
+
+		/*
+		this.nextAll ().data ( key, "true" );
+		res = suber ();
+		var all = this.nextAll();
+		all.each(function ( i, m ) {
+			m = jq ( m );
+			if ( !m.data ( key )) {
+				m.data ( key, "true" );
+				m.__attach ();
+			};
+		});
+
+		gui.Tick.next ( function () {
+			all.removeData ( key );
+		});
+		*/
 
 	/**
 	 * Overload Spiritual to attach/detach spirits on DOM mutation and to 

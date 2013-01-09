@@ -289,7 +289,7 @@ gui.SpiritualAid = {
 					
 				Fnop.prototype = this.prototype;
 				fBound.prototype = new Fnop();
-			    return fBound;
+					return fBound;
 			}
 		});
 	},
@@ -356,35 +356,38 @@ gui.SpiritualAid = {
 					}
 				};
 				return Set;
-			})()
+			})(),
 			
-			/*
 			WeakMap : ( function () { // TODO: clean this up
 				
 				function WeakMap () {
 
-				    var keys = [], values = [];
+						var keys = [], values = [];
 
-				    function del(key) {
-				      if (has(key)) {
-				        keys.splice(i, 1);
-				        values.splice(i, 1);
-				      }
-				      return -1 < i;
-				    }
+						function del(key) {
+							if (has(key)) {
+								keys.splice(i, 1);
+								values.splice(i, 1);
+							}
+							return -1 < i;
+						}
 
-				    function get(key, d3fault) {
-				      return has(key) ? values[i] : d3fault;
-				    }
+						function get(key, d3fault) {
+							return has(key) ? values[i] : d3fault;
+						}
 
-				    function has(key) {
-				      i = indexOf.call(keys, key);
-				      return -1 < i;
-				    }
+						function has(key) {
+							i = indexOf.call(keys, key);
+							return -1 < i;
+						}
 
-				    function set(key, value) {
-				      has(key) ? values[i] = value : values[keys.push(key) - 1] = value;
-				    }
+						function set(key, value) {
+							if ( has(key)) {
+								values[i] = value;
+							} else {
+								values[keys.push(key) - 1] = value;
+							}
+						}
 
 						return create(WeakMapPrototype, {
 							isNative : {value : false},
@@ -394,19 +397,19 @@ gui.SpiritualAid = {
 							has: {value: has},
 							set: {value: set}
 						});
-				  }
 
-				  function WeakMapInstance () {}
+					}
 
-				  var Object = win.Object, WeakMapPrototype = WeakMap.prototype,
-				    create = Object.create, indexOf = [].indexOf, i;
+					function WeakMapInstance () {}
 
-				  // used to follow FF behavior where WeakMap.prototype is a WeakMap itself
-				  WeakMap.prototype = WeakMapInstance.prototype = WeakMapPrototype = new WeakMap();
-				  return WeakMap;
+					var Object = win.Object, WeakMapPrototype = WeakMap.prototype,
+						create = Object.create, indexOf = [].indexOf, i;
+
+					// used to follow FF behavior where WeakMap.prototype is a WeakMap itself
+					WeakMap.prototype = WeakMapInstance.prototype = WeakMapPrototype = new WeakMap();
+					return WeakMap;
 				
 			})()
-			*/
 
 		});
 	},
@@ -466,7 +469,7 @@ gui.SpiritualAid = {
 							return id;
 						};
 					}());
-			    return func;
+					return func;
 			})(),
 
 			/*
@@ -1385,6 +1388,7 @@ gui.Exemplar = {
 	
 	/**
 	 * Assign method or property to prototype, checking for naming collision.
+	 * TODO: http://www.nczonline.net/blog/2012/12/11/are-your-mixins-ecmascript-5-compatible
 	 * @param {String} name
 	 * @param {object} value
 	 * @param @optional {boolean} override Disable collision detection
@@ -1490,7 +1494,7 @@ gui.Exemplar = {
 			name = name.substring ( index + 1 );
 		}
 
-		var Invokable = Function; // TODO: shouldn't this be scoped to a window?
+		var Invokable = Function; // TODO: perhaps scope this to a context?
 		var named = new Invokable (
 			"return function " + name + " () {" +
 				"var con = this.__construct__ || this.onconstruct;" +
@@ -1539,6 +1543,7 @@ gui.Exemplar = {
 		}
 	}
 };
+
 
 
 /**
@@ -3202,6 +3207,179 @@ gui.KeyMaster = {
 	 * @type {Set<String>}
 	 */
 	_keys : new Set ()
+};
+
+
+/**
+ * Simplistic XMLHttpRequest wrapper. 
+ * Work in progress, lot's to do here.
+ * @param @optional {String} url
+ */
+gui.Request = function ( url ) {
+	
+	if ( url ) {
+		this.url ( url );
+	}
+};
+
+gui.Request.prototype = {
+	
+	/**
+	 * Set request address.
+	 * @param {String} url
+	 */
+	url : function ( url ) {
+		
+		this._url = url;
+		return this;
+	},
+	
+	/**
+	 * Convert to synchronous request.
+	 */
+	sync : function () {
+		
+		this._async = false;
+		return this;
+	},
+	
+	/**
+	 * Convert to asynchronous request.
+	 */
+	async : function () {
+		
+		this._async = true;
+		return this;
+	},
+	
+	/**
+	 * Expected response type. Sets the accept header and formats 
+	 * callback result accordingly (eg. as JSON object, XML document) 
+	 * @param {String} mimetype
+	 * @returns {gui.SpiritRquest}
+	 */
+	accept : function ( mimetype ) {
+		
+		this._accept = mimetype;
+		return this;
+	},
+	
+	/**
+	 * Expect JSON response.
+	 * @returns {gui.SpiritRquest}
+	 */
+	acceptJSON : function () {
+		
+		return this.accept ( "application/json" );
+	},
+	
+	/**
+	 * Expect XML response.
+	 * @returns {gui.SpiritRquest}
+	 */
+	acceptXML : function () {
+		
+		return this.accept ( "text/xml" );
+	},
+	
+	/**
+	 * Request content type (when posting data to service).
+	 * @param {String} mimetype
+	 * @returns {gui.SpiritRquest}
+	 */
+	format : function ( mimetype ) {
+		
+		this._format = mimetype;
+		return this;
+	},
+	
+	/**
+	 * Set request header.
+	 * @param {String} name
+	 * @param {String} value
+	 * @returns {gui.SpiritRquest}
+	 */
+	header : function ( name, value ) {
+		
+		// TODO!
+		console.warn ( "TODO: request headers" );
+		return this;
+	},
+	
+	/**
+	 * Get stuff.
+	 * TODO: Synchronous version
+	 * TODO: Unhardcode status
+	 * @param {function} callback
+	 * @param {object} thisp
+	 */
+	get : function ( callback, thisp ) {
+		
+		var that = this, request = new XMLHttpRequest ();
+		request.onreadystatechange = function () {
+			if ( this.readyState === XMLHttpRequest.DONE ) {
+				callback.call ( thisp, 200, that._parse ( this.responseText ), this.responseText );
+			}
+		};
+		request.overrideMimeType ( this._accept );
+		request.open ( "get", this._url, true );
+		request.send ( null );
+	},
+
+	post : function () {},
+	put : function () {},
+	del : function () {},
+	
+	
+	// PRIVATES ...................................................................................
+	
+	/**
+	 * @type {boolean}
+	 */
+	_async : true,
+	
+	/**
+	 * @type {String}
+	 */
+	_url : null,
+	
+	/**
+	 * Expexted response type.
+	 * TODO: an array?
+	 * @type {String}
+	 */
+	_accept : "text/plain",
+	
+	/**
+	 * Default request type.
+	 * @type {String}
+	 */
+	_format : "application/x-www-form-urlencoded",
+	
+	/**
+	 * Parse response to expected type.
+	 * @param {String} text
+	 * @returns {object}
+	 */
+	_parse : function ( text ) {
+		
+		var result = text;
+		
+		try {
+			switch ( this._accept ) {
+				case "application/json" :
+					result = JSON.parse ( text );
+					break;
+				case "text/xml" :
+					result = new DOMParser ().parseFromString ( text, "text/xml" );
+					break;
+			}
+		} catch ( exception ) {
+			console.error ( this._accept + " dysfunction at " + this._url );
+			throw exception;
+		}
+		return result;
+	}
 };
 
 
@@ -6247,7 +6425,7 @@ gui.SpiritDOM = gui.SpiritPlugin.extend ( "gui.SpiritDOM", {
 	html : function ( element, markup ) {
 		
 		var guide = gui.Guide;
-		if ( element.nodeType ) {
+		if ( element.nodeType === Node.ELEMENT_NODE ) {
 			if ( gui.Type.isString ( markup )) {
 
 				// parse markup to node(s)
@@ -6271,7 +6449,7 @@ gui.SpiritDOM = gui.SpiritPlugin.extend ( "gui.SpiritDOM", {
 				guide.attachSub ( element );
 			}
 		} else {
-			throw new TypeError ();
+			// throw new TypeError ();
 		}
 		return element.innerHTML; // TODO: skip this step on setter
 	},
@@ -6413,7 +6591,7 @@ gui.Object.each ({
 	 */
 	q : function ( selector, type ) {
 		
-		var result;
+		var result = null;
 		selector = this._qualify ( selector );
 		if ( type ) {
 			result = this.qall ( selector, type )[ 0 ] || null;
@@ -6684,8 +6862,9 @@ gui.Object.each ({
 	ancestors : function ( type ) {
 		
 		var result = [];
+		var crawler = new gui.Crawler ();
 		if ( type ) {	
-			new gui.Crawler ().ascend ( this.element, {
+			crawler.ascend ( this.element, {
 				handleSpirit : function ( spirit ) {
 					if ( spirit instanceof type ) {
 						result.push ( spirit );
@@ -6693,7 +6872,11 @@ gui.Object.each ({
 				}
 			});
 		} else {
-			result.push ( this.parent ());
+			crawler.ascend ( this.element, {
+				handleElement : function ( el ) {
+					result.push ( el );
+				}
+			});
 		}
 		return result;
 	},
@@ -6859,7 +7042,8 @@ gui.Object.each ({
 	 * @param {String} name
 	 * @param {function} method
 	 */
-},  function addin ( name, method ) {
+
+}, function addin ( name, method ) {
 	
 	gui.SpiritDOM.addin ( name, function ( things ) {
 		var elms = Array.map ( gui.Type.list ( things ), function ( thing ) {
@@ -6875,6 +7059,7 @@ gui.Object.each ({
 		}
 	});
 });
+
 
 
 /**
@@ -7525,18 +7710,27 @@ gui.ITickHandler = {
 
 /**
  * @param {String} type
+ * @param @optional {object} data
  */
-gui.Tween = function ( type ) {
+gui.Tween = function ( type, data ) {
 
 	this.type = type;
+	this.data = data;
 };
 
 gui.Tween.prototype = {
 
 	/**
+	 * Tween type.
 	 * @type {String}
 	 */
 	type : null,
+
+	/**
+	 * Optional tween data.
+	 * @type {object}
+	 */
+	data : null,
 
 	/**
 	 * Between zero and one.
@@ -7576,43 +7770,45 @@ gui.Tween.removeGlobal = function ( type, handler ) {
  * @param {ui.Animation} animation
  * @returns {gui.Tween} but why?
  */
-gui.Tween.dispatchGlobal = function(type,data){
+gui.Tween.dispatchGlobal = function ( type, data ){
 
 	var that = this;
-	var start = new Date().getTime();
-	var tween = new gui.Tween(type);
+	var start = new Date ().getTime ();
+	var tween = new gui.Tween ( type, data );
 	var duration = data ? ( data.duration || 200 ) : 200;
 	var timing = data ? ( data.timing || "none" ) : "none";
-
-	tween.data = data; // ?
-
-	function step(time) {
-		var value = 1, progress = time-start;
-		if(progress<duration){
-			value = progress/duration;
-			if(timing !== "none"){
-				value = value*90*Math.PI/180;
-				switch(timing){
+	
+	function step () {
+		var time = new Date ().getTime ();
+		var value = 1, progress = time - start;
+		if ( progress < duration ) {
+			value = progress / duration;
+			if ( timing !== "none" ){
+				value = value * 90 * Math.PI / 180;
+				switch ( timing ) {
 					case "ease-in" :
-						value = 1-Math.cos(value);
+						value = 1-Math.cos ( value );
 						break;
 					case "ease-out" :
-						value = Math.sin(value);
+						value = Math.sin ( value );
 						break;
 				}
 			}
 		}
-		tween.value = value;
-		if(value===1){
+		if ( value === 1 ) {
+			tween.value = 1;
 			tween.done = true;
 		} else {
-			requestAnimationFrame(step);
+			tween.value = value;
+			requestAnimationFrame ( step );
 		}
-		gui.Broadcast.dispatchGlobal(null,gui.BROADCAST_TWEEN,tween);
+		gui.Broadcast.dispatchGlobal ( null,gui.BROADCAST_TWEEN,tween );
 	}
-	step(start);
+
+	step ( start );
 	return tween;
 };
+
 
 
 /**
@@ -8096,6 +8292,12 @@ gui.AttentionPlugin = gui.SpiritPlugin.extend ( "gui.AttentionPlugin", {
 	 */
 	blur : function () {
 
+		// TODO: definitely not like this...
+		gui.Broadcast.dispatchGlobal ( null,
+			gui.BROADCAST_ATTENTION_OFF,
+			this.spirit.spiritkey
+		);
+
 		if ( this._focused ) {
 			if ( this._latest ) {
 				this._latest.blur ();
@@ -8182,13 +8384,10 @@ gui.AttentionPlugin = gui.SpiritPlugin.extend ( "gui.AttentionPlugin", {
 		[ "before", "after" ].forEach ( function ( pos ) {
 			var elm = this._input ( pos );
 			var dom = this.spirit.dom;
-			switch ( pos ) {
-				case "before" :
-					dom.prepend ( elm );
-					break;
-				case "after" :
-					dom.append ( elm );
-					break;
+			if ( pos === "before" ) {
+				dom.prepend ( elm );
+			} else {
+				dom.append ( elm );
 			}
 		}, this );
 	},
@@ -8331,7 +8530,7 @@ gui.AttentionPlugin = gui.SpiritPlugin.extend ( "gui.AttentionPlugin", {
 	_onblur : function ( node ) {
 
 		this._focused = false;
-		gui.Tick.next ( function () { // TODO: use tick!
+		gui.Tick.next ( function () {
 			if ( !this._focused ) {
 				this._didescape ();
 			}
@@ -8355,6 +8554,12 @@ gui.AttentionPlugin = gui.SpiritPlugin.extend ( "gui.AttentionPlugin", {
 	_didescape : function () {
 
 		this._flag = false;
+		/*
+		gui.Broadcast.dispatchGlobal ( null,
+			gui.BROADCAST_ATTENTION_OFF,
+			this.spirit.spiritkey
+		);
+		*/
 	}
 
 
@@ -8403,7 +8608,6 @@ gui.AttentionPlugin = gui.SpiritPlugin.extend ( "gui.AttentionPlugin", {
 				}
 				break;
 		}
-		console.log ( q );
 	}
 
 });
@@ -8419,6 +8623,7 @@ gui.AttentionPlugin = gui.SpiritPlugin.extend ( "gui.AttentionPlugin", {
 	], gui.AttentionPlugin );
 
 }());
+
 
 
 /*
@@ -9974,7 +10179,7 @@ gui.module ( "jquery", {
 				var test = inst [ 0 ];
 				if ( test && test.nodeType === Node.ELEMENT_NODE ) {
 					if ( test.ownerDocument !== home.document ) {
-						throw new Error ( test.spirit + " must use the local version of JQuery (this.window.$)" );
+						throw new Error ( "JQuery was used to handle elements in another window. Please use a locally loaded version of JQuery." );
 					}
 				}
 				return inst;
@@ -9982,11 +10187,6 @@ gui.module ( "jquery", {
 		}
 	},
 
-	/**
-	 * Overloading DOM manipulation methods.
-	 * TODO: attr and removeAttr must be hooked into gui.SpiritAtt setup...
-	 * @param {function} jq Constructor
-	 */
 	/**
 	 * Overloading DOM manipulation methods.
 	 * TODO: attr and removeAttr must be hooked into gui.SpiritAtt setup...
@@ -10041,39 +10241,57 @@ gui.module ( "jquery", {
 					}
 					res = suber ();
 				} else {
-					var arg = set ? jq ( args [ 0 ]) : undefined;
+					var arg = function() { return set ? jq ( args [ 0 ]) : undefined; };
 					var guide = gui.Guide;
 					jq.__suspend = true;
 					switch ( name ) {
 						case "append" :
 						case "prepend" :
 							res = suber ();
-							this.__attachSub ();
+							this.__attachSub (); // TODO: optimize!!!
 							break;
 						case "after" :
 						case "before" :
-							res = suber ();
-							this.parent ().__attachSub (); // TODO: optimize!
+							// Can't use arguments here since JQuery inserts clones thereof.
+							// Stuff becomes extra tricky since "this" can itself be a list.
+							( function () {
+								var is = name === "after";
+								var key = "isattached";
+								var olds = is ? this.nextAll () : this.prevAll ();
+								olds.data ( key, "true" ); // mark current siblings
+								res = suber ();
+								var news = is ? this.nextAll () : this.prevAll ();
+								news.each(function ( i, m ) {
+									m = jq ( m );
+									if ( !m.data ( key )) {
+										m.__attach (); // attach unmarked sibling
+										m.data ( key, "true" );
+									}
+								});
+								gui.Tick.next ( function () {
+									news.removeData ( key ); // cleanup all this
+								});
+							}).call ( this );
 							break;
 						case "appendTo" :
 							res = suber ();
-							arg.each ( function ( i, m ) {
+							arg().each ( function ( i, m ) {
 								jq ( m ).last ().__attach ();
 							});
 							break;
 						case "prependTo" :
 							res = suber ();
-							arg.each ( function ( i, m ) {
+							arg().each ( function ( i, m ) {
 								jq ( m ).first ().__attach ();
 							});
 							break;
 						case "insertAfter" :
 							res = suber ();
-							arg.next ().__attach ();
+							arg().next ().__attach ();
 							break;
 						case "insertBefore" :
 							res = suber ();
-							arg.prev ().__attach ();
+							arg().prev ().__attach ();
 							break;
 						case "detach" :
 						case "remove" :
@@ -10081,17 +10299,16 @@ gui.module ( "jquery", {
 							res = suber ();
 							break;
 						case "replaceAll" :
-							arg.__detach ();
+							arg().__detach ();
 							res = suber ();
-							this.parent ().__attachSub (); // optimize!
+							this.parent ().__attachSub (); // TODO: optimize!
 							break;
 						case "replaceWith" :
 							this.__detach ();
 							var p = this.parent ();
 							res = suber ();
-							p.__attachSub (); // optimize!
+							p.__attachSub (); // TODO: optimize!
 							break;
-						//case "text" :
 						case "empty" :
 							this.__detachSub ();
 							res = suber ();
@@ -10127,6 +10344,23 @@ gui.module ( "jquery", {
 			};
 		});
 	},
+
+		/*
+		this.nextAll ().data ( key, "true" );
+		res = suber ();
+		var all = this.nextAll();
+		all.each(function ( i, m ) {
+			m = jq ( m );
+			if ( !m.data ( key )) {
+				m.data ( key, "true" );
+				m.__attach ();
+			};
+		});
+
+		gui.Tick.next ( function () {
+			all.removeData ( key );
+		});
+		*/
 
 	/**
 	 * Overload Spiritual to attach/detach spirits on DOM mutation and to 
@@ -10222,6 +10456,7 @@ gui.module ( "jquery", {
 	}
 
 });
+
 
 
 /**
@@ -10348,43 +10583,25 @@ gui.UPGRADE = function () { // TODO: name this thing
 			);
 		},
 		setAttribute : function ( base ) {
-			/* before JsHint...
 			return ( 
 				ifembedded ( 
-					ifspirit ( setattafter ( base )),
-					otherwise ( base )
-				),
-				otherwise ( base )
-			);
-			*/
-			return ( 
-				ifembedded ( 
-					ifspirit ( setattafter ( base )),
-					otherwise ( base ),
+					ifspirit ( setattafter ( base ), 
+					otherwise ( base )),
 				otherwise ( base ))
 			);
 		},
 		removeAttribute : function ( base ) {
-			/* before JsHint...
 			return ( 
 				ifembedded ( 
-					ifspirit ( delattafter ( base )), 
-					otherwise ( base )
-				),
-				otherwise ( base )
-			);
-			*/
-			return ( 
-				ifembedded ( 
-					ifspirit ( delattafter ( base )), 
-					otherwise ( base ),
+					ifspirit ( delattafter ( base ),
+					otherwise ( base )),
 				otherwise ( base ))
 			);
 		},
 
 		/*
-		 * Property setters are ignored for WebKit; this stuff works only because properties 
-		 * have been re-implemented using methods (see above) in all WebKit based browsers :)
+		 * Property setters are skipped for WebKit. The stuff works only because properties 
+		 * have been re-implemented using methods (see above) in all WebKit based browsers.
 		 */
 
 		innerHTML : function ( base ) {
@@ -10711,6 +10928,14 @@ gui.World = {
 	 */
 	descend : function descend ( win ) {
 
+		/*
+		var ms = "";
+		gui.Object.methods(win.DocumentFragment.prototype).forEach(function(m){
+			ms += m + "\n";
+		});
+		alert(ms);
+		*/
+
 		var element = win.Element.prototype;
 		if ( gui.Type.isDefined ( element.spirit )) {
 			throw new Error ( "Spiritual loaded twice?" );
@@ -11002,134 +11227,6 @@ gui.World = {
 	}
 };
 
-
-
-
-
-
-
-
-
-
-
-
-
-/**
-	 * Fix property descriptors in IE.
-	 * TODO: compact this
-	 *
-	_exploder : function () {
-
-		var inner = Object.getOwnPropertyDescriptor ( win.HTMLElement.prototype, "innerHTML" );
-		Object.defineProperty ( win.HTMLElement.prototype, "innerHTML", {
-			get: function () {
-				return inner.get.call ( this );
-			},
-			set: function ( html ) {
-				var is = dom.embedded ( this );
-				if ( is ) {
-					guide.detachSub ( this );
-				}
-				gui.Observer.suspend ( this, function() {
-					inner.set.call ( this, html );
-				}, this );
-				if ( is ) {
-					guide.attachSub ( this );
-				}
-			}
-		});
-
-		var outer = Object.getOwnPropertyDescriptor ( win.HTMLElement.prototype, "outerHTML" );
-		Object.defineProperty ( win.HTMLElement.prototype, "outerHTML", {
-			get: function () {
-				return outer.get.call ( this );
-			},
-			set: function ( html ) {
-				var is = dom.embedded ( this );
-				if ( is ) {
-					guide.detach ( this );
-				}
-				var parent = this.parentNode;
-				gui.Observer.suspend ( this, function() {
-					outer.set.call ( this, html );
-				}, this );
-				if ( is ) {
-					guide.attachSub ( parent ); // TODO: optimize!
-				}
-			}
-		});
-
-		var text = Object.getOwnPropertyDescriptor ( win.HTMLElement.prototype, "textContent" );
-		Object.defineProperty ( win.HTMLElement.prototype, "textContent", {
-			get: function () {
-				return outer.get.call ( this );
-			},
-			set: function ( html ) {
-				var is = dom.embedded ( this );
-				if ( is ) {
-					guide.detach ( this );
-				}
-				gui.Observer.suspend ( this, function() {
-					text.set.call ( this, html );
-				}, this );
-			}
-		});
-	}
-
-	/**
-	 * Fix property descriptors in Opera and Firefox.
-	 * @param {Element} elm Fetch native descriptors from this element
-	 * @param {Object} proto Element.prototype (but FF is complicated)
-	 * TODO: compact this
-	 *
-	_operagecko : function ( elm, proto ) {
-
-		var dom = gui.SpiritDOM;
-		var guide = gui.Guide;
-
-		// innerHTML
-		var inner = elm.__lookupSetter__ ( "innerHTML" );
-		proto.__defineSetter__ ( "innerHTML", function ( html ) {
-			var is = dom.embedded ( this );
-			if ( is ) {
-				guide.detachSub ( this );
-			}
-			gui.Observer.suspend ( this, function() {
-				inner.call ( this, html );
-			}, this );
-			if ( is ) {
-				guide.attachSub ( this );
-			}
-		});
-		
-		// outerHTML
-		var outer = elm.__lookupSetter__ ( "outerHTML" );
-		proto.__defineSetter__ ( "outerHTML", function ( html ) {
-			var is = dom.embedded ( this );
-			if ( is ) {
-				guide.detach ( this );
-			}
-			var parent = this.parentNode;
-			gui.Observer.suspend ( this, function() {
-				outer.call ( this, html );
-			}, this );
-			if ( is ) {
-				guide.attachSub ( parent ); // TODO: optimize!
-			}
-		});
-
-		// textContent
-		var content = elm.__lookupSetter__ ( "textContent" );
-		proto.__defineSetter__ ( "textContent", function ( text ) {
-			if ( dom.embedded ( this )) {
-				guide.detach ( this );
-			}
-			gui.Observer.suspend ( this, function() {
-				content.call ( this, text );
-			}, this );
-		});
-	}
-	*/
 
 
 /**
