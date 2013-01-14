@@ -68,12 +68,12 @@ gui.TickTracker = gui.SpiritTracker.extend ( "gui.TickTracker", {
 	/**
 	 * Dispatch tick after given time.
 	 * @param {String} type
-	 * @param {number} time In milliseconds
+	 * @param {number} time Milliseconds (zero is setImmediate)
 	 * @returns {gui.Tick}
 	 */
 	dispatch : function ( type, time ) {
 		
-		return this._dispatch ( type, time );
+		return this._dispatch ( type, time || 0 );
 	},
 	
 	
@@ -83,7 +83,7 @@ gui.TickTracker = gui.SpiritTracker.extend ( "gui.TickTracker", {
 	 * Global mode?
 	 * @type {boolean}
 	 */
-	_global : true,
+	_global : false,
 
 	/**
 	 * Add handler.
@@ -126,9 +126,9 @@ gui.TickTracker = gui.SpiritTracker.extend ( "gui.TickTracker", {
 
 		var tick, sig = this.spirit.signature;
 		if ( this._global ) {
-			tick = gui.Tick.dispatch ( type, time, sig );
-		} else {
 			tick = gui.Tick.dispatchGlobal ( type, time );
+		} else {
+			tick = gui.Tick.dispatch ( type, time, sig );
 		}
 		return tick;
 	},
