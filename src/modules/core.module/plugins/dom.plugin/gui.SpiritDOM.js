@@ -175,7 +175,7 @@ gui.SpiritDOM = gui.SpiritPlugin.extend ( "gui.SpiritDOM", {
 	html : function ( element, markup ) {
 		
 		var guide = gui.Guide;
-		if ( element.nodeType ) {
+		if ( element.nodeType === Node.ELEMENT_NODE ) {
 			if ( gui.Type.isString ( markup )) {
 
 				// parse markup to node(s)
@@ -199,7 +199,7 @@ gui.SpiritDOM = gui.SpiritPlugin.extend ( "gui.SpiritDOM", {
 				guide.attachSub ( element );
 			}
 		} else {
-			throw new TypeError ();
+			// throw new TypeError ();
 		}
 		return element.innerHTML; // TODO: skip this step on setter
 	},
@@ -341,7 +341,7 @@ gui.Object.each ({
 	 */
 	q : function ( selector, type ) {
 		
-		var result;
+		var result = null;
 		selector = this._qualify ( selector );
 		if ( type ) {
 			result = this.qall ( selector, type )[ 0 ] || null;
@@ -612,8 +612,9 @@ gui.Object.each ({
 	ancestors : function ( type ) {
 		
 		var result = [];
+		var crawler = new gui.Crawler ();
 		if ( type ) {	
-			new gui.Crawler ().ascend ( this.element, {
+			crawler.ascend ( this.element, {
 				handleSpirit : function ( spirit ) {
 					if ( spirit instanceof type ) {
 						result.push ( spirit );
@@ -621,7 +622,11 @@ gui.Object.each ({
 				}
 			});
 		} else {
-			result.push ( this.parent ());
+			crawler.ascend ( this.element, {
+				handleElement : function ( el ) {
+					result.push ( el );
+				}
+			});
 		}
 		return result;
 	},
@@ -787,7 +792,8 @@ gui.Object.each ({
 	 * @param {String} name
 	 * @param {function} method
 	 */
-},  function addin ( name, method ) {
+
+}, function addin ( name, method ) {
 	
 	gui.SpiritDOM.addin ( name, function ( things ) {
 		var elms = Array.map ( gui.Type.list ( things ), function ( thing ) {

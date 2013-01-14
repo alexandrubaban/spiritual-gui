@@ -42,6 +42,12 @@ gui.AttentionPlugin = gui.SpiritPlugin.extend ( "gui.AttentionPlugin", {
 	 */
 	blur : function () {
 
+		// TODO: definitely not like this...
+		gui.Broadcast.dispatchGlobal ( null,
+			gui.BROADCAST_ATTENTION_OFF,
+			this.spirit.spiritkey
+		);
+
 		if ( this._focused ) {
 			if ( this._latest ) {
 				this._latest.blur ();
@@ -128,13 +134,10 @@ gui.AttentionPlugin = gui.SpiritPlugin.extend ( "gui.AttentionPlugin", {
 		[ "before", "after" ].forEach ( function ( pos ) {
 			var elm = this._input ( pos );
 			var dom = this.spirit.dom;
-			switch ( pos ) {
-				case "before" :
-					dom.prepend ( elm );
-					break;
-				case "after" :
-					dom.append ( elm );
-					break;
+			if ( pos === "before" ) {
+				dom.prepend ( elm );
+			} else {
+				dom.append ( elm );
 			}
 		}, this );
 	},
@@ -277,7 +280,7 @@ gui.AttentionPlugin = gui.SpiritPlugin.extend ( "gui.AttentionPlugin", {
 	_onblur : function ( node ) {
 
 		this._focused = false;
-		gui.Tick.next ( function () { // TODO: use tick!
+		gui.Tick.next ( function () {
 			if ( !this._focused ) {
 				this._didescape ();
 			}
@@ -301,6 +304,12 @@ gui.AttentionPlugin = gui.SpiritPlugin.extend ( "gui.AttentionPlugin", {
 	_didescape : function () {
 
 		this._flag = false;
+		/*
+		gui.Broadcast.dispatchGlobal ( null,
+			gui.BROADCAST_ATTENTION_OFF,
+			this.spirit.spiritkey
+		);
+		*/
 	}
 
 
@@ -349,7 +358,6 @@ gui.AttentionPlugin = gui.SpiritPlugin.extend ( "gui.AttentionPlugin", {
 				}
 				break;
 		}
-		console.log ( q );
 	}
 
 });

@@ -154,7 +154,7 @@ gui.SpiritualAid = {
 					
 				Fnop.prototype = this.prototype;
 				fBound.prototype = new Fnop();
-			    return fBound;
+					return fBound;
 			}
 		});
 	},
@@ -227,48 +227,52 @@ gui.SpiritualAid = {
 				
 				function WeakMap () {
 
-				    var keys = [], values = [];
+						var keys = [], values = [];
 
-				    function del(key) {
-				      if (has(key)) {
-				        keys.splice(i, 1);
-				        values.splice(i, 1);
-				      }
-				      return -1 < i;
-				    }
+						function del(key) {
+							if (has(key)) {
+								keys.splice(i, 1);
+								values.splice(i, 1);
+							}
+							return -1 < i;
+						}
 
-				    function get(key, d3fault) {
-				      return has(key) ? values[i] : d3fault;
-				    }
+						function get(key, d3fault) {
+							return has(key) ? values[i] : d3fault;
+						}
 
-				    function has(key) {
-				      i = indexOf.call(keys, key);
-				      return -1 < i;
-				    }
+						function has(key) {
+							i = indexOf.call(keys, key);
+							return -1 < i;
+						}
 
-				    function set(key, value) {
-				      has(key) ? values[i] = value : values[keys.push(key) - 1] = value;
-				    }
+						function set(key, value) {
+							if ( has(key)) {
+								values[i] = value;
+							} else {
+								values[keys.push(key) - 1] = value;
+							}
+						}
 
-				    return create(WeakMapPrototype, {
-				    	isNative : {value : false},
-				    	"delete": {value: del},
-				    	del: {value: del},
-				    	get: {value: get},
-				    	has: {value: has},
-				    	set: {value: set}
-				    });
+						return create(WeakMapPrototype, {
+							isNative : {value : false},
+							"delete": {value: del},
+							del: {value: del},
+							get: {value: get},
+							has: {value: has},
+							set: {value: set}
+						});
 
-				  }
+					}
 
-				  function WeakMapInstance () {}
+					function WeakMapInstance () {}
 
-				  var Object = win.Object, WeakMapPrototype = WeakMap.prototype,
-				    create = Object.create, indexOf = [].indexOf, i;
+					var Object = win.Object, WeakMapPrototype = WeakMap.prototype,
+						create = Object.create, indexOf = [].indexOf, i;
 
-				  // used to follow FF behavior where WeakMap.prototype is a WeakMap itself
-				  WeakMap.prototype = WeakMapInstance.prototype = WeakMapPrototype = WeakMap();
-				  return WeakMap;
+					// used to follow FF behavior where WeakMap.prototype is a WeakMap itself
+					WeakMap.prototype = WeakMapInstance.prototype = WeakMapPrototype = new WeakMap();
+					return WeakMap;
 				
 			})()
 
@@ -330,7 +334,7 @@ gui.SpiritualAid = {
 							return id;
 						};
 					}());
-			    return func;
+					return func;
 			})(),
 
 			/*

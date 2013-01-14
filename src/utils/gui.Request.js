@@ -163,7 +163,8 @@ gui.Request.prototype = {
 					break;
 			}
 		} catch ( exception ) {
-			this._accept + " dysfunction at " + this._url; // TODO: exception details
+			console.error ( this._accept + " dysfunction at " + this._url );
+			throw exception;
 		}
 		return result;
 	}
