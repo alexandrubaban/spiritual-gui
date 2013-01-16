@@ -15,7 +15,7 @@ gui.SpiritPlugin = gui.Exemplar.create ( "gui.SpiritPlugin", Object.prototype, {
 	 * @type {Global} Typically identical to this.spirit.window
 	 */
 	context : null,
-	
+
 	/**
 	 * Construct
 	 */
@@ -64,7 +64,14 @@ gui.SpiritPlugin = gui.Exemplar.create ( "gui.SpiritPlugin", Object.prototype, {
 		}
 	}
 	
-}, { // recurring static fields ..................................
+
+}, { // RECURRING STATICS ........................................
+
+	/**
+	 * By default constructed only when needed. 
+	 * @type {Boolean}
+	 */
+	lazy : true,
 
 	/**
 	 * Plugins don't infuse.
@@ -75,4 +82,39 @@ gui.SpiritPlugin = gui.Exemplar.create ( "gui.SpiritPlugin", Object.prototype, {
 			'Plugins must use the "extend" method and not "infuse".'
 		);
 	}
+
+
+}, { // STATICS ..................................................
+
+	/**
+	 * [experimental]
+	 * @param {gui.SpiritPlugin} Plugin
+	 * @param {String} prefix
+	 * @param {gui.Spirit} spirit
+	 */
+	later : function ( Plugin, prefix, spirit, map ) {
+
+		map [ prefix ] = true;
+
+		Object.defineProperty ( spirit, prefix, {
+			enumerable : true,
+			configurable : true,
+			get : function () {
+				if ( map [ prefix ] === true ) {
+					if ( prefix === "tween" ) {
+						throw new Error ( "WHY?" );
+					}
+					map [ prefix ] = new Plugin ( spirit );
+					map [ prefix ].onconstruct ();
+				}
+				return map [ prefix ];
+			},
+			set : function ( x ) {
+				map [ prefix ] = x; // or what?
+			}
+		});
+	
+		// spirit [ prefix ] = new Plugin ( spirit );
+	}
+
 });
