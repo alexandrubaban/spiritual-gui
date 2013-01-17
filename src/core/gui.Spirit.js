@@ -227,6 +227,12 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	__construct__ : function () {},
 
 	/**
+	 * Experimental.
+	 * @type {[type]}
+	 */
+	__lazies__ : null,
+
+	/**
 	 * Instantiate plugins.
 	 */
 	__plugin__ : function () {
@@ -234,6 +240,7 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 		// core plugins first
 		this.life = new gui.SpiritLifeTracker ( this );
 		this.config = new gui.SpiritConfig ( this );
+		this.__lazies__ = Object.create ( null );
 		
 		// bonus plugins second
 		var prefixes = [], plugins = this.constructor.__plugins__;
@@ -243,17 +250,25 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 				case gui.SpiritConfig :
 					break;
 				default :
-					this [ prefix ] = new Plugin ( this );
+					if ( Plugin.lazy ) {
+						gui.SpiritPlugin.later ( Plugin, prefix, this, this.__lazies__ );
+					} else {
+						this [ prefix ] = new Plugin ( this );
+					}
 					prefixes.push ( prefix );
 					break;
 			}
 		}, this );
 		
-		// construction
+		// sequenced construction
 		this.life.onconstruct ();
 		this.config.onconstruct ();
 		prefixes.forEach ( function ( prefix ) {
-			this [ prefix ].onconstruct ();
+			if ( this.__lazies__ [ prefix ]) {
+				// lazy constructed later
+			} else {
+				this [ prefix ].onconstruct ();
+			}
 		}, this );
 	},
 
@@ -288,7 +303,14 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	 */
 	__destruct__ : function ( unloading ) {
 
-		// dispose plugins; plugins should not invoke external stuff during this phase
+		var map = this.__lazies__;
+		gui.Object.each ( map, function ( prefix ) {
+			if ( map [ prefix ] === true ) {
+				delete this [ prefix ]; // otherwise next iterator will instantiate the lazy plugin...
+			}
+		}, this );
+
+		// dispose plugins (plugins should not invoke external stuff during this phase)
 		gui.Object.each ( this, function ( prop ) {
 			var thing = this [ prop ];
 			switch ( gui.Type.of ( thing )) {
@@ -411,6 +433,7 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	 */
 	tag : function ( doc, tag ) {
 
+		console.warn ( "Deprecated" ); // = spirit.lazies || Object.create ( null );
 		return doc.createElement ( tag );
 	},
 
@@ -422,6 +445,7 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	 */
 	att : function ( elm, att, val ) {
 
+		console.warn ( "Deprecated" );
 		elm.setAttribute ( att, String ( val ));
 		return elm;
 	},
@@ -433,6 +457,7 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	 */
 	text : function ( elm, txt ) {
 
+		console.warn ( "Deprecated" );
 		elm.textContent = txt;
 	},
 
