@@ -1,11 +1,12 @@
 /**
+ * @class
  * We load a text file from the server. This might be used instead 
  * of a XMLHttpRequest to cache the result and save repeated lookups.
- * TODO: custom protocol handlers to load from localstorage
+ * @todo custom protocol handlers to load from localstorage
  */
 gui.FileLoader = gui.Exemplar.create ( "gui.FileLoader", Object.prototype, {
 	
-	/**
+	/*
 	 * Construction time again.
 	 * @param {Document} doc
 	 */
@@ -46,20 +47,20 @@ gui.FileLoader = gui.Exemplar.create ( "gui.FileLoader", Object.prototype, {
 	
 	// PRIVATES ........................................................
 	
-	/**
+	/*
 	 * Cached is shared between all instances of gui.FileLoader.
 	 * @see {gui.FileLoader#_cache}
 	 * @type {Map<String,String>}
 	 */
 	_cache : null,
 
-	/**
+	/*
 	 * File address resolved relative to this document.
 	 * @type {Document}
 	 */
 	_document : null,
 	
-	/**
+	/*
 	 * Request external file.
 	 * @param {gui.URL} url
 	 * @param {function} callback
@@ -75,7 +76,7 @@ gui.FileLoader = gui.Exemplar.create ( "gui.FileLoader", Object.prototype, {
 		}, this );
 	},
 
-	/**
+	/*
 	 * Hello.
 	 * @param {gui.URL} url
 	 * @param {Map<String,String>} cache
@@ -98,7 +99,7 @@ gui.FileLoader = gui.Exemplar.create ( "gui.FileLoader", Object.prototype, {
 
 	// SECRETS .........................................................
 	
-	/**
+	/*
 	 * Secret constructor.
 	 * @param {gui.Spirit} spirit
 	 * @param {Window} window
@@ -116,21 +117,21 @@ gui.FileLoader = gui.Exemplar.create ( "gui.FileLoader", Object.prototype, {
 	
 }, {}, { // STATICS ....................................................
 	
-	/**
+	/*
 	 * @static
 	 * Cache previously retrieved files, mapping URL to file text.
 	 * @type {Map<String,String>}
 	 */
 	_cache : new Map (),
 
-	/**
+	/*
 	 * @static
 	 * Queue handlers for identical requests, mapping URL to function.
 	 * @type {Array<String,function>}
 	 */
 	_queue : new Map (),
 
-	/**
+	/*
 	 * @static
 	 * Queue onload handler for identical request.
 	 * @param {String}
@@ -141,7 +142,7 @@ gui.FileLoader = gui.Exemplar.create ( "gui.FileLoader", Object.prototype, {
 		this._queue [ src ].push ( action );
 	},
 
-	/**
+	/*
 	 * @static
 	 * Execute queued onload handlers.
 	 * @param {String} src

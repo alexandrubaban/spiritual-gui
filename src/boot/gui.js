@@ -1,20 +1,31 @@
-var gui = { // namespace object
+/**
+ * @namespace gui
+ */
+var gui = {
 
-	/**
+	/*
 	 * Spiritual version. Hardcoded for now.
-	 * TODO: Deprecate or generate buildtime.
+	 * @todo Deprecate or generate buildtime.
 	 * @type {String}
 	 */
 	version : "0.0.4",
 
 	/**
-	 * Spirit management mode. 
-	 * native: Overloading native DOM methods and setters.
-	 * jquery: Overloading JQuery DOM manipulation methods.
-	 * optimize: use native if supported, fallback on jquery.
+	 * @constant
+	 * Native mode: Overloading native DOM methods and setters.
 	 */
 	MODE_NATIVE : "native",
+
+	/**
+	 * @constant
+	 * jquery mode: Overloading JQuery DOM manipulation methods.
+	 */
 	MODE_JQUERY : "jquery",
+
+	/**
+	 * @constant
+	 * Optimized mode: use native if supported, fallback on jquery.
+	 */
 	MODE_OPTIMIZE : "optimize",
 
 	/*
@@ -95,19 +106,16 @@ var gui = { // namespace object
 	CRAWLER_VISIBLE : "gui-crawler-visible",
 	CRAWLER_INVISIBLE : "gui-crawler-invisible",
 
-	
-	//CRAWLER_APPEARANCE : "gui-crawler-appearance",
-
 	/*
 	 * Tick types (timed events)
 	 */
 	TICK_DESTRUCT_DETACHED : "gui-tick-destruct-detached",
-	TICK_SCRIPT_UPDATE : "gui-tick-spiritscript-update", // TODO: move to EDB
+	TICK_SCRIPT_UPDATE : "gui-tick-spiritscript-update", // @todo move to EDB
 	TICK_COLLECT_INPUT : "gui-tick-collect-input",
 	TICK_SPIRIT_NULL : "gui-tick-spirit-null",
 	TICK_FIT : "gui-tick-fit",
 
-	/**
+	/*
 	 * CSS classnames. Underscore indicates 
 	 * that the classname are managed by JS.
 	 */
@@ -117,7 +125,7 @@ var gui = { // namespace object
 	/*
 	 * Device orientation.
 	 * TODO : Get this out of here
-	 * TODO: gui.Observerice or something
+	 * @todo gui.Observerice or something
 	 */
 	orientation : 0,
 	ORIENTATION_PORTRAIT : 0,

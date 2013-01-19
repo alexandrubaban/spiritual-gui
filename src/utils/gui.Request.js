@@ -1,4 +1,5 @@
 /**
+ * @class
  * Simplistic XMLHttpRequest wrapper. 
  * Work in progress, lot's to do here.
  * @param @optional {String} url
@@ -90,14 +91,14 @@ gui.Request.prototype = {
 	header : function ( name, value ) {
 		
 		// TODO!
-		console.warn ( "TODO: request headers" );
+		console.warn ( "@todo request headers" );
 		return this;
 	},
 	
 	/**
 	 * Get stuff.
-	 * TODO: Synchronous version
-	 * TODO: Unhardcode status
+	 * @todo Synchronous version
+	 * @todo Unhardcode status
 	 * @param {function} callback
 	 * @param {object} thisp
 	 */
@@ -133,7 +134,7 @@ gui.Request.prototype = {
 	
 	/**
 	 * Expexted response type.
-	 * TODO: an array?
+	 * @todo an array?
 	 * @type {String}
 	 */
 	_accept : "text/plain",

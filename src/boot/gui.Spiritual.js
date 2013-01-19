@@ -1,4 +1,5 @@
 /**
+ * @class
  * An instance of gui.Spiritual may be referenced as "gui" inside all windows.
  * @param {Window} win Potentially a web worker global scope.
  */
@@ -19,7 +20,7 @@ gui.Spiritual.prototype = {
 	/**
 	 * Uniquely identifies this instance of gui.Spiritual. All 
 	 * local instances of gui.Spirit gets stamped with a copy.
-	 * TODO: rename "guikey"?
+	 * @todo rename "guikey"?
 	 * @type {String}
 	 */
 	signature : null,
@@ -71,7 +72,7 @@ gui.Spiritual.prototype = {
 	
 	/**
 	 * Get spirit for argument (argument expected to be a spiritkey for now).
-	 * TODO: fuzzy argument resolver to accept DOM elements and ID strings.
+	 * @todo fuzzy argument resolver to accept DOM elements and ID strings.
 	 * @param {object} arg
 	 * @returns {gui.Spirit}
 	 */
@@ -108,7 +109,7 @@ gui.Spiritual.prototype = {
 
 		var base = this.context.gui.Spirit; // modules extend gui.Spirit, use init() to extend subclass
 		
-		// addins (TODO: "decorators")
+		// addins (@todo "decorators")
 		if ( gui.Type.isObject ( module.addins )) {
 			gui.Object.each ( module.addins, function ( name, value ) {
 				base.addin ( name, value );
@@ -209,7 +210,7 @@ gui.Spiritual.prototype = {
 			this._spaces.forEach ( function ( ns ) {
 
 				// declare (nested) namespace in external context
-				// TODO: gui.Object.assert utility method for this
+				// @todo gui.Object.assert utility method for this
 				var external = sub, internal = this.context;
 				ns.split ( "." ).forEach ( function ( part ) {
 				  if ( !gui.Type.isDefined ( external [ part ])) {
@@ -239,7 +240,7 @@ gui.Spiritual.prototype = {
 		
 			/*
 			 * Portal modules to initialize the sub context.
-			 * TODO: portal only the relevant init method?
+			 * @todo portal only the relevant init method?
 			 */
 			gui.Object.each ( this._modules, function ( name, module ) {
 				this._modulelife ( module, subgui.context );
@@ -283,7 +284,7 @@ gui.Spiritual.prototype = {
 	 */
 	namespace : function ( ns ) {
 		
-		if ( gui.Type.isString ( ns )) { // TODO: must it be a string?
+		if ( gui.Type.isString ( ns )) { // @todo must it be a string?
 			this._spaces.push ( ns );
 		} else {
 			throw new TypeError ( "Expected a string: gui.namespace" );
@@ -314,7 +315,7 @@ gui.Spiritual.prototype = {
 			
 			var doc = element.ownerDocument;
 			var win = doc.defaultView;
-			var att = element.getAttribute ( "gui" ); // TODO: "data-gui"
+			var att = element.getAttribute ( "gui" ); // @todo "data-gui"
 
 			// test for "gui" attribute in markup. "[" accounts for {gui.Spirit#__debug__}
 			if ( gui.Type.isString ( att ) && !att.startsWith ( "[" )) {
@@ -359,7 +360,7 @@ gui.Spiritual.prototype = {
 	
 	/**
 	 * Log channels to console.
-	 * TODO: deprecate this (create gui.Developer).
+	 * @todo deprecate this (create gui.Developer).
 	 */
 	debugchannels : function () {
 		
@@ -387,7 +388,7 @@ gui.Spiritual.prototype = {
 	
 	/**
 	 * Register spirit in document (framework internal method).
-	 * TODO: move? rename? 
+	 * @todo move? rename? 
 	 * @param {gui.Spirit} spirit
 	 */
 	inside : function ( spirit ) {
@@ -404,7 +405,7 @@ gui.Spiritual.prototype = {
 	
 	/**
 	 * Register spirit outside document (scheduled for destruction).
-	 * TODO: move? rename?
+	 * @todo move? rename?
 	 * @param {gui.Spirit} spirit
 	 */
 	outside : function ( spirit ) {
@@ -426,7 +427,7 @@ gui.Spiritual.prototype = {
 	 */
 	ontick : function ( tick ) {
 
-		// TODO: do we want to loose track of potential non-exited spirit?
+		// @todo do we want to loose track of potential non-exited spirit?
 		if ( tick.type === gui.TICK_DESTRUCT_DETACHED ) {
 			gui.Object.each ( this._spirits.outside, function ( key, spirit ) {
 				if ( spirit.onexit () !== false ) { // spirit may prevent destruction
@@ -439,15 +440,15 @@ gui.Spiritual.prototype = {
 
 	/**
 	 * Invoked by the gui.Guide on window.unload (synchronized as final event).
-	 * TODO: naming clash with method "destruct"
-	 * TODO: Think of more stuff to cleanup here...
+	 * @todo naming clash with method "destruct"
+	 * @todo Think of more stuff to cleanup here...
 	 */
 	nameDestructAlreadyUsed : function () {
 
 		gui.Tick.remove ( gui.TICK_DESTRUCT_DETACHED, this, this.signature );
 
 		/*
-		 * TODO: figure out of any of this manual garbage dumping works.
+		 * @todo figure out of any of this manual garbage dumping works.
 		 */
 		delete this._spiritualaid;
 		delete this.context;
@@ -614,13 +615,13 @@ gui.Spiritual.prototype = {
 };
 
 /*
- * TODO: comment required
+ * @todo comment required
  */
 Object.keys ( gui ).forEach ( function ( key ) {
 	gui.Spiritual.prototype [ key ] = gui [ key ];
 });
 
 /*
- * TODO: comment even more required
+ * @todo comment even more required
  */
 gui = new gui.Spiritual ( window );

@@ -1,4 +1,5 @@
 /**
+ * @class
  * Type checking studio.
  */
 gui.Type = {
@@ -20,7 +21,7 @@ gui.Type = {
 	
 	/**
 	 * Is object defined?
-	 * TODO: unlimited arguments support
+	 * @todo unlimited arguments support
 	 * @param {object} o
 	 * @returns {boolean}
 	 */
@@ -32,7 +33,7 @@ gui.Type = {
 	/**
 	 * Autocast string to an inferred type. "123" will 
 	 * return a number, "false" will return a boolean.
-	 * TODO: move to gui.Type :)
+	 * @todo move to gui.Type :)
 	 * @param {String} string
 	 * @returns {object}
 	 */
@@ -71,8 +72,8 @@ gui.Type = {
 
 	/**
 	 * Is constructor for a Spirit?
-	 * TODO: Why can't isConstructor be used here?
-	 * TODO: something more reliable than "portals".
+	 * @todo Why can't isConstructor be used here?
+	 * @todo something more reliable than "portals".
 	 * @param {function} what
 	 * @returns {boolean}
 	 */
@@ -132,7 +133,7 @@ gui.Type = {
 		"null",
 		"arguments"
 	].forEach ( function ( type ) {
-		// TODO: would x[0] === x.charAt(0) in our browser stack?
+		// @todo would x[0] === x.charAt(0) in our browser stack?
 		this [ "is" + type.charAt ( 0 ).toUpperCase () + type.slice ( 1 )] = function is ( o ) {
 			return this.of ( o ) === type; 
 		};

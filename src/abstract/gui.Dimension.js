@@ -1,4 +1,5 @@
 /**
+ * @class
  * Dimension.
  * @param {number} w
  * @param {number} h

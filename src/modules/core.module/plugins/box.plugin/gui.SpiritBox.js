@@ -1,5 +1,7 @@
 /**
- * Spirit box object (performant now: http://code.google.com/p/v8/issues/detail?id=1239)
+ * @class
+ * Spirit box object.
+ * @extends {gui.SpiritPlugin}
  */
 gui.SpiritBox = gui.SpiritPlugin.extend ( "gui.SpiritBox", {
 	
@@ -85,7 +87,7 @@ Object.defineProperties ( gui.SpiritBox.prototype, {
 	 */
 	globalX : {
 		get : function () {
-			console.warn ( "TODO: gui.SpiritBox.globalX" );
+			console.warn ( "@todo gui.SpiritBox.globalX" );
 			return null;
 		}
 	},
@@ -96,7 +98,7 @@ Object.defineProperties ( gui.SpiritBox.prototype, {
 	 */
 	globalY : {
 		get : function () {
-			console.warn ( "TODO: gui.SpiritBox.globalY" );
+			console.warn ( "@todo gui.SpiritBox.globalY" );
 			return null;
 		}
 	},

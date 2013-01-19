@@ -1,19 +1,21 @@
 /**
+ * @class
+ * @extends {gui.Spirit}
  * Spirit of the window.
- * TODO: use this name?
+ * @todo use this name?
  */
 gui.WindowSpirit = gui.Spirit.infuse ( "gui.WindowSpirit", {
 	
 	/**
 	 * When to hide the loading splash cover. 
-	 * TODO: Match one of "ready" "load" "fit"
+	 * @todo Match one of "ready" "load" "fit"
 	 * Defaults to "fit" (harcoded for now)
 	 */
 	cover : "fit",
 	
 	/**
 	 * Fit height to iframe contained document height?
-	 * TODO: setter for this to allow runtime update.
+	 * @todo setter for this to allow runtime update.
 	 * @type {boolean}
 	 */
 	fit : true,
@@ -151,7 +153,7 @@ gui.WindowSpirit = gui.Spirit.infuse ( "gui.WindowSpirit", {
 	
 	/**
 	 * Autostyling.
-	 * TODO: use top right bottom left instead of width and height?
+	 * @todo use top right bottom left instead of width and height?
 	 * @see {gui.WindowSpirit#style}
 	 */
 	_style : function () {

@@ -1,23 +1,26 @@
 /**
- * Monitors a document for unsolicitated 
- * DOM changes while in development mode.
+ * @class
+ * Monitors a document for unsolicitated DOM changes (in development mode).
  */
 gui.Observer = {
 
 	/**
-	 * Enable monitoring? DISABLED FOR NOW
+	 * @static
+	 * @desc Enable monitoring? (disabled for now)
 	 * @type {boolean}
 	 */
 	observes : false, // gui.Client.hasMutations,
 
 	/**
-	 * Throw exception on mutations not intercepted by the framework.
+	 * @static
+	 * @desc Throw exception on mutations not intercepted by the framework?
 	 * @type {boolean}
 	 */
 	fails : false,
 
 	/**
-	 * Observe document mutations in given window context.
+	 * @static
+	 * @desc Observe document mutations in given window context.
 	 * @param {Window} win
 	 */
 	observe : function ( win ) {
@@ -40,7 +43,8 @@ gui.Observer = {
 	},
 
 	/**
-	 * Suspend mutation monitoring of document associated to node;
+	 * @static
+	 * @desc Suspend mutation monitoring of document associated to node;
 	 * enable monitoring again after executing provided function.
 	 * @param {Node} node
 	 * @param @optional {function} action
@@ -69,7 +73,8 @@ gui.Observer = {
 	},
 
 	/**
-	 * Resume monitoring of mutations in document associated to node.
+	 * @static
+	 * @desc Resume monitoring of mutations in document associated to node.
 	 * @param {Node} node
 	 */
 	resume : function ( node ) {
@@ -88,21 +93,21 @@ gui.Observer = {
 
 	// PRIVATES ..............................................................
 	
-	/**
+	/*
 	 * Is suspended? Minimize what overhead there might 
 	 * be on connecting and disconnecting the observer.
-	 * TODO: do we need to track this for each window?
+	 * @todo do we need to track this for each window?
 	 * @type {number}
 	 */
 	_suspend : 0,
 
-	/**
+	/*
 	 * Tracking MutationObservers for window contexts by gui.signature
 	 * @type {Map<String,MutationObserver}
 	 */
 	_observers : Object.create ( null ),
 
-	/**
+	/*
 	 * Get observer.
 	 * @returns {function} MutationObserver
 	 */
@@ -111,7 +116,7 @@ gui.Observer = {
 		return window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;
 	},
 
-	/**
+	/*
 	 * Connect and disconnect observer.
 	 * @param {Node} node
 	 * @param {boolean} connect
@@ -134,7 +139,7 @@ gui.Observer = {
 		}
 	},
 
-	/**
+	/*
 	 * Handle mutation.
 	 * @param {MutationRecord} mutation
 	 */

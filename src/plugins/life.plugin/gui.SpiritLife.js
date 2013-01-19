@@ -1,6 +1,6 @@
 /**
- * SpiritLife is a non-bubbling event type 
- * that covers the life cycle of a spirit.
+ * @class
+ * SpiritLife is a non-bubbling event type that covers the life cycle of a spirit.
  * @see {gui.SpiritLifeTracker}
  * @param {gui.Spirit} target
  * @param {String} type

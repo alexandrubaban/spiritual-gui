@@ -1,4 +1,5 @@
 /**
+ * @class
  * Spirit plugin.
  */
 gui.SpiritPlugin = gui.Exemplar.create ( "gui.SpiritPlugin", Object.prototype, {

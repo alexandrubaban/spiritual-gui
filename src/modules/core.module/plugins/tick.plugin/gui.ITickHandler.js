@@ -1,4 +1,5 @@
 /**
+ * @class
  * Interface TickHandler.
  */
 gui.ITickHandler = {
@@ -13,6 +14,7 @@ gui.ITickHandler = {
 	},
 
 	/**
+	 * @static
 	 * Handle tick.
 	 * @param {gui.Tick} tick
 	 */

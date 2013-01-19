@@ -1,6 +1,7 @@
 /**
+ * @class
  * SpiritAction.
- * @param {Spirit} target
+ * @param {gui.Spirit} target
  * @param {String} type
  * @param @optional {object} data
  * @param @optional {String} direction
@@ -45,7 +46,7 @@ gui.Action.prototype = {
 
 	/**
 	 * Traverse iframe boundaries?
-	 * TODO: cross-domain actions.
+	 * @todo cross-domain actions.
 	 * @type {boolean}
 	 */
 	global : false,
@@ -63,14 +64,14 @@ gui.Action.prototype = {
 	isCancelled : false,
 	
 	/**
-	 * Who consomed the action?
+	 * Which spirit consumed the action?
 	 * @type {gui.Spirit}
 	 */
 	consumer : null,
 	
 	/**
 	 * Block further ascend.
-	 * @param @optional {Spirit} consumer
+	 * @param @optional {gui.Spirit} consumer
 	 */
 	consume : function ( consumer ) {
 		
@@ -80,8 +81,8 @@ gui.Action.prototype = {
 	
 	/**
 	 * Consume and cancel the event. Note that it is 
-	 * up to the dispatcher to honour cancellation!
-	 * @param @optional {Spirit} consumer
+	 * up to the dispatcher to honour cancellation.
+	 * @param @optional {gui.Spirit} consumer
 	 */
 	cancel : function ( consumer ) {
 		
@@ -103,9 +104,9 @@ gui.Action.prototype = {
  * @static
  * Dispatch SpiritAction ascending. The dispatching 
  * spirit will not onaction() its own action.
- * TODO: support custom gui.Action as only param.
- * TODO: common exemplar for action, broadcast etc?
- * @param {Spirit} target
+ * @todo support custom gui.Action as only param.
+ * @todo common exemplar for action, broadcast etc?
+ * @param {gui.Spirit} target
  * @param {String} type
  * @param @optional {object} data
  * @param @optional {String} direction

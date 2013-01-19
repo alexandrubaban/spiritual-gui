@@ -1,5 +1,6 @@
 /**
- * Super :)
+ * @class
+ * Hello mister.
  * @param {function} constructor
  */
 gui.Super = function Super ( constructor ) {
@@ -106,12 +107,12 @@ gui.Super.stamp = function ( superconstructor, constructor, object ) {
 			Object.defineProperty ( proto, key, prop );
 			
 			// methods specials
-			// TODO: not like this! If *not* a function, the property will now be accessed and fire the getter function we just declared!
+			// @todo not like this! If *not* a function, the property will now be accessed and fire the getter function we just declared!
 
 			/*
 			if ( gui.Type.isFunction ( proto [ key ])) {
 
-				// update console display name (TODO: does it work?)
+				// update console display name (@todo does it work?)
 				Object.defineProperty ( proto [ key ], "displayName", {
 					enumerable : false,
 					configurable : true,
@@ -121,7 +122,7 @@ gui.Super.stamp = function ( superconstructor, constructor, object ) {
 				});
 
 				// normalize toString() for debugging
-				// TODO: Find the hat char for that regexp
+				// @todo Find the hat char for that regexp
 				proto [ key ].toString = function () {
 					var tostring = object [ key ].toString ();
 					tostring = tostring.replace ( /\t/g, "  " );
@@ -145,7 +146,7 @@ gui.Super.stamp = function ( superconstructor, constructor, object ) {
  */
 gui.Super._function = function ( object, key, prop, superconstructor ) {
 	
-	if ( !prop.value.__data__ ) { // TODO: hmm...................................... !!!
+	if ( !prop.value.__data__ ) { // @todo hmm...................................... !!!
 		prop.value = function () {
 			
 			var sub = gui.Super.subject;
@@ -189,7 +190,7 @@ gui.Super._property = function ( key, o, constructor ) {
 				o [ what ] = d [ what ];
 				/*
 				o [ what ] = function () {
-					alert ( "TODO: sandbox" );
+					alert ( "@todo sandbox" );
 					return d [ what ].call ( this );
 				};
 				*/

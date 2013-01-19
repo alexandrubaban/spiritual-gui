@@ -1,6 +1,7 @@
 /**
+ * @class
  * Tracking timed events.
- * TODO: Global timed events.
+ * @todo Global timed events.
  * @extends {gui.SpiritTracker}
  */
 gui.TickTracker = gui.SpiritTracker.extend ( "gui.TickTracker", {
@@ -27,7 +28,7 @@ gui.TickTracker = gui.SpiritTracker.extend ( "gui.TickTracker", {
 	
 	/**
 	 * Add handler for single tick of given type(s).
-	 * TODO: This on ALL trackers :)
+	 * @todo This on ALL trackers :)
 	 * @param {object} arg
 	 * @param @optional {object} handler
 	 * @returns {gui.TickTracker}

@@ -1,5 +1,7 @@
 /**
+ * @class
  * Configures a spirit by attribute parsing.
+ * @extends {gui.SpiritPlugin}
  */
 gui.SpiritConfig = gui.SpiritPlugin.extend ( "gui.SpiritConfig", {
 
@@ -11,7 +13,7 @@ gui.SpiritConfig = gui.SpiritPlugin.extend ( "gui.SpiritConfig", {
 
 	/**
 	 * Configure spirit by DOM attributes.
-	 * TODO: reconfigure scenario
+	 * @todo reconfigure scenario
 	 */
 	configure : function () {
 		

@@ -1,4 +1,6 @@
 /**
+ * @class
+ * @extends {gui.Spirit}
  * Spirit of the root element (the HTML element).
  */
 gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
@@ -20,8 +22,8 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 				// case "load" : 
 				case "scroll" :
 				case "resize" :
-				//case "popstate" : // TODO: top only? tackle history?
-				//case "hashchange" : // TODO: top only? tackle history?
+				//case "popstate" : // @todo top only? tackle history?
+				//case "hashchange" : // @todo top only? tackle history?
 					target = this.window;
 					break;
 			}
@@ -38,7 +40,7 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 		
 		/* 
 		 * BUG!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-		 * TODO: it appears we *must* listen for touch start events
+		 * @todo it appears we *must* listen for touch start events
 		 * for any spirit to subscribe to touch-end events only!!!!
 		 * @see {gui.SpiritTouch}
 		 */
@@ -47,14 +49,14 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 		}
 		
 		/*
-		 * TODO: iframe hello.
+		 * @todo iframe hello.
 		 */
 		this.action.dispatchGlobal ( gui.ACTION_DOCUMENT_CONSTRUCT );
 	},
 	
 	/**
 	 * Get ready.
-	 * TODO: think more about late loading (module loading) scenario...
+	 * @todo think more about late loading (module loading) scenario...
 	 */
 	onready : function () {
 		
@@ -88,7 +90,7 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 						
 						/*
 						 * Nuke all touch events for now.
-						 * TODO: move to touch module
+						 * @todo move to touch module
 						 *
 						case "touchstart" :
 						case "touchend" :
@@ -128,7 +130,7 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 	 * @param {gui.Action} action
 	 */
 	onaction : function ( action ) {
-		
+
 		this._super.onaction ( action );
 		switch ( action.type ) {
 			case gui.ACTION_DOCUMENT_FIT : // relay fit action, but claim ourselves as new action.target
@@ -139,7 +141,7 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 	},
 
 	/**
-	 * 
+	 * Hello.
 	 */
 	onvisible : function () {
 
@@ -177,7 +179,7 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 			}, gui.Client.STABLETIME );
 			
 		} else {
-			console.warn ( "TODO: loaded twice..." );
+			console.warn ( "@todo loaded twice..." );
 		}
 		
 	},
@@ -333,7 +335,7 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 	/**
 	 * Intensive resize procedures should subscribe 
 	 * to the resize-end message as broadcasted here.
-	 * TODO: prevent multiple simultanious windows
+	 * @todo prevent multiple simultanious windows
 	 */
 	_onresize : function () {
 		
@@ -345,8 +347,8 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 	
 	/**
 	 * Device orientation changed.
-	 * TODO: move to touch module
-	 * TODO: gui.SpiritDevice entity
+	 * @todo move to touch module
+	 * @todo gui.SpiritDevice entity
 	 */
 	_onorientationchange : function () {
 		

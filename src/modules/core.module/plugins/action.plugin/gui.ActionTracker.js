@@ -1,4 +1,5 @@
 /**
+ * @class
  * Tracking actions.
  * @extends {gui.SpiritTracker}
  */
@@ -211,7 +212,7 @@ gui.ActionTracker = gui.SpiritTracker.extend ( "gui.ActionTracker", {
 
 	/**
 	 * Remove delegated handlers. 
-	 * TODO: verify that this works
+	 * @todo verify that this works
 	 * @overwrites {gui.SpiritTracker#_cleanup}
 	 * @param {String} type
 	 * @param {Array<object>} checks

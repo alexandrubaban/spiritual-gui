@@ -1,11 +1,11 @@
 /**
+ * @class
  * Interface ActionHandler.
  */
 gui.IActionHandler = {
 		
 	/**
-	 * Identification.
-	 * @returns {String}
+	 * @ignore
 	 */
 	toString : function () {
 

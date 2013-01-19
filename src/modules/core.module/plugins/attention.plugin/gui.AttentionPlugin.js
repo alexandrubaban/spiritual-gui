@@ -1,8 +1,10 @@
 /**
- * Keyboard TAB sequence manager.
- * TODO: nested attention traps (conflicts with missing focusin in FF?)
- * TODO: empty queue when user moves escapes (all) attention traps?
- * TODO: more life cycle hookins (hide, show, detach, exit)
+ * @class
+ * Keyboard TAB manager. To be exported out of Spiritual core.
+ * @extends {gui.SpiritTracker}
+ * @todo nested attention traps (conflicts with missing focusin in FF?)
+ * @todo empty queue when user moves escapes (all) attention traps?
+ * @todo more life cycle hookins (hide, show, detach, exit)
  */
 gui.AttentionPlugin = gui.SpiritPlugin.extend ( "gui.AttentionPlugin", {
 
@@ -42,7 +44,7 @@ gui.AttentionPlugin = gui.SpiritPlugin.extend ( "gui.AttentionPlugin", {
 	 */
 	blur : function () {
 
-		// TODO: definitely not like this...
+		// @todo definitely not like this...
 		gui.Broadcast.dispatchGlobal ( null,
 			gui.BROADCAST_ATTENTION_OFF,
 			this.spirit.spiritkey
@@ -56,7 +58,7 @@ gui.AttentionPlugin = gui.SpiritPlugin.extend ( "gui.AttentionPlugin", {
 		return this;
 	},
 
-	/**
+	/*
 	 * Something was focused or blurred.
 	 * @param {Event} e
 	 */
@@ -74,7 +76,7 @@ gui.AttentionPlugin = gui.SpiritPlugin.extend ( "gui.AttentionPlugin", {
 		}
 	},
 
-	/**
+	/*
 	 * Handle broadcast.
 	 * @param {gui.Broadcast} b
 	 */
@@ -87,7 +89,7 @@ gui.AttentionPlugin = gui.SpiritPlugin.extend ( "gui.AttentionPlugin", {
 		}
 	},
 
-	/**
+	/*
 	 * Handle spirit life cycle.
 	 * @param {gui.SpiritLife} life
 	 */
@@ -107,25 +109,25 @@ gui.AttentionPlugin = gui.SpiritPlugin.extend ( "gui.AttentionPlugin", {
 
 	// PRIVATES ........................................................................
 
-	/**
+	/*
 	 * Trapping attention?
 	 * @type {boolean}
 	 */
 	_trapping : null,
 
-	/**
+	/*
 	 * Latest focused element.
 	 * @type {Element}
 	 */
 	_latest : null,
 
-	/**
+	/*
 	 * Used to determine whether attention trap was just entered.
 	 * @type {number}
 	 */
 	_flag : false,
 
-	/**
+	/*
 	 * Append hidden inputs. When these are 
 	 * focused, we move the focus elsewhere.
 	 */
@@ -142,9 +144,9 @@ gui.AttentionPlugin = gui.SpiritPlugin.extend ( "gui.AttentionPlugin", {
 		}, this );
 	},
 
-	/**
+	/*
 	 * Listen for all sorts of stuff going on.
-	 * TODO: use focusin and focusout for IE/Opera?
+	 * @todo use focusin and focusout for IE/Opera?
 	 */
 	_listen : function () {
 
@@ -155,10 +157,10 @@ gui.AttentionPlugin = gui.SpiritPlugin.extend ( "gui.AttentionPlugin", {
 		gui.Broadcast.addGlobal ( gui.BROADCAST_ATTENTION_GO, this );
 	},
 
-	/**
+	/*
 	 * Insert hidden input at position.
-	 * TODO: how to *keep* inputs at first and last position?
-	 * TODO: removeEventListener on dispose perhaps
+	 * @todo how to *keep* inputs at first and last position?
+	 * @todo removeEventListener on dispose perhaps
 	 * @param {String} pos
 	 * @returns {Element}
 	 */
@@ -178,7 +180,7 @@ gui.AttentionPlugin = gui.SpiritPlugin.extend ( "gui.AttentionPlugin", {
 		return elm;
 	},
 
-	/**
+	/*
 	 * Focus first element and return it.
 	 * @returns {Element}
 	 */
@@ -187,7 +189,7 @@ gui.AttentionPlugin = gui.SpiritPlugin.extend ( "gui.AttentionPlugin", {
 		return this._find ( true );
 	},
 
-	/**
+	/*
 	 * Focus last element and return it.
 	 * @returns {Element}
 	 */
@@ -196,7 +198,7 @@ gui.AttentionPlugin = gui.SpiritPlugin.extend ( "gui.AttentionPlugin", {
 		return this._find ( false );
 	},
 
-	/**
+	/*
 	 * Find first or last form control.
 	 * @param {boolean} isfirst
 	 */
@@ -210,7 +212,7 @@ gui.AttentionPlugin = gui.SpiritPlugin.extend ( "gui.AttentionPlugin", {
 		return elm;
 	},
 
-	/**
+	/*
 	 * List descendant form controls *plus* links except input @type="image".
 	 * @returns {Array<Element>}
 	 */
@@ -221,7 +223,7 @@ gui.AttentionPlugin = gui.SpiritPlugin.extend ( "gui.AttentionPlugin", {
 		}, this );
 	},
 
-	/**
+	/*
 	 * Element is focusable form control or link?
 	 * Excluding the hidden inputs for TAB contain.
 	 * @param {Element} elm
@@ -248,7 +250,7 @@ gui.AttentionPlugin = gui.SpiritPlugin.extend ( "gui.AttentionPlugin", {
 		return is;
 	},
 
-	/**
+	/*
 	 * Something was focused.
 	 * @param {Element} elm
 	 */
@@ -274,7 +276,7 @@ gui.AttentionPlugin = gui.SpiritPlugin.extend ( "gui.AttentionPlugin", {
 		}
 	},
 
-	/**
+	/*
 	 * Something was blurred.
 	 */
 	_onblur : function ( node ) {
@@ -287,7 +289,7 @@ gui.AttentionPlugin = gui.SpiritPlugin.extend ( "gui.AttentionPlugin", {
 		}, this );
 	},
 
-	/**
+	/*
 	 * Attention trap entered.
 	 */
 	_didcatch : function () {
@@ -298,7 +300,7 @@ gui.AttentionPlugin = gui.SpiritPlugin.extend ( "gui.AttentionPlugin", {
 		);
 	},
 
-	/**
+	/*
 	 * Attention trap escaped.
 	 */
 	_didescape : function () {
@@ -315,14 +317,14 @@ gui.AttentionPlugin = gui.SpiritPlugin.extend ( "gui.AttentionPlugin", {
 
 }, { // STATICS ........................................................................
 
-	/**
+	/*
 	 * @type {Array<String>}
 	 */
 	_queue : [],
 
-	/**
+	/*
 	 * Get next in line.
-	 * TODO: continue until next is not hidden.
+	 * @todo continue until next is not hidden.
 	 * @returns {String}
 	 */
 	_next : function () {
@@ -331,7 +333,7 @@ gui.AttentionPlugin = gui.SpiritPlugin.extend ( "gui.AttentionPlugin", {
 		return q [ q.length - 1 ];
 	},
 
-	/**
+	/*
 	 * Handle broadcast.
 	 * @param {gui.Broadcast} b
 	 */
@@ -362,7 +364,7 @@ gui.AttentionPlugin = gui.SpiritPlugin.extend ( "gui.AttentionPlugin", {
 
 });
 
-/**
+/*
  * Manage attention queue.
  */
 ( function () {

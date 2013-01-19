@@ -1,4 +1,5 @@
 /**
+ * @class
  * Generating keys for unique key purposes.
  */
 gui.KeyMaster = {
@@ -23,7 +24,7 @@ gui.KeyMaster = {
 
 	/**
 	 * @static
-	 * Generate GUID. TODO: Verify integrity of this by mounting result in Java or something.
+	 * Generate GUID. @todo Verify integrity of this by mounting result in Java or something.
 	 * @see http://stackoverflow.com/questions/105034/how-to-create-a-guid-uuid-in-javascript
 	 * @returns {String}
 	 */

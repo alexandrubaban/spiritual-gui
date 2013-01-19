@@ -1,4 +1,5 @@
 /**
+ * @class
  * @param {String} type
  * @param @optional {object} data
  */

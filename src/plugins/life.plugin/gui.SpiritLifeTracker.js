@@ -1,4 +1,5 @@
 /**
+ * @class
  * Tracking spirit life cycle events.
  * @extends {gui.SpiritTracker}
  */
@@ -12,7 +13,7 @@ gui.SpiritLifeTracker = gui.SpiritTracker.extend ( "gui.SpiritLifeTracker", {
 	constructed : false,
 	
 	/**
-	 * TODO: EXPERIMENT...
+	 * @todo EXPERIMENT...
 	 * @type {boolean}
 	 */
 	configured : false,
@@ -70,7 +71,7 @@ gui.SpiritLifeTracker = gui.SpiritTracker.extend ( "gui.SpiritLifeTracker", {
 	destructed : false,
 	
 	/**
-	 * TODO: move declaration to super!
+	 * @todo move declaration to super!
 	 * @type {Map<String,Array<object>}
 	 */
 	_handlers : null,

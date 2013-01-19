@@ -1,8 +1,9 @@
 /**
+ * @class
  * Provides convenient access to an events originating 
  * window, document and spirit of the document element. 
- * TODO: Fire this onmousemove only if has listeners!
- * TODO: Figure this out with cross-domain spirits.
+ * @todo Fire this onmousemove only if has listeners!
+ * @todo Figure this out with cross-domain spirits.
  * @param {Event} e
  */
 gui.EventSummary = function ( e ) {
@@ -49,7 +50,10 @@ gui.EventSummary.prototype = {
 		return "[object gui.EventSummary]";
 	},
 
-	/**
+
+	// PRIVATES ..............................................
+
+	/*
 	 * Breakdown event argument into more manegable properties 
 	 * (this method illustrates the need for en event summary).
 	 * @param {Event} e

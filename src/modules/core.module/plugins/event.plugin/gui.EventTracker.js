@@ -1,14 +1,15 @@
 /**
+ * @class
  * Tracking DOM events.
- * TODO: Corresponding static class for non-plugin use. 
+ * @todo Static interface for general consumption.
  * @extends {gui.SpiritTracker}
  */
 gui.EventTracker = gui.SpiritTracker.extend ( "gui.EventTracker", {
    
 	/**
 	 * Add one or more DOM event handlers.
-	 * TODO: Don't assume spirit handler
-	 * TODO: reverse handler and capture args
+	 * @todo Don't assume spirit handler
+	 * @todo reverse handler and capture args
 	 * @param {object} arg String, array or whitespace-separated-string
 	 * @param @optional {object} target Node, Window or XmlHttpRequest. Defaults to spirit element
 	 * @param @optional {object} handler implements EventListener interface, defaults to spirit

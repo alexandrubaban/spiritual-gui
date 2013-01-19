@@ -1,4 +1,6 @@
 /**
+ * @class
+ * @extends {gui.Spirit}
  * Spirit of the iframe.
  */
 gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
@@ -142,7 +144,7 @@ gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
 	/**
 	 * Add or remove querystring parameter from URL. If the parameter 
 	 * already exists, we'll replace it's (first ancountered!) value. 
-	 * TODO: Something simpler
+	 * @todo Something simpler
 	 * @param {String} url
 	 * @param {String} name
 	 * @param {String} value Use null to remove

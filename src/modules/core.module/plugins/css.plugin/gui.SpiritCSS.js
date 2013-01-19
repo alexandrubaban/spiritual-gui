@@ -1,6 +1,7 @@
 /**
+ * @class
  * Spirit styling studio.
- * @param {gui.Spirit} spirit
+ * @extends {gui.SpiritPlugin}
  */
 gui.SpiritCSS = gui.SpiritPlugin.extend ( "gui.SpiritCSS", {
 	
@@ -238,7 +239,7 @@ gui.SpiritCSS = gui.SpiritPlugin.extend ( "gui.SpiritCSS", {
 	 */
 	set : function ( element, prop, value ) {
 
-		// TODO: also automate shorthands such as "10px 20px 10px 20px"
+		// @todo also automate shorthands such as "10px 20px 10px 20px"
 		if ( gui.Type.isNumber ( value )) {
 			value = ( this._shorthands [ prop ] || "@" ).replace ( "@", value );
 		}
@@ -259,7 +260,7 @@ gui.SpiritCSS = gui.SpiritPlugin.extend ( "gui.SpiritCSS", {
 	
 	/**
 	 * @static
-	 * TODO: Get element.style property; if this has been set. 
+	 * @todo Get element.style property; if this has been set. 
 	 * Not to be confused with compute() for computedStyle!!!
 	 * @param {Element}
 	 * @param {String} prop
@@ -344,7 +345,7 @@ gui.SpiritCSS = gui.SpiritPlugin.extend ( "gui.SpiritCSS", {
 	 * @static 
 	 * Setter shorthands will autosuffix properties that require units 
 	 * in support of the syntax: this.css.width = 300; // no method()
-	 * TODO: add tons of things to this list
+	 * @todo add tons of things to this list
 	 * @type {Map<String,String>
 	 */
 	_shorthands : {
@@ -415,7 +416,7 @@ gui.SpiritCSS = gui.SpiritPlugin.extend ( "gui.SpiritCSS", {
 					var test = this._camelcase ( prop.replace ( "-beta-", vendor ));
 					if ( element.style [ test ] !== undefined ) {
 						if ( vendors.length > 2 ) {
-							this._vendors = [ "", vendor ]; // TODO: at startup
+							this._vendors = [ "", vendor ]; // @todo at startup
 						}
 						fixt = test;
 						return false;

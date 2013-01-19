@@ -1,5 +1,5 @@
 /**
- * Broadcast.
+ * @constructor
  * @param {Spirit} target
  * @param {String} type
  * @param {object} data
@@ -20,7 +20,7 @@ gui.Broadcast.prototype = {
 	 * @type {gui.Spirit}
 	 */
 	target : null,
-		
+	
 	/**
 	 * Broadcast type.
 	 * @type {String}
@@ -35,19 +35,13 @@ gui.Broadcast.prototype = {
 	
 	/**
 	 * Global broadcast?
-	 * TODO: rename "global"
+	 * @todo rename "global"
 	 * @type {boolean}
 	 */
 	isGlobal : false,
-
+		
 	/**
-	 * Data is JSON encoded?
-	 * @type {boolean}
-	 */
-	isEncoded : false,
-	
-	/**
-	 * Identification.
+	 * @ignore
 	 */
 	toString : function () {
 		
@@ -59,14 +53,16 @@ gui.Broadcast.prototype = {
 // STATICS .........................................................
 
 /**
- * @private @static
+ * @private
+ * @static
  * Tracking global handlers (mapping broadcast types to list of handlers).
  * @type {Map<String,<Array<object>>}
  */
 gui.Broadcast._globals = Object.create ( null );
 
 /**
- * @private @static
+ * @private
+ * @static
  * Tracking local handlers (mapping gui.signatures to broadcast types to list of handlers).
  * @type {Map<String,Map<String,Array<object>>>}
  */
@@ -99,7 +95,7 @@ gui.Broadcast.remove = function ( message, handler, sig ) {
 /**
  * @static
  * Publish broadcast in local window scope.
- * TODO: queue for incoming dispatch (finish current message first).
+ * @todo queue for incoming dispatch (finish current message first).
  * @param {Spirit} target
  * @param {String} type
  * @param {object} data
@@ -136,8 +132,8 @@ gui.Broadcast.removeGlobal = function ( message, handler ) {
 /**
  * @static
  * Dispatch broadcast in global scope (all windows).
- * TODO: queue for incoming dispatch (finish current first).
- * TODO: Handle remote domain iframes ;)
+ * @todo queue for incoming dispatch (finish current first).
+ * @todo Handle remote domain iframes ;)
  * @param {Spirit} target
  * @param {String} type
  * @param {object} data
@@ -148,6 +144,7 @@ gui.Broadcast.dispatchGlobal = function ( target, type, data ) {
 };
 
 /**
+ * @private
  * @static
  * mapcribe handler to message(s).
  * @param {Array<string>|string} type
@@ -187,6 +184,7 @@ gui.Broadcast._add = function ( type, handler, sig ) {
 };
 
 /**
+ * @private
  * @static
  * @param {object} message String or array of strings
  * @param {object} handler
@@ -214,6 +212,7 @@ gui.Broadcast._remove = function ( message, handler, sig ) {
 };
 
 /**
+ * @private
  * @static
  * @param {Spirit} target
  * @param {String} type

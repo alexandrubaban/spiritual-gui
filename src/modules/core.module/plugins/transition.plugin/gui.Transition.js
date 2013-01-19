@@ -1,4 +1,5 @@
 /**
+ * @class
  * Details for ended CSS transition.
  * @param {String} propertyName
  * @param {number} elapsedTime
@@ -12,8 +13,8 @@ gui.Transition.prototype = {
 
 	/**
 	 * Property that finished transitioning ("width","height").
-	 * TODO: un-camelcase this to CSS syntax.
-	 * TODO: adjust vendor prefix to "beta".
+	 * @todo un-camelcase this to CSS syntax.
+	 * @todo adjust vendor prefix to "beta".
 	 * @type {String}
 	 */
 	type : null,

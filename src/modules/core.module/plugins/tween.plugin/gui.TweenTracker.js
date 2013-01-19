@@ -1,4 +1,5 @@
 /**
+ * @class
  * Tracking tweens.
  * @extends {gui.SpiritTracker}
  */

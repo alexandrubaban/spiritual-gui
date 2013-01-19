@@ -1,4 +1,5 @@
 /**
+ * @class
  * Split() the #fragment identifier once and for all.
  * @param {Document} doc
  * @param {String} href

@@ -1,4 +1,6 @@
 /**
+ * @class
+ * @extends {gui.Spirit}
  * Spirit of the stylesheet.
  */
 gui.StyleSheetSpirit = gui.Spirit.infuse ( "gui.StyleSheetSpirit", {
@@ -76,7 +78,7 @@ gui.StyleSheetSpirit = gui.Spirit.infuse ( "gui.StyleSheetSpirit", {
 	
 	/**
 	 * Parse CSS, channeling Spirits to selectors.
-	 * TODO: more tolerant parsing algorithm!
+	 * @todo more tolerant parsing algorithm!
 	 * @param {String} text (valid CSS syntax!) 
 	 */
 	_parse : function ( text ) {

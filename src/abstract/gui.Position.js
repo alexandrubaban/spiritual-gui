@@ -1,4 +1,5 @@
 /**
+ * @class
  * Position.
  * @param {number} x
  * @param {number} y

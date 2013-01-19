@@ -1,4 +1,5 @@
 /**
+ * @class
  * Questionable browser identity and feature detection.
  * Note that Chrome on iOS identifies itself as Safari 
  * (it basically is, so that shouldn't cause concern).
@@ -58,7 +59,7 @@ gui.Client = new function Client () {
 	
 	/**
 	 * Has touch support? Note that desktop Chrome has this.
-	 * TODO: Investigate this in desktop IE10.
+	 * @todo Investigate this in desktop IE10.
 	 * @type {boolean}
 	 */
 	this.hasTouch = ( window.ontouchstart !== undefined || this.isChrome );
@@ -71,7 +72,7 @@ gui.Client = new function Client () {
 	
 	/**
 	 * Is mobile device? Not to be confused with this.hasTouch
-	 * TODO: gui.Observerice entity?
+	 * @todo gui.Observerice entity?
 	 * @type {boolean}
 	 */
 	this.isMobile = ( function () {
@@ -154,14 +155,14 @@ gui.Client = new function Client () {
 	 * Time in milliseconds after window.onload before we can reliably measure 
 	 * document height. We could in theory discriminate between browsers here, 
 	 * but we won't. WebKit sucks more at this and Safari on iOS is dead to me.
-	 * TODO: Now Firefox started to suck really bad. How can we fix this mess?
-	 * TODO: Where to move this?
+	 * @todo Now Firefox started to suck really bad. How can we fix this mess?
+	 * @todo Where to move this?
 	 * @type {number}
 	 */
 	this.STABLETIME = 200;
 	
 
-	// TODO: Compute these only when reqeusted (via object.defineproperties)
+	// @todo Compute these only when reqeusted (via object.defineproperties)
 	
 	/**
 	 * Browsers disagree on the primary scrolling element.
@@ -185,7 +186,7 @@ gui.Client = new function Client () {
 	this.hasPositionFixed = false;
 	
 	/**
-	 * TODO: MOVE THIS STUFF ELSEWHERE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	 * @todo MOVE THIS STUFF ELSEWHERE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	 * @param {gui.Broadcast} b
 	 */
 	this.onbroadcast = function ( b ) {
@@ -261,7 +262,7 @@ gui.Client = new function Client () {
 
 /*
  * Determine properties on startup.
- * TODO: Compute all properties only when requested (via object.defineproperties).
+ * @todo Compute all properties only when requested (via object.defineproperties).
  */
 ( function initSpiritClient () {
 	gui.Broadcast.addGlobal ( gui.BROADCAST_DOMCONTENT, gui.Client );

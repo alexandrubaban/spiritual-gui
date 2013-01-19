@@ -1,9 +1,11 @@
 /**
+ * @class
  * Function argument type checking studio.
  */
 gui.Arguments = {
 
 	/**
+	 * @static
 	 * Use this to check the runtime signature of a function call: 
 	 * gui.Arguments.match ( arguments, "string", "string", "number" );
 	 * Note that some args may be omitted and still pass the test, 
@@ -31,8 +33,9 @@ gui.Arguments = {
 	},
 	
 	/**
-	 * Sstrict type-checking facility to throw exceptions on failure. 
-	 * TODO: at some point, return true unless in developement mode.
+	 * @static
+	 * Strict type-checking facility to throw exceptions on failure. 
+	 * @todo at some point, return true unless in developement mode.
 	 * @param {object} args Array-like 
 	 * @returns {boolean}
 	 */
@@ -49,7 +52,7 @@ gui.Arguments = {
 
 	// PRIVATE ...........................................................
 	
-	/**
+	/*
 	 * Validating mode?
 	 * @type {boolean}
 	 */
@@ -65,7 +68,7 @@ gui.Arguments = {
 		return optional ? xpect.slice ( 1, -1 ) : xpect;
 	},
 
-	/**
+	/*
 	 * Check if argument matches expected type.
 	 * @param {string} xpect
 	 * @param {object} arg
@@ -87,7 +90,7 @@ gui.Arguments = {
 		return match;
 	},
 
-	/**
+	/*
 	 * Report validation error for argument at index.
 	 * @param {number} index
 	 * @param {string} xpect

@@ -1,6 +1,7 @@
 /**
- * Methods to read and write DOM attributes on spirit element
- * @param {Spirit} spirit
+ * @class
+ * Methods to read and write DOM attributes.
+ * @extends {gui.SpiritTracker}
  */
 gui.SpiritAtt = gui.SpiritPlugin.extend ( "gui.SpiritAtt", {
 
@@ -93,13 +94,13 @@ gui.SpiritAtt = gui.SpiritPlugin.extend ( "gui.SpiritAtt", {
 
 	// SECRETS .........................................
 
-	/**
+	/*
 	 * Disable attribute updates.
 	 * @type {boolean}
 	 */
 	__suspended__ : false,
 
-	/**
+	/*
 	 * Suspend attribute updates for the duration of 
 	 * the action (kind of framework internal stuff).
 	 * @param {function} action

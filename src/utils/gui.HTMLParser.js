@@ -1,7 +1,8 @@
 /**
+ * @class
  * Parse HTML string to DOM node(s) in given document context.
  * Adapted from https://github.com/petermichaux/arbutus
- * TODO: High level awareness of HTMLparser elements. Plugin 
+ * @todo High level awareness of HTMLparser elements. Plugin 
  *       ui.SpiritDOM and ui.Spirit.parse should know about 
  *       added historic HTML chrome and strip when inserted.
  * @param {Document} doc
@@ -81,31 +82,34 @@ gui.HTMLParser.prototype = {
 };
 
 /**
+ * @private
+ * @static
  * Match comments.
- * @private @static.
  * @type {RegExp}
  */
 gui.HTMLParser._comments = /<!--[\s\S]*?-->/g;
 
 /**
+ * @private
+ * @static
  * Match first tag.
- * @private @static.
  * @type {RegExp}
  */
 gui.HTMLParser._firsttag = /^<([a-z]+)/i;
 
 /**
+ * @private 
+ * @static
  * Mapping tag names to miminum viable tag structure.
  * Considerable foresight has decided that text/html 
  * must forever remain backwards compatible with IE5.
- * @private @static
  * @type {Map<String,String>}
  */
 gui.HTMLParser._fixes = new Map ();
 
 /**
  * Populate fixes.
- * TODO: "without the option in the next line, the parsed option will always be selected."
+ * @todo "without the option in the next line, the parsed option will always be selected."
  */
 ( function () {
 	gui.Object.each ({

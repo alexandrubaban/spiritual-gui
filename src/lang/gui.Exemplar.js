@@ -1,10 +1,11 @@
 /**
+ * @class
  * The term "exemplar" has been proposed to avoid the term "class" which is misleading 
  * for prototypal inheritance. Nevertheless, this fellow allow us to create a newable 
  * constructor that can be easily "subclassed". Instances of this constructor may use a 
  * special "_super" method to overload members of the "superclass" prototype. 
- * TODO: Evaluate static stuff first so that proto can declare vals as static props 
- * TODO: Support lazy declaration via "namespace" objects
+ * @todo Evaluate static stuff first so that proto can declare vals as static props 
+ * @todo Support lazy declaration via "namespace" objects
  */
 gui.Exemplar = {
 	
@@ -115,7 +116,7 @@ gui.Exemplar = {
 	
 	/**
 	 * Assign method or property to prototype, checking for naming collision.
-	 * TODO: http://www.nczonline.net/blog/2012/12/11/are-your-mixins-ecmascript-5-compatible
+	 * @todo http://www.nczonline.net/blog/2012/12/11/are-your-mixins-ecmascript-5-compatible
 	 * @param {String} name
 	 * @param {object} value
 	 * @param @optional {boolean} override Disable collision detection
@@ -192,7 +193,7 @@ gui.Exemplar = {
 	},
 	
 	/**
-	 * TODO: comments here!
+	 * @todo comments here!
 	 * @param {object} proto Prototype of superconstructor
 	 * @param {String} name Constructor name (for debug).
 	 * @returns {function}
@@ -221,7 +222,7 @@ gui.Exemplar = {
 			name = name.substring ( index + 1 );
 		}
 
-		var Invokable = Function; // TODO: perhaps scope this to a context?
+		var Invokable = Function; // @todo perhaps scope this to a context?
 		var named = new Invokable (
 			"return function " + name + " () {" +
 				"var con = this.__construct__ || this.onconstruct;" +
@@ -247,7 +248,7 @@ gui.Exemplar = {
 	
 	/**
 	 * Name constructor or instance.
-	 * TODO: does it work ?????????????????????????????????
+	 * @todo does it work ?????????????????????????????????
 	 * @param {object} what
 	 * @param {String} type
 	 * @param {String} name

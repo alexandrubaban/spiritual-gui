@@ -1,8 +1,9 @@
 /**
- * TODO: insertAdjecantHTML
- * TODO: DOM4 methods
+ * @class
+ * @todo insertAdjecantHTML
+ * @todo DOM4 methods
  */
-gui.UPGRADE = function () { // TODO: name this thing
+gui.UPGRADE = function () { // @todo name this thing
 
 	var combo = gui.Combinator;
 	var guide = gui.Guide;
@@ -45,7 +46,7 @@ gui.UPGRADE = function () { // TODO: name this thing
 	});
 
 	// spirit-aware removeattribute
-	var delattafter = combo.after ( function ( att ) { // TODO: use the post combo
+	var delattafter = combo.after ( function ( att ) { // @todo use the post combo
 		this.spirit.att.__suspend__ ( function () {
 			this.del ( att );
 		});
@@ -69,7 +70,7 @@ gui.UPGRADE = function () { // TODO: name this thing
 	});
 
 	// detach "this"
-	var parent = null; // TODO: unref this at some point
+	var parent = null; // @todo unref this at some point
 	var detachthisbefore = combo.before ( function () {
 		parent = this.parentNode;
 		guide.detach ( this );
@@ -95,7 +96,7 @@ gui.UPGRADE = function () { // TODO: name this thing
 
 	// PUBLIC ......................................................................
 
-	return { // TODO: standard dom exceptions for missing arguments and so on.
+	return { // @todo standard dom exceptions for missing arguments and so on.
 
 		appendChild : function ( base ) {
 			return (

@@ -1,11 +1,10 @@
+/**
+ * @class
+ */
 gui.BlobLoader = {
 
 	/**
-	 * @type {URL}
-	 */
-	_URL : ( window.URL || window.webkitURL ),
-
-	/**
+	 * @static
 	 * Load script into document from given source code.
 	 * @param {Document} doc
 	 * @param {String} source
@@ -28,5 +27,13 @@ gui.BlobLoader = {
 				callback.call ( thisp );
 			};
 		}
-	}
+	},
+
+	// PRIVATES .............................
+
+	/*
+	 * @type {URL}
+	 */
+	_URL : ( window.URL || window.webkitURL )
+	
 };

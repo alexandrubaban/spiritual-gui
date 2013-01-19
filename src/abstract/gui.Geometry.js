@@ -1,4 +1,5 @@
 /**
+ * @class
  * Geometry.
  * @param {number} x
  * @param {number} y

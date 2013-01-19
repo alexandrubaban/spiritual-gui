@@ -1,4 +1,5 @@
 /**
+ * @class
  * Tracking broadcasts.
  * @extends {gui.SpiritTracker}
  */
@@ -150,7 +151,7 @@ gui.BroadcastTracker = gui.SpiritTracker.extend ( "gui.BroadcastTracker", {
 });
 
 /**
- * TODO: get rid of this.
+ * @todo get rid of this.
  *
 function GETRIDOFTHIS () {
 
@@ -202,7 +203,7 @@ function GETRIDOFTHIS () {
 					case "array" :
 						var debug = this.window.gui.debug;
 						try {
-							data = JSON.stringify ( data, null, debug ? "\t" : null ); // TODO: catch parse exception
+							data = JSON.stringify ( data, null, debug ? "\t" : null ); // @todo catch parse exception
 						} catch ( jsonex ) {
 							throw new Error ( "JSON encoding of broadcast failed: " + jsonex );
 						}

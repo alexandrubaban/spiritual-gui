@@ -1,4 +1,6 @@
 /**
+ * @class
+ * @extends {gui.Spirit}
  * Spirit of the cover. Use it to cover stuff up. Note that the cover should 
  * be fitted with a background-color in CSS in order to actually cover stuff.
  */
@@ -26,7 +28,7 @@ gui.CoverSpirit = gui.Spirit.infuse ( "gui.CoverSpirit", {
 
 	/**
 	 * Show and fade to no opacity.
-	 * TODO: promises goes here
+	 * @todo promises goes here
 	 * @param {number} duration in ms
 	 * @returns {Object} then method
 	 */
@@ -48,7 +50,7 @@ gui.CoverSpirit = gui.Spirit.infuse ( "gui.CoverSpirit", {
 	
 	/**
 	 * Fade to full opacity and hide.
-	 * TODO: promises goes here
+	 * @todo promises goes here
 	 * @param {number} duration in ms
 	 * @returns {Object} then method
 	 */

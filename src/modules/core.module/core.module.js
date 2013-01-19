@@ -1,5 +1,6 @@
-/*
- * Register module.
+/**
+ * @module core
+ * @desc Injects methods into {@link gui.Spirit} and such stuff.
  */
 gui.module ( "core", {
 	
@@ -7,13 +8,13 @@ gui.module ( "core", {
 	 * Methods added to gui.Spirit.prototype
 	 */
 	addins : {
-	
+
 		/**
 		 * Handle action.
 		 * @param {gui.Action} action
 		 */
 		onaction : function ( action ) {},
-	
+
 		/**
 		 * Handle broadcast.
 		 * @param {gui.Broadcast} broadcast
@@ -27,6 +28,7 @@ gui.module ( "core", {
 		ontick : function ( tick ) {},
 
 		/**
+		 * Handle tween.
 		 * @param {gui.Tween}
 		 */
 		ontween : function ( tween ) {},
@@ -42,7 +44,7 @@ gui.module ( "core", {
 		 * @param {Event} event
 		 */
 		onevent : function ( event ) {},
-	
+
 		/**
 		 * Implements DOM2 EventListener.
 		 * Forwards to method onevent()
@@ -51,7 +53,6 @@ gui.module ( "core", {
 		handleEvent : function ( event ) {
 			this.onevent(event);
 		}
-
 	},
 	
 	/*
@@ -81,7 +82,7 @@ gui.module ( "core", {
 		[ ".gui-styles", "gui.StyleSheetSpirit" ],
 		[ ".gui-iframe", "gui.IframeSpirit" ],
 		[ ".gui-window", "gui.WindowSpirit" ],
-		[ ".gui-action", "gui.ActionSpirit" ], // TODO: fix or deprecate
+		[ ".gui-action", "gui.ActionSpirit" ], // @todo fix or deprecate
 		[ ".gui-cover",  "gui.CoverSpirit" ],
 		[ ".gui-spirit", "gui.Spirit" ]
 	]

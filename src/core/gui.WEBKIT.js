@@ -1,8 +1,9 @@
-	/**
+/**
+ * @class
  * Patching bad WebKit support for DOM getters and setters.
  * @see http://code.google.com/p/chromium/issues/detail?id=13175
  */
-gui.WEBKIT = { // TODO: name this thing
+gui.WEBKIT = { // @todo name this thing
 
 	/**
 	 * Can patch property descriptors of elements in given window? 

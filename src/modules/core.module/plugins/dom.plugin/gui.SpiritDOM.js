@@ -1,7 +1,9 @@
 /**
+ * @class
  * DOM query and manipulation.
- * TODO: implement missing stuff
- * TODO: performance for all this
+ * @extends {gui.SpiritPlugin}
+ * @todo implement missing stuff
+ * @todo performance for all this
  */
 gui.SpiritDOM = gui.SpiritPlugin.extend ( "gui.SpiritDOM", {
 	
@@ -73,7 +75,7 @@ gui.SpiritDOM = gui.SpiritPlugin.extend ( "gui.SpiritDOM", {
 		var res = this.spirit, element = res.element;
 		if ( gui.Type.isString ( html )) {
 			if ( position ) {
-				element.insertAdjacentHTML ( position, html ); // TODO: spiritualize this :)
+				element.insertAdjacentHTML ( position, html ); // @todo spiritualize this :)
 			} else {
 				gui.SpiritDOM.html ( element, html );
 			}			
@@ -119,7 +121,7 @@ gui.SpiritDOM = gui.SpiritPlugin.extend ( "gui.SpiritDOM", {
 	// Visibility ...................................................................
 	
 	/**
-	 * TODO: keep this updated!
+	 * @todo keep this updated!
 	 * @type {boolean}
 	 */
 	apparent : true,
@@ -145,7 +147,7 @@ gui.SpiritDOM = gui.SpiritPlugin.extend ( "gui.SpiritDOM", {
 	// PRIVATES .....................................................................
 	
 	/**
-	 * TODO: Explain custom "this" keyword in selector.
+	 * @todo Explain custom "this" keyword in selector.
 	 * @param {String} selector
 	 * @returns {String}
 	 */
@@ -188,7 +190,7 @@ gui.SpiritDOM = gui.SpiritPlugin.extend ( "gui.SpiritDOM", {
 				guide.detachSub ( element );
 				guide.suspend ( function () {
 					gui.Observer.suspend ( element, function () {
-						while ( element.firstChild ) { // TODO: why hasChildNodes() fail in Aurora?
+						while ( element.firstChild ) { // @todo why hasChildNodes() fail in Aurora?
 							element.removeChild ( element.firstChild );
 						}
 						nodes.forEach ( function ( node ) {
@@ -201,7 +203,7 @@ gui.SpiritDOM = gui.SpiritPlugin.extend ( "gui.SpiritDOM", {
 		} else {
 			// throw new TypeError ();
 		}
-		return element.innerHTML; // TODO: skip this step on setter
+		return element.innerHTML; // @todo skip this step on setter
 	},
 
 	/**
@@ -216,7 +218,7 @@ gui.SpiritDOM = gui.SpiritPlugin.extend ( "gui.SpiritDOM", {
 		if ( element.nodeType ) {
 			if ( gui.Type.isString ( markup )) {
 
-				// parse markup to node(s) - TODO: can outerHTML carry multiple nodes?
+				// parse markup to node(s) - @todo can outerHTML carry multiple nodes?
 				var nodes = new gui.HTMLParser ( 
 					element.ownerDocument 
 				).parse ( markup, element );
@@ -231,13 +233,13 @@ gui.SpiritDOM = gui.SpiritPlugin.extend ( "gui.SpiritDOM", {
 						parent.removeChild ( element );
 					});
 				});
-				guide.attachSub ( parent ); // TODO: optimize
+				guide.attachSub ( parent ); // @todo optimize
 				res = element; // bad API design goes here...
 			}
 		} else {
 			throw new TypeError ();
 		}
-		return res; // TODO: skip this step on setter
+		return res; // @todo skip this step on setter
 	},
 	
 	/**
@@ -263,7 +265,7 @@ gui.SpiritDOM = gui.SpiritPlugin.extend ( "gui.SpiritDOM", {
 
 	/**
 	 * Is node in found in page DOM? Otherwise probable createElement scenario.
-	 * TODO: comprehend https://developer.mozilla.org/en/JavaScript/Reference/Operators/Bitwise_Operators#Example:_Flags_and_bitmasks
+	 * @todo comprehend https://developer.mozilla.org/en/JavaScript/Reference/Operators/Bitwise_Operators#Example:_Flags_and_bitmasks
 	 * @param {Element} element
 	 * @returns {boolean}
 	 */
@@ -300,7 +302,7 @@ gui.SpiritDOM = gui.SpiritPlugin.extend ( "gui.SpiritDOM", {
 	/**
 	 * @static
 	 * Replace proprietary "this" keyword in CSS selector with element nodename.
-	 * TODO: There was something about a "scope" or similar keyword in CSS4??? 
+	 * @todo There was something about a "scope" or similar keyword in CSS4??? 
 	 * @param {String} selector
 	 * @param {Node} node
 	 * @returns {String}
@@ -313,7 +315,7 @@ gui.SpiritDOM = gui.SpiritPlugin.extend ( "gui.SpiritDOM", {
 				result = selector.replace ( gui.SpiritDOM._thiskeyword, node.localName );
 				break;
 			case Node.DOCUMENT_NODE :
-				// TODO: use ":root" for something?
+				// @todo use ":root" for something?
 				break;
 		}
 		return result;
@@ -557,7 +559,7 @@ gui.Object.each ({
 	},
 	
 	/**
-	 * TODO: just use this.element.children :)
+	 * @todo just use this.element.children :)
 	 * @param {function} type
 	 * @returns {Array<object>} Elements or gui.Spirits
 	 */

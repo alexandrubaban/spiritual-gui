@@ -1,4 +1,5 @@
 /**
+ * @class
  * The spirit guide crawls the document while channeling 
  * spirits into DOM elements that matches CSS selectors.
  */
@@ -96,7 +97,7 @@ gui.Guide = {
 	/**
 	 * Construct spirits for element and descendants, 
 	 * then attach all spirits in document order.
-	 * TODO: JUMP DETACHED SPIRIT IF MATCHING ID!
+	 * @todo JUMP DETACHED SPIRIT IF MATCHING ID!
 	 * @param {Element} elm
 	 * @param {boolean} skip Eval descendants only
 	 */
@@ -182,7 +183,7 @@ gui.Guide = {
 		spirit.signature = spirit.window.gui.signature;
 		
 		/*
-		 * TODO: weakmap for this stunt
+		 * @todo weakmap for this stunt
 		 */
 		element.spirit = spirit;
 		if ( !spirit.life || spirit.life.constructed ) {
@@ -237,7 +238,7 @@ gui.Guide = {
 		
 		gui.broadcast ( gui.BROADCAST_DOMCONTENT, sum );
 
-		// TODO: gui.Observer crashes with JQuery when both do stuff on DOMContentLoaded, pushing Spiritual to next stack for now
+		// @todo gui.Observer crashes with JQuery when both do stuff on DOMContentLoaded, pushing Spiritual to next stack for now
 		// see http://stackoverflow.com/questions/11406515/domnodeinserted-behaves-weird-when-performing-dom-manipulation-on-body
 		var that = this, doc = sum.document;
 		//setImmediate(function(){ // can't do, we risk onload being fired first :(
@@ -259,7 +260,7 @@ gui.Guide = {
 	
 	/**
 	 * Fires on window.unload
-	 * TODO: handle disposal in gui.Spiritual (no crawling)
+	 * @todo handle disposal in gui.Spiritual (no crawling)
 	 * @param {gui.EventSummary} sum
 	 */
 	_unload : function ( sum ) {
@@ -311,7 +312,7 @@ gui.Guide = {
 		 */
 		if ( win.gui.debug ){
 			if ( win.gui.mode === gui.MODE_JQUERY ) {
-				setImmediate(function(){ // TODO: somehow not conflict with http://stackoverflow.com/questions/11406515/domnodeinserted-behaves-weird-when-performing-dom-manipulation-on-body
+				setImmediate(function(){ // @todo somehow not conflict with http://stackoverflow.com/questions/11406515/domnodeinserted-behaves-weird-when-performing-dom-manipulation-on-body
 					gui.Observer.observe ( win ); // IDEA: move all of _step2 to next stack?
 				});
 			} else {
@@ -469,8 +470,8 @@ gui.Guide = {
 	
 	/**
 	 * If possible, construct and return spirit for element.
-	 * TODO: what's this? http://code.google.com/p/chromium/issues/detail?id=20773
-	 * TODO: what's this? http://forum.jquery.com/topic/elem-ownerdocument-defaultview-breaks-when-elem-iframe-document
+	 * @todo what's this? http://code.google.com/p/chromium/issues/detail?id=20773
+	 * @todo what's this? http://forum.jquery.com/topic/elem-ownerdocument-defaultview-breaks-when-elem-iframe-document
 	 * @param {Element} element
 	 * @returns {Spirit} or null
 	 */
@@ -488,7 +489,7 @@ gui.Guide = {
 	},
 
 	/**
-	 * Spirit is invisible? TODO: only test for 
+	 * Spirit is invisible? @todo only test for 
 	 * this if something is indeed invisible. 
 	 * Consider maintaining this via crawlers.
 	 * @param {gui.Spirit} spirit

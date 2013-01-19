@@ -1,4 +1,5 @@
 /**
+ * @class
  * Working with objects.
  */
 gui.Object = {

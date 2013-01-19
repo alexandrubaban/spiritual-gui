@@ -1,4 +1,5 @@
 /**
+ * @class
  * From Raganwalds "Method Combinators".
  * @see https://github.com/raganwald/method-combinators/blob/master/README-JS.md
  * @see https://github.com/raganwald/homoiconic/blob/master/2012/09/precondition-and-postcondition.md

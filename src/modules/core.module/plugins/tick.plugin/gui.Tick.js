@@ -1,6 +1,7 @@
 /**
+ * @class
  * Use a SpiritTick for timed events. 
- * TODO: global versus local ticks
+ * @todo global versus local ticks
  * @param {Spirit} target
  * @param {String} type
  * @param {object} data
@@ -123,10 +124,10 @@ gui.Tick.remove = function ( type, handler, sig ) {
  */
 gui.Tick.start = function ( type, time ) {
 	
-	console.error ( "TODO:gui.Tick.start" );
+	console.error ( "@todo gui.Tick.start" );
 	return;
 
-	/* TODO: something like this...
+	/* @todo something like this...
 	if ( time && !this._global.types [ type ]) {
 		this._global.types [ type ] = setInterval ( function () {
 			gui.Tick.dispatch ( type );
@@ -146,7 +147,7 @@ gui.Tick.stop = function ( type ) {
 	
 	// TODO
 
-	console.error ( "TODO: gui.Tick#stop" );
+	console.error ( "@todo gui.Tick#stop" );
 	return this;
 };
 

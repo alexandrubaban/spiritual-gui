@@ -1,11 +1,11 @@
 /**
+ * @class
  * Interface BroadcastHandler.
  */
 gui.IBroadcastHandler = {
 		
 	/**
-	 * Identification.
-	 * @returns {String}
+	 * @ignore
 	 */
 	toString : function () {
 
@@ -13,6 +13,7 @@ gui.IBroadcastHandler = {
 	},
 
 	/**
+	 * @static
 	 * Handle broadcast.
 	 * @param {gui.Broadcast} broadcast
 	 */

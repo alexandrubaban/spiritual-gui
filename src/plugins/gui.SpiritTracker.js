@@ -1,4 +1,5 @@
 /**
+ * @class
  * Tracking event-type handlers. 
  * @extends {gui.SpiritPlugin}
  */
@@ -28,13 +29,13 @@ gui.SpiritTracker = gui.SpiritPlugin.extend ( "gui.SpiritTracker", {
 	},
 	
 	/**
-	 * TODO: Toggle type(s).
+	 * @todo Toggle type(s).
 	 * @param {object} arg
 	 * @returns {gui.SpiritTracker}
 	 */
 	toggle : function ( arg, checks ) {
 		
-		console.error ( "TODO: SpiritTracker#toggle" );
+		console.error ( "@todo SpiritTracker#toggle" );
 	},
 	
 	/**
@@ -52,7 +53,7 @@ gui.SpiritTracker = gui.SpiritPlugin.extend ( "gui.SpiritTracker", {
 	},
 	
 	/**
-	 * TODO: what? 
+	 * @todo what? 
 	 */
 	destruct : function () {
 		

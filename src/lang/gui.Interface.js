@@ -1,4 +1,5 @@
 /**
+ * @class
  * Checks an object for required methods such as onevent, onaction, onbroadcast etc.
  */
 gui.Interface = {

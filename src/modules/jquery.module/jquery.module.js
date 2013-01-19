@@ -1,11 +1,12 @@
 /**
- * Do what Spiritual does by overloading JQuery instead of native DOM methods.
- * TODO: (Angular special) handle function replaceWith, "a special jqLite.replaceWith, which can replace items which have no parents"
- * TODO: Henrik says "$(iframe.contentDocument).remove() før man skifter URL eller fjerner iframen" (jQuery.cache og jQuery.fragments)
+ * @module jquery
+ * @desc Do what Spiritual does by overloading JQuery methods instead of native DOM methods.
+ * @todo (Angular special) handle function replaceWith, "a special jqLite.replaceWith, which can replace items which have no parents"
+ * @todo Henrik says "$(iframe.contentDocument).remove() før man skifter URL eller fjerner iframen" (jQuery.cache og jQuery.fragments)
  */
 gui.module ( "jquery", {
 
-	/**
+	/*
 	 * Hack Spiritual in top window.
 	 * @param {Window} context
 	 */
@@ -16,7 +17,7 @@ gui.module ( "jquery", {
 		}
 	},
 
-	/**
+	/*
 	 * Hack JQuery in all windows.
 	 * @param {Window} context
 	 */
@@ -35,7 +36,7 @@ gui.module ( "jquery", {
 
 	// PRIVATE .............................................................
 
-	/**
+	/*
 	 * Injecting Spiritual awareness into 
 	 * JQuery DOM manipulation methods.
 	 * @param {jQuery} jq
@@ -121,7 +122,7 @@ gui.module ( "jquery", {
 		};
 	},
 
-	/**
+	/*
 	 * Fixing JQuery instance constructor to detect when the user 
 	 * instantiates JQuery in an external window context (iframes).
 	 * @param {function} jq JQuery constructor
@@ -145,9 +146,9 @@ gui.module ( "jquery", {
 		}
 	},
 
-	/**
+	/*
 	 * Overloading DOM manipulation methods.
-	 * TODO: attr and removeAttr must be hooked into gui.SpiritAtt setup...
+	 * @todo attr and removeAttr must be hooked into gui.SpiritAtt setup...
 	 * @param {function} jq Constructor
 	 */
 	_overload : function ( jq ) {
@@ -206,7 +207,7 @@ gui.module ( "jquery", {
 						case "append" :
 						case "prepend" :
 							res = suber ();
-							this.__attachSub (); // TODO: optimize!!!
+							this.__attachSub (); // @todo optimize!!!
 							break;
 						case "after" :
 						case "before" :
@@ -259,13 +260,13 @@ gui.module ( "jquery", {
 						case "replaceAll" :
 							arg().__detach ();
 							res = suber ();
-							this.parent ().__attachSub (); // TODO: optimize!
+							this.parent ().__attachSub (); // @todo optimize!
 							break;
 						case "replaceWith" :
 							this.__detach ();
 							var p = this.parent ();
 							res = suber ();
-							p.__attachSub (); // TODO: optimize!
+							p.__attachSub (); // @todo optimize!
 							break;
 						case "empty" :
 							this.__detachSub ();
@@ -320,7 +321,7 @@ gui.module ( "jquery", {
 		});
 		*/
 
-	/**
+	/*
 	 * Overload Spiritual to attach/detach spirits on DOM mutation and to 
 	 * suspend mutation monitoring while DOM updating. This would normally 
 	 * be baked into native DOM methods appendChild, removeChild and so on.

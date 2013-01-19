@@ -1,6 +1,7 @@
 /**
+ * @class
  * Crawling the DOM ascending or descending.
- * TODO: method descendSub to skip start element (and something similar for ascend)
+ * @todo method <code>descendSub</code> to skip start element (and something similar for ascend)
  * @param @optional {String} type
  */
 gui.Crawler = function ( type ) {
@@ -13,13 +14,13 @@ gui.Crawler.prototype = {
 		
 	/**
 	 * Recursion directives.
-	 * TODO: skip children, skip element etc
+	 * @todo skip children, skip element etc
 	 */
 	CONTINUE: 0,
 	STOP : 1,
 	
 	/**
-	 * Identifies crawler. TODO: spirit support for this!
+	 * Identifies crawler. @todo spirit support for this!
 	 * @type {String}
 	 */
 	type : null,
@@ -37,8 +38,8 @@ gui.Crawler.prototype = {
 	
 	/**
 	 * Crawl DOM ascending.
-	 * TODO: ascendGlobal
-	 * TODO: Transcend into parent frame.
+	 * @todo ascendGlobal
+	 * @todo Transcend into parent frame.
 	 * @param {object} start Spirit or Element
 	 * @param {object} handler
 	 */
@@ -55,7 +56,7 @@ gui.Crawler.prototype = {
 						try {
 							var assignment = elm.ownerDocument;
 						} catch ( accessDeniedException ) {
-							console.warn ( "TODO: Ascend cross domain" );
+							console.warn ( "@todo Ascend cross domain" );
 							elm = null;
 						}
 					}
@@ -81,8 +82,8 @@ gui.Crawler.prototype = {
 	
 	/**
 	 * Crawl DOM descending.
-	 * TODO: descendGlobal
-	 * TODO: Transcend into iframes.
+	 * @todo descendGlobal
+	 * @todo Transcend into iframes.
 	 * @param {object} start Spirit or Element
 	 * @param {object} handler
 	 */
@@ -94,7 +95,7 @@ gui.Crawler.prototype = {
 			elm = elm.documentElement;
 		} else if ( elm.localName === "iframe" ) {
 			if ( this.global ) {
-				console.log ( "TODO: descend into iframes" );
+				console.log ( "@todo descend into iframes" );
 			}
 		}
 		this._descend ( elm, handler, true );
@@ -121,7 +122,7 @@ gui.Crawler.prototype = {
 						try {
 							var assignment = elm.contentDocument;
 						} catch ( accessDeniedException ) {
-							console.warn ( "TODO: Descend cross domain" );
+							console.warn ( "@todo Descend cross domain" );
 						}
 						var root = elm.contentDocument.documentElement;
 						if ( root && root.spirit ) { // otherwise just created or no Spiritual
@@ -197,7 +198,7 @@ gui.Crawler.DESCENDING = "descending";
 
 /**
  * Bitmask setup supposed to be going on here.
- * TODO: SKIP_CHILDREN and TELEPORT_ELSEWEHERE stuff.
+ * @todo SKIP_CHILDREN and TELEPORT_ELSEWEHERE stuff.
  */
 gui.Crawler.CONTINUE = 0;
 gui.Crawler.STOP = 1;

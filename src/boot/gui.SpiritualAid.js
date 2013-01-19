@@ -1,4 +1,5 @@
 /**
+ * @class
  * Upgrading client features.
  */
 gui.SpiritualAid = {
@@ -37,7 +38,7 @@ gui.SpiritualAid = {
 			var def = whit [ key ];				
 			if ( what [ key ] === undefined ) {
 				if ( def.get && def.set ) {
-					// TODO: look at element.dataset polyfill (iOS?)
+					// @todo look at element.dataset polyfill (iOS?)
 				} else {
 					what [ key ] = def;
 				}
@@ -166,7 +167,7 @@ gui.SpiritualAid = {
 	 */
 	_globals : function ( win ) {
 		
-		this._extend ( win, { // TODO: investigate support for Object.getPrototypeOf ( win )
+		this._extend ( win, { // @todo investigate support for Object.getPrototypeOf ( win )
 			
 			console : {
 				log : function () {},
@@ -223,7 +224,7 @@ gui.SpiritualAid = {
 				return Set;
 			})(),
 			
-			WeakMap : ( function () { // TODO: clean this up
+			WeakMap : ( function () { // @todo clean this up
 				
 				function WeakMap () {
 
@@ -338,7 +339,7 @@ gui.SpiritualAid = {
 			})(),
 
 			/*
-			 * TODO: cancelAnimationFrame!
+			 * @todo cancelAnimationFrame!
 			 *
 			if (!window.cancelAnimationFrame)
 				window.cancelAnimationFrame = function(id) {

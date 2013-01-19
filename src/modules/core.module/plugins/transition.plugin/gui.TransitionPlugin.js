@@ -1,6 +1,8 @@
 /**
- * CSS transitioning things.
- * TODO: Just add the transitonend listener on construct?
+ * @class
+ * CSS transitioning things. Work in progress.
+ * @extends {gui.SpiritPlugin}
+ * @todo Just add the transitonend listener on construct?
  */
 gui.TransitionPlugin = gui.SpiritPlugin.extend ( "gui.TransitionPlugin", {
 	
@@ -155,7 +157,7 @@ gui.TransitionPlugin = gui.SpiritPlugin.extend ( "gui.TransitionPlugin", {
 
 	/**
 	 * Default transition duration time milliseconds.
-	 * TODO: actually default this
+	 * @todo actually default this
 	 * @type {number}
 	 */
 	_default: 1000,
@@ -174,9 +176,9 @@ gui.TransitionPlugin = gui.SpiritPlugin.extend ( "gui.TransitionPlugin", {
 
 	/**
 	 * Monitor transitions using vendor-prefixed event name.
-	 * TODO: Firefox is down
-	 * TODO: this.duration ( this._default )
-	 * TODO: this on static, not per instance
+	 * @todo Firefox is down
+	 * @todo this.duration ( this._default )
+	 * @todo this on static, not per instance
 	 * @returns {gui.TransitionPlugin}
 	 */
 	_init : function () {
@@ -188,7 +190,7 @@ gui.TransitionPlugin = gui.SpiritPlugin.extend ( "gui.TransitionPlugin", {
 				"gecko" : "transitionend", // "MozTransitionEnd" or what?
 				"opera" : "oTransitionEnd"
 			};
-			// TODO: confirm VendorTransitionEnd on documentElement
+			// @todo confirm VendorTransitionEnd on documentElement
 			this._endevent = names [ gui.Client.agent ] || "transitionend";
 			this.spirit.event.add ( this._endevent, this.spirit.element, this );
 		}

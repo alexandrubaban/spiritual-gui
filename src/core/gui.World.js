@@ -1,4 +1,5 @@
 /**
+ * @class
  * Spiritualizing documents by overloading DOM methods.
  */
 gui.World = {
@@ -40,7 +41,7 @@ gui.World = {
 			throw new Error ( "Spiritual loaded twice?" );
 		} else {		
 			/*
-			 * TODO: WeakMap<Element,gui.Spirit> in supporting agents
+			 * @todo WeakMap<Element,gui.Spirit> in supporting agents
 			 */
 			element.spirit = null; // defineProperty fails in iOS 5.0
 			switch ( win.gui.mode ) {
@@ -90,10 +91,10 @@ gui.World = {
 	 * intercept DOM updates. Firefox ignores extending of 
 	 * Element.prototype, we must step down the prototype chain.
 	 * @see https://bugzilla.mozilla.org/show_bug.cgi?id=618379
-	 * TODO: Add to the bug a comment about Object.prototype
-	 * TODO: Extend DocumentFragment
-	 * TODO: Extend insertAdjecantHTML
-	 * TODO: Support SVG elements (in XHTML)
+	 * @todo Add to the bug a comment about Object.prototype
+	 * @todo Extend DocumentFragment
+	 * @todo Extend insertAdjecantHTML
+	 * @todo Support SVG elements (in XHTML)
 	 * @param {Window} win
 	 */
 	_change : function _change ( win, upgrade ) {
@@ -164,7 +165,7 @@ gui.World = {
 	/**
 	 * Overloading prototype methods and properties. If we cannot get an angle on innerHTML, 
 	 * we switch to JQuery mode. This is currently known to happen in Safari on iOS 5.1
-	 * TODO: inserAdjecantHTML
+	 * @todo inserAdjecantHTML
 	 * @param {object} proto
 	 * @param {Window} win
 	 */
@@ -172,9 +173,9 @@ gui.World = {
 
 		/*
 		 * (old notes) Overloading properties (innerHTML).
-		 * TODO: Flag for gui.ready-something to onenter() in correct order.
-		 * TODO: Firefox creates 50-something unique functions here
-		 * TODO: Test success runtime (not rely on user agent string).
+		 * @todo Flag for gui.ready-something to onenter() in correct order.
+		 * @todo Firefox creates 50-something unique functions here
+		 * @todo Test success runtime (not rely on user agent string).
 		 */
 
 		switch ( gui.Client.agent ) {
@@ -182,7 +183,7 @@ gui.World = {
 				this.innerhtml.global = true;
 				break;
 			case "gecko" :
-			case "opera" : // TODO: Object.defineProperty supported?
+			case "opera" : // @todo Object.defineProperty supported?
 				this.innerhtml.global = true;
 				break;
 			case "webkit" :
@@ -222,7 +223,7 @@ gui.World = {
 		
 		/*
 		 * Overloading methods? Only in native mode.
-		 * TODO: insertAdjecantHTML
+		 * @todo insertAdjecantHTML
 		 */
 		if ( win.gui.mode === gui.MODE_NATIVE ) {
 			var root = win.document.documentElement;

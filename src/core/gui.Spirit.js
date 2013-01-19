@@ -1,4 +1,5 @@
 /**
+ * @class
  * Spirit base constructor.
  */
 gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
@@ -31,7 +32,7 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	 * Matches the property "signature" of the {gui.Spiritual} 
 	 * instance in local window context (the gui object). This 
 	 * will come in handy when Spiritual is running in iframes.
-	 * TODO: rename "guikey"?
+	 * @todo rename "guikey"?
 	 * @type {String}
 	 */
 	signature : null,
@@ -69,7 +70,7 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	},
 	
 	/**
-	 * TODO: Comments go here.
+	 * @todo Comments go here.
 	 * 
 	 */
 	onconfigure : function () {
@@ -94,7 +95,7 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	 */
 	onattach : function () {
 		
-		// TODO: matchesselector gui.CLASS_INVISIBLE + " *"
+		// @todo matchesselector gui.CLASS_INVISIBLE + " *"
 		this.window.gui.inside ( this );
 		//this.tick.dispatch ( gui.TICK_FIT, 0 );
 		this.life.goattach ();
@@ -206,7 +207,7 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	},
 
 	/**
-	 * TODO: boolean trap in this API
+	 * @todo boolean trap in this API
 	 * Terminate the spirit and remove the element (optionally keep it). 
 	 * @param {boolean} keep True to leave the element on stage.
 	 */
@@ -221,18 +222,18 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	
 	// Secrets .....................................................................
 	
-	/**
+	/*
 	 * Secret constructor.
 	 */
 	__construct__ : function () {},
 
-	/**
+	/*
 	 * Experimental.
 	 * @type {[type]}
 	 */
 	__lazies__ : null,
 
-	/**
+	/*
 	 * Instantiate plugins.
 	 */
 	__plugin__ : function () {
@@ -272,7 +273,7 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 		}, this );
 	},
 
-	/**
+	/*
 	 * In debug mode, stamp the toString value onto the spirit element. 
 	 * The toString value is defined bt the string that may be passed as 
 	 * first argument to the gui.Spirit.infuse("JohnsonSpirit") method. 
@@ -297,7 +298,7 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 		}
 	},
 	
-	/**
+	/*
 	 * Total destruction.
 	 * @param @optional {boolean} now
 	 */
@@ -341,14 +342,14 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 					try {
 						that.__null__ ();	
 					} catch ( x ) {
-						// TODO: why sometimes gui.Spirit.DENIED?
+						// @todo why sometimes gui.Spirit.DENIED?
 					}
 				}
 			}, this.signature ).dispatch ( tick, 0, this.signature );
 		}
 	},
 	
-	/**
+	/*
 	 * Null all props. We have hotfixed conflicts upon disposal by moving this to a new 
 	 * timeout stack, but the consequences should be thought throught at some point. 
 	 */
@@ -463,7 +464,7 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 
 	/**
 	 * Parse HTML string to DOM element in given document context.
-	 * TODO: parent element awareness when inserted in document :)
+	 * @todo parent element awareness when inserted in document :)
 	 * @param {Document} doc
 	 * @param {String} html
 	 * @returns {Element}
@@ -471,7 +472,7 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	parse : function ( doc, html ) {
 
 		if ( doc.nodeType === Node.DOCUMENT_NODE ) {
-			return new gui.HTMLParser ( doc ).parse ( html )[ 0 ]; // TODO: parseOne?
+			return new gui.HTMLParser ( doc ).parse ( html )[ 0 ]; // @todo parseOne?
 		} else {
 			throw new TypeError ( this + ".parse() expects a Document" );
 		}
@@ -488,9 +489,12 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	},
 
 	/**
+	 * @static
+	 * @memberof {gui.Spirit}
+	 * @constructs
 	 * Create DOM element and associate Spirit instance.
 	 * @param @optional {Document} doc
-	 * @returns {Spirit}
+	 * @returns {gui.Spirit}
 	 */
 	summon : function ( doc ) {
 		
@@ -525,14 +529,14 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	}
 
 	/**
-	 * TODO: move to Spiritual EDB
+	 * @todo move to Spiritual EDB
 	 * @type {String}
 	 *
 	script : null,
 	*/
 
 	/**
-	 * TODO: move to Spiritual EDB.
+	 * @todo move to Spiritual EDB.
 	 * @param {Document} doc
 	 * @returns {String}
 	 *
