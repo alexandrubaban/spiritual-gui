@@ -1,53 +1,38 @@
-/**
- * @class
- * Crawling the DOM ascending or descending.
- * @todo method <code>descendSub</code> to skip start element (and something similar for ascend)
- * @param @optional {String} type
- */
+// # gui.Crawler
+// Crawling the DOM ascending or descending.
+// @todo method <code>descendSub</code> to skip start element (and something similar for ascend)
+// @param @optional {String} type
 gui.Crawler = function ( type ) {
-	
 	this.type = type || null;
 	return this;
 };
 
 gui.Crawler.prototype = {
-		
-	/**
-	 * Recursion directives.
-	 * @todo skip children, skip element etc
-	 */
+
+	// Recursion directives.
+	// @todo skip children, skip element etc
 	CONTINUE: 0,
 	STOP : 1,
-	
-	/**
-	 * Identifies crawler. @todo spirit support for this!
-	 * @type {String}
-	 */
+
+	// Identifies crawler. @todo spirit support for this!
+	// @type {String}
 	type : null,
-	
-	/**
-	 * Direction "ascending" or "descending".
-	 * @type {String}
-	 */
+
+	// Direction "ascending" or "descending".
+	// @type {String}
 	direction : null,
 
-	/**
-	 * @type {Boolean}
-	 */
+	// @type {Boolean}
 	global : false,
-	
-	/**
-	 * Crawl DOM ascending.
-	 * @todo ascendGlobal
-	 * @todo Transcend into parent frame.
-	 * @param {object} start Spirit or Element
-	 * @param {object} handler
-	 */
+
+	// Crawl DOM ascending.
+	// @todo ascendGlobal
+	// @todo Transcend into parent frame.
+	// @param {object} start Spirit or Element
+	// @param {object} handler
 	ascend : function ( start, handler ) {
-		
 		this.direction = gui.Crawler.ASCENDING;
 		var elm = start instanceof gui.Spirit ? start.element : start;
-		
 		do {
 			if ( elm.nodeType === Node.DOCUMENT_NODE ) {
 				if ( this.global ) {
@@ -79,16 +64,13 @@ gui.Crawler.prototype = {
 			}
 		} while ( elm );
 	},
-	
-	/**
-	 * Crawl DOM descending.
-	 * @todo descendGlobal
-	 * @todo Transcend into iframes.
-	 * @param {object} start Spirit or Element
-	 * @param {object} handler
-	 */
+
+	// Crawl DOM descending.
+	// @todo descendGlobal
+	// @todo Transcend into iframes.
+	// @param {object} start Spirit or Element
+	// @param {object} handler
 	descend : function ( start, handler ) {
-		
 		this.direction = gui.Crawler.DESCENDING;
 		var elm = start instanceof gui.Spirit ? start.element : start;
 		if ( elm.nodeType === Node.DOCUMENT_NODE ) {
@@ -103,15 +85,12 @@ gui.Crawler.prototype = {
 
 
 	// PRIVATES .................................................................
-	
-	/**
-	 * Iterate descending.
-	 * @param {Element} elm
-	 * @param {object} handler
-	 * @param {boolean} start
-	 */
+
+	// Iterate descending.
+	// @param {Element} elm
+	// @param {object} handler
+	// @param {boolean} start
 	_descend : function ( elm, handler, start ) {
-		
 		var directive = this._handleElement ( elm, handler );
 		switch ( directive ) {
 			case 0 :
@@ -139,18 +118,14 @@ gui.Crawler.prototype = {
 				break;
 		}
 	},
-	
-	/**
-	 * Handle element. Invoked by both ascending and descending crawler.
-	 * @param {Element} element
-	 * @param {object} handler
-	 * @returns {number} directive
-	 */
+
+	// Handle element. Invoked by both ascending and descending crawler.
+	// @param {Element} element
+	// @param {object} handler
+	// @returns {number} directive
 	_handleElement : function ( element, handler ) {
-		
 		var directive = gui.Crawler.CONTINUE;
 		var spirit = element.spirit;
-		
 		if ( spirit ) {
 			directive = spirit.oncrawler ( this );
 		}
@@ -177,15 +152,12 @@ gui.Crawler.prototype = {
 		}
 		return directive;
 	},
-	
-	/**
-	 * Handle Spirit.
-	 * @param {Spirit} spirit
-	 * @param {object} handler
-	 * @returns {number}
-	 */
+
+	// Handle Spirit.
+	// @param {Spirit} spirit
+	// @param {object} handler
+	// @returns {number}
 	_handleSpirit : function ( spirit, handler ) {
-		
 		return handler.handleSpirit ( spirit );
 	}
 };
@@ -196,9 +168,7 @@ gui.Crawler.prototype = {
 gui.Crawler.ASCENDING = "ascending";
 gui.Crawler.DESCENDING = "descending";
 
-/**
- * Bitmask setup supposed to be going on here.
- * @todo SKIP_CHILDREN and TELEPORT_ELSEWEHERE stuff.
- */
+// Bitmask setup supposed to be going on here.
+// @todo SKIP_CHILDREN and TELEPORT_ELSEWEHERE stuff.
 gui.Crawler.CONTINUE = 0;
 gui.Crawler.STOP = 1;

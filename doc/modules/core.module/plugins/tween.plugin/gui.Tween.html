@@ -1,0 +1,50 @@
+<!DOCTYPE html><html lang="en"><head><title>modules/core.module/plugins/tween.plugin/gui.Tween</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content="../../../../"><meta name="groc-document-path" content="modules/core.module/plugins/tween.plugin/gui.Tween"><meta name="groc-project-path" content="src/modules/core.module/plugins/tween.plugin/gui.Tween.js"><link rel="stylesheet" type="text/css" media="all" href="../../../../assets/style.css"><script type="text/javascript" src="../../../../assets/behavior.js"></script><body><div id="meta"><div class="file-path">src/modules/core.module/plugins/tween.plugin/gui.Tween.js</div></div><div id="document"><div class="segment"><div class="comments"><div class="wrapper"><h1 id="guitween">gui.Tween</h1>
+
+<p>@param {String} type
+@param @optional {object} data</p></div></div><div class="code"><div class="wrapper"><span class="nx">gui</span><span class="p">.</span><span class="nx">Tween</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">type</span><span class="p">,</span> <span class="nx">data</span> <span class="p">)</span> <span class="p">{</span>
+  <span class="k">this</span><span class="p">.</span><span class="nx">type</span> <span class="o">=</span> <span class="nx">type</span><span class="p">;</span>
+  <span class="k">this</span><span class="p">.</span><span class="nx">data</span> <span class="o">=</span> <span class="nx">data</span><span class="p">;</span>
+<span class="p">};</span>
+
+<span class="nx">gui</span><span class="p">.</span><span class="nx">Tween</span><span class="p">.</span><span class="nx">prototype</span> <span class="o">=</span> <span class="p">{</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Tween type.
+@type {String}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">type</span> <span class="o">:</span> <span class="kc">null</span><span class="p">,</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Optional tween data.
+@type {object}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">data</span> <span class="o">:</span> <span class="kc">null</span><span class="p">,</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Between zero and one.
+@type {number}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">value</span> <span class="o">:</span> <span class="mi">0</span><span class="p">,</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Done when value is one.
+@type {boolean}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">done</span> <span class="o">:</span> <span class="kc">false</span>
+<span class="p">};</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>STATICS ............................................</p></div></div><div class="code"><div class="wrapper"> </div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Coordinate a global (cross frame) animation sequence.
+@param {ui.Animation} animation
+@returns {gui.Tween} but why?</p></div></div><div class="code"><div class="wrapper"><span class="nx">gui</span><span class="p">.</span><span class="nx">Tween</span><span class="p">.</span><span class="nx">dispatchGlobal</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">type</span><span class="p">,</span> <span class="nx">data</span> <span class="p">){</span>
+  <span class="kd">var</span> <span class="nx">that</span> <span class="o">=</span> <span class="k">this</span><span class="p">;</span>
+  <span class="kd">var</span> <span class="nx">start</span> <span class="o">=</span> <span class="k">new</span> <span class="nb">Date</span> <span class="p">().</span><span class="nx">getTime</span> <span class="p">();</span>
+  <span class="kd">var</span> <span class="nx">tween</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">Tween</span> <span class="p">(</span> <span class="nx">type</span><span class="p">,</span> <span class="nx">data</span> <span class="p">);</span>
+  <span class="kd">var</span> <span class="nx">duration</span> <span class="o">=</span> <span class="nx">data</span> <span class="o">?</span> <span class="p">(</span> <span class="nx">data</span><span class="p">.</span><span class="nx">duration</span> <span class="o">||</span> <span class="mi">200</span> <span class="p">)</span> <span class="o">:</span> <span class="mi">200</span><span class="p">;</span>
+  <span class="kd">var</span> <span class="nx">timing</span> <span class="o">=</span> <span class="nx">data</span> <span class="o">?</span> <span class="p">(</span> <span class="nx">data</span><span class="p">.</span><span class="nx">timing</span> <span class="o">||</span> <span class="s2">&quot;none&quot;</span> <span class="p">)</span> <span class="o">:</span> <span class="s2">&quot;none&quot;</span><span class="p">;</span>
+  <span class="kd">function</span> <span class="nx">step</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">time</span> <span class="o">=</span> <span class="k">new</span> <span class="nb">Date</span> <span class="p">().</span><span class="nx">getTime</span> <span class="p">();</span>
+    <span class="kd">var</span> <span class="nx">value</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nx">progress</span> <span class="o">=</span> <span class="nx">time</span> <span class="o">-</span> <span class="nx">start</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="nx">progress</span> <span class="o">&lt;</span> <span class="nx">duration</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="nx">value</span> <span class="o">=</span> <span class="nx">progress</span> <span class="o">/</span> <span class="nx">duration</span><span class="p">;</span>
+      <span class="k">if</span> <span class="p">(</span> <span class="nx">timing</span> <span class="o">!==</span> <span class="s2">&quot;none&quot;</span> <span class="p">){</span>
+        <span class="nx">value</span> <span class="o">=</span> <span class="nx">value</span> <span class="o">*</span> <span class="mi">90</span> <span class="o">*</span> <span class="nb">Math</span><span class="p">.</span><span class="nx">PI</span> <span class="o">/</span> <span class="mi">180</span><span class="p">;</span>
+        <span class="k">switch</span> <span class="p">(</span> <span class="nx">timing</span> <span class="p">)</span> <span class="p">{</span>
+          <span class="k">case</span> <span class="s2">&quot;ease-in&quot;</span> <span class="o">:</span>
+            <span class="nx">value</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="nb">Math</span><span class="p">.</span><span class="nx">cos</span> <span class="p">(</span> <span class="nx">value</span> <span class="p">);</span>
+            <span class="k">break</span><span class="p">;</span>
+          <span class="k">case</span> <span class="s2">&quot;ease-out&quot;</span> <span class="o">:</span>
+            <span class="nx">value</span> <span class="o">=</span> <span class="nb">Math</span><span class="p">.</span><span class="nx">sin</span> <span class="p">(</span> <span class="nx">value</span> <span class="p">);</span>
+            <span class="k">break</span><span class="p">;</span>
+        <span class="p">}</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="nx">value</span> <span class="o">===</span> <span class="mi">1</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="nx">tween</span><span class="p">.</span><span class="nx">value</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+      <span class="nx">tween</span><span class="p">.</span><span class="nx">done</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+      <span class="nx">tween</span><span class="p">.</span><span class="nx">value</span> <span class="o">=</span> <span class="nx">value</span><span class="p">;</span>
+      <span class="nx">requestAnimationFrame</span> <span class="p">(</span> <span class="nx">step</span> <span class="p">);</span>
+    <span class="p">}</span>
+    <span class="nx">gui</span><span class="p">.</span><span class="nx">Broadcast</span><span class="p">.</span><span class="nx">dispatchGlobal</span> <span class="p">(</span> <span class="kc">null</span><span class="p">,</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">BROADCAST_TWEEN</span><span class="p">,</span> <span class="nx">tween</span> <span class="p">);</span>
+  <span class="p">}</span>
+  <span class="nx">step</span> <span class="p">(</span> <span class="nx">start</span> <span class="p">);</span>
+  <span class="k">return</span> <span class="nx">tween</span><span class="p">;</span>
+<span class="p">};</span></div></div></div></div></body></html>

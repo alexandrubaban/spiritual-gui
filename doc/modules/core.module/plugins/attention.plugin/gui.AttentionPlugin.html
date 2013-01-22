@@ -1,0 +1,213 @@
+<!DOCTYPE html><html lang="en"><head><title>modules/core.module/plugins/attention.plugin/gui.AttentionPlugin</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content="../../../../"><meta name="groc-document-path" content="modules/core.module/plugins/attention.plugin/gui.AttentionPlugin"><meta name="groc-project-path" content="src/modules/core.module/plugins/attention.plugin/gui.AttentionPlugin.js"><link rel="stylesheet" type="text/css" media="all" href="../../../../assets/style.css"><script type="text/javascript" src="../../../../assets/behavior.js"></script><body><div id="meta"><div class="file-path">src/modules/core.module/plugins/attention.plugin/gui.AttentionPlugin.js</div></div><div id="document"><div class="segment"><div class="comments"><div class="wrapper"><h1 id="guiattentionplugin">gui.AttentionPlugin</h1>
+
+<p>Keyboard TAB manager (to be exported out of Spiritual core).
+@extends {gui.SpiritTracker}
+@todo nested attention traps (conflicts with missing focusin in FF?)
+@todo empty queue when user moves escapes (all) attention traps?
+@todo more life cycle hookins (hide, show, detach, exit)</p></div></div><div class="code"><div class="wrapper"><span class="nx">gui</span><span class="p">.</span><span class="nx">AttentionPlugin</span> <span class="o">=</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">SpiritPlugin</span><span class="p">.</span><span class="nx">extend</span> <span class="p">(</span> <span class="s2">&quot;gui.AttentionPlugin&quot;</span><span class="p">,</span> <span class="p">{</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Trapping TAB navigation inside the spirit subtree.
+@returns {gui.AttentionPlugin}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">trap</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="o">!</span><span class="k">this</span><span class="p">.</span><span class="nx">_trapping</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">_trapping</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">_listen</span> <span class="p">();</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">_setup</span> <span class="p">();</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="k">this</span><span class="p">;</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Focus the last focused  element, defaulting to first focusable element.
+@returns {gui.AttentionPlugin}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">focus</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="o">!</span><span class="k">this</span><span class="p">.</span><span class="nx">_focused</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">_latest</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">_latest</span><span class="p">.</span><span class="nx">focus</span> <span class="p">();</span>
+      <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">_first</span> <span class="p">();</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="k">this</span><span class="p">;</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Blur anything that might be focused.
+@returns {gui.AttentionPlugin}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">blur</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>@todo definitely not like this...</p></div></div><div class="code"><div class="wrapper">    <span class="nx">gui</span><span class="p">.</span><span class="nx">Broadcast</span><span class="p">.</span><span class="nx">dispatchGlobal</span> <span class="p">(</span> <span class="kc">null</span><span class="p">,</span>
+      <span class="nx">gui</span><span class="p">.</span><span class="nx">BROADCAST_ATTENTION_OFF</span><span class="p">,</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">spirit</span><span class="p">.</span><span class="nx">spiritkey</span>
+    <span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">_focused</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">_latest</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">_latest</span><span class="p">.</span><span class="nx">blur</span> <span class="p">();</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="k">this</span><span class="p">;</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Something was focused or blurred.
+@param {Event} e</p></div></div><div class="code"><div class="wrapper">  <span class="nx">handleEvent</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">e</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="k">switch</span> <span class="p">(</span> <span class="nx">e</span><span class="p">.</span><span class="nx">type</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="k">case</span> <span class="s2">&quot;blur&quot;</span> <span class="o">:</span>
+      <span class="k">case</span> <span class="s2">&quot;focusout&quot;</span> <span class="o">:</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">_onblur</span> <span class="p">(</span> <span class="nx">e</span><span class="p">.</span><span class="nx">target</span> <span class="p">);</span>
+        <span class="k">break</span><span class="p">;</span>
+      <span class="k">case</span> <span class="s2">&quot;focus&quot;</span> <span class="o">:</span>
+      <span class="k">case</span> <span class="s2">&quot;focusin&quot;</span> <span class="o">:</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">_onfocus</span> <span class="p">(</span> <span class="nx">e</span><span class="p">.</span><span class="nx">target</span> <span class="p">);</span>
+        <span class="k">break</span><span class="p">;</span>
+    <span class="p">}</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Handle broadcast.
+@param {gui.Broadcast} b</p></div></div><div class="code"><div class="wrapper">  <span class="nx">onbroadcast</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">b</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="nx">b</span><span class="p">.</span><span class="nx">type</span> <span class="o">===</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">BROADCAST_ATTENTION_GO</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span> <span class="nx">b</span><span class="p">.</span><span class="nx">data</span> <span class="o">===</span> <span class="k">this</span><span class="p">.</span><span class="nx">spirit</span><span class="p">.</span><span class="nx">spiritkey</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">focus</span> <span class="p">();</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Handle spirit life cycle.
+@param {gui.SpiritLife} life</p></div></div><div class="code"><div class="wrapper">  <span class="nx">onlife</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">life</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="k">switch</span> <span class="p">(</span> <span class="nx">life</span><span class="p">.</span><span class="nx">type</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="k">case</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">SpiritLife</span><span class="p">.</span><span class="nx">DESTRUCT</span> <span class="o">:</span>
+        <span class="nx">gui</span><span class="p">.</span><span class="nx">Broadcast</span><span class="p">.</span><span class="nx">removeGlobal</span> <span class="p">(</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">BROADCAST_ATTENTION_GO</span><span class="p">,</span> <span class="k">this</span> <span class="p">);</span>
+        <span class="nx">gui</span><span class="p">.</span><span class="nx">Broadcast</span><span class="p">.</span><span class="nx">dispatchGlobal</span> <span class="p">(</span> <span class="kc">null</span><span class="p">,</span>
+          <span class="nx">gui</span><span class="p">.</span><span class="nx">BROADCAST_ATTENTION_OFF</span><span class="p">,</span>
+          <span class="k">this</span><span class="p">.</span><span class="nx">spirit</span><span class="p">.</span><span class="nx">spiritkey</span>
+        <span class="p">);</span>
+        <span class="k">break</span><span class="p">;</span>
+    <span class="p">}</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>PRIVATES ........................................................................</p></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Trapping attention?
+@type {boolean}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_trapping</span> <span class="o">:</span> <span class="kc">null</span><span class="p">,</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Latest focused element.
+@type {Element}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_latest</span> <span class="o">:</span> <span class="kc">null</span><span class="p">,</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Used to determine whether attention trap was just entered.
+@type {number}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_flag</span> <span class="o">:</span> <span class="kc">false</span><span class="p">,</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Append hidden inputs. When these are 
+focused, we move the focus elsewhere.</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_setup</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="p">[</span> <span class="s2">&quot;before&quot;</span><span class="p">,</span> <span class="s2">&quot;after&quot;</span> <span class="p">].</span><span class="nx">forEach</span> <span class="p">(</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">pos</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="kd">var</span> <span class="nx">elm</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">_input</span> <span class="p">(</span> <span class="nx">pos</span> <span class="p">);</span>
+      <span class="kd">var</span> <span class="nx">dom</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">spirit</span><span class="p">.</span><span class="nx">dom</span><span class="p">;</span>
+      <span class="k">if</span> <span class="p">(</span> <span class="nx">pos</span> <span class="o">===</span> <span class="s2">&quot;before&quot;</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="nx">dom</span><span class="p">.</span><span class="nx">prepend</span> <span class="p">(</span> <span class="nx">elm</span> <span class="p">);</span>
+      <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+        <span class="nx">dom</span><span class="p">.</span><span class="nx">append</span> <span class="p">(</span> <span class="nx">elm</span> <span class="p">);</span>
+      <span class="p">}</span>
+    <span class="p">},</span> <span class="k">this</span> <span class="p">);</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Listen for all sorts of stuff going on.
+@todo use focusin and focusout for IE/Opera?</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_listen</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">elm</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">spirit</span><span class="p">.</span><span class="nx">element</span><span class="p">;</span>
+    <span class="nx">elm</span><span class="p">.</span><span class="nx">addEventListener</span> <span class="p">(</span> <span class="s2">&quot;focus&quot;</span><span class="p">,</span> <span class="k">this</span><span class="p">,</span> <span class="kc">true</span> <span class="p">);</span>
+    <span class="nx">elm</span><span class="p">.</span><span class="nx">addEventListener</span> <span class="p">(</span> <span class="s2">&quot;blur&quot;</span><span class="p">,</span> <span class="k">this</span><span class="p">,</span> <span class="kc">true</span> <span class="p">);</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">spirit</span><span class="p">.</span><span class="nx">life</span><span class="p">.</span><span class="nx">add</span> <span class="p">(</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">SpiritLife</span><span class="p">.</span><span class="nx">DESTRUCT</span><span class="p">,</span> <span class="k">this</span> <span class="p">);</span>
+    <span class="nx">gui</span><span class="p">.</span><span class="nx">Broadcast</span><span class="p">.</span><span class="nx">addGlobal</span> <span class="p">(</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">BROADCAST_ATTENTION_GO</span><span class="p">,</span> <span class="k">this</span> <span class="p">);</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Insert hidden input at position.
+@todo how to <em>keep</em> inputs at first and last position?
+@todo removeEventListener on dispose perhaps
+@param {String} pos
+@returns {Element}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_input</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">pos</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">dom</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">spirit</span><span class="p">.</span><span class="nx">dom</span><span class="p">;</span>
+    <span class="kd">var</span> <span class="nx">doc</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">spirit</span><span class="p">.</span><span class="nb">document</span><span class="p">;</span>
+    <span class="kd">var</span> <span class="nx">elm</span> <span class="o">=</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">SpiritCSS</span><span class="p">.</span><span class="nx">style</span> <span class="p">(</span> 
+      <span class="nx">doc</span><span class="p">.</span><span class="nx">createElement</span> <span class="p">(</span> <span class="s2">&quot;input&quot;</span> <span class="p">),</span> <span class="p">{</span>
+        <span class="nx">position</span> <span class="o">:</span> <span class="s2">&quot;absolute&quot;</span><span class="p">,</span>
+        <span class="nx">opacity</span> <span class="o">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="nx">top</span><span class="o">:</span> <span class="o">-</span><span class="mi">5000</span>
+      <span class="p">}</span>
+    <span class="p">);</span>
+    <span class="nx">elm</span><span class="p">.</span><span class="nx">className</span> <span class="o">=</span> <span class="s2">&quot;_gui-focus_&quot;</span> <span class="o">+</span> <span class="nx">pos</span><span class="p">;</span>
+    <span class="k">return</span> <span class="nx">elm</span><span class="p">;</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Focus first element and return it.
+@returns {Element}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_first</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">_find</span> <span class="p">(</span> <span class="kc">true</span> <span class="p">);</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Focus last element and return it.
+@returns {Element}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_last</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">_find</span> <span class="p">(</span> <span class="kc">false</span> <span class="p">);</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Find first or last form control.
+@param {boolean} isfirst</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_find</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">isfirst</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">elm</span> <span class="o">=</span> <span class="kc">null</span><span class="p">,</span> <span class="nx">all</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">_elements</span> <span class="p">();</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="nx">all</span><span class="p">.</span><span class="nx">length</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="nx">elm</span> <span class="o">=</span> <span class="nx">all</span> <span class="p">[</span> <span class="nx">isfirst</span> <span class="o">?</span> <span class="mi">0</span> <span class="o">:</span> <span class="nx">all</span><span class="p">.</span><span class="nx">length</span> <span class="o">-</span> <span class="mi">1</span> <span class="p">];</span>
+      <span class="nx">elm</span><span class="p">.</span><span class="nx">focus</span> <span class="p">();</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="nx">elm</span><span class="p">;</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>List descendant form controls <em>plus</em> links except input @type="image".
+@returns {Array<Element>}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_elements</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">spirit</span><span class="p">.</span><span class="nx">dom</span><span class="p">.</span><span class="nx">descendants</span> <span class="p">().</span><span class="nx">filter</span> <span class="p">(</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">elm</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">_focusable</span> <span class="p">(</span> <span class="nx">elm</span> <span class="p">)</span> <span class="o">?</span> <span class="nx">elm</span> <span class="o">:</span> <span class="kc">undefined</span><span class="p">;</span>
+    <span class="p">},</span> <span class="k">this</span> <span class="p">);</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Element is focusable form control or link?
+Excluding the hidden inputs for TAB contain.
+@param {Element} elm
+@returns {boolean}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_focusable</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">elm</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">is</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
+    <span class="k">switch</span> <span class="p">(</span> <span class="nx">elm</span><span class="p">.</span><span class="nx">localName</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="k">case</span> <span class="s2">&quot;input&quot;</span> <span class="o">:</span>
+      <span class="k">case</span> <span class="s2">&quot;textarea&quot;</span> <span class="o">:</span>
+      <span class="k">case</span> <span class="s2">&quot;select&quot;</span> <span class="o">:</span>
+      <span class="k">case</span> <span class="s2">&quot;button&quot;</span> <span class="o">:</span>
+      <span class="k">case</span> <span class="s2">&quot;a&quot;</span> <span class="o">:</span>
+        <span class="k">if</span> <span class="p">(</span> <span class="nx">elm</span><span class="p">.</span><span class="nx">tabIndex</span> <span class="o">&gt;-</span><span class="mi">1</span> <span class="p">)</span> <span class="p">{</span>
+          <span class="k">if</span> <span class="p">(</span> <span class="nx">elm</span><span class="p">.</span><span class="nx">type</span> <span class="o">!==</span> <span class="s2">&quot;image&quot;</span> <span class="p">)</span> <span class="p">{</span>           
+            <span class="k">if</span> <span class="p">(</span> <span class="o">!</span><span class="nx">elm</span><span class="p">.</span><span class="nx">className</span><span class="p">.</span><span class="nx">startsWith</span> <span class="p">(</span> <span class="s2">&quot;_gui-focus&quot;</span> <span class="p">))</span> <span class="p">{</span>
+              <span class="nx">is</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+            <span class="p">}</span>
+          <span class="p">}</span>
+        <span class="p">}</span>
+        <span class="k">break</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="nx">is</span><span class="p">;</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Something was focused.
+@param {Element} elm</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_onfocus</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">elm</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">_focused</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">_latest</span> <span class="o">=</span> <span class="nx">elm</span><span class="p">;</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>first time focus?</p></div></div><div class="code"><div class="wrapper">    <span class="k">if</span> <span class="p">(</span> <span class="o">!</span><span class="k">this</span><span class="p">.</span><span class="nx">_flag</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">_didcatch</span> <span class="p">();</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">_flat</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+    <span class="p">}</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>was hidden input?</p></div></div><div class="code"><div class="wrapper">    <span class="kd">var</span> <span class="nx">klas</span> <span class="o">=</span> <span class="nx">elm</span><span class="p">.</span><span class="nx">className</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="nx">klas</span><span class="p">.</span><span class="nx">startsWith</span> <span class="p">(</span> <span class="s2">&quot;_gui-focus&quot;</span> <span class="p">))</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span> <span class="nx">klas</span><span class="p">.</span><span class="nx">contains</span> <span class="p">(</span> <span class="s2">&quot;after&quot;</span> <span class="p">))</span> <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">_first</span> <span class="p">();</span>
+      <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">_last</span> <span class="p">();</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Something was blurred.</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_onblur</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">node</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">_focused</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
+    <span class="nx">gui</span><span class="p">.</span><span class="nx">Tick</span><span class="p">.</span><span class="nx">next</span> <span class="p">(</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span> <span class="o">!</span><span class="k">this</span><span class="p">.</span><span class="nx">_focused</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">_didescape</span> <span class="p">();</span>
+      <span class="p">}</span>
+    <span class="p">},</span> <span class="k">this</span> <span class="p">);</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Attention trap entered.</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_didcatch</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="nx">gui</span><span class="p">.</span><span class="nx">Broadcast</span><span class="p">.</span><span class="nx">dispatchGlobal</span> <span class="p">(</span> <span class="kc">null</span><span class="p">,</span>
+      <span class="nx">gui</span><span class="p">.</span><span class="nx">BROADCAST_ATTENTION_ON</span><span class="p">,</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">spirit</span><span class="p">.</span><span class="nx">spiritkey</span>
+    <span class="p">);</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Attention trap escaped.</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_didescape</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">_flag</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span><span class="nx">s</span>
+    <span class="nx">gui</span><span class="p">.</span><span class="nx">Broadcast</span><span class="p">.</span><span class="nx">dispatchGlobal</span> <span class="p">(</span> <span class="kc">null</span><span class="p">,</span>
+      <span class="nx">gui</span><span class="p">.</span><span class="nx">BROADCAST_ATTENTION_OFF</span><span class="p">,</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">spirit</span><span class="p">.</span><span class="nx">spiritkey</span>
+    <span class="p">);</span>
+  <span class="p">}</span>
+
+
+<span class="p">},</span> <span class="p">{</span> <span class="c1">// STATICS ........................................................................</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>@type {Array<String>}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_queue</span> <span class="o">:</span> <span class="p">[],</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Get next in line.
+@todo continue until next is not hidden.
+@returns {String}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_next</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">q</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">_queue</span><span class="p">;</span> 
+    <span class="k">return</span> <span class="nx">q</span> <span class="p">[</span> <span class="nx">q</span><span class="p">.</span><span class="nx">length</span> <span class="o">-</span> <span class="mi">1</span> <span class="p">];</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Handle broadcast.
+@param {gui.Broadcast} b</p></div></div><div class="code"><div class="wrapper">  <span class="nx">onbroadcast</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">b</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">q</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">_queue</span><span class="p">;</span>
+    <span class="k">switch</span> <span class="p">(</span> <span class="nx">b</span><span class="p">.</span><span class="nx">type</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="k">case</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">BROADCAST_ATTENTION_ON</span> <span class="o">:</span>
+        <span class="k">if</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">_next</span> <span class="p">()</span> <span class="o">!==</span> <span class="nx">b</span><span class="p">.</span><span class="nx">data</span> <span class="p">)</span> <span class="p">{</span>
+          <span class="nx">q</span><span class="p">.</span><span class="nx">push</span> <span class="p">(</span> <span class="nx">b</span><span class="p">.</span><span class="nx">data</span> <span class="p">);</span>
+        <span class="p">}</span>
+        <span class="k">break</span><span class="p">;</span>
+      <span class="k">case</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">BROADCAST_ATTENTION_OFF</span> <span class="o">:</span>
+        <span class="nx">q</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">_queue</span> <span class="o">=</span> <span class="nx">q</span><span class="p">.</span><span class="nx">filter</span> <span class="p">(</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">key</span> <span class="p">)</span> <span class="p">{</span>
+          <span class="k">if</span> <span class="p">(</span> <span class="nx">key</span> <span class="o">!==</span> <span class="nx">b</span><span class="p">.</span><span class="nx">data</span> <span class="p">)</span> <span class="p">{</span>
+            <span class="k">return</span> <span class="nx">key</span><span class="p">;</span>
+          <span class="p">}</span>
+        <span class="p">});</span>
+        <span class="k">if</span> <span class="p">(</span> <span class="nx">q</span><span class="p">.</span><span class="nx">length</span> <span class="p">)</span> <span class="p">{</span>
+          <span class="nx">gui</span><span class="p">.</span><span class="nx">Broadcast</span><span class="p">.</span><span class="nx">dispatchGlobal</span> <span class="p">(</span> <span class="kc">null</span><span class="p">,</span>
+            <span class="nx">gui</span><span class="p">.</span><span class="nx">BROADCAST_ATTENTION_GO</span><span class="p">,</span>
+            <span class="k">this</span><span class="p">.</span><span class="nx">_next</span> <span class="p">()</span>
+          <span class="p">);</span>
+        <span class="p">}</span>
+        <span class="k">break</span><span class="p">;</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+
+<span class="p">});</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Manage attention queue.</p></div></div><div class="code"><div class="wrapper"><span class="p">(</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+  <span class="nx">gui</span><span class="p">.</span><span class="nx">Broadcast</span><span class="p">.</span><span class="nx">addGlobal</span> <span class="p">([</span> 
+    <span class="nx">gui</span><span class="p">.</span><span class="nx">BROADCAST_ATTENTION_ON</span><span class="p">,</span>
+    <span class="nx">gui</span><span class="p">.</span><span class="nx">BROADCAST_ATTENTION_OFF</span>
+  <span class="p">],</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">AttentionPlugin</span> <span class="p">);</span>
+<span class="p">}());</span></div></div></div></div></body></html>

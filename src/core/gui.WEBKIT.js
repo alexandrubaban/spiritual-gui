@@ -1,16 +1,12 @@
-/**
- * @class
- * Patching bad WebKit support for DOM getters and setters.
- * @see http://code.google.com/p/chromium/issues/detail?id=13175
- */
+// # gui.WEBKIT (temp name)
+// Patching bad WebKit support for DOM getters and setters.
+// @see http://code.google.com/p/chromium/issues/detail?id=13175
 gui.WEBKIT = { // @todo name this thing
 
-	/**
-	 * Can patch property descriptors of elements in given window? 
-	 * Safari on iOS throws an epic failure exception in your face.
-	 * @param {Window} win
-	 * @returns {boolean}
-	 */
+	// Can patch property descriptors of elements in given window? 
+	// Safari on iOS throws an epic failure exception in your face.
+	// @param {Window} win
+	// @returns {boolean}
 	canpatch : function ( win ) {
 		var root = win.document.documentElement;
 		try {
@@ -21,9 +17,7 @@ gui.WEBKIT = { // @todo name this thing
 		}
 	},
 
-	/**
-	 * Patch node plus nextsiblings and descendants recursively.
-	 */
+	// Patch node plus nextsiblings and descendants recursively.
 	patch : function ( node ) {
 		if ( gui.World.innerhtml.local ) {
 			new gui.Crawler ( "crawler-webkit-patch" ).descend ( node, this );
@@ -32,10 +26,8 @@ gui.WEBKIT = { // @todo name this thing
 		}
 	},
 
-	/**
-	 * Patch single element.
-	 * @param {Element} elm
-	 */
+	// Patch single element.
+	// @param {Element} elm
 	handleElement : function ( elm ) {
 		[ "innerHTML", "outerHTML", "textContent" ].forEach ( function ( descriptor ) {
 			Object.defineProperty ( elm, descriptor, this [ "_" + descriptor ]);
@@ -45,12 +37,9 @@ gui.WEBKIT = { // @todo name this thing
 
 	// PRIVATES .........................................................
 
-	/**
-	 * Property descriptor for innerHTML.
-	 * @type {Object}
-	 */
-	_innerHTML : {
-		
+	// Property descriptor for innerHTML.
+	// @type {Object}
+	_innerHTML : {	
 		get : function () {
 			return new gui.DOMSerializer ().subserialize ( this );
 		},
@@ -59,12 +48,9 @@ gui.WEBKIT = { // @todo name this thing
 		}
 	},
 
-	/**
-	 * Property descriptor for outerHTML.
-	 * @type {Object}
-	 */
+	// Property descriptor for outerHTML.
+	// @type {Object}
 	_outerHTML : {
-		
 		get : function () {
 			return new gui.DOMSerializer ().serialize ( this );
 		},
@@ -73,12 +59,9 @@ gui.WEBKIT = { // @todo name this thing
 		}
 	},
 
-	/**
-	 * Property descriptor for textContent.
-	 * @type {Object}
-	 */
+	// Property descriptor for textContent.
+	// @type {Object}
 	_textContent : {
-		
 		get : function () {
 			var node = this, res = "";
 			for ( node = node.firstChild; node; node = node.nextSibling ) {

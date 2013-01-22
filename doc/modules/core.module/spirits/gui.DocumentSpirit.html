@@ -1,0 +1,189 @@
+<!DOCTYPE html><html lang="en"><head><title>modules/core.module/spirits/gui.DocumentSpirit</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content="../../../"><meta name="groc-document-path" content="modules/core.module/spirits/gui.DocumentSpirit"><meta name="groc-project-path" content="src/modules/core.module/spirits/gui.DocumentSpirit.js"><link rel="stylesheet" type="text/css" media="all" href="../../../assets/style.css"><script type="text/javascript" src="../../../assets/behavior.js"></script><body><div id="meta"><div class="file-path">src/modules/core.module/spirits/gui.DocumentSpirit.js</div></div><div id="document"><div class="segment"><div class="comments"><div class="wrapper"><h1 id="guidocumentspirit">gui.DocumentSpirit</h1>
+
+<p>@extends {gui.Spirit}
+Spirit of the root element (the HTML element).</p></div></div><div class="code"><div class="wrapper"><span class="nx">gui</span><span class="p">.</span><span class="nx">DocumentSpirit</span> <span class="o">=</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">Spirit</span><span class="p">.</span><span class="nx">infuse</span> <span class="p">(</span> <span class="s2">&quot;gui.DocumentSpirit&quot;</span><span class="p">,</span> <span class="p">{</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Construct.</p></div></div><div class="code"><div class="wrapper">  <span class="nx">onconstruct</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">_super</span><span class="p">.</span><span class="nx">onconstruct</span> <span class="p">();</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">_dimension</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">Dimension</span> <span class="p">(</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span> <span class="p">);</span>
+    <span class="nb">Object</span><span class="p">.</span><span class="nx">keys</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">_messages</span> <span class="p">).</span><span class="nx">forEach</span> <span class="p">(</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">type</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="kd">var</span> <span class="nx">target</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nb">document</span><span class="p">;</span>
+      <span class="k">switch</span> <span class="p">(</span> <span class="nx">type</span> <span class="p">)</span> <span class="p">{</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>case "load" : </p></div></div><div class="code"><div class="wrapper">        <span class="k">case</span> <span class="s2">&quot;scroll&quot;</span> <span class="o">:</span>
+        <span class="k">case</span> <span class="s2">&quot;resize&quot;</span> <span class="o">:</span>
+        <span class="c1">//case &quot;popstate&quot; : // @todo top only? tackle history?</span>
+        <span class="c1">//case &quot;hashchange&quot; : // @todo top only? tackle history?</span>
+          <span class="nx">target</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nb">window</span><span class="p">;</span>
+          <span class="k">break</span><span class="p">;</span>
+      <span class="p">}</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">event</span><span class="p">.</span><span class="nx">add</span> <span class="p">(</span> <span class="nx">type</span><span class="p">,</span> <span class="nx">target</span> <span class="p">);</span>
+    <span class="p">},</span> <span class="k">this</span> <span class="p">);</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>setup event listeners for top document only.</p></div></div><div class="code"><div class="wrapper">    <span class="k">if</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nb">document</span> <span class="o">===</span> <span class="nb">document</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">_constructTop</span> <span class="p">();</span>
+    <span class="p">}</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>consuming and redispatching fit-action</p></div></div><div class="code"><div class="wrapper">    <span class="k">this</span><span class="p">.</span><span class="nx">action</span><span class="p">.</span><span class="nx">addGlobal</span> <span class="p">(</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">ACTION_DOCUMENT_FIT</span> <span class="p">);</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>BUG!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+@todo it appears we <em>must</em> listen for touch start events
+for any spirit to subscribe to touch-end events only!!!!
+@see {gui.SpiritTouch}</p></div></div><div class="code"><div class="wrapper">    <span class="k">if</span> <span class="p">(</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">Type</span><span class="p">.</span><span class="nx">isDefined</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">touch</span> <span class="p">))</span> <span class="p">{</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">touch</span><span class="p">.</span><span class="nx">add</span> <span class="p">(</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">SpiritTouch</span><span class="p">.</span><span class="nx">FINGER_START</span> <span class="p">);</span>
+    <span class="p">}</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>@todo iframe hello.</p></div></div><div class="code"><div class="wrapper">    <span class="k">this</span><span class="p">.</span><span class="nx">action</span><span class="p">.</span><span class="nx">dispatchGlobal</span> <span class="p">(</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">ACTION_DOCUMENT_CONSTRUCT</span> <span class="p">);</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Get ready.
+@todo think more about late loading (module loading) scenario...</p></div></div><div class="code"><div class="wrapper">  <span class="nx">onready</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">_super</span><span class="p">.</span><span class="nx">onready</span> <span class="p">();</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">action</span><span class="p">.</span><span class="nx">dispatchGlobal</span> <span class="p">(</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">ACTION_DOCUMENT_READY</span> <span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nb">document</span><span class="p">.</span><span class="nx">readyState</span> <span class="o">===</span> <span class="s2">&quot;complete&quot;</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="k">this</span><span class="p">.</span><span class="nx">_isLoaded</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">onload</span> <span class="p">();</span>
+    <span class="p">}</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Handle event.
+@param {Event} e</p></div></div><div class="code"><div class="wrapper">  <span class="nx">onevent</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">e</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">_super</span><span class="p">.</span><span class="nx">onevent</span> <span class="p">(</span> <span class="nx">e</span> <span class="p">);</span>
+    <span class="k">switch</span> <span class="p">(</span> <span class="nx">e</span><span class="p">.</span><span class="nx">type</span> <span class="p">)</span> <span class="p">{</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>top document only</p></div></div><div class="code"><div class="wrapper">      <span class="k">case</span> <span class="s2">&quot;orientationchange&quot;</span> <span class="o">:</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">_onorientationchange</span> <span class="p">();</span>
+        <span class="k">break</span><span class="p">;</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>all documents</p></div></div><div class="code"><div class="wrapper">      <span class="k">default</span> <span class="o">:</span> 
+        <span class="kd">var</span> <span class="nx">message</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">_messages</span> <span class="p">[</span> <span class="nx">e</span><span class="p">.</span><span class="nx">type</span> <span class="p">];</span>
+        <span class="k">if</span> <span class="p">(</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">Type</span><span class="p">.</span><span class="nx">isDefined</span> <span class="p">(</span> <span class="nx">message</span> <span class="p">))</span> <span class="p">{</span>
+          <span class="k">switch</span> <span class="p">(</span> <span class="nx">e</span><span class="p">.</span><span class="nx">type</span> <span class="p">)</span> <span class="p">{</span> 
+            <span class="cm">/*</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Nuke all touch events for now @todo move to touch module</p></div></div><div class="code"><div class="wrapper"><span class="cm">            case &quot;touchstart&quot; :</span>
+<span class="cm">            case &quot;touchend&quot; :</span>
+<span class="cm">            case &quot;touchcancel&quot; :</span>
+<span class="cm">            case &quot;touchleave&quot; :</span>
+<span class="cm">            case &quot;touchmove&quot; :</span>
+<span class="cm">              e.preventDefault ();</span>
+<span class="cm">              break;</span>
+<span class="cm">            */</span>
+            <span class="k">case</span> <span class="s2">&quot;resize&quot;</span> <span class="o">:</span>
+              <span class="kd">var</span> <span class="nx">istop</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nb">window</span> <span class="o">===</span> <span class="nb">window</span><span class="p">;</span>
+              <span class="k">if</span> <span class="p">(</span> <span class="nx">istop</span> <span class="p">)</span> <span class="p">{</span>
+                <span class="k">this</span><span class="p">.</span><span class="nx">_onresize</span> <span class="p">();</span>
+              <span class="p">}</span>
+              <span class="k">break</span><span class="p">;</span>
+            <span class="k">case</span> <span class="s2">&quot;load&quot;</span> <span class="o">:</span>
+              <span class="k">if</span> <span class="p">(</span> <span class="o">!</span><span class="k">this</span><span class="p">.</span><span class="nx">_isLoaded</span> <span class="p">)</span> <span class="p">{</span>
+                <span class="k">this</span><span class="p">.</span><span class="nx">_onload</span> <span class="p">();</span>
+              <span class="p">}</span>
+              <span class="k">break</span><span class="p">;</span>
+          <span class="p">}</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Broadcast event globally.</p></div></div><div class="code"><div class="wrapper">          <span class="k">this</span><span class="p">.</span><span class="nx">_broadcast</span> <span class="p">(</span> <span class="nx">message</span><span class="p">,</span> <span class="nx">e</span> <span class="p">);</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Handle action.
+@param {gui.Action} action</p></div></div><div class="code"><div class="wrapper">  <span class="nx">onaction</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">action</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">_super</span><span class="p">.</span><span class="nx">onaction</span> <span class="p">(</span> <span class="nx">action</span> <span class="p">);</span>
+    <span class="k">switch</span> <span class="p">(</span> <span class="nx">action</span><span class="p">.</span><span class="nx">type</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="k">case</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">ACTION_DOCUMENT_FIT</span> <span class="o">:</span> <span class="c1">// relay fit action, but claim ourselves as new action.target</span>
+        <span class="nx">action</span><span class="p">.</span><span class="nx">consume</span> <span class="p">();</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">fit</span> <span class="p">(</span> <span class="nx">action</span><span class="p">.</span><span class="nx">data</span> <span class="o">===</span> <span class="kc">true</span> <span class="p">);</span>
+        <span class="k">break</span><span class="p">;</span>
+    <span class="p">}</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Hello.</p></div></div><div class="code"><div class="wrapper">  <span class="nx">onvisible</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">css</span><span class="p">.</span><span class="nx">remove</span> <span class="p">(</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">CLASS_INVISIBLE</span> <span class="p">);</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">_super</span><span class="p">.</span><span class="nx">onvisible</span> <span class="p">();</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>[oninvisible description]
+@return {[type]} [description]</p></div></div><div class="code"><div class="wrapper">  <span class="nx">oninvisible</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">css</span><span class="p">.</span><span class="nx">add</span> <span class="p">(</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">CLASS_INVISIBLE</span> <span class="p">);</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">_super</span><span class="p">.</span><span class="nx">onvisible</span> <span class="p">();</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Invoked onload by the {gui.Guide}.</p></div></div><div class="code"><div class="wrapper">  <span class="nx">onload</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>this.action.dispatch ( gui.ACTION<em>DOCUMENT</em>ONLOAD );</p></div></div><div class="code"><div class="wrapper">    <span class="k">if</span> <span class="p">(</span> <span class="o">!</span><span class="k">this</span><span class="p">.</span><span class="nx">_isLoaded</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">_isLoaded</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">action</span><span class="p">.</span><span class="nx">dispatchGlobal</span> <span class="p">(</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">ACTION_DOCUMENT_ONLOAD</span> <span class="p">);</span>
+      <span class="kd">var</span> <span class="nx">that</span> <span class="o">=</span> <span class="k">this</span><span class="p">;</span>
+      <span class="nx">setTimeout</span> <span class="p">(</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+        <span class="nx">that</span><span class="p">.</span><span class="nx">fit</span> <span class="p">();</span>
+        <span class="nx">that</span><span class="p">.</span><span class="nx">tick</span><span class="p">.</span><span class="nx">add</span> <span class="p">(</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">TICK_FIT</span> <span class="p">);</span>
+        <span class="nx">that</span><span class="p">.</span><span class="nx">action</span><span class="p">.</span><span class="nx">dispatchGlobal</span> <span class="p">(</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">ACTION_DOCUMENT_DONE</span> <span class="p">);</span>
+      <span class="p">},</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">Client</span><span class="p">.</span><span class="nx">STABLETIME</span> <span class="p">);</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+      <span class="nx">console</span><span class="p">.</span><span class="nx">warn</span> <span class="p">(</span> <span class="s2">&quot;@todo loaded twice...&quot;</span> <span class="p">);</span>
+    <span class="p">}</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Invoked onunload by the {gui.Guide}.</p></div></div><div class="code"><div class="wrapper">  <span class="nx">onunload</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">action</span><span class="p">.</span><span class="nx">dispatchGlobal</span> <span class="p">(</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">ACTION_DOCUMENT_UNLOAD</span> <span class="p">);</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Handle tick.
+@param {gui.Tick} tick</p></div></div><div class="code"><div class="wrapper">  <span class="nx">ontick</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">tick</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">_super</span><span class="p">.</span><span class="nx">ontick</span> <span class="p">(</span> <span class="nx">tick</span> <span class="p">);</span>
+    <span class="k">switch</span> <span class="p">(</span> <span class="nx">tick</span><span class="p">.</span><span class="nx">type</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="k">case</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">TICK_FIT</span> <span class="o">:</span>
+        <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;Fit &quot;</span> <span class="o">+</span> <span class="k">this</span><span class="p">.</span><span class="nb">document</span><span class="p">.</span><span class="nx">title</span> <span class="o">+</span> <span class="s2">&quot; : &quot;</span> <span class="o">+</span> <span class="nb">Math</span><span class="p">.</span><span class="nx">random</span><span class="p">());</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">fit</span> <span class="p">(</span> <span class="kc">true</span> <span class="p">);</span>
+        <span class="k">break</span><span class="p">;</span>
+    <span class="p">}</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Dispatch fitness info. Please invoke this method whenever 
+height changes: Parent iframes will resize to fit content.</p></div></div><div class="code"><div class="wrapper">  <span class="nx">fit</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">force</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">_isLoaded</span> <span class="o">||</span> <span class="nx">force</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="kd">var</span> <span class="nx">dim</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">_getDimension</span> <span class="p">();</span>
+      <span class="k">if</span> <span class="p">(</span> <span class="o">!</span><span class="nx">gui</span><span class="p">.</span><span class="nx">Dimension</span><span class="p">.</span><span class="nx">isEqual</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">_dimension</span><span class="p">,</span> <span class="nx">dim</span> <span class="p">))</span> <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">_dimension</span> <span class="o">=</span> <span class="nx">dim</span><span class="p">;</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">_dispatchFit</span> <span class="p">();</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="p">},</span>
+  
+  </div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>PRIVATES ...................................................................</p></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Flipped on window.onload
+@type {boolean}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_isLoaded</span> <span class="o">:</span> <span class="kc">false</span><span class="p">,</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Publish a global notification about an event in this document. This information 
+will be broadcasted to all windows. This way, a click event in one iframe might 
+close a menu in another iframe; and mousemove events can be listened for in all 
+documents at once. Important: If you stopPropagate() an event so that the 
+gui.DocumentSpirit cannot handle it, you should invoke this method manually.
+@param {String} message
+@param {Event} e</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_broadcast</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">message</span><span class="p">,</span> <span class="nx">e</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="k">switch</span> <span class="p">(</span> <span class="nx">e</span><span class="p">.</span><span class="nx">type</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="k">case</span> <span class="s2">&quot;mousemove&quot;</span> <span class="o">:</span>
+        <span class="k">case</span> <span class="s2">&quot;touchmove&quot;</span> <span class="o">:</span>
+          <span class="k">try</span> <span class="p">{</span> <span class="c1">// don&#39;t fire errors onmousemove :)</span>
+            <span class="nx">gui</span><span class="p">.</span><span class="nx">broadcast</span> <span class="p">(</span> <span class="nx">message</span><span class="p">,</span> <span class="nx">e</span> <span class="p">);</span>
+          <span class="p">}</span> <span class="k">catch</span> <span class="p">(</span> <span class="nx">x</span> <span class="p">)</span> <span class="p">{</span>
+            <span class="k">this</span><span class="p">.</span><span class="nx">event</span><span class="p">.</span><span class="nx">remove</span> <span class="p">(</span> <span class="nx">e</span><span class="p">.</span><span class="nx">type</span><span class="p">,</span> <span class="nx">e</span><span class="p">.</span><span class="nx">target</span> <span class="p">);</span>
+            <span class="k">throw</span> <span class="nx">x</span><span class="p">;</span>
+          <span class="p">}</span>
+          <span class="k">break</span><span class="p">;</span>
+        <span class="k">default</span> <span class="o">:</span>
+          <span class="nx">gui</span><span class="p">.</span><span class="nx">broadcast</span> <span class="p">(</span> <span class="nx">message</span><span class="p">,</span> <span class="nx">e</span> <span class="p">);</span>
+          <span class="k">break</span><span class="p">;</span>
+    <span class="p">}</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Mapping DOM events to broadcast messages.
+@type {Map<String,String>}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_messages</span> <span class="o">:</span> <span class="p">{</span>
+    <span class="s2">&quot;click&quot;</span> <span class="o">:</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">BROADCAST_MOUSECLICK</span><span class="p">,</span>
+    <span class="s2">&quot;mousedown&quot;</span> <span class="o">:</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">BROADCAST_MOUSEDOWN</span><span class="p">,</span>
+    <span class="s2">&quot;mouseup&quot;</span> <span class="o">:</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">BROADCAST_MOUSEUP</span><span class="p">,</span>
+    <span class="c1">//&quot;mousemove&quot; : gui.BROADCAST_MOUSEMOVE,</span>
+    <span class="s2">&quot;scroll&quot;</span> <span class="o">:</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">BROADCAST_SCROLL</span><span class="p">,</span>
+    <span class="s2">&quot;resize&quot;</span> <span class="o">:</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">BROADCAST_RESIZE</span><span class="p">,</span>
+    <span class="c1">//&quot;popstate&quot; : gui.BROADCAST_POPSTATE,</span>
+    <span class="c1">//&quot;hashchange&quot; : gui.BROADCAST_HASHCHANGE,</span>
+    <span class="s2">&quot;touchstart&quot;</span> <span class="o">:</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">BROADCAST_TOUCHSTART</span><span class="p">,</span>
+    <span class="s2">&quot;touchend&quot;</span> <span class="o">:</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">BROADCAST_TOUCHEND</span><span class="p">,</span>
+    <span class="s2">&quot;touchcancel&quot;</span> <span class="o">:</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">BROADCAST_TOUCHCANCEL</span><span class="p">,</span>
+    <span class="s2">&quot;touchleave&quot;</span> <span class="o">:</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">BROADCAST_TOUCHLEAVE</span><span class="p">,</span>
+    <span class="s2">&quot;touchmove&quot;</span> <span class="o">:</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">BROADCAST_TOUCHMOVE</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Document width and height tracked in top document.
+@type {gui.Dimension} </p></div></div><div class="code"><div class="wrapper">  <span class="nx">_dimension</span> <span class="o">:</span> <span class="kc">null</span><span class="p">,</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Timeout before we broadcast window resize ended. 
+This timeout cancels itself on each resize event.
+@type {number}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_timeout</span> <span class="o">:</span> <span class="kc">null</span><span class="p">,</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Dispatch document fit. Google Chrome may fail 
+to refresh the scrollbar properly at this point.</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_dispatchFit</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">dim</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">_dimension</span><span class="p">;</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">action</span><span class="p">.</span><span class="nx">dispatchGlobal</span> <span class="p">(</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">ACTION_DOCUMENT_FIT</span><span class="p">,</span> <span class="p">{</span>
+      <span class="nx">width</span> <span class="o">:</span> <span class="nx">dim</span><span class="p">.</span><span class="nx">w</span><span class="p">,</span>
+      <span class="nx">height</span> <span class="o">:</span> <span class="nx">dim</span><span class="p">.</span><span class="nx">h</span>
+    <span class="p">});</span>
+    <span class="kd">var</span> <span class="nx">win</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nb">window</span><span class="p">;</span>
+    <span class="k">if</span><span class="p">(</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">Client</span><span class="p">.</span><span class="nx">isWebKit</span> <span class="p">){</span>
+      <span class="nx">win</span><span class="p">.</span><span class="nx">scrollBy</span> <span class="p">(</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span> <span class="p">);</span>
+      <span class="nx">win</span><span class="p">.</span><span class="nx">scrollBy</span> <span class="p">(</span> <span class="mi">0</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span> <span class="p">);</span>
+    <span class="p">}</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Get current body dimension.
+@returns {gui.Dimension}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_getDimension</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">rect</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nb">document</span><span class="p">.</span><span class="nx">body</span><span class="p">.</span><span class="nx">getBoundingClientRect</span> <span class="p">();</span>
+    <span class="k">return</span> <span class="k">new</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">Dimension</span> <span class="p">(</span> <span class="nx">rect</span><span class="p">.</span><span class="nx">width</span><span class="p">,</span> <span class="nx">rect</span><span class="p">.</span><span class="nx">height</span> <span class="p">);</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Special setup for top document.</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_constructTop</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">_onorientationchange</span> <span class="p">();</span> <span class="c1">// broadcast orientation on startup</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">event</span><span class="p">.</span><span class="nx">add</span> <span class="p">(</span> <span class="s2">&quot;orientationchange&quot;</span><span class="p">,</span> <span class="nb">window</span> <span class="p">);</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Intensive resize procedures should subscribe 
+to the resize-end message as broadcasted here.
+@todo prevent multiple simultanious windows</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_onresize</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nb">window</span><span class="p">.</span><span class="nx">clearTimeout</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">_timeout</span> <span class="p">);</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">_timeout</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nb">window</span><span class="p">.</span><span class="nx">setTimeout</span> <span class="p">(</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+      <span class="nx">gui</span><span class="p">.</span><span class="nx">broadcast</span> <span class="p">(</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">BROADCAST_RESIZE_END</span> <span class="p">);</span>
+    <span class="p">},</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">DocumentSpirit</span><span class="p">.</span><span class="nx">TIMEOUT_RESIZE_END</span> <span class="p">);</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Device orientation changed.
+@todo move to touch module
+@todo gui.SpiritDevice entity</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_onorientationchange</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="nx">gui</span><span class="p">.</span><span class="nx">orientation</span> <span class="o">=</span> <span class="nb">window</span><span class="p">.</span><span class="nx">innerWidth</span> <span class="o">&gt;</span> <span class="nb">window</span><span class="p">.</span><span class="nx">innerHeight</span> <span class="o">?</span> <span class="mi">1</span> <span class="o">:</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="nx">gui</span><span class="p">.</span><span class="nx">broadcast</span> <span class="p">(</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">BROADCAST_ORIENTATIONCHANGE</span> <span class="p">);</span>
+  <span class="p">}</span>
+  
+  
+<span class="p">},</span> <span class="p">{},</span> <span class="p">{</span> <span class="c1">// STATICS .............................................................</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Timeout in milliseconds before we decide 
+that user is finished resizing the window.</p></div></div><div class="code"><div class="wrapper">  <span class="nx">TIMEOUT_RESIZE_END</span> <span class="o">:</span> <span class="mi">50</span>
+<span class="p">});</span></div></div></div></div></body></html>

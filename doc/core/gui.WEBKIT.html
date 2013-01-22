@@ -1,0 +1,67 @@
+<!DOCTYPE html><html lang="en"><head><title>core/gui.WEBKIT</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content="../"><meta name="groc-document-path" content="core/gui.WEBKIT"><meta name="groc-project-path" content="src/core/gui.WEBKIT.js"><link rel="stylesheet" type="text/css" media="all" href="../assets/style.css"><script type="text/javascript" src="../assets/behavior.js"></script><body><div id="meta"><div class="file-path">src/core/gui.WEBKIT.js</div></div><div id="document"><div class="segment"><div class="comments"><div class="wrapper"><h1 id="guiwebkit-temp-name">gui.WEBKIT (temp name)</h1>
+
+<p>Patching bad WebKit support for DOM getters and setters.
+@see http://code.google.com/p/chromium/issues/detail?id=13175</p></div></div><div class="code"><div class="wrapper"><span class="nx">gui</span><span class="p">.</span><span class="nx">WEBKIT</span> <span class="o">=</span> <span class="p">{</span> <span class="c1">// @todo name this thing</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Can patch property descriptors of elements in given window? 
+Safari on iOS throws an epic failure exception in your face.
+@param {Window} win
+@returns {boolean}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">canpatch</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">win</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">root</span> <span class="o">=</span> <span class="nx">win</span><span class="p">.</span><span class="nb">document</span><span class="p">.</span><span class="nx">documentElement</span><span class="p">;</span>
+    <span class="k">try</span> <span class="p">{</span>
+      <span class="nb">Object</span><span class="p">.</span><span class="nx">defineProperty</span> <span class="p">(</span> <span class="nx">root</span><span class="p">,</span> <span class="s2">&quot;innerHTML&quot;</span><span class="p">,</span> <span class="k">this</span><span class="p">.</span><span class="nx">_innerHTML</span> <span class="p">);</span>
+      <span class="k">return</span> <span class="kc">true</span><span class="p">;</span>
+    <span class="p">}</span> <span class="k">catch</span> <span class="p">(</span> <span class="nx">iosexception</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="kc">false</span><span class="p">;</span>
+    <span class="p">}</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Patch node plus nextsiblings and descendants recursively.</p></div></div><div class="code"><div class="wrapper">  <span class="nx">patch</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">node</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">World</span><span class="p">.</span><span class="nx">innerhtml</span><span class="p">.</span><span class="nx">local</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="k">new</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">Crawler</span> <span class="p">(</span> <span class="s2">&quot;crawler-webkit-patch&quot;</span> <span class="p">).</span><span class="nx">descend</span> <span class="p">(</span> <span class="nx">node</span><span class="p">,</span> <span class="k">this</span> <span class="p">);</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+      <span class="k">throw</span> <span class="k">new</span> <span class="nb">Error</span> <span class="p">(</span> <span class="s2">&quot;Somehow JQuery mode should have handled this :(&quot;</span> <span class="p">);</span>
+    <span class="p">}</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Patch single element.
+@param {Element} elm</p></div></div><div class="code"><div class="wrapper">  <span class="nx">handleElement</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">elm</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="p">[</span> <span class="s2">&quot;innerHTML&quot;</span><span class="p">,</span> <span class="s2">&quot;outerHTML&quot;</span><span class="p">,</span> <span class="s2">&quot;textContent&quot;</span> <span class="p">].</span><span class="nx">forEach</span> <span class="p">(</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">descriptor</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="nb">Object</span><span class="p">.</span><span class="nx">defineProperty</span> <span class="p">(</span> <span class="nx">elm</span><span class="p">,</span> <span class="nx">descriptor</span><span class="p">,</span> <span class="k">this</span> <span class="p">[</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="nx">descriptor</span> <span class="p">]);</span>
+    <span class="p">},</span> <span class="k">this</span> <span class="p">);</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>PRIVATES .........................................................</p></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Property descriptor for innerHTML.
+@type {Object}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_innerHTML</span> <span class="o">:</span> <span class="p">{</span>  
+    <span class="nx">get</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="k">new</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">DOMSerializer</span> <span class="p">().</span><span class="nx">subserialize</span> <span class="p">(</span> <span class="k">this</span> <span class="p">);</span>
+    <span class="p">},</span>
+    <span class="nx">set</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">html</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="nx">gui</span><span class="p">.</span><span class="nx">SpiritDOM</span><span class="p">.</span><span class="nx">html</span> <span class="p">(</span> <span class="k">this</span><span class="p">,</span> <span class="nx">html</span> <span class="p">);</span>
+    <span class="p">}</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Property descriptor for outerHTML.
+@type {Object}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_outerHTML</span> <span class="o">:</span> <span class="p">{</span>
+    <span class="nx">get</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="k">new</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">DOMSerializer</span> <span class="p">().</span><span class="nx">serialize</span> <span class="p">(</span> <span class="k">this</span> <span class="p">);</span>
+    <span class="p">},</span>
+    <span class="nx">set</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">html</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="nx">gui</span><span class="p">.</span><span class="nx">SpiritDOM</span><span class="p">.</span><span class="nx">outerHtml</span> <span class="p">(</span> <span class="k">this</span><span class="p">,</span> <span class="nx">html</span> <span class="p">);</span>
+    <span class="p">}</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Property descriptor for textContent.
+@type {Object}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_textContent</span> <span class="o">:</span> <span class="p">{</span>
+    <span class="nx">get</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+      <span class="kd">var</span> <span class="nx">node</span> <span class="o">=</span> <span class="k">this</span><span class="p">,</span> <span class="nx">res</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">;</span>
+      <span class="k">for</span> <span class="p">(</span> <span class="nx">node</span> <span class="o">=</span> <span class="nx">node</span><span class="p">.</span><span class="nx">firstChild</span><span class="p">;</span> <span class="nx">node</span><span class="p">;</span> <span class="nx">node</span> <span class="o">=</span> <span class="nx">node</span><span class="p">.</span><span class="nx">nextSibling</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="k">switch</span> <span class="p">(</span> <span class="nx">node</span><span class="p">.</span><span class="nx">nodeType</span> <span class="p">)</span> <span class="p">{</span>
+          <span class="k">case</span> <span class="nx">Node</span><span class="p">.</span><span class="nx">TEXT_NODE</span> <span class="o">:</span>
+            <span class="nx">res</span> <span class="o">+=</span> <span class="nx">node</span><span class="p">.</span><span class="nx">data</span><span class="p">;</span>
+            <span class="k">break</span><span class="p">;</span>
+          <span class="k">case</span> <span class="nx">Node</span><span class="p">.</span><span class="nx">ELEMENT_NODE</span> <span class="o">:</span>
+            <span class="nx">res</span> <span class="o">+=</span> <span class="nx">node</span><span class="p">.</span><span class="nx">textContent</span><span class="p">;</span> <span class="c1">// recurse</span>
+            <span class="k">break</span><span class="p">;</span>
+        <span class="p">}</span>
+      <span class="p">}</span>
+      <span class="k">return</span> <span class="nx">res</span><span class="p">;</span>
+    <span class="p">},</span>
+    <span class="nx">set</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">html</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="nx">gui</span><span class="p">.</span><span class="nx">SpiritDOM</span><span class="p">.</span><span class="nx">html</span> <span class="p">(</span> <span class="k">this</span><span class="p">,</span> <span class="nx">html</span><span class="p">.</span>
+        <span class="nx">replace</span> <span class="p">(</span> <span class="sr">/&amp;/g</span><span class="p">,</span> <span class="s2">&quot;&amp;amp;&quot;</span> <span class="p">).</span>
+        <span class="nx">replace</span> <span class="p">(</span> <span class="sr">/&lt;/g</span><span class="p">,</span> <span class="s2">&quot;&amp;lt;&quot;</span> <span class="p">).</span>
+        <span class="nx">replace</span> <span class="p">(</span> <span class="sr">/&gt;/g</span><span class="p">,</span> <span class="s2">&quot;&amp;gt;&quot;</span> <span class="p">).</span>
+        <span class="nx">replace</span> <span class="p">(</span> <span class="sr">/&quot;/g</span><span class="p">,</span> <span class="s2">&quot;&amp;quot&quot;</span> <span class="p">)</span>
+      <span class="p">);</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">};</span></div></div></div></div></body></html>

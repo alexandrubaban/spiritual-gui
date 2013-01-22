@@ -1,0 +1,107 @@
+<!DOCTYPE html><html lang="en"><head><title>core/gui.Observer</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content="../"><meta name="groc-document-path" content="core/gui.Observer"><meta name="groc-project-path" content="src/core/gui.Observer.js"><link rel="stylesheet" type="text/css" media="all" href="../assets/style.css"><script type="text/javascript" src="../assets/behavior.js"></script><body><div id="meta"><div class="file-path">src/core/gui.Observer.js</div></div><div id="document"><div class="segment"><div class="comments"><div class="wrapper"><h1 id="guiobserver">gui.Observer</h1>
+
+<p>Monitors a document for unsolicitated DOM changes (in development mode).</p></div></div><div class="code"><div class="wrapper"><span class="nx">gui</span><span class="p">.</span><span class="nx">Observer</span> <span class="o">=</span> <span class="p">{</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>@static
+@desc Enable monitoring? (disabled for now)
+@type {boolean}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">observes</span> <span class="o">:</span> <span class="kc">false</span><span class="p">,</span> <span class="c1">// gui.Client.hasMutations,</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>@static
+@desc Throw exception on mutations not intercepted by the framework?
+@type {boolean}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">fails</span> <span class="o">:</span> <span class="kc">false</span><span class="p">,</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>@static
+@desc Observe document mutations in given window context.
+@param {Window} win</p></div></div><div class="code"><div class="wrapper">  <span class="nx">observe</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">win</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">sig</span> <span class="o">=</span> <span class="nx">win</span><span class="p">.</span><span class="nx">gui</span><span class="p">.</span><span class="nx">signature</span><span class="p">;</span>
+    <span class="kd">var</span> <span class="nx">doc</span> <span class="o">=</span> <span class="nx">win</span><span class="p">.</span><span class="nb">document</span><span class="p">;</span>
+    <span class="kd">var</span> <span class="nx">obs</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">_observers</span> <span class="p">[</span> <span class="nx">sig</span> <span class="p">];</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">observes</span> <span class="o">&amp;&amp;</span> <span class="nx">win</span><span class="p">.</span><span class="nx">gui</span><span class="p">.</span><span class="nx">debug</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span> <span class="o">!</span><span class="nx">gui</span><span class="p">.</span><span class="nx">Type</span><span class="p">.</span><span class="nx">isDefined</span> <span class="p">(</span> <span class="nx">obs</span> <span class="p">))</span> <span class="p">{</span>
+        <span class="kd">var</span> <span class="nx">Observer</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">_mutationobserver</span> <span class="p">();</span>
+        <span class="nx">obs</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">_observers</span> <span class="p">[</span> <span class="nx">sig</span> <span class="p">]</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Observer</span> <span class="p">(</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">mutations</span> <span class="p">)</span> <span class="p">{</span>
+          <span class="nx">mutations</span><span class="p">.</span><span class="nx">forEach</span> <span class="p">(</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">mutation</span> <span class="p">)</span> <span class="p">{</span>
+            <span class="nx">gui</span><span class="p">.</span><span class="nx">Observer</span><span class="p">.</span><span class="nx">_handleMutation</span> <span class="p">(</span> <span class="nx">mutation</span> <span class="p">);</span>
+          <span class="p">});</span>
+        <span class="p">});</span>
+      <span class="p">}</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">_connect</span> <span class="p">(</span> <span class="nx">doc</span><span class="p">,</span> <span class="kc">true</span> <span class="p">);</span>
+    <span class="p">}</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>@static
+@desc Suspend mutation monitoring of document associated to node;
+enable monitoring again after executing provided function.
+@param {Node} node
+@param @optional {function} action
+@param @optional {object} thisp
+@returns {object} if action was defined, we might return something</p></div></div><div class="code"><div class="wrapper">  <span class="nx">suspend</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">node</span><span class="p">,</span> <span class="nx">action</span><span class="p">,</span> <span class="nx">thisp</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">res</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="nx">node</span><span class="p">.</span><span class="nx">nodeType</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">observes</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span> <span class="o">++</span> <span class="k">this</span><span class="p">.</span><span class="nx">_suspend</span> <span class="o">===</span> <span class="mi">1</span> <span class="p">)</span> <span class="p">{</span>
+          <span class="k">this</span><span class="p">.</span><span class="nx">_connect</span> <span class="p">(</span> <span class="nx">node</span><span class="p">,</span> <span class="kc">false</span> <span class="p">);</span>
+        <span class="p">}</span>
+      <span class="p">}</span>
+      <span class="k">if</span> <span class="p">(</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">Type</span><span class="p">.</span><span class="nx">isFunction</span> <span class="p">(</span> <span class="nx">action</span> <span class="p">))</span> <span class="p">{</span>
+        <span class="nx">res</span> <span class="o">=</span> <span class="nx">action</span><span class="p">.</span><span class="nx">call</span> <span class="p">(</span> <span class="nx">thisp</span> <span class="p">);</span>
+      <span class="p">}</span>
+      <span class="k">if</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">observes</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">resume</span> <span class="p">(</span> <span class="nx">node</span> <span class="p">);</span>
+      <span class="p">}</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+      <span class="k">throw</span> <span class="k">new</span> <span class="nx">TypeError</span> <span class="p">();</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="nx">res</span><span class="p">;</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>@static
+@desc Resume monitoring of mutations in document associated to node.
+@param {Node} node</p></div></div><div class="code"><div class="wrapper">  <span class="nx">resume</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">node</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="nx">node</span><span class="p">.</span><span class="nx">nodeType</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">observes</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span> <span class="o">--</span> <span class="k">this</span><span class="p">.</span><span class="nx">_suspend</span> <span class="o">===</span> <span class="mi">0</span> <span class="p">)</span> <span class="p">{</span>
+          <span class="k">this</span><span class="p">.</span><span class="nx">_connect</span> <span class="p">(</span> <span class="nx">node</span><span class="p">,</span> <span class="kc">true</span> <span class="p">);</span>
+        <span class="p">}</span>
+      <span class="p">}</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+      <span class="k">throw</span> <span class="k">new</span> <span class="nx">TypeError</span> <span class="p">();</span>
+    <span class="p">}</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>PRIVATES ..............................................................</p></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Is suspended? Minimize what overhead there might 
+be on connecting and disconnecting the observer.
+@todo do we need to track this for each window?
+@type {number}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_suspend</span> <span class="o">:</span> <span class="mi">0</span><span class="p">,</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Tracking MutationObservers for window contexts by gui.signature
+@type {Map<String,MutationObserver}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_observers</span> <span class="o">:</span> <span class="nb">Object</span><span class="p">.</span><span class="nx">create</span> <span class="p">(</span> <span class="kc">null</span> <span class="p">),</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Get observer.
+@returns {function} MutationObserver</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_mutationobserver</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="nb">window</span><span class="p">.</span><span class="nx">MutationObserver</span> <span class="o">||</span> <span class="nb">window</span><span class="p">.</span><span class="nx">WebKitMutationObserver</span> <span class="o">||</span> <span class="nb">window</span><span class="p">.</span><span class="nx">MozMutationObserver</span><span class="p">;</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Connect and disconnect observer.
+@param {Node} node
+@param {boolean} connect</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_connect</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">node</span><span class="p">,</span> <span class="nx">connect</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">doc</span> <span class="o">=</span> <span class="nx">node</span><span class="p">.</span><span class="nx">ownerDocument</span> <span class="o">||</span> <span class="nx">node</span><span class="p">;</span>
+    <span class="kd">var</span> <span class="nx">win</span> <span class="o">=</span> <span class="nx">doc</span><span class="p">.</span><span class="nx">defaultView</span><span class="p">;</span>
+    <span class="kd">var</span> <span class="nx">sig</span> <span class="o">=</span> <span class="nx">win</span><span class="p">.</span><span class="nx">gui</span><span class="p">.</span><span class="nx">signature</span><span class="p">;</span>
+    <span class="kd">var</span> <span class="nx">obs</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">_observers</span> <span class="p">[</span> <span class="nx">sig</span> <span class="p">];</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="nx">obs</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span> <span class="nx">connect</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="nx">obs</span><span class="p">.</span><span class="nx">observe</span> <span class="p">(</span> <span class="nx">doc</span><span class="p">,</span> <span class="p">{</span>
+          <span class="nx">childList</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span>
+          <span class="nx">subtree</span><span class="o">:</span> <span class="kc">true</span>
+        <span class="p">});</span>
+      <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+        <span class="nx">obs</span><span class="p">.</span><span class="nx">disconnect</span> <span class="p">();</span>
+      <span class="p">}</span>     
+    <span class="p">}</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Handle mutation.
+@param {MutationRecord} mutation</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_handleMutation</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">mutation</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">action</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
+    <span class="nb">Array</span><span class="p">.</span><span class="nx">forEach</span> <span class="p">(</span> <span class="nx">mutation</span><span class="p">.</span><span class="nx">removedNodes</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">node</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span> <span class="nx">node</span><span class="p">.</span><span class="nx">nodeType</span> <span class="o">===</span> <span class="nx">Node</span><span class="p">.</span><span class="nx">ELEMENT_NODE</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="nx">console</span><span class="p">.</span><span class="nx">warn</span> <span class="p">(</span> <span class="s2">&quot;Bad remove:&quot;</span><span class="p">,</span> <span class="nx">node</span> <span class="p">);</span>
+        <span class="nx">action</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+      <span class="p">}</span>
+    <span class="p">});</span>
+    <span class="nb">Array</span><span class="p">.</span><span class="nx">forEach</span> <span class="p">(</span> <span class="nx">mutation</span><span class="p">.</span><span class="nx">addedNodes</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">node</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span> <span class="nx">node</span><span class="p">.</span><span class="nx">nodeType</span> <span class="o">===</span> <span class="nx">Node</span><span class="p">.</span><span class="nx">ELEMENT_NODE</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="nx">console</span><span class="p">.</span><span class="nx">warn</span> <span class="p">(</span> <span class="s2">&quot;Bad append:&quot;</span><span class="p">,</span> <span class="nx">node</span> <span class="p">);</span>
+        <span class="nx">action</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+      <span class="p">}</span>
+    <span class="p">});</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="nx">action</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span> <span class="nx">mutation</span><span class="p">.</span><span class="nx">target</span><span class="p">.</span><span class="nx">ownerDocument</span><span class="p">.</span><span class="nx">defaultView</span><span class="p">.</span><span class="nx">gui</span><span class="p">.</span><span class="nx">debug</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="nx">console</span> <span class="p">[</span> <span class="k">this</span><span class="p">.</span><span class="nx">fails</span> <span class="o">?</span> <span class="s2">&quot;error&quot;</span> <span class="o">:</span> <span class="s2">&quot;warn&quot;</span> <span class="p">]</span> <span class="p">(</span>
+          <span class="s2">&quot;Action required: DOM mutation not intercepted, Spiritual may be out of synch.&quot;</span> 
+        <span class="p">);</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">};</span></div></div></div></div></body></html>

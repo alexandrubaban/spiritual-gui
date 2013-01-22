@@ -1,44 +1,30 @@
-/**
- * @class
- * The spirit guide crawls the document while channeling 
- * spirits into DOM elements that matches CSS selectors.
- */
+// # gui.Guide
+// The spirit guide crawls the document while channeling 
+// spirits into DOM elements that matches CSS selectors.
 gui.Guide = {
-	
-	/**
-	 * Tracking which gui.StyleSheetSpirit goes into what window.
-	 * @type {Map<String,Array<String>>}
-	 */
+
+	// Tracking which gui.StyleSheetSpirit goes into what window.
+	// @type {Map<String,Array<String>>}
 	_windows : Object.create ( null ),
-	
-	/**
-	 * Identification.
-	 * @returns {String}
-	 */
+
+	// Identification.
+	// @returns {String}
 	toString : function () {
-	  
 		return "[object gui.Guide]";
 	},
-	
-	/**
-	 * Manage spirits in window.
-	 * @param {Window} win
-	 */
+
+	// Manage spirits in window.
+	// @param {Window} win
 	observe : function ( win ) {
-		
 		win.document.addEventListener ( "DOMContentLoaded", this, false );
 		win.addEventListener ( "load", this, false );
 		win.addEventListener ( "unload", this, false );
 	},
-	
-	/**
-	 * Events.
-	 * @param {Event} e
-	 */
+
+	// Events.
+	// @param {Event} e
 	handleEvent : function ( e ) {
-		
 		var sum = new gui.EventSummary ( e );
-		
 		switch ( e.type ) {
 			case "DOMContentLoaded" :
 				this._ondom ( sum );
@@ -50,30 +36,23 @@ gui.Guide = {
 				this._unload ( sum );
 				break;
 		}
-		
 		e.currentTarget.removeEventListener ( e.type, this, false );
 		e.stopPropagation ();
 	},
-	
-	/**
-	 * Elaborate setup to spiritualize document 
-	 * after async evaluation of ui stylesheets.
-	 * @see {gui.StyleSheetSpirit}
-	 * @param {gui.Broadcast} b
-	 */
+
+	// Elaborate setup to spiritualize document 
+	// after async evaluation of ui stylesheets.
+	// @see {gui.StyleSheetSpirit}
+	// @param {gui.Broadcast} b
 	onbroadcast : function ( b ) {
-		
 		var sig = b.data;
 		var spirit = null;
 		var spirits = this._windows [ sig ];
-		
 		switch ( b.type ) {
-			
 			case gui.BROADCAST_KICKSTART :
 				gui.Broadcast.removeGlobal ( b.type, this );
 				this._step1 ( document );
 				break;
-			
 			case gui.BROADCAST_LOADING_CHANNELS :
 				if ( !spirits ) {
 					spirits = this._windows [ sig ] = [];
@@ -82,7 +61,6 @@ gui.Guide = {
 				spirits.push ( b.target );
 				spirits.__loading__ ++;
 				break;
-				
 			case gui.BROADCAST_CHANNELS_LOADED :
 				if ( -- spirits.__loading__ === 0 ) {
 					while ( spirit = spirits.shift ()) {
@@ -94,115 +72,83 @@ gui.Guide = {
 		}
 	},
 
-	/**
-	 * Construct spirits for element and descendants, 
-	 * then attach all spirits in document order.
-	 * @todo JUMP DETACHED SPIRIT IF MATCHING ID!
-	 * @param {Element} elm
-	 * @param {boolean} skip Eval descendants only
-	 */
+	// Construct spirits for element and descendants, 
+	// then attach all spirits in document order.
+	// @todo JUMP DETACHED SPIRIT IF MATCHING ID!
+	// @param {Element} elm
+	// @param {boolean} skip Eval descendants only
 	attach : function ( elm ) {
-		
 		this._attach ( elm, false, false );
 	},
 
-	/**
-	 * Construct spirits for descendants.
-	 * @param {Element} elm
-	 */
+	// Construct spirits for descendants.
+	// @param {Element} elm
 	attachSub : function ( elm ) {
-
 		this._attach ( elm, true, false );
 	},
 
-	/**
-	 * Attach one spirit non-crawling.
-	 * @param {Element} elm
-	 */
+	// Attach one spirit non-crawling.
+	// @param {Element} elm
 	attachOne : function ( elm ) {
-
 		this._attach ( elm, false, true );
 	},
 
-	/**
-	 * Detach spirits from element and descendants.
-	 * @param {Element} elm
-	 * @param @optional {boolean} skip Eval descendants only 
-	 */
+	// Detach spirits from element and descendants.
+	// @param {Element} elm
+	// @param @optional {boolean} skip Eval descendants only 
 	detach : function ( elm ) {
-
 		this._detach ( elm, false, false );
 	},
 
-	/**
-	 * Detach spirits for descendants.
-	 * @param {Element} elm
-	 */
+	// Detach spirits for descendants.
+	// @param {Element} elm
 	detachSub : function ( elm ) {
-
 		this._detach ( elm, true, false );
 	},
 
-	/**
-	 * Detach one spirit non-crawling.
-	 * @param {Element} elm
-	 */
+	// Detach one spirit non-crawling.
+	// @param {Element} elm
 	detachOne : function ( elm ) {
-
 		this._detach ( elm, false, true );
 	},
-	
-	/**
-	 * Detach spirits from element and descendants.
-	 * @param {Node} node
-	 * @param @optional {boolean} skip Eval descendants only 
-	 */
+
+	// Detach spirits from element and descendants.
+	// @param {Node} node
+	// @param @optional {boolean} skip Eval descendants only 
 	dispose : function ( node, unloading ) {
-		
 		this._collect ( node, false, gui.CRAWLER_DISPOSE ).forEach ( function ( spirit ) {
 			if ( !spirit.life.destructed ) {
 				spirit.ondestruct ( unloading );
 			}
 		}, this );
 	},
-	
-	/**
-	 * Associate DOM element to Spirit instance.
-	 * @param {Element} element
-	 * @param {function} C spirit constructor
-	 * @returns {Spirit}
-	 */
+
+	// Associate DOM element to Spirit instance.
+	// @param {Element} element
+	// @param {function} C spirit constructor
+	// @returns {Spirit}
 	animate : function ( element, C ) {
-		
 		var spirit = new C ();
-		
 		spirit.element = element;
 		spirit.document = element.ownerDocument;
 		spirit.window = spirit.document.defaultView;
 		spirit.spiritkey = gui.KeyMaster.generateKey ();
 		spirit.signature = spirit.window.gui.signature;
-		
-		/*
-		 * @todo weakmap for this stunt
-		 */
+		// @todo weakmap for this stunt
 		element.spirit = spirit;
 		if ( !spirit.life || spirit.life.constructed ) {
 			spirit.onconstruct ();
 		} else {
 			throw "Constructed twice: " + spirit.toString ();
 		}
-		
 		return spirit;
 	},
 
-	/**
-	 * Suspend spirit attachment/detachment during operation.
-	 * @param {function} operation
-	 * @param @optional {object} thisp
-	 * @returns {object}
-	 */
+	// Suspend spirit attachment/detachment during operation.
+	// @param {function} operation
+	// @param @optional {object} thisp
+	// @returns {object}
 	suspend : function ( operation, thisp ) {
-
 		this._suspended = true;
 		var res = operation.call ( thisp );
 		this._suspended = false;
@@ -212,32 +158,23 @@ gui.Guide = {
 	
 	// PRIVATES .....................................................................
 
-	/**
-	 * Ignore DOM mutations?
-	 * @type {boolean}
-	 */
+	// Ignore DOM mutations?
+	// @type {boolean}
 	_suspended : false,
 
-	/**
-	 * Continue with attachment/detachment of given node?
-	 * @returns {boolean}
-	 */
+	// Continue with attachment/detachment of given node?
+	// @returns {boolean}
 	_handles : function ( node ) {
-
 		return !this._suspended && 
 			gui.Type.isDefined ( node ) && 
 			gui.SpiritDOM.embedded ( node ) &&
 			node.nodeType === Node.ELEMENT_NODE;
 	},
 
-	/**
-	 * Fires on document.DOMContentLoaded.
-	 * @param {gui.EventSummary} sum
-	 */
+	// Fires on document.DOMContentLoaded.
+	// @param {gui.EventSummary} sum
 	_ondom : function ( sum ) {
-		
 		gui.broadcast ( gui.BROADCAST_DOMCONTENT, sum );
-
 		// @todo gui.Observer crashes with JQuery when both do stuff on DOMContentLoaded, pushing Spiritual to next stack for now
 		// see http://stackoverflow.com/questions/11406515/domnodeinserted-behaves-weird-when-performing-dom-manipulation-on-body
 		var that = this, doc = sum.document;
@@ -245,71 +182,51 @@ gui.Guide = {
 			that._step1 ( doc );
 		//});
 	},
-	
-	/**
-	 * Fires on window.onload
-	 * @param {gui.EventSummary} sum
-	 */
+
+	// Fires on window.onload
+	// @param {gui.EventSummary} sum
 	_onload : function ( sum ) {
-		
 		if ( sum.documentspirit ) {
 			sum.documentspirit.onload ();
 		}
 		gui.broadcast ( gui.BROADCAST_ONLOAD, sum );
 	},
-	
-	/**
-	 * Fires on window.unload
-	 * @todo handle disposal in gui.Spiritual (no crawling)
-	 * @param {gui.EventSummary} sum
-	 */
+
+	// Fires on window.unload
+	// @todo handle disposal in gui.Spiritual (no crawling)
+	// @param {gui.EventSummary} sum
 	_unload : function ( sum ) {
-		
 		if ( sum.documentspirit ) {
 			sum.documentspirit.onunload ();
 		}
-		
 		gui.broadcast ( gui.BROADCAST_UNLOAD, sum );
 		this.dispose ( sum.document.documentElement, true );
 		sum.window.gui.nameDestructAlreadyUsed ();
 	},
-	
-	/**
-	 * Step 1. Great name...
-	 * @param {Document} doc
-	 */
-	_step1 : function ( doc ) {
 
+	// Step 1. Great name...
+	// @param {Document} doc
+	_step1 : function ( doc ) {
 		var win = doc.defaultView;
 		var sig = win.gui.signature;
-
 		this._metatags ( win ); // configure runtime
 		win.gui.go (); // channel spirits
 		this._stylesheets ( win ); // more spirits?
-		
-		/*
-		 * resolving spiritual stylesheets? 
-		 * If not, skip directly to _step2.
-		 */
+		// resolving spiritual stylesheets? 
+		// If not, skip directly to _step2.
 		if ( !this._windows [ sig ]) {
 			this._step2 ( doc );
 		}
 	},
 
-	/**
-	 * Attach all spirits and proclaim document 
-	 * spiritualized (isolated for async invoke).
-	 * @param {Document} doc
-	 */
+	// Attach all spirits and proclaim document 
+	// spiritualized (isolated for async invoke).
+	// @param {Document} doc
 	_step2 : function ( doc ) {
-
 		var win = doc.defaultView;
 		var sig = win.gui.signature;
-
-		/*
-		 * In development mode, we setup a mutation observer 
-		 * to monitor the document for unhandled DOM updates. 
-		 */
+		// In development mode, we setup a mutation observer 
+		// to monitor the document for unhandled DOM updates. 
 		if ( win.gui.debug ){
 			if ( win.gui.mode === gui.MODE_JQUERY ) {
 				setImmediate(function(){ // @todo somehow not conflict with http://stackoverflow.com/questions/11406515/domnodeinserted-behaves-weird-when-performing-dom-manipulation-on-body
@@ -319,25 +236,20 @@ gui.Guide = {
 				gui.Observer.observe ( win );
 			}
 		}
-
 		if ( gui.Client.isWebKit ) {
 			if ( win.gui.mode === gui.MODE_NATIVE ) {
 				gui.WEBKIT.patch ( doc.documentElement );
 			}
 		}
-
 		// broadcast before and after spirits attach
 		gui.broadcast ( gui.BROADCAST_WILL_SPIRITUALIZE, sig );
 		this.attach ( doc.documentElement );
 		gui.broadcast ( gui.BROADCAST_DID_SPIRITUALIZE, sig );
 	},
 
-	/**
-	 * Resolve metatags (configure runtime).
-	 * @param {Window} win
-	 */
+	// Resolve metatags (configure runtime).
+	// @param {Window} win
 	_metatags : function ( win ) {
-
 		var doc = win.document;
 		var spaces = win.gui.namespaces ();
 		var metas = doc.querySelectorAll ( "meta[name]" );
@@ -354,12 +266,9 @@ gui.Guide = {
 		});
 	},
 
-	/*
-	 * Resolve stylesheets (channel spirits).
-	 * @param {Window} win
-	 */
+	// Resolve stylesheets (channel spirits).
+	// @param {Window} win
 	_stylesheets : function ( win ) {
-
 		var doc = win.document;
 		var xpr = ".gui-styles";
 		var css = doc.querySelectorAll ( xpr );
@@ -367,15 +276,12 @@ gui.Guide = {
 			this.attachOne ( elm );
 		}, this );
 	},
-	
-	/**
-	 * Collect spirits from element and descendants.
-	 * @param {Node} node
-	 * @param @optional {boolean} skip
-	 * @returns {Array<gui.Spirit>}
-	 */
+
+	// Collect spirits from element and descendants.
+	// @param {Node} node
+	// @param @optional {boolean} skip
+	// @returns {Array<gui.Spirit>}
 	_collect : function ( node, skip, id ) {
-		
 		var list = [];
 		if ( node.nodeType === Node.ELEMENT_NODE ) {
 			new gui.Crawler ( id ).descend ( node, {
@@ -390,19 +296,14 @@ gui.Guide = {
 		return list;
 	},
 
-	/**
-	 * Attach spirits to element and subtree.
-	 * @param {Element} elm
-	 * @param {boolean} skip Skip the element?
-	 * @param {boolean} one Skip the subtree?
-	 */
+	// Attach spirits to element and subtree.
+	// @param {Element} elm
+	// @param {boolean} skip Skip the element?
+	// @param {boolean} one Skip the subtree?
 	_attach : function ( node, skip, one ) {
-
 		if ( this._handles ( node )) {
-			
 			var attach = [];
 			var readys = [];
-
 			// construct spirits in document order
 			new gui.Crawler ( gui.CRAWLER_ATTACH ).descend ( node, {
 				handleElement : function ( elm ) {
@@ -443,7 +344,6 @@ gui.Guide = {
 					readys.push ( spirit );
 				}
 			}, this );
-			
 			// fire ready in reverse document order (innermost first)
 			readys.reverse ().forEach ( function ( spirit ) {
 				spirit.onready ();
@@ -451,14 +351,11 @@ gui.Guide = {
 		}
 	},
 
-	/**
-	 * Detach spirits from element and subtree.
-	 * @param {Element} elm
-	 * @param {boolean} skip Skip the element?
-	 * @param {boolean} one Skip the subtree?
-	 */
+	// Detach spirits from element and subtree.
+	// @param {Element} elm
+	// @param {boolean} skip Skip the element?
+	// @param {boolean} one Skip the subtree?
 	_detach : function ( elm, skip, one ) {
-		
 		if ( this._handles ( elm )) {
 			this._collect ( elm, skip, gui.CRAWLER_DETACH ).forEach ( function detach ( spirit ) {
 				if ( spirit.life.attached && !spirit.life.destructed ) {
@@ -467,16 +364,13 @@ gui.Guide = {
 			}, this );
 		}
 	},
-	
-	/**
-	 * If possible, construct and return spirit for element.
-	 * @todo what's this? http://code.google.com/p/chromium/issues/detail?id=20773
-	 * @todo what's this? http://forum.jquery.com/topic/elem-ownerdocument-defaultview-breaks-when-elem-iframe-document
-	 * @param {Element} element
-	 * @returns {Spirit} or null
-	 */
+
+	// If possible, construct and return spirit for element.
+	// @todo what's this? http://code.google.com/p/chromium/issues/detail?id=20773
+	// @todo what's this? http://forum.jquery.com/topic/elem-ownerdocument-defaultview-breaks-when-elem-iframe-document
+	// @param {Element} element
+	// @returns {Spirit} or null
 	_evaluate : function ( element ) {
-		
 		if ( !element.spirit ) {
 			var doc = element.ownerDocument;
 			var win = doc.defaultView;
@@ -488,30 +382,23 @@ gui.Guide = {
 		return element.spirit;
 	},
 
-	/**
-	 * Spirit is invisible? @todo only test for 
-	 * this if something is indeed invisible. 
-	 * Consider maintaining this via crawlers.
-	 * @param {gui.Spirit} spirit
-	 * @returns {boolean}
-	 */
+	// Spirit is invisible? @todo only test for 
+	// this if something is indeed invisible. 
+	// Consider maintaining this via crawlers.
+	// @param {gui.Spirit} spirit
+	// @returns {boolean}
 	_invisible : function ( spirit ) {
-
 		return spirit.css.contains ( gui.CLASS_INVISIBLE ) || 
 		spirit.css.matches ( "." + gui.CLASS_INVISIBLE + " *" );
 	}
 };
 
-/*
- * We are ready to start managing the top level window.
- */
+// We are ready to start managing the top level window.
 ( function startup () {
-	
 	gui.Guide.observe ( window );
 	gui.Broadcast.addGlobal ([ 
 		gui.BROADCAST_LOADING_CHANNELS,
 		gui.BROADCAST_CHANNELS_LOADED,
 		gui.BROADCAST_KICKSTART
 	], gui.Guide );
-	
 })();

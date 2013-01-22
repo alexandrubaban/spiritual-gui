@@ -1,23 +1,18 @@
-/**
- * @class
- * Tracking DOM events.
- * @todo Static interface for general consumption.
- * @extends {gui.SpiritTracker}
- */
+// # gui.EventTracker
+// Tracking DOM events.
+// @todo Static interface for general consumption.
+// @extends {gui.SpiritTracker}
 gui.EventTracker = gui.SpiritTracker.extend ( "gui.EventTracker", {
-   
-	/**
-	 * Add one or more DOM event handlers.
-	 * @todo Don't assume spirit handler
-	 * @todo reverse handler and capture args
-	 * @param {object} arg String, array or whitespace-separated-string
-	 * @param @optional {object} target Node, Window or XmlHttpRequest. Defaults to spirit element
-	 * @param @optional {object} handler implements EventListener interface, defaults to spirit
-	 * @param @optional {boolean} capture Defaults to false
-	 * @returns {gui.Spirit}
-	 */
+
+	// Add one or more DOM event handlers.
+	// @todo Don't assume spirit handler
+	// @todo reverse handler and capture args
+	// @param {object} arg String, array or whitespace-separated-string
+	// @param @optional {object} target Node, Window or XmlHttpRequest. Defaults to spirit element
+	// @param @optional {object} handler implements EventListener interface, defaults to spirit
+	// @param @optional {boolean} capture Defaults to false
+	// @returns {gui.Spirit}
 	add : function ( arg, target, handler, capture ) {
-		
 		target = target ? target : this.spirit.element;
 		handler = handler ? handler : this.spirit;
 		capture = capture ? capture : false;
@@ -34,16 +29,13 @@ gui.EventTracker = gui.SpiritTracker.extend ( "gui.EventTracker", {
 		}
 		return this;
 	},
-		
-	/**
-	 * Add one or more DOM event handlers.
-	 * @param {object} arg String, array or whitespace-separated-string
-	 * @param @optional {object} target Node, Window or XmlHttpRequest. Defaults to spirit element
-	 * @param @optional {object} handler implements EventListener interface, defaults to spirit
-	 * @param @optional {boolean} capture Defaults to false
-	 */
+
+	// Add one or more DOM event handlers.
+	// @param {object} arg String, array or whitespace-separated-string
+	// @param @optional {object} target Node, Window or XmlHttpRequest. Defaults to spirit element
+	// @param @optional {object} handler implements EventListener interface, defaults to spirit
+	// @param @optional {boolean} capture Defaults to false
 	remove : function ( arg, target, handler, capture ) {
-		
 		target = target ? target : this.spirit.element;
 		handler = handler ? handler : this.spirit;
 		capture = capture ? capture : false;
@@ -60,16 +52,13 @@ gui.EventTracker = gui.SpiritTracker.extend ( "gui.EventTracker", {
 		}
 		return this;
 	},
-	
-	/**
-	 * Toggle one or more DOM event handlers.
-	 * @param {object} arg String, array or whitespace-separated-string
-	 * @param @optional {object} target Node, Window or XmlHttpRequest. Defaults to spirit element
-	 * @param @optional {object} handler implements EventListener interface, defaults to spirit
-	 * @param @optional {boolean} capture Defaults to false
-	 */
+
+	// Toggle one or more DOM event handlers.
+	// @param {object} arg String, array or whitespace-separated-string
+	// @param @optional {object} target Node, Window or XmlHttpRequest. Defaults to spirit element
+	// @param @optional {object} handler implements EventListener interface, defaults to spirit
+	// @param @optional {boolean} capture Defaults to false
 	toggle : function ( arg, target, handler, capture ) {
-		
 		target = target ? target : this.spirit.element;
 		handler = handler ? handler : this.spirit;
 		capture = capture ? capture : false;

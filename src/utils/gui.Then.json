@@ -1,0 +1,136 @@
+[
+  {
+    "tags": [],
+    "description": {
+      "full": "<h1>gui.Then</h1>\n\n<p>Encapsulates a callback for future use.</p>",
+      "summary": "<h1>gui.Then</h1>\n\n<p>Encapsulates a callback for future use.</p>",
+      "body": ""
+    },
+    "ignore": false,
+    "code": "gui.Then = function Then () {};\n\ngui.Then.prototype = {",
+    "ctx": {
+      "type": "method",
+      "receiver": "gui",
+      "name": "Then",
+      "string": "gui.Then()"
+    }
+  },
+  {
+    "tags": [
+      {
+        "type": "type",
+        "types": [
+          "String"
+        ]
+      }
+    ],
+    "description": {
+      "full": "<p>Unique key.</p>",
+      "summary": "<p>Unique key.</p>",
+      "body": ""
+    },
+    "isPrivate": false,
+    "ignore": false,
+    "code": "key : null,"
+  },
+  {
+    "tags": [
+      {
+        "type": "returns",
+        "string": "{String}"
+      }
+    ],
+    "description": {
+      "full": "<p>Identification.</p>",
+      "summary": "<p>Identification.</p>",
+      "body": ""
+    },
+    "isPrivate": false,
+    "ignore": false,
+    "code": "toString : function () {\n    return \"[object gui.Then]\";\n  },"
+  },
+  {
+    "tags": [
+      {
+        "type": "param",
+        "types": [
+          "function"
+        ],
+        "name": "callback",
+        "description": ""
+      },
+      {
+        "type": "param",
+        "types": [
+          "@optional"
+        ],
+        "name": "{object}",
+        "description": "pointer"
+      },
+      {
+        "type": "api",
+        "visibility": "public"
+      }
+    ],
+    "description": {
+      "full": "<p>Setup callback with optional this-pointer.</p>",
+      "summary": "<p>Setup callback with optional this-pointer.</p>",
+      "body": ""
+    },
+    "isPrivate": false,
+    "ignore": false,
+    "code": "then : function ( callback, thisp ) {\n    this._callback = callback ? callback : null;\n    this._pointer = thisp ? thisp : null;\n  },"
+  },
+  {
+    "tags": [
+      {
+        "type": "returns",
+        "string": "{object}"
+      }
+    ],
+    "description": {
+      "full": "<p>Callback with optional this-pointer.</p>",
+      "summary": "<p>Callback with optional this-pointer.</p>",
+      "body": ""
+    },
+    "isPrivate": false,
+    "ignore": false,
+    "code": "now : function () {\n    var c = this._callback;\n    var p = this._pointer;\n    if ( c ) {\n      this.then ( null, null );\n      c.apply ( p, arguments );\n    }\n  },\n\n\n  // PRIVATES ................................................."
+  },
+  {
+    "tags": [
+      {
+        "type": "type",
+        "types": [
+          "function"
+        ]
+      }
+    ],
+    "description": {
+      "full": "<p>Callback to execute when transition is done.</p>",
+      "summary": "<p>Callback to execute when transition is done.</p>",
+      "body": ""
+    },
+    "isPrivate": false,
+    "ignore": false,
+    "code": "_callback : null,"
+  },
+  {
+    "tags": [
+      {
+        "type": "type",
+        "types": [
+          "object"
+        ]
+      }
+    ],
+    "description": {
+      "full": "<p>Preserve integrity of \"this\" keyword in callback function.</p>",
+      "summary": "<p>Preserve integrity of \"this\" keyword in callback function.</p>",
+      "body": ""
+    },
+    "isPrivate": false,
+    "ignore": false,
+    "code": "_pointer : null\n\n};"
+  }
+]

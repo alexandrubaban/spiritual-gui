@@ -1,28 +1,22 @@
-/**
- * @class
- * Details for ended CSS transition.
- * @param {String} propertyName
- * @param {number} elapsedTime
- */
+// # gui.Transition
+// Details for ended CSS transition.
+// @param {String} propertyName
+// @param {number} elapsedTime
 gui.Transition = function ( propertyName, elapsedTime ) {
-	this.duration = Math.round ( elapsedTime * 1000 );
+	this.duration = Math.round ( elapsedTime / 1000 );
 	this.type = propertyName;
 };
 
 gui.Transition.prototype = {
 
-	/**
-	 * Property that finished transitioning ("width","height").
-	 * @todo un-camelcase this to CSS syntax.
-	 * @todo adjust vendor prefix to "beta".
-	 * @type {String}
-	 */
+	// Property that finished transitioning ("width","height").
+	// @todo un-camelcase this to CSS syntax.
+	// @todo adjust vendor prefix to "beta".
+	// @type {String}
 	type : null,
 
-	/**
-	 * Elapsed time in milliseconds. This may 
-	 * not be identical to the expected time.
-	 * @type {number}
-	 */
+	// Elapsed time in milliseconds. This may 
+	// not be identical to the specified time.
+	// @type {number}
 	duration : 0
 };

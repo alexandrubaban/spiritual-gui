@@ -1,34 +1,24 @@
-/**
- * @class
- * Monitors a document for unsolicitated DOM changes (in development mode).
- */
+// # gui.Observer
+// Monitors a document for unsolicitated DOM changes (in development mode).
 gui.Observer = {
 
-	/**
-	 * @static
-	 * @desc Enable monitoring? (disabled for now)
-	 * @type {boolean}
-	 */
+	// @static
+	// @desc Enable monitoring? (disabled for now)
+	// @type {boolean}
 	observes : false, // gui.Client.hasMutations,
 
-	/**
-	 * @static
-	 * @desc Throw exception on mutations not intercepted by the framework?
-	 * @type {boolean}
-	 */
+	// @static
+	// @desc Throw exception on mutations not intercepted by the framework?
+	// @type {boolean}
 	fails : false,
 
-	/**
-	 * @static
-	 * @desc Observe document mutations in given window context.
-	 * @param {Window} win
-	 */
+	// @static
+	// @desc Observe document mutations in given window context.
+	// @param {Window} win
 	observe : function ( win ) {
-
 		var sig = win.gui.signature;
 		var doc = win.document;
 		var obs = this._observers [ sig ];
-
 		if ( this.observes && win.gui.debug ) {
 			if ( !gui.Type.isDefined ( obs )) {
 				var Observer = this._mutationobserver ();
@@ -42,17 +32,14 @@ gui.Observer = {
 		}
 	},
 
-	/**
-	 * @static
-	 * @desc Suspend mutation monitoring of document associated to node;
-	 * enable monitoring again after executing provided function.
-	 * @param {Node} node
-	 * @param @optional {function} action
-	 * @param @optional {object} thisp
-	 * @returns {object} if action was defined, we might return something
-	 */
+	// @static
+	// @desc Suspend mutation monitoring of document associated to node;
+	// enable monitoring again after executing provided function.
+	// @param {Node} node
+	// @param @optional {function} action
+	// @param @optional {object} thisp
+	// @returns {object} if action was defined, we might return something
 	suspend : function ( node, action, thisp ) {
-
 		var res;
 		if ( node.nodeType ) {
 			if ( this.observes ) {
@@ -72,13 +59,10 @@ gui.Observer = {
 		return res;
 	},
 
-	/**
-	 * @static
-	 * @desc Resume monitoring of mutations in document associated to node.
-	 * @param {Node} node
-	 */
+	// @static
+	// @desc Resume monitoring of mutations in document associated to node.
+	// @param {Node} node
 	resume : function ( node ) {
-
 		if ( node.nodeType ) {
 			if ( this.observes ) {
 				if ( -- this._suspend === 0 ) {
@@ -92,37 +76,27 @@ gui.Observer = {
 
 
 	// PRIVATES ..............................................................
-	
-	/*
-	 * Is suspended? Minimize what overhead there might 
-	 * be on connecting and disconnecting the observer.
-	 * @todo do we need to track this for each window?
-	 * @type {number}
-	 */
+
+	// Is suspended? Minimize what overhead there might 
+	// be on connecting and disconnecting the observer.
+	// @todo do we need to track this for each window?
+	// @type {number}
 	_suspend : 0,
 
-	/*
-	 * Tracking MutationObservers for window contexts by gui.signature
-	 * @type {Map<String,MutationObserver}
-	 */
+	// Tracking MutationObservers for window contexts by gui.signature
+	// @type {Map<String,MutationObserver}
 	_observers : Object.create ( null ),
 
-	/*
-	 * Get observer.
-	 * @returns {function} MutationObserver
-	 */
+	// Get observer.
+	// @returns {function} MutationObserver
 	_mutationobserver : function () {
-
 		return window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;
 	},
 
-	/*
-	 * Connect and disconnect observer.
-	 * @param {Node} node
-	 * @param {boolean} connect
-	 */
+	// Connect and disconnect observer.
+	// @param {Node} node
+	// @param {boolean} connect
 	_connect : function ( node, connect ) {
-
 		var doc = node.ownerDocument || node;
 		var win = doc.defaultView;
 		var sig = win.gui.signature;
@@ -139,12 +113,9 @@ gui.Observer = {
 		}
 	},
 
-	/*
-	 * Handle mutation.
-	 * @param {MutationRecord} mutation
-	 */
+	// Handle mutation.
+	// @param {MutationRecord} mutation
 	_handleMutation : function ( mutation ) {
-		
 		var action = false;
 		Array.forEach ( mutation.removedNodes, function ( node ) {
 			if ( node.nodeType === Node.ELEMENT_NODE ) {

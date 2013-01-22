@@ -1,0 +1,300 @@
+<!DOCTYPE html><html lang="en"><head><title>core/gui.Guide</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content="../"><meta name="groc-document-path" content="core/gui.Guide"><meta name="groc-project-path" content="src/core/gui.Guide.js"><link rel="stylesheet" type="text/css" media="all" href="../assets/style.css"><script type="text/javascript" src="../assets/behavior.js"></script><body><div id="meta"><div class="file-path">src/core/gui.Guide.js</div></div><div id="document"><div class="segment"><div class="comments"><div class="wrapper"><h1 id="guiguide">gui.Guide</h1>
+
+<p>The spirit guide crawls the document while channeling 
+spirits into DOM elements that matches CSS selectors.</p></div></div><div class="code"><div class="wrapper"><span class="nx">gui</span><span class="p">.</span><span class="nx">Guide</span> <span class="o">=</span> <span class="p">{</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Tracking which gui.StyleSheetSpirit goes into what window.
+@type {Map<String,Array<String>>}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_windows</span> <span class="o">:</span> <span class="nb">Object</span><span class="p">.</span><span class="nx">create</span> <span class="p">(</span> <span class="kc">null</span> <span class="p">),</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Identification.
+@returns {String}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">toString</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="s2">&quot;[object gui.Guide]&quot;</span><span class="p">;</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Manage spirits in window.
+@param {Window} win</p></div></div><div class="code"><div class="wrapper">  <span class="nx">observe</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">win</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="nx">win</span><span class="p">.</span><span class="nb">document</span><span class="p">.</span><span class="nx">addEventListener</span> <span class="p">(</span> <span class="s2">&quot;DOMContentLoaded&quot;</span><span class="p">,</span> <span class="k">this</span><span class="p">,</span> <span class="kc">false</span> <span class="p">);</span>
+    <span class="nx">win</span><span class="p">.</span><span class="nx">addEventListener</span> <span class="p">(</span> <span class="s2">&quot;load&quot;</span><span class="p">,</span> <span class="k">this</span><span class="p">,</span> <span class="kc">false</span> <span class="p">);</span>
+    <span class="nx">win</span><span class="p">.</span><span class="nx">addEventListener</span> <span class="p">(</span> <span class="s2">&quot;unload&quot;</span><span class="p">,</span> <span class="k">this</span><span class="p">,</span> <span class="kc">false</span> <span class="p">);</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Events.
+@param {Event} e</p></div></div><div class="code"><div class="wrapper">  <span class="nx">handleEvent</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">e</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">sum</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">EventSummary</span> <span class="p">(</span> <span class="nx">e</span> <span class="p">);</span>
+    <span class="k">switch</span> <span class="p">(</span> <span class="nx">e</span><span class="p">.</span><span class="nx">type</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="k">case</span> <span class="s2">&quot;DOMContentLoaded&quot;</span> <span class="o">:</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">_ondom</span> <span class="p">(</span> <span class="nx">sum</span> <span class="p">);</span>
+        <span class="k">break</span><span class="p">;</span>
+      <span class="k">case</span> <span class="s2">&quot;load&quot;</span> <span class="o">:</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">_onload</span> <span class="p">(</span> <span class="nx">sum</span> <span class="p">);</span>
+        <span class="k">break</span><span class="p">;</span>
+      <span class="k">case</span> <span class="s2">&quot;unload&quot;</span> <span class="o">:</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">_unload</span> <span class="p">(</span> <span class="nx">sum</span> <span class="p">);</span>
+        <span class="k">break</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="nx">e</span><span class="p">.</span><span class="nx">currentTarget</span><span class="p">.</span><span class="nx">removeEventListener</span> <span class="p">(</span> <span class="nx">e</span><span class="p">.</span><span class="nx">type</span><span class="p">,</span> <span class="k">this</span><span class="p">,</span> <span class="kc">false</span> <span class="p">);</span>
+    <span class="nx">e</span><span class="p">.</span><span class="nx">stopPropagation</span> <span class="p">();</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Elaborate setup to spiritualize document 
+after async evaluation of ui stylesheets.
+@see {gui.StyleSheetSpirit}
+@param {gui.Broadcast} b</p></div></div><div class="code"><div class="wrapper">  <span class="nx">onbroadcast</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">b</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">sig</span> <span class="o">=</span> <span class="nx">b</span><span class="p">.</span><span class="nx">data</span><span class="p">;</span>
+    <span class="kd">var</span> <span class="nx">spirit</span> <span class="o">=</span> <span class="kc">null</span><span class="p">;</span>
+    <span class="kd">var</span> <span class="nx">spirits</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">_windows</span> <span class="p">[</span> <span class="nx">sig</span> <span class="p">];</span>
+    <span class="k">switch</span> <span class="p">(</span> <span class="nx">b</span><span class="p">.</span><span class="nx">type</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="k">case</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">BROADCAST_KICKSTART</span> <span class="o">:</span>
+        <span class="nx">gui</span><span class="p">.</span><span class="nx">Broadcast</span><span class="p">.</span><span class="nx">removeGlobal</span> <span class="p">(</span> <span class="nx">b</span><span class="p">.</span><span class="nx">type</span><span class="p">,</span> <span class="k">this</span> <span class="p">);</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">_step1</span> <span class="p">(</span> <span class="nb">document</span> <span class="p">);</span>
+        <span class="k">break</span><span class="p">;</span>
+      <span class="k">case</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">BROADCAST_LOADING_CHANNELS</span> <span class="o">:</span>
+        <span class="k">if</span> <span class="p">(</span> <span class="o">!</span><span class="nx">spirits</span> <span class="p">)</span> <span class="p">{</span>
+          <span class="nx">spirits</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">_windows</span> <span class="p">[</span> <span class="nx">sig</span> <span class="p">]</span> <span class="o">=</span> <span class="p">[];</span>
+          <span class="nx">spirits</span><span class="p">.</span><span class="nx">__loading__</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+        <span class="p">}</span>
+        <span class="nx">spirits</span><span class="p">.</span><span class="nx">push</span> <span class="p">(</span> <span class="nx">b</span><span class="p">.</span><span class="nx">target</span> <span class="p">);</span>
+        <span class="nx">spirits</span><span class="p">.</span><span class="nx">__loading__</span> <span class="o">++</span><span class="p">;</span>
+        <span class="k">break</span><span class="p">;</span>
+      <span class="k">case</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">BROADCAST_CHANNELS_LOADED</span> <span class="o">:</span>
+        <span class="k">if</span> <span class="p">(</span> <span class="o">--</span> <span class="nx">spirits</span><span class="p">.</span><span class="nx">__loading__</span> <span class="o">===</span> <span class="mi">0</span> <span class="p">)</span> <span class="p">{</span>
+          <span class="k">while</span> <span class="p">(</span> <span class="nx">spirit</span> <span class="o">=</span> <span class="nx">spirits</span><span class="p">.</span><span class="nx">shift</span> <span class="p">())</span> <span class="p">{</span>
+            <span class="nx">spirit</span><span class="p">.</span><span class="nx">channel</span> <span class="p">();</span>
+          <span class="p">}</span>
+          <span class="k">this</span><span class="p">.</span><span class="nx">_step2</span> <span class="p">(</span> <span class="nx">b</span><span class="p">.</span><span class="nx">target</span><span class="p">.</span><span class="nb">document</span> <span class="p">);</span>
+        <span class="p">}</span>
+        <span class="k">break</span><span class="p">;</span>
+    <span class="p">}</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Construct spirits for element and descendants, 
+then attach all spirits in document order.
+@todo JUMP DETACHED SPIRIT IF MATCHING ID!
+@param {Element} elm
+@param {boolean} skip Eval descendants only</p></div></div><div class="code"><div class="wrapper">  <span class="nx">attach</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">elm</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">_attach</span> <span class="p">(</span> <span class="nx">elm</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="kc">false</span> <span class="p">);</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Construct spirits for descendants.
+@param {Element} elm</p></div></div><div class="code"><div class="wrapper">  <span class="nx">attachSub</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">elm</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">_attach</span> <span class="p">(</span> <span class="nx">elm</span><span class="p">,</span> <span class="kc">true</span><span class="p">,</span> <span class="kc">false</span> <span class="p">);</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Attach one spirit non-crawling.
+@param {Element} elm</p></div></div><div class="code"><div class="wrapper">  <span class="nx">attachOne</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">elm</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">_attach</span> <span class="p">(</span> <span class="nx">elm</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="kc">true</span> <span class="p">);</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Detach spirits from element and descendants.
+@param {Element} elm
+@param @optional {boolean} skip Eval descendants only </p></div></div><div class="code"><div class="wrapper">  <span class="nx">detach</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">elm</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">_detach</span> <span class="p">(</span> <span class="nx">elm</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="kc">false</span> <span class="p">);</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Detach spirits for descendants.
+@param {Element} elm</p></div></div><div class="code"><div class="wrapper">  <span class="nx">detachSub</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">elm</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">_detach</span> <span class="p">(</span> <span class="nx">elm</span><span class="p">,</span> <span class="kc">true</span><span class="p">,</span> <span class="kc">false</span> <span class="p">);</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Detach one spirit non-crawling.
+@param {Element} elm</p></div></div><div class="code"><div class="wrapper">  <span class="nx">detachOne</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">elm</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">_detach</span> <span class="p">(</span> <span class="nx">elm</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="kc">true</span> <span class="p">);</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Detach spirits from element and descendants.
+@param {Node} node
+@param @optional {boolean} skip Eval descendants only </p></div></div><div class="code"><div class="wrapper">  <span class="nx">dispose</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">node</span><span class="p">,</span> <span class="nx">unloading</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">_collect</span> <span class="p">(</span> <span class="nx">node</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">CRAWLER_DISPOSE</span> <span class="p">).</span><span class="nx">forEach</span> <span class="p">(</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">spirit</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span> <span class="o">!</span><span class="nx">spirit</span><span class="p">.</span><span class="nx">life</span><span class="p">.</span><span class="nx">destructed</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="nx">spirit</span><span class="p">.</span><span class="nx">ondestruct</span> <span class="p">(</span> <span class="nx">unloading</span> <span class="p">);</span>
+      <span class="p">}</span>
+    <span class="p">},</span> <span class="k">this</span> <span class="p">);</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Associate DOM element to Spirit instance.
+@param {Element} element
+@param {function} C spirit constructor
+@returns {Spirit}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">animate</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">element</span><span class="p">,</span> <span class="nx">C</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">spirit</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">C</span> <span class="p">();</span>
+    <span class="nx">spirit</span><span class="p">.</span><span class="nx">element</span> <span class="o">=</span> <span class="nx">element</span><span class="p">;</span>
+    <span class="nx">spirit</span><span class="p">.</span><span class="nb">document</span> <span class="o">=</span> <span class="nx">element</span><span class="p">.</span><span class="nx">ownerDocument</span><span class="p">;</span>
+    <span class="nx">spirit</span><span class="p">.</span><span class="nb">window</span> <span class="o">=</span> <span class="nx">spirit</span><span class="p">.</span><span class="nb">document</span><span class="p">.</span><span class="nx">defaultView</span><span class="p">;</span>
+    <span class="nx">spirit</span><span class="p">.</span><span class="nx">spiritkey</span> <span class="o">=</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">KeyMaster</span><span class="p">.</span><span class="nx">generateKey</span> <span class="p">();</span>
+    <span class="nx">spirit</span><span class="p">.</span><span class="nx">signature</span> <span class="o">=</span> <span class="nx">spirit</span><span class="p">.</span><span class="nb">window</span><span class="p">.</span><span class="nx">gui</span><span class="p">.</span><span class="nx">signature</span><span class="p">;</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>@todo weakmap for this stunt</p></div></div><div class="code"><div class="wrapper">    <span class="nx">element</span><span class="p">.</span><span class="nx">spirit</span> <span class="o">=</span> <span class="nx">spirit</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="o">!</span><span class="nx">spirit</span><span class="p">.</span><span class="nx">life</span> <span class="o">||</span> <span class="nx">spirit</span><span class="p">.</span><span class="nx">life</span><span class="p">.</span><span class="nx">constructed</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="nx">spirit</span><span class="p">.</span><span class="nx">onconstruct</span> <span class="p">();</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+      <span class="k">throw</span> <span class="s2">&quot;Constructed twice: &quot;</span> <span class="o">+</span> <span class="nx">spirit</span><span class="p">.</span><span class="nx">toString</span> <span class="p">();</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="nx">spirit</span><span class="p">;</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Suspend spirit attachment/detachment during operation.
+@param {function} operation
+@param @optional {object} thisp
+@returns {object}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">suspend</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">operation</span><span class="p">,</span> <span class="nx">thisp</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">_suspended</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+    <span class="kd">var</span> <span class="nx">res</span> <span class="o">=</span> <span class="nx">operation</span><span class="p">.</span><span class="nx">call</span> <span class="p">(</span> <span class="nx">thisp</span> <span class="p">);</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">_suspended</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
+    <span class="k">return</span> <span class="nx">res</span><span class="p">;</span>
+  <span class="p">},</span>
+  
+  </div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>PRIVATES .....................................................................</p></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Ignore DOM mutations?
+@type {boolean}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_suspended</span> <span class="o">:</span> <span class="kc">false</span><span class="p">,</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Continue with attachment/detachment of given node?
+@returns {boolean}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_handles</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">node</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="o">!</span><span class="k">this</span><span class="p">.</span><span class="nx">_suspended</span> <span class="o">&amp;&amp;</span> 
+      <span class="nx">gui</span><span class="p">.</span><span class="nx">Type</span><span class="p">.</span><span class="nx">isDefined</span> <span class="p">(</span> <span class="nx">node</span> <span class="p">)</span> <span class="o">&amp;&amp;</span> 
+      <span class="nx">gui</span><span class="p">.</span><span class="nx">SpiritDOM</span><span class="p">.</span><span class="nx">embedded</span> <span class="p">(</span> <span class="nx">node</span> <span class="p">)</span> <span class="o">&amp;&amp;</span>
+      <span class="nx">node</span><span class="p">.</span><span class="nx">nodeType</span> <span class="o">===</span> <span class="nx">Node</span><span class="p">.</span><span class="nx">ELEMENT_NODE</span><span class="p">;</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Fires on document.DOMContentLoaded.
+@param {gui.EventSummary} sum</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_ondom</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">sum</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="nx">gui</span><span class="p">.</span><span class="nx">broadcast</span> <span class="p">(</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">BROADCAST_DOMCONTENT</span><span class="p">,</span> <span class="nx">sum</span> <span class="p">);</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>@todo gui.Observer crashes with JQuery when both do stuff on DOMContentLoaded, pushing Spiritual to next stack for now
+see http://stackoverflow.com/questions/11406515/domnodeinserted-behaves-weird-when-performing-dom-manipulation-on-body</p></div></div><div class="code"><div class="wrapper">    <span class="kd">var</span> <span class="nx">that</span> <span class="o">=</span> <span class="k">this</span><span class="p">,</span> <span class="nx">doc</span> <span class="o">=</span> <span class="nx">sum</span><span class="p">.</span><span class="nb">document</span><span class="p">;</span>
+    <span class="c1">//setImmediate(function(){ // can&#39;t do, we risk onload being fired first :(</span>
+      <span class="nx">that</span><span class="p">.</span><span class="nx">_step1</span> <span class="p">(</span> <span class="nx">doc</span> <span class="p">);</span>
+    <span class="c1">//});</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Fires on window.onload
+@param {gui.EventSummary} sum</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_onload</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">sum</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="nx">sum</span><span class="p">.</span><span class="nx">documentspirit</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="nx">sum</span><span class="p">.</span><span class="nx">documentspirit</span><span class="p">.</span><span class="nx">onload</span> <span class="p">();</span>
+    <span class="p">}</span>
+    <span class="nx">gui</span><span class="p">.</span><span class="nx">broadcast</span> <span class="p">(</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">BROADCAST_ONLOAD</span><span class="p">,</span> <span class="nx">sum</span> <span class="p">);</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Fires on window.unload
+@todo handle disposal in gui.Spiritual (no crawling)
+@param {gui.EventSummary} sum</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_unload</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">sum</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="nx">sum</span><span class="p">.</span><span class="nx">documentspirit</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="nx">sum</span><span class="p">.</span><span class="nx">documentspirit</span><span class="p">.</span><span class="nx">onunload</span> <span class="p">();</span>
+    <span class="p">}</span>
+    <span class="nx">gui</span><span class="p">.</span><span class="nx">broadcast</span> <span class="p">(</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">BROADCAST_UNLOAD</span><span class="p">,</span> <span class="nx">sum</span> <span class="p">);</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">dispose</span> <span class="p">(</span> <span class="nx">sum</span><span class="p">.</span><span class="nb">document</span><span class="p">.</span><span class="nx">documentElement</span><span class="p">,</span> <span class="kc">true</span> <span class="p">);</span>
+    <span class="nx">sum</span><span class="p">.</span><span class="nb">window</span><span class="p">.</span><span class="nx">gui</span><span class="p">.</span><span class="nx">nameDestructAlreadyUsed</span> <span class="p">();</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Step 1. Great name...
+@param {Document} doc</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_step1</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">doc</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">win</span> <span class="o">=</span> <span class="nx">doc</span><span class="p">.</span><span class="nx">defaultView</span><span class="p">;</span>
+    <span class="kd">var</span> <span class="nx">sig</span> <span class="o">=</span> <span class="nx">win</span><span class="p">.</span><span class="nx">gui</span><span class="p">.</span><span class="nx">signature</span><span class="p">;</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">_metatags</span> <span class="p">(</span> <span class="nx">win</span> <span class="p">);</span> <span class="c1">// configure runtime</span>
+    <span class="nx">win</span><span class="p">.</span><span class="nx">gui</span><span class="p">.</span><span class="nx">go</span> <span class="p">();</span> <span class="c1">// channel spirits</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">_stylesheets</span> <span class="p">(</span> <span class="nx">win</span> <span class="p">);</span> <span class="c1">// more spirits?</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>resolving spiritual stylesheets? 
+If not, skip directly to _step2.</p></div></div><div class="code"><div class="wrapper">    <span class="k">if</span> <span class="p">(</span> <span class="o">!</span><span class="k">this</span><span class="p">.</span><span class="nx">_windows</span> <span class="p">[</span> <span class="nx">sig</span> <span class="p">])</span> <span class="p">{</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">_step2</span> <span class="p">(</span> <span class="nx">doc</span> <span class="p">);</span>
+    <span class="p">}</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Attach all spirits and proclaim document 
+spiritualized (isolated for async invoke).
+@param {Document} doc</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_step2</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">doc</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">win</span> <span class="o">=</span> <span class="nx">doc</span><span class="p">.</span><span class="nx">defaultView</span><span class="p">;</span>
+    <span class="kd">var</span> <span class="nx">sig</span> <span class="o">=</span> <span class="nx">win</span><span class="p">.</span><span class="nx">gui</span><span class="p">.</span><span class="nx">signature</span><span class="p">;</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>In development mode, we setup a mutation observer 
+to monitor the document for unhandled DOM updates. </p></div></div><div class="code"><div class="wrapper">    <span class="k">if</span> <span class="p">(</span> <span class="nx">win</span><span class="p">.</span><span class="nx">gui</span><span class="p">.</span><span class="nx">debug</span> <span class="p">){</span>
+      <span class="k">if</span> <span class="p">(</span> <span class="nx">win</span><span class="p">.</span><span class="nx">gui</span><span class="p">.</span><span class="nx">mode</span> <span class="o">===</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">MODE_JQUERY</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="nx">setImmediate</span><span class="p">(</span><span class="kd">function</span><span class="p">(){</span> <span class="c1">// @todo somehow not conflict with http://stackoverflow.com/questions/11406515/domnodeinserted-behaves-weird-when-performing-dom-manipulation-on-body</span>
+          <span class="nx">gui</span><span class="p">.</span><span class="nx">Observer</span><span class="p">.</span><span class="nx">observe</span> <span class="p">(</span> <span class="nx">win</span> <span class="p">);</span> <span class="c1">// IDEA: move all of _step2 to next stack?</span>
+        <span class="p">});</span>
+      <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+        <span class="nx">gui</span><span class="p">.</span><span class="nx">Observer</span><span class="p">.</span><span class="nx">observe</span> <span class="p">(</span> <span class="nx">win</span> <span class="p">);</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">Client</span><span class="p">.</span><span class="nx">isWebKit</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span> <span class="nx">win</span><span class="p">.</span><span class="nx">gui</span><span class="p">.</span><span class="nx">mode</span> <span class="o">===</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">MODE_NATIVE</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="nx">gui</span><span class="p">.</span><span class="nx">WEBKIT</span><span class="p">.</span><span class="nx">patch</span> <span class="p">(</span> <span class="nx">doc</span><span class="p">.</span><span class="nx">documentElement</span> <span class="p">);</span>
+      <span class="p">}</span>
+    <span class="p">}</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>broadcast before and after spirits attach</p></div></div><div class="code"><div class="wrapper">    <span class="nx">gui</span><span class="p">.</span><span class="nx">broadcast</span> <span class="p">(</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">BROADCAST_WILL_SPIRITUALIZE</span><span class="p">,</span> <span class="nx">sig</span> <span class="p">);</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">attach</span> <span class="p">(</span> <span class="nx">doc</span><span class="p">.</span><span class="nx">documentElement</span> <span class="p">);</span>
+    <span class="nx">gui</span><span class="p">.</span><span class="nx">broadcast</span> <span class="p">(</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">BROADCAST_DID_SPIRITUALIZE</span><span class="p">,</span> <span class="nx">sig</span> <span class="p">);</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Resolve metatags (configure runtime).
+@param {Window} win</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_metatags</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">win</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">doc</span> <span class="o">=</span> <span class="nx">win</span><span class="p">.</span><span class="nb">document</span><span class="p">;</span>
+    <span class="kd">var</span> <span class="nx">spaces</span> <span class="o">=</span> <span class="nx">win</span><span class="p">.</span><span class="nx">gui</span><span class="p">.</span><span class="nx">namespaces</span> <span class="p">();</span>
+    <span class="kd">var</span> <span class="nx">metas</span> <span class="o">=</span> <span class="nx">doc</span><span class="p">.</span><span class="nx">querySelectorAll</span> <span class="p">(</span> <span class="s2">&quot;meta[name]&quot;</span> <span class="p">);</span>
+    <span class="nb">Array</span><span class="p">.</span><span class="nx">forEach</span> <span class="p">(</span> <span class="nx">metas</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">meta</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="kd">var</span> <span class="nx">prop</span> <span class="o">=</span> <span class="nx">meta</span><span class="p">.</span><span class="nx">getAttribute</span> <span class="p">(</span> <span class="s2">&quot;name&quot;</span> <span class="p">);</span>
+      <span class="nx">spaces</span><span class="p">.</span><span class="nx">forEach</span> <span class="p">(</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">ns</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span> <span class="nx">prop</span><span class="p">.</span><span class="nx">startsWith</span> <span class="p">(</span> <span class="nx">ns</span> <span class="o">+</span> <span class="s2">&quot;.&quot;</span> <span class="p">))</span> <span class="p">{</span>
+          <span class="kd">var</span> <span class="nx">value</span> <span class="o">=</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">Type</span><span class="p">.</span><span class="nx">cast</span> <span class="p">(</span> 
+            <span class="nx">meta</span><span class="p">.</span><span class="nx">getAttribute</span> <span class="p">(</span> <span class="s2">&quot;content&quot;</span> <span class="p">)</span>
+          <span class="p">);</span>
+          <span class="nx">gui</span><span class="p">.</span><span class="nb">Object</span><span class="p">.</span><span class="nx">assert</span> <span class="p">(</span> <span class="nx">prop</span><span class="p">,</span> <span class="nx">value</span><span class="p">,</span> <span class="nx">win</span> <span class="p">);</span>
+        <span class="p">}</span>
+      <span class="p">});</span>
+    <span class="p">});</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Resolve stylesheets (channel spirits).
+@param {Window} win</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_stylesheets</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">win</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">doc</span> <span class="o">=</span> <span class="nx">win</span><span class="p">.</span><span class="nb">document</span><span class="p">;</span>
+    <span class="kd">var</span> <span class="nx">xpr</span> <span class="o">=</span> <span class="s2">&quot;.gui-styles&quot;</span><span class="p">;</span>
+    <span class="kd">var</span> <span class="nx">css</span> <span class="o">=</span> <span class="nx">doc</span><span class="p">.</span><span class="nx">querySelectorAll</span> <span class="p">(</span> <span class="nx">xpr</span> <span class="p">);</span>
+    <span class="nb">Array</span><span class="p">.</span><span class="nx">forEach</span> <span class="p">(</span> <span class="nx">css</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">elm</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">attachOne</span> <span class="p">(</span> <span class="nx">elm</span> <span class="p">);</span>
+    <span class="p">},</span> <span class="k">this</span> <span class="p">);</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Collect spirits from element and descendants.
+@param {Node} node
+@param @optional {boolean} skip
+@returns {Array<gui.Spirit>}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_collect</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">node</span><span class="p">,</span> <span class="nx">skip</span><span class="p">,</span> <span class="nx">id</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">list</span> <span class="o">=</span> <span class="p">[];</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="nx">node</span><span class="p">.</span><span class="nx">nodeType</span> <span class="o">===</span> <span class="nx">Node</span><span class="p">.</span><span class="nx">ELEMENT_NODE</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="k">new</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">Crawler</span> <span class="p">(</span> <span class="nx">id</span> <span class="p">).</span><span class="nx">descend</span> <span class="p">(</span> <span class="nx">node</span><span class="p">,</span> <span class="p">{</span>
+         <span class="nx">handleSpirit</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">spirit</span> <span class="p">)</span> <span class="p">{</span>
+           <span class="k">if</span> <span class="p">(</span> <span class="nx">skip</span> <span class="o">&amp;&amp;</span> <span class="nx">spirit</span><span class="p">.</span><span class="nx">element</span> <span class="o">===</span> <span class="nx">node</span> <span class="p">)</span> <span class="p">{}</span>
+           <span class="k">else</span> <span class="k">if</span> <span class="p">(</span> <span class="o">!</span><span class="nx">spirit</span><span class="p">.</span><span class="nx">life</span><span class="p">.</span><span class="nx">destructed</span> <span class="p">)</span> <span class="p">{</span>
+             <span class="nx">list</span><span class="p">.</span><span class="nx">push</span> <span class="p">(</span> <span class="nx">spirit</span> <span class="p">);</span>
+           <span class="p">}</span>
+         <span class="p">}</span>
+      <span class="p">});</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="nx">list</span><span class="p">;</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Attach spirits to element and subtree.
+@param {Element} elm
+@param {boolean} skip Skip the element?
+@param {boolean} one Skip the subtree?</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_attach</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">node</span><span class="p">,</span> <span class="nx">skip</span><span class="p">,</span> <span class="nx">one</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">_handles</span> <span class="p">(</span> <span class="nx">node</span> <span class="p">))</span> <span class="p">{</span>
+      <span class="kd">var</span> <span class="nx">attach</span> <span class="o">=</span> <span class="p">[];</span>
+      <span class="kd">var</span> <span class="nx">readys</span> <span class="o">=</span> <span class="p">[];</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>construct spirits in document order</p></div></div><div class="code"><div class="wrapper">      <span class="k">new</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">Crawler</span> <span class="p">(</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">CRAWLER_ATTACH</span> <span class="p">).</span><span class="nx">descend</span> <span class="p">(</span> <span class="nx">node</span><span class="p">,</span> <span class="p">{</span>
+        <span class="nx">handleElement</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">elm</span> <span class="p">)</span> <span class="p">{</span>
+          <span class="k">if</span> <span class="p">(</span> <span class="o">!</span><span class="nx">skip</span> <span class="o">||</span> <span class="nx">elm</span> <span class="o">!==</span> <span class="nx">node</span> <span class="p">)</span> <span class="p">{</span>
+            <span class="kd">var</span> <span class="nx">spirit</span> <span class="o">=</span> <span class="nx">elm</span><span class="p">.</span><span class="nx">spirit</span><span class="p">;</span>
+            <span class="k">if</span> <span class="p">(</span> <span class="o">!</span><span class="nx">spirit</span> <span class="p">)</span> <span class="p">{</span>
+              <span class="nx">spirit</span> <span class="o">=</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">Guide</span><span class="p">.</span><span class="nx">_evaluate</span> <span class="p">(</span> <span class="nx">elm</span> <span class="p">);</span>
+            <span class="p">}</span>
+            <span class="k">if</span> <span class="p">(</span> <span class="nx">spirit</span> <span class="o">!==</span> <span class="kc">null</span> <span class="p">)</span> <span class="p">{</span>
+              <span class="k">if</span> <span class="p">(</span> <span class="o">!</span><span class="nx">spirit</span><span class="p">.</span><span class="nx">life</span><span class="p">.</span><span class="nx">attached</span> <span class="p">)</span> <span class="p">{</span>
+                <span class="nx">attach</span><span class="p">.</span><span class="nx">push</span> <span class="p">(</span> <span class="nx">spirit</span> <span class="p">);</span>
+              <span class="p">}</span>
+            <span class="p">}</span>
+          <span class="p">}</span>
+          <span class="k">return</span> <span class="nx">one</span> <span class="o">?</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">Crawler</span><span class="p">.</span><span class="nx">STOP</span> <span class="o">:</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">Crawler</span><span class="p">.</span><span class="nx">CONTINUE</span><span class="p">;</span>
+        <span class="p">}</span>
+      <span class="p">});</span>
+      </div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>fire life cycle events in document order</p></div></div><div class="code"><div class="wrapper">      <span class="nx">attach</span><span class="p">.</span><span class="nx">forEach</span> <span class="p">(</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">spirit</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span> <span class="o">!</span><span class="nx">spirit</span><span class="p">.</span><span class="nx">life</span><span class="p">.</span><span class="nx">configured</span> <span class="p">)</span> <span class="p">{</span>
+          <span class="nx">spirit</span><span class="p">.</span><span class="nx">onconfigure</span> <span class="p">();</span>
+        <span class="p">}</span>
+        <span class="k">if</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">_invisible</span> <span class="p">(</span> <span class="nx">spirit</span> <span class="p">))</span> <span class="p">{</span>
+          <span class="k">if</span> <span class="p">(</span> <span class="nx">spirit</span><span class="p">.</span><span class="nx">life</span><span class="p">.</span><span class="nx">visible</span> <span class="p">)</span> <span class="p">{</span>
+            <span class="nx">spirit</span><span class="p">.</span><span class="nx">oninvisible</span> <span class="p">();</span>
+          <span class="p">}</span>
+        <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+          <span class="k">if</span> <span class="p">(</span> <span class="nx">spirit</span><span class="p">.</span><span class="nx">life</span><span class="p">.</span><span class="nx">invisible</span> <span class="p">)</span> <span class="p">{</span>
+            <span class="nx">spirit</span><span class="p">.</span><span class="nx">onvisible</span> <span class="p">();</span>
+          <span class="p">}</span>
+        <span class="p">}</span>
+        <span class="k">if</span> <span class="p">(</span> <span class="o">!</span><span class="nx">spirit</span><span class="p">.</span><span class="nx">life</span><span class="p">.</span><span class="nx">entered</span> <span class="p">)</span> <span class="p">{</span>
+          <span class="nx">spirit</span><span class="p">.</span><span class="nx">onenter</span> <span class="p">();</span>
+        <span class="p">}</span>
+        <span class="nx">spirit</span><span class="p">.</span><span class="nx">onattach</span> <span class="p">();</span>
+        <span class="k">if</span> <span class="p">(</span> <span class="o">!</span><span class="nx">spirit</span><span class="p">.</span><span class="nx">life</span><span class="p">.</span><span class="nx">ready</span> <span class="p">)</span> <span class="p">{</span>
+          <span class="nx">readys</span><span class="p">.</span><span class="nx">push</span> <span class="p">(</span> <span class="nx">spirit</span> <span class="p">);</span>
+        <span class="p">}</span>
+      <span class="p">},</span> <span class="k">this</span> <span class="p">);</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>fire ready in reverse document order (innermost first)</p></div></div><div class="code"><div class="wrapper">      <span class="nx">readys</span><span class="p">.</span><span class="nx">reverse</span> <span class="p">().</span><span class="nx">forEach</span> <span class="p">(</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">spirit</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="nx">spirit</span><span class="p">.</span><span class="nx">onready</span> <span class="p">();</span>
+      <span class="p">},</span> <span class="k">this</span> <span class="p">);</span>
+    <span class="p">}</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Detach spirits from element and subtree.
+@param {Element} elm
+@param {boolean} skip Skip the element?
+@param {boolean} one Skip the subtree?</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_detach</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">elm</span><span class="p">,</span> <span class="nx">skip</span><span class="p">,</span> <span class="nx">one</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">_handles</span> <span class="p">(</span> <span class="nx">elm</span> <span class="p">))</span> <span class="p">{</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">_collect</span> <span class="p">(</span> <span class="nx">elm</span><span class="p">,</span> <span class="nx">skip</span><span class="p">,</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">CRAWLER_DETACH</span> <span class="p">).</span><span class="nx">forEach</span> <span class="p">(</span> <span class="kd">function</span> <span class="nx">detach</span> <span class="p">(</span> <span class="nx">spirit</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span> <span class="nx">spirit</span><span class="p">.</span><span class="nx">life</span><span class="p">.</span><span class="nx">attached</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="nx">spirit</span><span class="p">.</span><span class="nx">life</span><span class="p">.</span><span class="nx">destructed</span> <span class="p">)</span> <span class="p">{</span>
+          <span class="nx">spirit</span><span class="p">.</span><span class="nx">ondetach</span> <span class="p">();</span>
+        <span class="p">}</span>
+      <span class="p">},</span> <span class="k">this</span> <span class="p">);</span>
+    <span class="p">}</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>If possible, construct and return spirit for element.
+@todo what's this? http://code.google.com/p/chromium/issues/detail?id=20773
+@todo what's this? http://forum.jquery.com/topic/elem-ownerdocument-defaultview-breaks-when-elem-iframe-document
+@param {Element} element
+@returns {Spirit} or null</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_evaluate</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">element</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="o">!</span><span class="nx">element</span><span class="p">.</span><span class="nx">spirit</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="kd">var</span> <span class="nx">doc</span> <span class="o">=</span> <span class="nx">element</span><span class="p">.</span><span class="nx">ownerDocument</span><span class="p">;</span>
+      <span class="kd">var</span> <span class="nx">win</span> <span class="o">=</span> <span class="nx">doc</span><span class="p">.</span><span class="nx">defaultView</span><span class="p">;</span>
+      <span class="kd">var</span> <span class="nx">hit</span> <span class="o">=</span> <span class="nx">win</span><span class="p">.</span><span class="nx">gui</span><span class="p">.</span><span class="nx">evaluate</span> <span class="p">(</span> <span class="nx">element</span> <span class="p">);</span>
+      <span class="k">if</span> <span class="p">(</span> <span class="nx">hit</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">animate</span> <span class="p">(</span> <span class="nx">element</span><span class="p">,</span> <span class="nx">hit</span> <span class="p">);</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="nx">element</span><span class="p">.</span><span class="nx">spirit</span><span class="p">;</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Spirit is invisible? @todo only test for 
+this if something is indeed invisible. 
+Consider maintaining this via crawlers.
+@param {gui.Spirit} spirit
+@returns {boolean}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_invisible</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">spirit</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="nx">spirit</span><span class="p">.</span><span class="nx">css</span><span class="p">.</span><span class="nx">contains</span> <span class="p">(</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">CLASS_INVISIBLE</span> <span class="p">)</span> <span class="o">||</span> 
+    <span class="nx">spirit</span><span class="p">.</span><span class="nx">css</span><span class="p">.</span><span class="nx">matches</span> <span class="p">(</span> <span class="s2">&quot;.&quot;</span> <span class="o">+</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">CLASS_INVISIBLE</span> <span class="o">+</span> <span class="s2">&quot; *&quot;</span> <span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">};</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>We are ready to start managing the top level window.</p></div></div><div class="code"><div class="wrapper"><span class="p">(</span> <span class="kd">function</span> <span class="nx">startup</span> <span class="p">()</span> <span class="p">{</span>
+  <span class="nx">gui</span><span class="p">.</span><span class="nx">Guide</span><span class="p">.</span><span class="nx">observe</span> <span class="p">(</span> <span class="nb">window</span> <span class="p">);</span>
+  <span class="nx">gui</span><span class="p">.</span><span class="nx">Broadcast</span><span class="p">.</span><span class="nx">addGlobal</span> <span class="p">([</span> 
+    <span class="nx">gui</span><span class="p">.</span><span class="nx">BROADCAST_LOADING_CHANNELS</span><span class="p">,</span>
+    <span class="nx">gui</span><span class="p">.</span><span class="nx">BROADCAST_CHANNELS_LOADED</span><span class="p">,</span>
+    <span class="nx">gui</span><span class="p">.</span><span class="nx">BROADCAST_KICKSTART</span>
+  <span class="p">],</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">Guide</span> <span class="p">);</span>
+<span class="p">})();</span></div></div></div></div></body></html>

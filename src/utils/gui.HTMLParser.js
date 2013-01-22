@@ -1,14 +1,12 @@
-/**
- * @class
- * Parse HTML string to DOM node(s) in given document context.
- * Adapted from https://github.com/petermichaux/arbutus
- * @todo High level awareness of HTMLparser elements. Plugin 
- *       ui.SpiritDOM and ui.Spirit.parse should know about 
- *       added historic HTML chrome and strip when inserted.
- * @param {Document} doc
- */
-gui.HTMLParser = function HTMLParser ( doc ){
-
+// # gui.HTMLParser
+// Parse HTML string to DOM node(s) in given document context.
+// Adapted from https://github.com/petermichaux/arbutus
+// @todo High level awareness of HTMLparser elements. Plugin 
+//       ui.SpiritDOM and ui.Spirit.parse should know about 
+//       added historic HTML chrome and strip when inserted.
+// @param {Document} doc
+// @todo: make this whole thing static
+gui.HTMLParser = function HTMLParser ( doc ) {
 	if ( doc && doc.nodeType ) {
 		this._document = doc;
 	} else {
@@ -18,47 +16,33 @@ gui.HTMLParser = function HTMLParser ( doc ){
 
 gui.HTMLParser.prototype = {
 
-	/**
-	 * Context document.
-	 * @type {Document}
-	 */
+	// Context document.
+	// @type {Document}
 	_document : null,
 
-	/**
-	 * Parse HTML to DOM node(s). Note that this returns an Array.
-	 * @param {String} html
-	 * @param @optional {Element} element
-	 * @returns {Array<Node>}
-	 */
+	// Parse HTML to DOM node(s). Note that this returns an Array.
+	// @param {String} html
+	// @param @optional {Element} element
+	// @returns {Array<Node>}
 	parse : function ( html, element ) {
-
 		var match, fix, temp, frag, path,
 			fixes = gui.HTMLParser._fixes,
 			comments = gui.HTMLParser._comments,
 			firsttag = gui.HTMLParser._firsttag,
 			doc = this._document;
-
-		/*
-		 * HTML needs wrapping in obscure 
-		 * structure for historic reasons?
-		 */
+		// HTML needs wrapping in obscure 
+		// structure for historic reasons?
 		html = html.trim ().replace ( comments, "" );
 		if (( match = html.match ( firsttag ))) {
 			if (( fix = fixes.get ( match [ 1 ]))) {
 				html = fix.replace ( "${html}", html );
 			}
 		}
-
-		/*
-		 * Parse HTML to DOM nodes.
-		 */
+		// Parse HTML to DOM nodes.
 		temp = doc.createElement ( "div" );
 		temp.innerHTML = html;
-
-		/**
-		 * Extract elements from obscure 
-		 * structure for historic reasons?
-		 */
+		// Extract elements from obscure 
+		// structure for historic reasons?
 		var nodes = temp.childNodes;
 		if ( fix && element ) {
 			var name = element.localName;
@@ -73,7 +57,6 @@ gui.HTMLParser.prototype = {
 				}	
 			}
 		}
-
 		// convert from nodelist to array of nodes
 		return Array.map ( nodes, function ( node ) {
 			return node;
@@ -81,36 +64,28 @@ gui.HTMLParser.prototype = {
 	}
 };
 
-/**
- * @private
- * @static
- * Match comments.
- * @type {RegExp}
- */
+// @private
+// @static
+// Match comments.
+// @type {RegExp}
 gui.HTMLParser._comments = /<!--[\s\S]*?-->/g;
 
-/**
- * @private
- * @static
- * Match first tag.
- * @type {RegExp}
- */
+// @private
+// @static
+// Match first tag.
+// @type {RegExp}
 gui.HTMLParser._firsttag = /^<([a-z]+)/i;
 
-/**
- * @private 
- * @static
- * Mapping tag names to miminum viable tag structure.
- * Considerable foresight has decided that text/html 
- * must forever remain backwards compatible with IE5.
- * @type {Map<String,String>}
- */
+// @private 
+// @static
+// Mapping tag names to miminum viable tag structure.
+// Considerable foresight has decided that text/html 
+// must forever remain backwards compatible with IE5.
+// @type {Map<String,String>}
 gui.HTMLParser._fixes = new Map ();
 
-/**
- * Populate fixes.
- * @todo "without the option in the next line, the parsed option will always be selected."
- */
+// Populate fixes.
+// @todo "without the option in the next line, the parsed option will always be selected."
 ( function () {
 	gui.Object.each ({
 		"td" : "<table><tbody><tr>${html}</tr></tbody></table>",
@@ -123,9 +98,7 @@ gui.HTMLParser._fixes = new Map ();
 	});
 }());
 
-/**
- * Populate duplicated fixes.
- */
+// Populate duplicated fixes.
 ( function () {
 	var fixes = gui.HTMLParser._fixes;
 	fixes.set ( "th", fixes.get ( "td" ));

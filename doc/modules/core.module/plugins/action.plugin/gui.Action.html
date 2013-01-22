@@ -1,0 +1,68 @@
+<!DOCTYPE html><html lang="en"><head><title>modules/core.module/plugins/action.plugin/gui.Action</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content="../../../../"><meta name="groc-document-path" content="modules/core.module/plugins/action.plugin/gui.Action"><meta name="groc-project-path" content="src/modules/core.module/plugins/action.plugin/gui.Action.js"><link rel="stylesheet" type="text/css" media="all" href="../../../../assets/style.css"><script type="text/javascript" src="../../../../assets/behavior.js"></script><body><div id="meta"><div class="file-path">src/modules/core.module/plugins/action.plugin/gui.Action.js</div></div><div id="document"><div class="segment"><div class="comments"><div class="wrapper"><h1 id="guiaction">gui.Action</h1>
+
+<p>SpiritAction.
+@param {gui.Spirit} target
+@param {String} type
+@param @optional {object} data
+@param @optional {String} direction
+@param @optional {boolean} global</p></div></div><div class="code"><div class="wrapper"><span class="nx">gui</span><span class="p">.</span><span class="nx">Action</span> <span class="o">=</span> <span class="kd">function</span> <span class="nx">SpiritAction</span> <span class="p">(</span> <span class="nx">target</span><span class="p">,</span> <span class="nx">type</span><span class="p">,</span> <span class="nx">data</span><span class="p">,</span> <span class="nx">direction</span><span class="p">,</span> <span class="nx">global</span> <span class="p">)</span> <span class="p">{</span>
+  <span class="k">this</span><span class="p">.</span><span class="nx">target</span> <span class="o">=</span> <span class="nx">target</span><span class="p">;</span>
+  <span class="k">this</span><span class="p">.</span><span class="nx">type</span> <span class="o">=</span> <span class="nx">type</span><span class="p">;</span>
+  <span class="k">this</span><span class="p">.</span><span class="nx">data</span> <span class="o">=</span> <span class="nx">data</span><span class="p">;</span>
+  <span class="k">this</span><span class="p">.</span><span class="nx">direction</span> <span class="o">=</span> <span class="nx">direction</span> <span class="o">||</span> <span class="s2">&quot;ascending&quot;</span><span class="p">;</span>
+  <span class="k">this</span><span class="p">.</span><span class="nx">global</span> <span class="o">=</span> <span class="nx">global</span> <span class="o">||</span> <span class="kc">false</span><span class="p">;</span>
+<span class="p">};</span>
+
+<span class="nx">gui</span><span class="p">.</span><span class="nx">Action</span><span class="p">.</span><span class="nx">prototype</span> <span class="o">=</span> <span class="p">{</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Who dispatched the action?
+@type {gui.Spirit}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">target</span> <span class="o">:</span> <span class="kc">null</span><span class="p">,</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Action type eg. "save-button-clicked".
+@type {String}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">type</span> <span class="o">:</span> <span class="kc">null</span><span class="p">,</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Optional data of any type. 
+This might be undefined.
+@type {object}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">data</span> <span class="o">:</span> <span class="kc">null</span><span class="p">,</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Is travelling up or down the DOM?
+Matches "ascending" or "descending".
+@type {String}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">derection</span> <span class="o">:</span> <span class="kc">null</span><span class="p">,</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Traverse iframe boundaries?
+@todo cross-domain actions.
+@type {boolean}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">global</span> <span class="o">:</span> <span class="kc">false</span><span class="p">,</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Is action consumed?
+@type {boolean}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">isConsumed</span> <span class="o">:</span> <span class="kc">false</span><span class="p">,</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Is action cancelled? 
+@type {boolean}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">isCancelled</span> <span class="o">:</span> <span class="kc">false</span><span class="p">,</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Which spirit consumed the action?
+@type {gui.Spirit}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">consumer</span> <span class="o">:</span> <span class="kc">null</span><span class="p">,</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Block further ascend.
+@param @optional {gui.Spirit} consumer</p></div></div><div class="code"><div class="wrapper">  <span class="nx">consume</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">consumer</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">isConsumed</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">consumer</span> <span class="o">=</span> <span class="nx">consumer</span><span class="p">;</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Consume and cancel the event. Note that it is 
+up to the dispatcher to honour cancellation.
+@param @optional {gui.Spirit} consumer</p></div></div><div class="code"><div class="wrapper">  <span class="nx">cancel</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">consumer</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">isCancelled</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">consume</span> <span class="p">(</span> <span class="nx">consumer</span> <span class="p">);</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Identification.
+@returns {String}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">toString</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="s2">&quot;[object gui.Action]&quot;</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">};</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>@static
+Dispatch SpiritAction ascending. The dispatching 
+spirit will not onaction() its own action.
+@todo support custom gui.Action as only param.
+@todo common exemplar for action, broadcast etc?
+@param {gui.Spirit} target
+@param {String} type
+@param @optional {object} data
+@param @optional {String} direction
+@param @optional {boolean} global
+@returns {gui.Action}</p></div></div><div class="code"><div class="wrapper"><span class="nx">gui</span><span class="p">.</span><span class="nx">Action</span><span class="p">.</span><span class="nx">dispatch</span> <span class="o">=</span> <span class="kd">function</span> <span class="nx">dispatch</span> <span class="p">(</span> <span class="nx">target</span><span class="p">,</span> <span class="nx">type</span><span class="p">,</span> <span class="nx">data</span><span class="p">,</span> <span class="nx">direction</span><span class="p">,</span> <span class="nx">global</span> <span class="p">)</span> <span class="p">{</span>
+  <span class="kd">var</span> <span class="nx">action</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">Action</span> <span class="p">(</span> <span class="nx">target</span><span class="p">,</span> <span class="nx">type</span><span class="p">,</span> <span class="nx">data</span><span class="p">,</span> <span class="nx">direction</span><span class="p">,</span> <span class="nx">global</span> <span class="p">);</span>
+  <span class="kd">var</span> <span class="nx">crawler</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">Crawler</span> <span class="p">(</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">CRAWLER_ACTION</span> <span class="p">);</span>
+  <span class="nx">crawler</span><span class="p">.</span><span class="nx">global</span> <span class="o">=</span> <span class="nx">global</span> <span class="o">||</span> <span class="kc">false</span><span class="p">;</span>
+  <span class="nx">crawler</span> <span class="p">[</span> <span class="nx">direction</span> <span class="o">||</span> <span class="s2">&quot;ascend&quot;</span> <span class="p">]</span> <span class="p">(</span> <span class="nx">target</span><span class="p">,</span> <span class="p">{</span>
+    <span class="nx">handleSpirit</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">spirit</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="kd">var</span> <span class="nx">directive</span> <span class="o">=</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">Crawler</span><span class="p">.</span><span class="nx">CONTINUE</span><span class="p">;</span>
+      <span class="k">if</span> <span class="p">(</span> <span class="nx">spirit</span><span class="p">.</span><span class="nx">action</span><span class="p">.</span><span class="nx">contains</span> <span class="p">(</span> <span class="nx">type</span> <span class="p">))</span> <span class="p">{</span>
+        <span class="nx">spirit</span><span class="p">.</span><span class="nx">action</span><span class="p">.</span><span class="nx">handle</span> <span class="p">(</span> <span class="nx">action</span> <span class="p">);</span>
+        <span class="k">if</span> <span class="p">(</span> <span class="nx">action</span><span class="p">.</span><span class="nx">isConsumed</span> <span class="p">)</span> <span class="p">{</span>
+          <span class="nx">directive</span> <span class="o">=</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">Crawler</span><span class="p">.</span><span class="nx">STOP</span><span class="p">;</span>
+          <span class="nx">action</span><span class="p">.</span><span class="nx">consumer</span> <span class="o">=</span> <span class="nx">spirit</span><span class="p">;</span>
+        <span class="p">}</span>
+      <span class="p">}</span>
+      <span class="k">return</span> <span class="nx">directive</span><span class="p">;</span>
+    <span class="p">}</span>
+  <span class="p">});</span>
+  <span class="k">return</span> <span class="nx">action</span><span class="p">;</span>
+<span class="p">};</span></div></div></div></div></body></html>

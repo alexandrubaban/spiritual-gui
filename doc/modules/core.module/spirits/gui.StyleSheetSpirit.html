@@ -1,0 +1,90 @@
+<!DOCTYPE html><html lang="en"><head><title>modules/core.module/spirits/gui.StyleSheetSpirit</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content="../../../"><meta name="groc-document-path" content="modules/core.module/spirits/gui.StyleSheetSpirit"><meta name="groc-project-path" content="src/modules/core.module/spirits/gui.StyleSheetSpirit.js"><link rel="stylesheet" type="text/css" media="all" href="../../../assets/style.css"><script type="text/javascript" src="../../../assets/behavior.js"></script><body><div id="meta"><div class="file-path">src/modules/core.module/spirits/gui.StyleSheetSpirit.js</div></div><div id="document"><div class="segment"><div class="comments"><div class="wrapper"><h1 id="guistylesheetspirit">gui.StyleSheetSpirit</h1>
+
+<p>@extends {gui.Spirit}
+Spirit of the stylesheet.</p></div></div><div class="code"><div class="wrapper"><span class="nx">gui</span><span class="p">.</span><span class="nx">StyleSheetSpirit</span> <span class="o">=</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">Spirit</span><span class="p">.</span><span class="nx">infuse</span> <span class="p">(</span> <span class="s2">&quot;gui.StyleSheetSpirit&quot;</span><span class="p">,</span> <span class="p">{</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Strip lines starting with @ character (for now).
+@type {RegExp}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_ATSTATEMENTS</span> <span class="o">:</span> <span class="sr">/\@.+\n/g</span><span class="p">,</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Result of parsing CSS - an array of spirit channels.
+@type {Array<Array}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_channels</span> <span class="o">:</span> <span class="kc">null</span><span class="p">,</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Constructor action.</p></div></div><div class="code"><div class="wrapper">  <span class="nx">onconstruct</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">_super</span><span class="p">.</span><span class="nx">onconstruct</span> <span class="p">();</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">_channels</span> <span class="o">=</span> <span class="p">[];</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>CSS served external or inline?</p></div></div><div class="code"><div class="wrapper">    <span class="k">if</span> <span class="p">(</span> <span class="o">!</span><span class="k">this</span><span class="p">.</span><span class="nx">element</span><span class="p">.</span><span class="nx">disabled</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="kd">var</span> <span class="nx">href</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">element</span><span class="p">.</span><span class="nx">href</span><span class="p">;</span>
+      <span class="k">if</span> <span class="p">(</span> <span class="nx">href</span> <span class="o">!==</span> <span class="kc">undefined</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">_parseExternal</span> <span class="p">(</span> <span class="nx">href</span> <span class="p">);</span>
+      <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">_parse</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">element</span><span class="p">.</span><span class="nx">textContent</span> <span class="p">);</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">channel</span> <span class="p">();</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>The CSSStyleSheet API doesn't expose
+custom properties. Let's parse text!
+@param {String} href</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_parseExternal</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">href</span> <span class="p">)</span> <span class="p">{</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>It appears that synchronous requests no longer block 
+the execution thread (!), we need an elaborate setup 
+to momentarily halt the gui.Guide while async 
+requests are returned and parsed. If we are lucky, 
+the browser will have cached the CSS file already.</p></div></div><div class="code"><div class="wrapper">    <span class="k">this</span><span class="p">.</span><span class="nx">_done</span> <span class="p">(</span> <span class="kc">false</span> <span class="p">);</span>
+    <span class="k">new</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">Request</span> <span class="p">(</span> <span class="nx">href</span> <span class="p">).</span><span class="nx">get</span> <span class="p">(</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">status</span><span class="p">,</span> <span class="nx">css</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span> <span class="nx">status</span> <span class="o">===</span> <span class="mi">200</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">_parse</span> <span class="p">(</span> <span class="nx">css</span> <span class="p">);</span>
+      <span class="p">}</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">_done</span> <span class="p">(</span> <span class="kc">true</span> <span class="p">);</span>
+    <span class="p">},</span> <span class="k">this</span> <span class="p">);</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>If not done, instruct gui.Guide to wait for incoming channels.
+Otherwise, when CSS is parsed, let gui.Guide invoke channel method. 
+This ensures that channels are asserted in continuos (markup) order.
+@param {boolean} isDone</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_done</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">isDone</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">broadcast</span><span class="p">.</span><span class="nx">dispatchGlobal</span> <span class="p">(</span> <span class="nx">isDone</span> <span class="o">?</span> 
+      <span class="nx">gui</span><span class="p">.</span><span class="nx">BROADCAST_CHANNELS_LOADED</span> <span class="o">:</span> 
+      <span class="nx">gui</span><span class="p">.</span><span class="nx">BROADCAST_LOADING_CHANNELS</span> 
+    <span class="p">);</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Parse CSS, channeling Spirits to selectors.
+@todo more tolerant parsing algorithm!
+@param {String} text (valid CSS syntax!) </p></div></div><div class="code"><div class="wrapper">  <span class="nx">_parse</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">text</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">channels</span> <span class="o">=</span> <span class="p">[];</span>
+    <span class="kd">var</span> <span class="nx">cssprop</span> <span class="o">=</span> <span class="s2">&quot;-ui-spirit&quot;</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="nx">text</span><span class="p">.</span><span class="nx">indexOf</span> <span class="p">(</span> <span class="nx">cssprop</span> <span class="p">)</span> <span class="o">&gt;-</span><span class="mi">1</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="kd">var</span> <span class="nx">sane</span> <span class="o">=</span> <span class="p">[];</span>
+      <span class="kd">var</span> <span class="nx">coms</span> <span class="o">=</span> <span class="nx">text</span><span class="p">.</span><span class="nx">split</span> <span class="p">(</span> <span class="s2">&quot;*/&quot;</span> <span class="p">);</span>
+      <span class="nx">coms</span><span class="p">.</span><span class="nx">forEach</span> <span class="p">(</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">part</span> <span class="p">)</span> <span class="p">{</span>        
+        <span class="nx">sane</span><span class="p">.</span><span class="nx">push</span> <span class="p">(</span> <span class="nx">part</span><span class="p">.</span><span class="nx">split</span> <span class="p">(</span> <span class="s2">&quot;/*&quot;</span> <span class="p">)[</span> <span class="mi">0</span> <span class="p">]);</span>
+      <span class="p">});</span>
+      <span class="nx">sane</span> <span class="o">=</span> <span class="nx">sane</span><span class="p">.</span><span class="nx">join</span> <span class="p">(</span> <span class="s2">&quot;&quot;</span> <span class="p">).</span><span class="nx">replace</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">_ATSTATEMENTS</span><span class="p">,</span> <span class="s2">&quot;&quot;</span> <span class="p">);</span> <span class="c1">// replace ( /\s/g, &quot;&quot; );</span>
+      <span class="nx">sane</span><span class="p">.</span><span class="nx">split</span> <span class="p">(</span> <span class="s2">&quot;}&quot;</span> <span class="p">).</span><span class="nx">forEach</span> <span class="p">(</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">part</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="kd">var</span> <span class="nx">split</span> <span class="o">=</span> <span class="nx">part</span><span class="p">.</span><span class="nx">split</span> <span class="p">(</span> <span class="s2">&quot;{&quot;</span> <span class="p">);</span>
+        <span class="kd">var</span> <span class="nx">selector</span> <span class="o">=</span> <span class="nx">split</span> <span class="p">[</span> <span class="mi">0</span> <span class="p">];</span>
+        <span class="kd">var</span> <span class="nx">defs</span> <span class="o">=</span> <span class="nx">split</span> <span class="p">[</span> <span class="mi">1</span> <span class="p">];</span>
+        <span class="k">if</span> <span class="p">(</span> <span class="nx">defs</span> <span class="p">)</span> <span class="p">{</span>
+          <span class="nx">defs</span><span class="p">.</span><span class="nx">split</span> <span class="p">(</span> <span class="s2">&quot;;&quot;</span> <span class="p">).</span><span class="nx">forEach</span> <span class="p">(</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">def</span> <span class="p">)</span> <span class="p">{</span>
+            <span class="kd">var</span> <span class="nx">last</span> <span class="o">=</span> <span class="nx">def</span><span class="p">.</span><span class="nx">split</span> <span class="p">(</span> <span class="s2">&quot;:&quot;</span> <span class="p">);</span>
+            <span class="kd">var</span> <span class="nx">prop</span> <span class="o">=</span> <span class="nx">last</span> <span class="p">[</span> <span class="mi">0</span> <span class="p">];</span>
+              <span class="k">if</span> <span class="p">(</span> <span class="nx">prop</span><span class="p">.</span><span class="nx">trim</span> <span class="p">()</span> <span class="o">===</span> <span class="nx">cssprop</span> <span class="p">)</span> <span class="p">{</span>
+                <span class="kd">var</span> <span class="nx">constructors</span> <span class="o">=</span> <span class="nx">last</span> <span class="p">[</span> <span class="mi">1</span> <span class="p">].</span><span class="nx">trim</span> <span class="p">();</span>
+                <span class="nx">constructors</span><span class="p">.</span><span class="nx">split</span> <span class="p">(</span> <span class="s2">&quot; &quot;</span> <span class="p">).</span><span class="nx">reverse</span> <span class="p">().</span><span class="nx">forEach</span> <span class="p">(</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">constructor</span> <span class="p">)</span> <span class="p">{</span>
+                  <span class="nx">channels</span><span class="p">.</span><span class="nx">push</span> <span class="p">([</span> 
+                    <span class="nx">selector</span><span class="p">.</span><span class="nx">trim</span> <span class="p">(),</span> 
+                    <span class="nx">constructor</span><span class="p">.</span><span class="nx">trim</span> <span class="p">()</span>
+                  <span class="p">]);</span>
+                <span class="p">});</span>
+              <span class="p">}</span>
+          <span class="p">});</span>
+        <span class="p">}</span>
+      <span class="p">});</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>In CSS, overriding spirits are declared last.
+In JS, they are declared first: Reverse list.</p></div></div><div class="code"><div class="wrapper">      <span class="k">this</span><span class="p">.</span><span class="nx">_channels</span> <span class="o">=</span> <span class="nx">channels</span><span class="p">.</span><span class="nx">reverse</span> <span class="p">();</span>
+    <span class="p">}</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Assert channels; method isolated to support async setup.
+This method may have been invoked by the gui.Guide</p></div></div><div class="code"><div class="wrapper">  <span class="nx">channel</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">_channels</span><span class="p">.</span><span class="nx">forEach</span> <span class="p">(</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">channel</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="k">this</span><span class="p">.</span><span class="nb">window</span><span class="p">.</span><span class="nx">gui</span><span class="p">.</span><span class="nx">channel</span> <span class="p">(</span> <span class="nx">channel</span> <span class="p">[</span> <span class="mi">0</span> <span class="p">],</span> <span class="nx">channel</span> <span class="p">[</span> <span class="mi">1</span> <span class="p">]);</span>
+    <span class="p">},</span> <span class="k">this</span> <span class="p">);</span>
+  <span class="p">}</span>
+  
+  
+<span class="p">},</span> <span class="p">{</span> <span class="c1">// ...........................................................</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Summon spirit.
+@param {Document} doc
+@param {String} href
+@returns {gui.StyleSheetSpirit}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">summon</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">doc</span><span class="p">,</span> <span class="nx">href</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">link</span> <span class="o">=</span> <span class="nx">doc</span><span class="p">.</span><span class="nx">createElement</span> <span class="p">(</span> <span class="s2">&quot;link&quot;</span> <span class="p">);</span>
+    <span class="nx">link</span><span class="p">.</span><span class="nx">className</span> <span class="o">=</span> <span class="s2">&quot;gui-styles&quot;</span><span class="p">;</span>
+    <span class="nx">link</span><span class="p">.</span><span class="nx">rel</span> <span class="o">=</span> <span class="s2">&quot;stylesheet&quot;</span><span class="p">;</span>
+    <span class="nx">link</span><span class="p">.</span><span class="nx">href</span> <span class="o">=</span> <span class="nx">href</span> <span class="o">?</span> <span class="nx">href</span> <span class="o">:</span> <span class="s2">&quot;&quot;</span><span class="p">;</span>
+    <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">animate</span> <span class="p">(</span> <span class="nx">link</span> <span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">});</span></div></div></div></div></body></html>

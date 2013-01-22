@@ -1,0 +1,16 @@
+<!DOCTYPE html><html lang="en"><head><title>modules/core.module/plugins/transition.plugin/gui.Transition</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content="../../../../"><meta name="groc-document-path" content="modules/core.module/plugins/transition.plugin/gui.Transition"><meta name="groc-project-path" content="src/modules/core.module/plugins/transition.plugin/gui.Transition.js"><link rel="stylesheet" type="text/css" media="all" href="../../../../assets/style.css"><script type="text/javascript" src="../../../../assets/behavior.js"></script><body><div id="meta"><div class="file-path">src/modules/core.module/plugins/transition.plugin/gui.Transition.js</div></div><div id="document"><div class="segment"><div class="comments"><div class="wrapper"><h1 id="guitransition">gui.Transition</h1>
+
+<p>Details for ended CSS transition.
+@param {String} propertyName
+@param {number} elapsedTime</p></div></div><div class="code"><div class="wrapper"><span class="nx">gui</span><span class="p">.</span><span class="nx">Transition</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">propertyName</span><span class="p">,</span> <span class="nx">elapsedTime</span> <span class="p">)</span> <span class="p">{</span>
+  <span class="k">this</span><span class="p">.</span><span class="nx">duration</span> <span class="o">=</span> <span class="nb">Math</span><span class="p">.</span><span class="nx">round</span> <span class="p">(</span> <span class="nx">elapsedTime</span> <span class="o">/</span> <span class="mi">1000</span> <span class="p">);</span>
+  <span class="k">this</span><span class="p">.</span><span class="nx">type</span> <span class="o">=</span> <span class="nx">propertyName</span><span class="p">;</span>
+<span class="p">};</span>
+
+<span class="nx">gui</span><span class="p">.</span><span class="nx">Transition</span><span class="p">.</span><span class="nx">prototype</span> <span class="o">=</span> <span class="p">{</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Property that finished transitioning ("width","height").
+@todo un-camelcase this to CSS syntax.
+@todo adjust vendor prefix to "beta".
+@type {String}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">type</span> <span class="o">:</span> <span class="kc">null</span><span class="p">,</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Elapsed time in milliseconds. This may 
+not be identical to the specified time.
+@type {number}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">duration</span> <span class="o">:</span> <span class="mi">0</span>
+<span class="p">};</span></div></div></div></div></body></html>

@@ -1,39 +1,31 @@
 /**
- * @class
- * Upgrading client features.
+ * # gui.SpiritualAid
+ * Patch potential missing features from ES5 and selected features from ES6.
+ * @todo Check for collisions with leading brand polyfills
  */
 gui.SpiritualAid = {
-	
-	/**
-	 * Patch potential missing features from ES5 and selected features from ES6.
-	 * @param {Window} win
-	 * @param @optional {boolean} worker
-	 */
+
+	// Polyfill context.
+	// @param {Window} win
+	// @param @optional {boolean} worker
 	polyfill : function ( win, worker ) {
-		
 		"use strict";
-		
 		this._strings	( win );
 		this._arrays	( win );
 		this._functions	( win );
 		this._globals	( win );
 		this._extras	( win );
-		
 		if ( !worker ) {
-			//this._element ( win );
 			this._effects ( win );
 		}
 	},
 	
 	
 	// PRIVATES ...............................................................
-		
-	/**
-	 * @param {object} what
-	 * @param {object} whit
-	 */
+
+	// @param {object} what
+	// @param {object} whit
 	_extend : function ( what, whit ) {
-		
 		Object.keys ( whit ).forEach ( function ( key ) {
 			var def = whit [ key ];				
 			if ( what [ key ] === undefined ) {
@@ -45,15 +37,11 @@ gui.SpiritualAid = {
 			}
 		});
 	},
-	
-	/**
-	 * Patching String.prototype
-	 * @param {Window} win
-	 */
+
+	// Patching String.prototype
+	// @param {Window} win
 	_strings : function ( win ) {
-		
 		this._extend ( win.String.prototype, {
-			
 			trim : function () {
 				return this.replace ( /^\s*/, "" ).replace ( /\s*$/, "" );
 			},
@@ -76,20 +64,16 @@ gui.SpiritualAid = {
 			}
 		});
 	},
-	
-	/**
-	 * Patching Array versus Array.prototype
-	 * @param {Window} win
-	 */
+
+	// Patching Array versus Array.prototype
+	// @param {Window} win
 	_arrays : function ( win ) {
-		
 		this._extend ( win.Array.prototype, { // non-standard, see http://ejohn.org/blog/javascript-array-remove/#comment-296114
 			remove : function remove ( from, to ) {
 				this.splice ( from, !to || 1 + to - from + ( ! ( to < 0 ^ from >= 0 ) && ( to < 0 || -1 ) * this.length ));
 				return this.length;
 			}
 		});
-		
 		this._extend ( win.Array, {
 			every : function every ( array, fun, thisp ) {
 				var res = true, len = array.length >>> 0;
@@ -129,15 +113,11 @@ gui.SpiritualAid = {
 			}
 		});
 	},
-	
-	/**
-	 * Patching Function.prototype
-	 * @param {Window} win
-	 */
+
+	// Patching Function.prototype
+	// @param {Window} win
 	_functions : function ( win ) {
-		
 		this._extend ( win.Function.prototype, {
-		
 			bind : function bind ( oThis ) {
 				if ( typeof this !== "function" ) {
 					throw new win.TypeError ( "Function bind not callable" );
@@ -152,30 +132,24 @@ gui.SpiritualAid = {
 							aArgs.concat ( fSlice.call ( arguments ))
 						);
 					};
-					
 				Fnop.prototype = this.prototype;
 				fBound.prototype = new Fnop();
 					return fBound;
 			}
 		});
 	},
-	
-	/**
-	 * Global objects Map and Set patched for *performance*, should only be used with primitive keys. 
-	 * Need more? Include this before Spiritual loads: http://github.com/paulmillr/es6-shim
-	 * @param {Window} win
-	 */
+
+	// Global objects Map and Set patched for *performance*, should only be used with primitive keys. 
+	// Need more? Include this before Spiritual loads: http://github.com/paulmillr/es6-shim
+	// @param {Window} win
 	_globals : function ( win ) {
-		
 		this._extend ( win, { // @todo investigate support for Object.getPrototypeOf ( win )
-			
 			console : {
 				log : function () {},
 				debug : function () {},
 				warn : function () {},
 				error : function () {}
-			},
-			
+			},			
 			Map : ( function () {			
 				function Map () {
 					this._map = Object.create ( null );
@@ -200,9 +174,7 @@ gui.SpiritualAid = {
 				};
 				return Map;
 			})(),
-			
 			Set : ( function () {
-				
 				function Set () {
 					this._map = Object.create ( null );
 				}
@@ -223,13 +195,9 @@ gui.SpiritualAid = {
 				};
 				return Set;
 			})(),
-			
 			WeakMap : ( function () { // @todo clean this up
-				
 				function WeakMap () {
-
 						var keys = [], values = [];
-
 						function del(key) {
 							if (has(key)) {
 								keys.splice(i, 1);
@@ -237,16 +205,13 @@ gui.SpiritualAid = {
 							}
 							return -1 < i;
 						}
-
 						function get(key, d3fault) {
 							return has(key) ? values[i] : d3fault;
 						}
-
 						function has(key) {
 							i = indexOf.call(keys, key);
 							return -1 < i;
 						}
-
 						function set(key, value) {
 							if ( has(key)) {
 								values[i] = value;
@@ -254,7 +219,6 @@ gui.SpiritualAid = {
 								values[keys.push(key) - 1] = value;
 							}
 						}
-
 						return create(WeakMapPrototype, {
 							isNative : {value : false},
 							"delete": {value: del},
@@ -263,60 +227,45 @@ gui.SpiritualAid = {
 							has: {value: has},
 							set: {value: set}
 						});
-
 					}
-
 					function WeakMapInstance () {}
-
-					var Object = win.Object, WeakMapPrototype = WeakMap.prototype,
-						create = Object.create, indexOf = [].indexOf, i;
-
+					var Object = win.Object, 
+						WeakMapPrototype = WeakMap.prototype,
+						create = Object.create, 
+						indexOf = [].indexOf, i;
 					// used to follow FF behavior where WeakMap.prototype is a WeakMap itself
 					WeakMap.prototype = WeakMapInstance.prototype = WeakMapPrototype = new WeakMap();
 					return WeakMap;
-				
 			})()
-
 		});
 	},
-	
+
 	/*
 	_element : function ( win ) {
-		
 		function camelcase ( string ) {
 			return string.replace ( /-([a-z])/ig, function ( all, letter ) {
 				return letter.toUpperCase();
 			});
 		}
-		
-
 		this._extend ( win.Element.prototype, {
 			dataset : {
 				get : function () {
 					var set = Object.create ( null );
 					Array.forEach ( this.attributes, function ( att ) {
-						if ( att.name.startsWith ( "data-" )) {
-							// alert ( att );
-						}
+						if ( att.name.startsWith ( "data-" )) {}
 					});
 					return set;
 				},
-				set : function ( val ) {
-					
-				}
+				set : function ( val ) {}
 			}
 		});
 	},
 	*/
-	
-	/**
-	 * Patching cheap DHTML effects with super-simplistic polyfills.
-	 * @param [Window} win
-	 */
+
+	// Patching cheap DHTML effects with super-simplistic polyfills.
+	// @param [Window} win
 	_effects : function ( win ) {
-		
 		this._extend ( win, {
-			
 			requestAnimationFrame : ( function () {
 				var func = 
 					win.requestAnimationFrame	|| 
@@ -339,8 +288,7 @@ gui.SpiritualAid = {
 			})(),
 
 			/*
-			 * @todo cancelAnimationFrame!
-			 *
+			// @todo cancelAnimationFrame!
 			if (!window.cancelAnimationFrame)
 				window.cancelAnimationFrame = function(id) {
 				clearTimeout(id);
@@ -365,32 +313,30 @@ gui.SpiritualAid = {
 		});
 	},
 	
+	/**
+	 * @param {Window} win
+	 */
 	_extras : function ( win ) {
-		
 		// alias delete for Map
 		this._extend ( win.Map.prototype, {
 			del : function del ( key ) {
 				return this [ "delete" ]( key );
 			}
 		});
-		
 		// alias delete for Set
 		this._extend ( win.Set.prototype, {
 			del : function del ( key ) {
 				return this [ "delete" ]( key );
 			}
 		});
-		
-		// console.debug bad in ie
+		// console.debug bad in IE
 		this._extend ( win.console, {
 			debug : win.console.log
 		});
-		
-		// ie doesn't have this
+		// Hotfix IE
 		this._extend ( XMLHttpRequest.prototype, {
 			overrideMimeType : function () {}
 		});
-		
 		// Safari on iPad has no constants to reflect request state
 		this._extend ( win.XMLHttpRequest, {
 			UNSENT : 0,

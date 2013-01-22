@@ -1,0 +1,86 @@
+<!DOCTYPE html><html lang="en"><head><title>utils/gui.FileLoader</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content="../"><meta name="groc-document-path" content="utils/gui.FileLoader"><meta name="groc-project-path" content="src/utils/gui.FileLoader.js"><link rel="stylesheet" type="text/css" media="all" href="../assets/style.css"><script type="text/javascript" src="../assets/behavior.js"></script><body><div id="meta"><div class="file-path">src/utils/gui.FileLoader.js</div></div><div id="document"><div class="segment"><div class="comments"><div class="wrapper"><h1 id="guifileloader">gui.FileLoader</h1>
+
+<p>We load a text file from the server. This might be used instead 
+of a XMLHttpRequest to cache the result and save repeated lookups.
+@todo custom protocol handlers to load from localstorage</p></div></div><div class="code"><div class="wrapper"><span class="nx">gui</span><span class="p">.</span><span class="nx">FileLoader</span> <span class="o">=</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">Exemplar</span><span class="p">.</span><span class="nx">create</span> <span class="p">(</span> <span class="s2">&quot;gui.FileLoader&quot;</span><span class="p">,</span> <span class="nb">Object</span><span class="p">.</span><span class="nx">prototype</span><span class="p">,</span> <span class="p">{</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Construction time again.
+@param {Document} doc</p></div></div><div class="code"><div class="wrapper">  <span class="nx">onconstruct</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">doc</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">_cache</span> <span class="o">=</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">FileLoader</span><span class="p">.</span><span class="nx">_cache</span><span class="p">;</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">_document</span> <span class="o">=</span> <span class="nx">doc</span><span class="p">;</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Load file as text/plain and serve to callback.
+@param {String} src Relative to document URL
+@param {function} callback
+@param @optional {object} thisp</p></div></div><div class="code"><div class="wrapper">  <span class="nx">load</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">src</span><span class="p">,</span> <span class="nx">callback</span><span class="p">,</span> <span class="nx">thisp</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">url</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">URL</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">_document</span><span class="p">,</span> <span class="nx">src</span> <span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">_cache</span><span class="p">.</span><span class="nx">has</span> <span class="p">(</span> <span class="nx">url</span><span class="p">.</span><span class="nx">location</span> <span class="p">))</span> <span class="p">{</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">_cached</span> <span class="p">(</span> <span class="nx">url</span><span class="p">,</span> <span class="nx">callback</span><span class="p">,</span> <span class="nx">thisp</span> <span class="p">);</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">_request</span> <span class="p">(</span> <span class="nx">url</span><span class="p">,</span> <span class="nx">callback</span><span class="p">,</span> <span class="nx">thisp</span> <span class="p">);</span>
+    <span class="p">}</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Handle loaded file.
+@param {String} text
+@param {gui.URL} url
+@param {function} callback
+@param @optional {object} thisp</p></div></div><div class="code"><div class="wrapper">  <span class="nx">onload</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">text</span><span class="p">,</span> <span class="nx">url</span><span class="p">,</span> <span class="nx">callback</span><span class="p">,</span> <span class="nx">thisp</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="nx">callback</span><span class="p">.</span><span class="nx">call</span> <span class="p">(</span> <span class="nx">thisp</span><span class="p">,</span> <span class="nx">text</span> <span class="p">);</span>
+  <span class="p">},</span>
+  
+  </div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>PRIVATES ........................................................</p></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Cached is shared between all instances of gui.FileLoader.
+@see {gui.FileLoader#_cache}
+@type {Map<String,String>}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_cache</span> <span class="o">:</span> <span class="kc">null</span><span class="p">,</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>File address resolved relative to this document.
+@type {Document}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_document</span> <span class="o">:</span> <span class="kc">null</span><span class="p">,</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Request external file.
+@param {gui.URL} url
+@param {function} callback
+@param @optional {object} thisp</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_request</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">url</span><span class="p">,</span> <span class="nx">callback</span><span class="p">,</span> <span class="nx">thisp</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">_cache</span><span class="p">.</span><span class="nx">set</span> <span class="p">(</span> <span class="nx">url</span><span class="p">.</span><span class="nx">location</span><span class="p">,</span> <span class="kc">null</span> <span class="p">);</span> <span class="c1">// blocking similar request</span>
+    <span class="k">new</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">Request</span> <span class="p">(</span> <span class="nx">url</span><span class="p">.</span><span class="nx">href</span> <span class="p">).</span><span class="nx">get</span> <span class="p">(</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">status</span><span class="p">,</span> <span class="nx">text</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">onload</span> <span class="p">(</span> <span class="nx">text</span><span class="p">,</span> <span class="nx">url</span><span class="p">,</span> <span class="nx">callback</span><span class="p">,</span> <span class="nx">thisp</span> <span class="p">);</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">_cache</span><span class="p">.</span><span class="nx">set</span> <span class="p">(</span> <span class="nx">url</span><span class="p">.</span><span class="nx">location</span><span class="p">,</span> <span class="nx">text</span> <span class="p">);</span>
+      <span class="nx">gui</span><span class="p">.</span><span class="nx">FileLoader</span><span class="p">.</span><span class="nx">unqueue</span> <span class="p">(</span> <span class="nx">url</span><span class="p">.</span><span class="nx">location</span> <span class="p">);</span>
+    <span class="p">},</span> <span class="k">this</span> <span class="p">);</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Hello.
+@param {gui.URL} url
+@param {Map<String,String>} cache
+@param {function} callback
+@param @optional {object} thisp</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_cached</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">url</span><span class="p">,</span> <span class="nx">callback</span><span class="p">,</span> <span class="nx">thisp</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">cached</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">_cache</span><span class="p">.</span><span class="nx">get</span> <span class="p">(</span> <span class="nx">url</span><span class="p">.</span><span class="nx">location</span> <span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="nx">cached</span> <span class="o">!==</span> <span class="kc">null</span> <span class="p">)</span> <span class="p">{</span> <span class="c1">// note that null check is important</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">onload</span> <span class="p">(</span> <span class="nx">cached</span><span class="p">,</span> <span class="nx">url</span><span class="p">,</span> <span class="nx">callback</span><span class="p">,</span> <span class="nx">thisp</span> <span class="p">);</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+      <span class="kd">var</span> <span class="nx">that</span> <span class="o">=</span> <span class="k">this</span><span class="p">;</span>
+      <span class="nx">gui</span><span class="p">.</span><span class="nx">FileLoader</span><span class="p">.</span><span class="nx">queue</span> <span class="p">(</span> <span class="nx">url</span><span class="p">.</span><span class="nx">location</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">text</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="nx">that</span><span class="p">.</span><span class="nx">onload</span> <span class="p">(</span> <span class="nx">text</span><span class="p">,</span> <span class="nx">url</span><span class="p">,</span> <span class="nx">callback</span><span class="p">,</span> <span class="nx">thisp</span> <span class="p">);</span>
+      <span class="p">});</span>
+    <span class="p">}</span>
+  <span class="p">},</span>
+  </div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>SECRETS .........................................................</p></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Secret constructor.
+@param {gui.Spirit} spirit
+@param {Window} window
+@param {function} handler</p></div></div><div class="code"><div class="wrapper">  <span class="nx">__construct__</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">doc</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="nx">doc</span> <span class="o">&amp;&amp;</span> <span class="nx">doc</span><span class="p">.</span><span class="nx">nodeType</span> <span class="o">===</span> <span class="nx">Node</span><span class="p">.</span><span class="nx">DOCUMENT_NODE</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">onconstruct</span> <span class="p">(</span> <span class="nx">doc</span> <span class="p">);</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+      <span class="k">throw</span> <span class="k">new</span> <span class="nx">TypeError</span> <span class="p">(</span> <span class="s2">&quot;Document expected&quot;</span> <span class="p">);</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+
+  
+<span class="p">},</span> <span class="p">{},</span> <span class="p">{</span> <span class="c1">// STATICS ....................................................</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>@static
+Cache previously retrieved files, mapping URL to file text.
+@type {Map<String,String>}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_cache</span> <span class="o">:</span> <span class="k">new</span> <span class="nx">Map</span> <span class="p">(),</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>@static
+Queue handlers for identical requests, mapping URL to function.
+@type {Array<String,function>}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_queue</span> <span class="o">:</span> <span class="k">new</span> <span class="nx">Map</span> <span class="p">(),</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>@static
+Queue onload handler for identical request.
+@param {String}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">queue</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">src</span><span class="p">,</span> <span class="nx">action</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">_queue</span> <span class="p">[</span> <span class="nx">src</span> <span class="p">]</span> <span class="o">=</span>  <span class="k">this</span><span class="p">.</span><span class="nx">_queue</span> <span class="p">[</span> <span class="nx">src</span> <span class="p">]</span> <span class="o">||</span> <span class="p">[];</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">_queue</span> <span class="p">[</span> <span class="nx">src</span> <span class="p">].</span><span class="nx">push</span> <span class="p">(</span> <span class="nx">action</span> <span class="p">);</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>@static
+Execute queued onload handlers.
+@param {String} src</p></div></div><div class="code"><div class="wrapper">  <span class="nx">unqueue</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">src</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">text</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">_cache</span><span class="p">.</span><span class="nx">get</span> <span class="p">(</span> <span class="nx">src</span> <span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">_queue</span> <span class="p">[</span> <span class="nx">src</span> <span class="p">])</span> <span class="p">{</span>
+      <span class="k">while</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">_queue</span> <span class="p">[</span> <span class="nx">src</span> <span class="p">][</span> <span class="mi">0</span> <span class="p">])</span> <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">_queue</span> <span class="p">[</span> <span class="nx">src</span> <span class="p">].</span><span class="nx">shift</span> <span class="p">()(</span> <span class="nx">text</span> <span class="p">);</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">});</span></div></div></div></div></body></html>

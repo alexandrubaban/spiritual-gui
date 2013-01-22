@@ -1,0 +1,57 @@
+<!DOCTYPE html><html lang="en"><head><title>modules/core.module/spirits/gui.CoverSpirit</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content="../../../"><meta name="groc-document-path" content="modules/core.module/spirits/gui.CoverSpirit"><meta name="groc-project-path" content="src/modules/core.module/spirits/gui.CoverSpirit.js"><link rel="stylesheet" type="text/css" media="all" href="../../../assets/style.css"><script type="text/javascript" src="../../../assets/behavior.js"></script><body><div id="meta"><div class="file-path">src/modules/core.module/spirits/gui.CoverSpirit.js</div></div><div id="document"><div class="segment"><div class="comments"><div class="wrapper"><h1 id="guicoverspirit">gui.CoverSpirit</h1>
+
+<p>@extends {gui.Spirit}
+Spirit of the cover. Use it to cover stuff up. Note that the cover should 
+be fitted with a background-color in CSS in order to actually cover stuff.</p></div></div><div class="code"><div class="wrapper"><span class="nx">gui</span><span class="p">.</span><span class="nx">CoverSpirit</span> <span class="o">=</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">Spirit</span><span class="p">.</span><span class="nx">infuse</span> <span class="p">(</span> <span class="s2">&quot;gui.CoverSpirit&quot;</span><span class="p">,</span> <span class="p">{</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Show the cover.
+@returns {gui.CoverSpirit}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">show</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">dom</span><span class="p">.</span><span class="nx">show</span> <span class="p">();</span>
+    <span class="k">return</span> <span class="k">this</span><span class="p">;</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Hide the cover.
+@returns {gui.CoverSpirit}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">hide</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">dom</span><span class="p">.</span><span class="nx">hide</span> <span class="p">();</span>
+    <span class="k">return</span> <span class="k">this</span><span class="p">;</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Show and fade to no opacity.
+@todo promises goes here
+@param {number} duration in ms
+@returns {Object} then method</p></div></div><div class="code"><div class="wrapper">  <span class="nx">fadeIn</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">duration</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">Client</span><span class="p">.</span><span class="nx">hasTransitions</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">transition</span><span class="p">.</span><span class="nx">none</span> <span class="p">();</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">css</span><span class="p">.</span><span class="nx">opacity</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">show</span> <span class="p">();</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">transition</span><span class="p">.</span><span class="nx">run</span> <span class="p">({</span>
+        <span class="nx">duration</span> <span class="o">:</span> <span class="nx">duration</span> <span class="o">||</span> <span class="mi">250</span><span class="p">,</span>
+        <span class="nx">property</span> <span class="o">:</span> <span class="s2">&quot;opacity&quot;</span><span class="p">,</span>
+        <span class="nx">opacity</span> <span class="o">:</span> <span class="mi">1</span>
+      <span class="p">});</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">show</span> <span class="p">();</span>
+    <span class="p">}</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Fade to full opacity and hide.
+@todo promises goes here
+@param {number} duration in ms
+@returns {Object} then method</p></div></div><div class="code"><div class="wrapper">  <span class="nx">fadeOut</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">duration</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">Client</span><span class="p">.</span><span class="nx">hasTransitions</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">transition</span><span class="p">.</span><span class="nx">none</span> <span class="p">();</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">css</span><span class="p">.</span><span class="nx">opacity</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">show</span> <span class="p">();</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">transition</span><span class="p">.</span><span class="nx">run</span> <span class="p">({</span>
+        <span class="nx">duration</span> <span class="o">:</span> <span class="nx">duration</span> <span class="o">||</span> <span class="mi">250</span><span class="p">,</span>
+        <span class="nx">property</span> <span class="o">:</span> <span class="s2">&quot;opacity&quot;</span><span class="p">,</span>
+        <span class="nx">opacity</span> <span class="o">:</span> <span class="mi">0</span>
+      <span class="p">}).</span><span class="nx">then</span> <span class="p">(</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">hide</span><span class="p">();</span>
+      <span class="p">},</span> <span class="k">this</span> <span class="p">);</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">hide</span> <span class="p">();</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+
+
+<span class="p">},</span> <span class="p">{</span> <span class="c1">// STATICS .............................................</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Summon spirit.
+@param {Document} doc
+@returns {gui.CoverSpirit}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">summon</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">doc</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">spirit</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">animate</span> <span class="p">(</span> <span class="nx">doc</span><span class="p">.</span><span class="nx">createElement</span> <span class="p">(</span> <span class="s2">&quot;div&quot;</span> <span class="p">));</span>
+    <span class="nx">spirit</span><span class="p">.</span><span class="nx">css</span><span class="p">.</span><span class="nx">add</span> <span class="p">(</span> <span class="s2">&quot;gui-cover&quot;</span> <span class="p">);</span>
+    <span class="k">return</span> <span class="nx">spirit</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">});</span></div></div></div></div></body></html>

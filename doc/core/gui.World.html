@@ -1,0 +1,212 @@
+<!DOCTYPE html><html lang="en"><head><title>core/gui.World</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content="../"><meta name="groc-document-path" content="core/gui.World"><meta name="groc-project-path" content="src/core/gui.World.js"><link rel="stylesheet" type="text/css" media="all" href="../assets/style.css"><script type="text/javascript" src="../assets/behavior.js"></script><body><div id="meta"><div class="file-path">src/core/gui.World.js</div></div><div id="document"><div class="segment"><div class="comments"><div class="wrapper"><h1 id="guiworld">gui.World</h1>
+
+<p>Spiritualizing documents by overloading DOM methods.</p></div></div><div class="code"><div class="wrapper"><span class="nx">gui</span><span class="p">.</span><span class="nx">World</span> <span class="o">=</span> <span class="p">{</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>True when in JQuery mode. This will be removed when 
+iOS supports a mechanism for intercepting innerHTML. 
+@type {boolean}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">jquery</span> <span class="o">:</span> <span class="kc">false</span><span class="p">,</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Tracking success with overloading the innerHTML setter.
+@type {Map<String,boolean>}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">innerhtml</span> <span class="o">:</span> <span class="p">{</span>
+    <span class="nx">global</span> <span class="o">:</span> <span class="kc">false</span><span class="p">,</span> <span class="c1">// Firefox, Opera and Explorer does this on an Element.prototype level</span>
+    <span class="nx">local</span> <span class="o">:</span> <span class="kc">false</span><span class="p">,</span> <span class="c1">// Webkit does this on all *instances* of Element @see {gui.Guide#attach}</span>
+    <span class="nx">missing</span> <span class="o">:</span> <span class="kc">false</span> <span class="c1">// Safari on iOS fails completely on must fallback to use JQuery module</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Declare "spirit" as a fundamental property of things 
+and extend native DOM methods in given window scope.
+@param {Window} win</p></div></div><div class="code"><div class="wrapper">  <span class="nx">descend</span> <span class="o">:</span> <span class="kd">function</span> <span class="nx">descend</span> <span class="p">(</span> <span class="nx">win</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">element</span> <span class="o">=</span> <span class="nx">win</span><span class="p">.</span><span class="nx">Element</span><span class="p">.</span><span class="nx">prototype</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">Type</span><span class="p">.</span><span class="nx">isDefined</span> <span class="p">(</span> <span class="nx">element</span><span class="p">.</span><span class="nx">spirit</span> <span class="p">))</span> <span class="p">{</span>
+      <span class="k">throw</span> <span class="k">new</span> <span class="nb">Error</span> <span class="p">(</span> <span class="s2">&quot;Spiritual loaded twice?&quot;</span> <span class="p">);</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>    </div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>@todo WeakMap<Element,gui.Spirit> in supporting agents</p></div></div><div class="code"><div class="wrapper">      <span class="nx">element</span><span class="p">.</span><span class="nx">spirit</span> <span class="o">=</span> <span class="kc">null</span><span class="p">;</span> <span class="c1">// defineProperty fails in iOS 5.0</span>
+      <span class="k">switch</span> <span class="p">(</span> <span class="nx">win</span><span class="p">.</span><span class="nx">gui</span><span class="p">.</span><span class="nx">mode</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="k">case</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">MODE_NATIVE</span> <span class="o">:</span>
+        <span class="k">case</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">MODE_OPTIMIZE</span> <span class="o">:</span>
+          <span class="k">this</span><span class="p">.</span><span class="nx">upgrade</span> <span class="p">(</span> <span class="nx">win</span><span class="p">,</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">UPGRADE</span> <span class="p">);</span>
+          <span class="k">break</span><span class="p">;</span>
+        <span class="k">case</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">MODE_JQUERY</span> <span class="o">:</span>
+          <span class="k">this</span><span class="p">.</span><span class="nx">_jquery</span> <span class="p">(</span> <span class="nx">win</span> <span class="p">);</span>
+          <span class="k">break</span><span class="p">;</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Upgrade DOM in window.
+@param {Window} win
+@param {function} upgrade</p></div></div><div class="code"><div class="wrapper">  <span class="nx">upgrade</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">win</span><span class="p">,</span> <span class="nx">upgrade</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">_change</span> <span class="p">(</span> <span class="nx">win</span><span class="p">,</span> <span class="nx">upgrade</span> <span class="p">());</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>PRIVATES ........................................................................</p></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>JQuery mode: Confirm loaded JQuery 
+and the "jquery" Spiritual module.
+@param {Window} win
+@returns {boolan}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_jquery</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">win</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">ok</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="p">(</span> <span class="nx">ok</span> <span class="o">=</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">Type</span><span class="p">.</span><span class="nx">isDefined</span> <span class="p">(</span> <span class="nx">win</span><span class="p">.</span><span class="nx">jQuery</span> <span class="p">)))</span> <span class="p">{</span>
+      <span class="k">throw</span> <span class="k">new</span> <span class="nb">Error</span> <span class="p">(</span> <span class="s2">&quot;Spiritual runs in JQuery mode: Expected JQuery to be loaded first&quot;</span> <span class="p">);</span>
+    <span class="p">}</span>
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="p">(</span> <span class="nx">ok</span> <span class="o">=</span> <span class="nx">win</span><span class="p">.</span><span class="nx">gui</span><span class="p">.</span><span class="nx">hasModule</span> <span class="p">(</span> <span class="s2">&quot;jquery&quot;</span> <span class="p">)))</span> <span class="p">{</span>
+      <span class="k">throw</span> <span class="k">new</span> <span class="nb">Error</span> <span class="p">(</span> <span class="s2">&quot;Spiritual runs in JQuery mode: Expected the \&quot;jquery\&quot; module&quot;</span> <span class="p">);</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="nx">ok</span><span class="p">;</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Observe the document by extending Element.prototype to 
+intercept DOM updates. Firefox ignores extending of 
+Element.prototype, we must step down the prototype chain.
+@see https://bugzilla.mozilla.org/show_bug.cgi?id=618379
+@todo Add to the bug a comment about Object.prototype
+@todo Extend DocumentFragment
+@todo Extend insertAdjecantHTML
+@todo Support SVG elements (in XHTML)
+@param {Window} win</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_change</span> <span class="o">:</span> <span class="kd">function</span> <span class="nx">_change</span> <span class="p">(</span> <span class="nx">win</span><span class="p">,</span> <span class="nx">upgrade</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">did</span> <span class="o">=</span> <span class="p">[],</span> <span class="nx">doc</span> <span class="o">=</span> <span class="nx">win</span><span class="p">.</span><span class="nb">document</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="o">!</span><span class="k">this</span><span class="p">.</span><span class="nx">_canchange</span> <span class="p">(</span> <span class="nx">win</span><span class="p">.</span><span class="nx">Element</span><span class="p">.</span><span class="nx">prototype</span><span class="p">,</span> <span class="nx">win</span><span class="p">,</span> <span class="nx">upgrade</span> <span class="p">))</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span> <span class="o">!</span><span class="nx">win</span><span class="p">.</span><span class="nx">HTMLElement</span> <span class="o">||</span> <span class="o">!</span><span class="k">this</span><span class="p">.</span><span class="nx">_canchange</span> <span class="p">(</span> <span class="nx">win</span><span class="p">.</span><span class="nx">HTMLElement</span><span class="p">.</span><span class="nx">prototype</span><span class="p">,</span> <span class="nx">win</span> <span class="p">))</span> <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">_tags</span> <span class="p">().</span><span class="nx">forEach</span> <span class="p">(</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">tag</span> <span class="p">)</span> <span class="p">{</span>
+          <span class="kd">var</span> <span class="nx">e</span> <span class="o">=</span> <span class="nx">doc</span><span class="p">.</span><span class="nx">createElement</span> <span class="p">(</span> <span class="nx">tag</span> <span class="p">);</span>
+          <span class="kd">var</span> <span class="nx">p</span> <span class="o">=</span> <span class="nx">e</span><span class="p">.</span><span class="nx">constructor</span><span class="p">.</span><span class="nx">prototype</span><span class="p">;</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>alert ( p ); this call throws a BAD<em>CONVERT</em>JS</p></div></div><div class="code"><div class="wrapper">          <span class="k">if</span> <span class="p">(</span> <span class="nx">p</span> <span class="o">!==</span> <span class="nx">win</span><span class="p">.</span><span class="nb">Object</span><span class="p">.</span><span class="nx">prototype</span> <span class="p">)</span> <span class="p">{</span> <span class="c1">// excluding object and embed tags</span>
+            <span class="k">if</span> <span class="p">(</span> <span class="nx">did</span><span class="p">.</span><span class="nx">indexOf</span> <span class="p">(</span> <span class="nx">p</span> <span class="p">)</span> <span class="o">===</span> <span class="o">-</span><span class="mi">1</span> <span class="p">)</span> <span class="p">{</span>
+              <span class="k">this</span><span class="p">.</span><span class="nx">_dochange</span> <span class="p">(</span> <span class="nx">p</span><span class="p">,</span> <span class="nx">win</span><span class="p">,</span> <span class="nx">upgrade</span> <span class="p">);</span>
+              <span class="nx">did</span><span class="p">.</span><span class="nx">push</span> <span class="p">(</span> <span class="nx">p</span> <span class="p">);</span> <span class="c1">// some elements share the same prototype</span>
+            <span class="p">}</span>
+          <span class="p">}</span>
+        <span class="p">},</span> <span class="k">this</span> <span class="p">);</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Firefox has to traverse the constructor of <em>all</em> elements.
+Object and embed tags excluded because the constructor of 
+these elements appear to be identical to Object.prototype.
+@returns {Array<String>}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_tags</span> <span class="o">:</span> <span class="kd">function</span> <span class="nx">tags</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="p">(</span> <span class="s2">&quot;a abbr address area article aside audio b base bdi bdo blockquote &quot;</span> <span class="o">+</span>
+      <span class="s2">&quot;body br button canvas caption cite code col colgroup command datalist dd del &quot;</span> <span class="o">+</span>
+      <span class="s2">&quot;details device dfn div dl dt em fieldset figcaption figure footer form &quot;</span> <span class="o">+</span>
+      <span class="s2">&quot;h1 h2 h3 h4 h5 h6 head header hgroup hr html i iframe img input ins kbd keygen &quot;</span> <span class="o">+</span>
+      <span class="s2">&quot;label legend li link map menu meta meter nav noscript ol optgroup option &quot;</span> <span class="o">+</span>
+      <span class="s2">&quot;output p param pre progress q rp rt ruby s samp script section select small &quot;</span> <span class="o">+</span>
+      <span class="s2">&quot;source span strong style submark summary sup table tbody td textarea tfoot &quot;</span> <span class="o">+</span>
+      <span class="s2">&quot;th thead time title tr track ul unknown var video wbr&quot;</span> <span class="p">).</span><span class="nx">split</span> <span class="p">(</span> <span class="s2">&quot; &quot;</span> <span class="p">);</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Can extend given prototype object? If so, do it now.
+@param {object} proto
+@param {Window} win
+@returns {boolean} Success</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_canchange</span> <span class="o">:</span> <span class="kd">function</span> <span class="nx">_canchange</span> <span class="p">(</span> <span class="nx">proto</span><span class="p">,</span> <span class="nx">win</span><span class="p">,</span> <span class="nx">upgrade</span> <span class="p">)</span> <span class="p">{</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>attempt overwrite</p></div></div><div class="code"><div class="wrapper">    <span class="kd">var</span> <span class="nx">result</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
+    <span class="kd">var</span> <span class="nx">test</span> <span class="o">=</span> <span class="s2">&quot;it appears to work&quot;</span><span class="p">;</span>
+    <span class="kd">var</span> <span class="nx">cache</span> <span class="o">=</span> <span class="nx">proto</span><span class="p">.</span><span class="nx">hasChildNodes</span><span class="p">;</span>
+    <span class="nx">proto</span><span class="p">.</span><span class="nx">hasChildNodes</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="nx">test</span><span class="p">;</span>
+    <span class="p">};</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>test overwrite and reset back</p></div></div><div class="code"><div class="wrapper">    <span class="kd">var</span> <span class="nx">root</span> <span class="o">=</span> <span class="nx">win</span><span class="p">.</span><span class="nb">document</span><span class="p">.</span><span class="nx">documentElement</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="nx">root</span><span class="p">.</span><span class="nx">hasChildNodes</span> <span class="p">()</span> <span class="o">===</span> <span class="nx">test</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nx">proto</span><span class="p">.</span><span class="nx">hasChildNodes</span> <span class="o">=</span> <span class="nx">cache</span><span class="p">;</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">_dochange</span> <span class="p">(</span> <span class="nx">proto</span><span class="p">,</span> <span class="nx">win</span><span class="p">,</span> <span class="nx">upgrade</span> <span class="p">);</span>
+      <span class="nx">result</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="nx">result</span><span class="p">;</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Overloading prototype methods and properties. If we cannot get an angle on innerHTML, 
+we switch to JQuery mode. This is currently known to happen in Safari on iOS 5.1
+@todo inserAdjecantHTML
+@param {object} proto
+@param {Window} win</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_dochange</span> <span class="o">:</span> <span class="kd">function</span> <span class="nx">_dochange</span> <span class="p">(</span> <span class="nx">proto</span><span class="p">,</span> <span class="nx">win</span><span class="p">,</span> <span class="nx">upgrade</span> <span class="p">)</span> <span class="p">{</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>(old notes) Overloading properties (innerHTML).
+@todo Flag for gui.ready-something to onenter() in correct order.
+@todo Firefox creates 50-something unique functions here
+@todo Test success runtime (not rely on user agent string).</p></div></div><div class="code"><div class="wrapper">    <span class="k">switch</span> <span class="p">(</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">Client</span><span class="p">.</span><span class="nx">agent</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="k">case</span> <span class="s2">&quot;explorer&quot;</span> <span class="o">:</span> <span class="c1">// http://msdn.microsoft.com/en-us/library/dd229916(v=vs.85).aspx</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">innerhtml</span><span class="p">.</span><span class="nx">global</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+        <span class="k">break</span><span class="p">;</span>
+      <span class="k">case</span> <span class="s2">&quot;gecko&quot;</span> <span class="o">:</span>
+      <span class="k">case</span> <span class="s2">&quot;opera&quot;</span> <span class="o">:</span> <span class="c1">// @todo Object.defineProperty supported?</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">innerhtml</span><span class="p">.</span><span class="nx">global</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+        <span class="k">break</span><span class="p">;</span>
+      <span class="k">case</span> <span class="s2">&quot;webkit&quot;</span> <span class="o">:</span>
+        <span class="k">if</span> <span class="p">(</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">WEBKIT</span><span class="p">.</span><span class="nx">canpatch</span> <span class="p">(</span> <span class="nx">win</span> <span class="p">))</span> <span class="p">{</span>
+          <span class="k">this</span><span class="p">.</span><span class="nx">innerhtml</span><span class="p">.</span><span class="nx">local</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+        <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+          <span class="k">this</span><span class="p">.</span><span class="nx">innerhtml</span><span class="p">.</span><span class="nx">local</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
+          <span class="k">this</span><span class="p">.</span><span class="nx">innerhtml</span><span class="p">.</span><span class="nx">missing</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+        <span class="p">}</span>
+        <span class="k">break</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="kd">var</span> <span class="nx">title</span> <span class="o">=</span> <span class="nx">win</span><span class="p">.</span><span class="nb">document</span><span class="p">.</span><span class="nx">title</span><span class="p">;</span>
+    <span class="k">switch</span> <span class="p">(</span> <span class="nx">win</span><span class="p">.</span><span class="nx">gui</span><span class="p">.</span><span class="nx">mode</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="k">case</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">MODE_NATIVE</span> <span class="o">:</span>
+        <span class="k">if</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">innerhtml</span><span class="p">.</span><span class="nx">missing</span> <span class="p">)</span> <span class="p">{</span>
+          <span class="k">throw</span> <span class="k">new</span> <span class="nb">Error</span> <span class="p">(</span> <span class="s2">&quot;Spiritual native mode is not supported on this device.&quot;</span> <span class="p">);</span>
+        <span class="p">}</span>
+        <span class="k">break</span><span class="p">;</span>
+      <span class="k">case</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">MODE_OPTIMIZE</span> <span class="o">:</span>
+        <span class="k">if</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">innerhtml</span><span class="p">.</span><span class="nx">missing</span> <span class="p">)</span> <span class="p">{</span>
+          <span class="nx">win</span><span class="p">.</span><span class="nx">gui</span><span class="p">.</span><span class="nx">mode</span> <span class="o">=</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">MODE_JQUERY</span><span class="p">;</span>
+          <span class="k">if</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">_jquery</span> <span class="p">(</span> <span class="nx">win</span> <span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="nx">win</span><span class="p">.</span><span class="nx">gui</span><span class="p">.</span><span class="nx">debug</span> <span class="p">)</span> <span class="p">{</span>
+            <span class="nx">console</span><span class="p">.</span><span class="nx">debug</span> <span class="p">(</span> 
+              <span class="nx">title</span> <span class="o">+</span> <span class="s2">&quot;: Spiritual runs in JQuery mode. To keep spirits &quot;</span> <span class="o">+</span>
+              <span class="s2">&quot;in synch, use JQuery or Spiritual to perform DOM updates.&quot;</span>
+            <span class="p">);</span>
+          <span class="p">}</span>
+        <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+          <span class="nx">win</span><span class="p">.</span><span class="nx">gui</span><span class="p">.</span><span class="nx">mode</span> <span class="o">=</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">MODE_NATIVE</span><span class="p">;</span>
+          <span class="k">if</span> <span class="p">(</span> <span class="nx">win</span><span class="p">.</span><span class="nx">gui</span><span class="p">.</span><span class="nx">debug</span> <span class="p">)</span> <span class="p">{</span>
+            <span class="nx">console</span><span class="p">.</span><span class="nx">debug</span> <span class="p">(</span> <span class="nx">title</span> <span class="o">+</span> <span class="s2">&quot;: Spiritual runs in native mode&quot;</span> <span class="p">);</span>
+          <span class="p">}</span>
+        <span class="p">}</span>
+        <span class="k">break</span><span class="p">;</span>
+    <span class="p">}</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Overloading methods? Only in native mode.
+@todo insertAdjecantHTML</p></div></div><div class="code"><div class="wrapper">    <span class="k">if</span> <span class="p">(</span> <span class="nx">win</span><span class="p">.</span><span class="nx">gui</span><span class="p">.</span><span class="nx">mode</span> <span class="o">===</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">MODE_NATIVE</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="kd">var</span> <span class="nx">root</span> <span class="o">=</span> <span class="nx">win</span><span class="p">.</span><span class="nb">document</span><span class="p">.</span><span class="nx">documentElement</span><span class="p">;</span>
+      <span class="nx">gui</span><span class="p">.</span><span class="nb">Object</span><span class="p">.</span><span class="nx">each</span> <span class="p">(</span> <span class="nx">upgrade</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">name</span><span class="p">,</span> <span class="nx">combo</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">_docombo</span> <span class="p">(</span> <span class="nx">proto</span><span class="p">,</span> <span class="nx">name</span><span class="p">,</span> <span class="nx">combo</span><span class="p">,</span> <span class="nx">root</span> <span class="p">);</span>
+      <span class="p">},</span> <span class="k">this</span> <span class="p">);</span>
+    <span class="p">}</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Property setters for Firefox and Opera.
+@param {object} proto
+@param {String} name
+@param {function} combo
+@param {Element} root</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_docombo</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">proto</span><span class="p">,</span> <span class="nx">name</span><span class="p">,</span> <span class="nx">combo</span><span class="p">,</span> <span class="nx">root</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">_ismethod</span> <span class="p">(</span> <span class="nx">name</span> <span class="p">))</span> <span class="p">{</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">_domethod</span> <span class="p">(</span> <span class="nx">proto</span><span class="p">,</span> <span class="nx">name</span><span class="p">,</span> <span class="nx">combo</span> <span class="p">);</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+      <span class="k">switch</span> <span class="p">(</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">Client</span><span class="p">.</span><span class="nx">agent</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="k">case</span> <span class="s2">&quot;opera&quot;</span> <span class="o">:</span>
+        <span class="k">case</span> <span class="s2">&quot;gecko&quot;</span> <span class="o">:</span>
+          <span class="k">this</span><span class="p">.</span><span class="nx">_doboth</span> <span class="p">(</span> <span class="nx">proto</span><span class="p">,</span> <span class="nx">name</span><span class="p">,</span> <span class="nx">combo</span><span class="p">,</span> <span class="nx">root</span> <span class="p">);</span>
+          <span class="k">break</span><span class="p">;</span>
+        <span class="k">case</span> <span class="s2">&quot;explorer&quot;</span> <span class="o">:</span>
+          <span class="k">this</span><span class="p">.</span><span class="nx">_doie</span> <span class="p">(</span> <span class="nx">proto</span><span class="p">,</span> <span class="nx">name</span><span class="p">,</span> <span class="nx">combo</span><span class="p">,</span> <span class="nx">root</span> <span class="p">);</span>
+          <span class="k">break</span><span class="p">;</span>
+        <span class="k">case</span> <span class="s2">&quot;webkit&quot;</span> <span class="o">:</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>it's complicated</p></div></div><div class="code"><div class="wrapper">          <span class="k">break</span><span class="p">;</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Is method? (non-crashing Firefox version)
+@returns {boolean}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_ismethod</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">name</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">is</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
+    <span class="k">switch</span> <span class="p">(</span> <span class="nx">name</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="k">case</span> <span class="s2">&quot;appendChild&quot;</span> <span class="o">:</span> 
+      <span class="k">case</span> <span class="s2">&quot;removeChild&quot;</span> <span class="o">:</span>
+      <span class="k">case</span> <span class="s2">&quot;insertBefore&quot;</span> <span class="o">:</span>
+      <span class="k">case</span> <span class="s2">&quot;replaceChild&quot;</span> <span class="o">:</span>
+      <span class="k">case</span> <span class="s2">&quot;setAttribute&quot;</span> <span class="o">:</span>
+      <span class="k">case</span> <span class="s2">&quot;removeAttribute&quot;</span> <span class="o">:</span>
+        <span class="nx">is</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+        <span class="k">break</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="nx">is</span><span class="p">;</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Overload DOM method (x-browser supported).
+@param {object} proto
+@param {String} name
+@param {function} combo</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_domethod</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">proto</span><span class="p">,</span> <span class="nx">name</span><span class="p">,</span> <span class="nx">combo</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">base</span> <span class="o">=</span> <span class="nx">proto</span> <span class="p">[</span> <span class="nx">name</span> <span class="p">];</span>
+    <span class="nx">proto</span> <span class="p">[</span> <span class="nx">name</span> <span class="p">]</span> <span class="o">=</span> <span class="nx">combo</span> <span class="p">(</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="nx">base</span><span class="p">.</span><span class="nx">apply</span> <span class="p">(</span> <span class="k">this</span><span class="p">,</span> <span class="nx">arguments</span> <span class="p">);</span>
+    <span class="p">});</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Overload property setter for Internet Explorer.
+@param {object} proto
+@param {String} name
+@param {function} combo
+@param {Element} root</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_doie</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">proto</span><span class="p">,</span> <span class="nx">name</span><span class="p">,</span> <span class="nx">combo</span><span class="p">,</span> <span class="nx">root</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">base</span> <span class="o">=</span> <span class="nb">Object</span><span class="p">.</span><span class="nx">getOwnPropertyDescriptor</span> <span class="p">(</span> <span class="nx">proto</span><span class="p">,</span> <span class="nx">name</span> <span class="p">);</span>
+    <span class="nb">Object</span><span class="p">.</span><span class="nx">defineProperty</span> <span class="p">(</span> <span class="nx">proto</span><span class="p">,</span> <span class="nx">name</span><span class="p">,</span> <span class="p">{</span>
+      <span class="nx">get</span><span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="nx">base</span><span class="p">.</span><span class="nx">get</span><span class="p">.</span><span class="nx">call</span> <span class="p">(</span> <span class="k">this</span> <span class="p">);</span>
+      <span class="p">},</span>
+      <span class="nx">set</span><span class="o">:</span> <span class="nx">combo</span> <span class="p">(</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="nx">base</span><span class="p">.</span><span class="nx">apply</span> <span class="p">(</span> <span class="k">this</span><span class="p">,</span> <span class="nx">arguments</span> <span class="p">);</span>
+      <span class="p">})</span>
+    <span class="p">});</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Overload property setter for Firefox and Opera.
+@param {object} proto
+@param {String} name
+@param {function} combo
+@param {Element} root</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_doboth</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">proto</span><span class="p">,</span> <span class="nx">name</span><span class="p">,</span> <span class="nx">combo</span><span class="p">,</span> <span class="nx">root</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">base</span> <span class="o">=</span> <span class="nx">root</span><span class="p">.</span><span class="nx">__lookupSetter__</span> <span class="p">(</span> <span class="nx">name</span> <span class="p">);</span>
+    <span class="nx">proto</span><span class="p">.</span><span class="nx">__defineSetter__</span> <span class="p">(</span> <span class="nx">name</span><span class="p">,</span> <span class="nx">combo</span> <span class="p">(</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="nx">base</span><span class="p">.</span><span class="nx">apply</span> <span class="p">(</span> <span class="k">this</span><span class="p">,</span> <span class="nx">arguments</span> <span class="p">);</span>
+    <span class="p">}));</span>
+  <span class="p">}</span>
+<span class="p">};</span></div></div></div></div></body></html>

@@ -1,0 +1,86 @@
+<!DOCTYPE html><html lang="en"><head><title>utils/gui.Request</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content="../"><meta name="groc-document-path" content="utils/gui.Request"><meta name="groc-project-path" content="src/utils/gui.Request.js"><link rel="stylesheet" type="text/css" media="all" href="../assets/style.css"><script type="text/javascript" src="../assets/behavior.js"></script><body><div id="meta"><div class="file-path">src/utils/gui.Request.js</div></div><div id="document"><div class="segment"><div class="comments"><div class="wrapper"><h1 id="guirequest">gui.Request</h1>
+
+<p>Simplistic XMLHttpRequest wrapper. 
+Work in progress, lot's to do here.
+@param @optional {String} url</p></div></div><div class="code"><div class="wrapper"><span class="nx">gui</span><span class="p">.</span><span class="nx">Request</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">url</span> <span class="p">)</span> <span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span> <span class="nx">url</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">url</span> <span class="p">(</span> <span class="nx">url</span> <span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">};</span>
+
+<span class="nx">gui</span><span class="p">.</span><span class="nx">Request</span><span class="p">.</span><span class="nx">prototype</span> <span class="o">=</span> <span class="p">{</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Set request address.
+@param {String} url</p></div></div><div class="code"><div class="wrapper">  <span class="nx">url</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">url</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">_url</span> <span class="o">=</span> <span class="nx">url</span><span class="p">;</span>
+    <span class="k">return</span> <span class="k">this</span><span class="p">;</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Convert to synchronous request.</p></div></div><div class="code"><div class="wrapper">  <span class="nx">sync</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">_async</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
+    <span class="k">return</span> <span class="k">this</span><span class="p">;</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Convert to asynchronous request.</p></div></div><div class="code"><div class="wrapper">  <span class="nx">async</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">_async</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+    <span class="k">return</span> <span class="k">this</span><span class="p">;</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Expected response type. Sets the accept header and formats 
+callback result accordingly (eg. as JSON object, XML document) 
+@param {String} mimetype
+@returns {gui.SpiritRquest}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">accept</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">mimetype</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">_accept</span> <span class="o">=</span> <span class="nx">mimetype</span><span class="p">;</span>
+    <span class="k">return</span> <span class="k">this</span><span class="p">;</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Expect JSON response.
+@returns {gui.SpiritRquest}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">acceptJSON</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">accept</span> <span class="p">(</span> <span class="s2">&quot;application/json&quot;</span> <span class="p">);</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Expect XML response.
+@returns {gui.SpiritRquest}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">acceptXML</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">accept</span> <span class="p">(</span> <span class="s2">&quot;text/xml&quot;</span> <span class="p">);</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Request content type (when posting data to service).
+@param {String} mimetype
+@returns {gui.SpiritRquest}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">format</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">mimetype</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">_format</span> <span class="o">=</span> <span class="nx">mimetype</span><span class="p">;</span>
+    <span class="k">return</span> <span class="k">this</span><span class="p">;</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Set request header.
+@param {String} name
+@param {String} value
+@returns {gui.SpiritRquest}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">header</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">name</span><span class="p">,</span> <span class="nx">value</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">warn</span> <span class="p">(</span> <span class="s2">&quot;@todo request headers&quot;</span> <span class="p">);</span>
+    <span class="k">return</span> <span class="k">this</span><span class="p">;</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Get stuff.
+@todo Synchronous version
+@todo Unhardcode status
+@param {function} callback
+@param {object} thisp</p></div></div><div class="code"><div class="wrapper">  <span class="nx">get</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">callback</span><span class="p">,</span> <span class="nx">thisp</span> <span class="p">)</span> <span class="p">{</span>  
+    <span class="kd">var</span> <span class="nx">that</span> <span class="o">=</span> <span class="k">this</span><span class="p">,</span> <span class="nx">request</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">XMLHttpRequest</span> <span class="p">();</span>
+    <span class="nx">request</span><span class="p">.</span><span class="nx">onreadystatechange</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">readyState</span> <span class="o">===</span> <span class="nx">XMLHttpRequest</span><span class="p">.</span><span class="nx">DONE</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="nx">callback</span><span class="p">.</span><span class="nx">call</span> <span class="p">(</span> <span class="nx">thisp</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="nx">that</span><span class="p">.</span><span class="nx">_parse</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">responseText</span> <span class="p">),</span> <span class="k">this</span><span class="p">.</span><span class="nx">responseText</span> <span class="p">);</span>
+      <span class="p">}</span>
+    <span class="p">};</span>
+    <span class="nx">request</span><span class="p">.</span><span class="nx">overrideMimeType</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">_accept</span> <span class="p">);</span>
+    <span class="nx">request</span><span class="p">.</span><span class="nx">open</span> <span class="p">(</span> <span class="s2">&quot;get&quot;</span><span class="p">,</span> <span class="k">this</span><span class="p">.</span><span class="nx">_url</span><span class="p">,</span> <span class="kc">true</span> <span class="p">);</span>
+    <span class="nx">request</span><span class="p">.</span><span class="nx">send</span> <span class="p">(</span> <span class="kc">null</span> <span class="p">);</span>
+  <span class="p">},</span>
+
+  <span class="nx">post</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{},</span>
+  <span class="nx">put</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{},</span>
+  <span class="nx">del</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{},</span>
+  
+  </div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>PRIVATES ...................................................................................</p></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>@type {boolean}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_async</span> <span class="o">:</span> <span class="kc">true</span><span class="p">,</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>@type {String}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_url</span> <span class="o">:</span> <span class="kc">null</span><span class="p">,</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Expexted response type.
+@todo an array?
+@type {String}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_accept</span> <span class="o">:</span> <span class="s2">&quot;text/plain&quot;</span><span class="p">,</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Default request type.
+@type {String}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_format</span> <span class="o">:</span> <span class="s2">&quot;application/x-www-form-urlencoded&quot;</span><span class="p">,</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Parse response to expected type.
+@param {String} text
+@returns {object}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_parse</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">text</span> <span class="p">)</span> <span class="p">{</span>  
+    <span class="kd">var</span> <span class="nx">result</span> <span class="o">=</span> <span class="nx">text</span><span class="p">;</span>
+    <span class="k">try</span> <span class="p">{</span>
+      <span class="k">switch</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">_accept</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="k">case</span> <span class="s2">&quot;application/json&quot;</span> <span class="o">:</span>
+          <span class="nx">result</span> <span class="o">=</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">parse</span> <span class="p">(</span> <span class="nx">text</span> <span class="p">);</span>
+          <span class="k">break</span><span class="p">;</span>
+        <span class="k">case</span> <span class="s2">&quot;text/xml&quot;</span> <span class="o">:</span>
+          <span class="nx">result</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">DOMParser</span> <span class="p">().</span><span class="nx">parseFromString</span> <span class="p">(</span> <span class="nx">text</span><span class="p">,</span> <span class="s2">&quot;text/xml&quot;</span> <span class="p">);</span>
+          <span class="k">break</span><span class="p">;</span>
+      <span class="p">}</span>
+    <span class="p">}</span> <span class="k">catch</span> <span class="p">(</span> <span class="nx">exception</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="nx">console</span><span class="p">.</span><span class="nx">error</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">_accept</span> <span class="o">+</span> <span class="s2">&quot; dysfunction at &quot;</span> <span class="o">+</span> <span class="k">this</span><span class="p">.</span><span class="nx">_url</span> <span class="p">);</span>
+      <span class="k">throw</span> <span class="nx">exception</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="nx">result</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">};</span></div></div></div></div></body></html>

@@ -1,0 +1,525 @@
+<!DOCTYPE html><html lang="en"><head><title>modules/core.module/plugins/dom.plugin/gui.SpiritDOM</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content="../../../../"><meta name="groc-document-path" content="modules/core.module/plugins/dom.plugin/gui.SpiritDOM"><meta name="groc-project-path" content="src/modules/core.module/plugins/dom.plugin/gui.SpiritDOM.js"><link rel="stylesheet" type="text/css" media="all" href="../../../../assets/style.css"><script type="text/javascript" src="../../../../assets/behavior.js"></script><body><div id="meta"><div class="file-path">src/modules/core.module/plugins/dom.plugin/gui.SpiritDOM.js</div></div><div id="document"><div class="segment"><div class="comments"><div class="wrapper"><h1 id="guispiritdom">gui.SpiritDOM</h1>
+
+<p>DOM query and manipulation.
+@extends {gui.SpiritPlugin}
+@todo implement missing stuff
+@todo performance for all this</p></div></div><div class="code"><div class="wrapper"><span class="nx">gui</span><span class="p">.</span><span class="nx">SpiritDOM</span> <span class="o">=</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">SpiritPlugin</span><span class="p">.</span><span class="nx">extend</span> <span class="p">(</span> <span class="s2">&quot;gui.SpiritDOM&quot;</span><span class="p">,</span> <span class="p">{</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Get or set element id.
+@param @optional {String} id
+@returns {object} String or gui.Spirit</p></div></div><div class="code"><div class="wrapper">  <span class="nx">id</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">id</span> <span class="p">)</span> <span class="p">{</span>  
+    <span class="kd">var</span> <span class="nx">res</span> <span class="o">=</span> <span class="k">this</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="nx">id</span> <span class="o">!==</span> <span class="kc">undefined</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">spirit</span><span class="p">.</span><span class="nx">element</span><span class="p">.</span><span class="nx">id</span> <span class="o">=</span> <span class="nx">id</span><span class="p">;</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+      <span class="nx">id</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">spirit</span><span class="p">.</span><span class="nx">element</span><span class="p">.</span><span class="nx">id</span><span class="p">;</span>
+      <span class="nx">res</span> <span class="o">=</span> <span class="nx">id</span> <span class="o">?</span> <span class="nx">id</span> <span class="o">:</span> <span class="kc">null</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="nx">res</span><span class="p">;</span>
+  <span class="p">},</span>
+ </div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Get spirit element tagname; or magically create element of given tagname.
+@param {String} name If present, create an element
+@param @optional {String} namespace (TODO)</p></div></div><div class="code"><div class="wrapper">  <span class="nx">tag</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">name</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">res</span> <span class="o">=</span> <span class="kc">null</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="nx">name</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="nx">res</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">spirit</span><span class="p">.</span><span class="nb">document</span><span class="p">.</span><span class="nx">createElement</span> <span class="p">(</span> <span class="nx">name</span> <span class="p">);</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+      <span class="nx">res</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">spirit</span><span class="p">.</span><span class="nx">element</span><span class="p">.</span><span class="nx">localName</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="nx">res</span><span class="p">;</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Get or set element title (tooltip).
+@param @optional {String} title
+@returns {String}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">title</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">title</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">element</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">spirit</span><span class="p">.</span><span class="nx">element</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">Type</span><span class="p">.</span><span class="nx">isDefined</span> <span class="p">(</span> <span class="nx">title</span> <span class="p">))</span> <span class="p">{</span>
+      <span class="nx">element</span><span class="p">.</span><span class="nx">title</span> <span class="o">=</span> <span class="nx">title</span> <span class="o">?</span> <span class="nx">title</span> <span class="o">:</span> <span class="s2">&quot;&quot;</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="nx">element</span><span class="p">.</span><span class="nx">title</span><span class="p">;</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Is positioned in page DOM? Otherwise plausible 
+createElement or documentFragment scenario.
+@returns {boolean}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">embedded</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">SpiritDOM</span><span class="p">.</span><span class="nx">embedded</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">spirit</span><span class="p">.</span><span class="nx">element</span> <span class="p">);</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Get or set element markup.
+@param @optional {String} html
+@param @optional {String} position Insert adjecant HTML
+@returns {object} String or gui.Spirit (returns the spirit when setting)</p></div></div><div class="code"><div class="wrapper">  <span class="nx">html</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">html</span><span class="p">,</span> <span class="nx">position</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">res</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">spirit</span><span class="p">,</span> <span class="nx">element</span> <span class="o">=</span> <span class="nx">res</span><span class="p">.</span><span class="nx">element</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">Type</span><span class="p">.</span><span class="nx">isString</span> <span class="p">(</span> <span class="nx">html</span> <span class="p">))</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span> <span class="nx">position</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="nx">element</span><span class="p">.</span><span class="nx">insertAdjacentHTML</span> <span class="p">(</span> <span class="nx">position</span><span class="p">,</span> <span class="nx">html</span> <span class="p">);</span> <span class="c1">// @todo spiritualize this :)</span>
+      <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+        <span class="nx">gui</span><span class="p">.</span><span class="nx">SpiritDOM</span><span class="p">.</span><span class="nx">html</span> <span class="p">(</span> <span class="nx">element</span><span class="p">,</span> <span class="nx">html</span> <span class="p">);</span>
+      <span class="p">}</span>     
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+      <span class="nx">res</span> <span class="o">=</span> <span class="nx">element</span><span class="p">.</span><span class="nx">innerHTML</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="nx">res</span><span class="p">;</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Empty spirit subtree.
+@returns {gui.Spirit}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">empty</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">html</span> <span class="p">(</span> <span class="s2">&quot;&quot;</span> <span class="p">);</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Get or set element textContent.
+@param @optional {String} text
+@returns {object} String or gui.Spirit</p></div></div><div class="code"><div class="wrapper">  <span class="nx">text</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">text</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">elm</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">spirit</span><span class="p">.</span><span class="nx">element</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">Type</span><span class="p">.</span><span class="nx">isString</span> <span class="p">(</span> <span class="nx">text</span> <span class="p">))</span> <span class="p">{</span>
+      <span class="nx">elm</span><span class="p">.</span><span class="nx">textContent</span> <span class="o">=</span> <span class="nx">text</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="nx">elm</span><span class="p">.</span><span class="nx">textContent</span><span class="p">;</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Clone spirit element.
+@return {Element}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">clone</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">spirit</span><span class="p">.</span><span class="nx">element</span><span class="p">.</span><span class="nx">cloneNode</span> <span class="p">(</span> <span class="kc">true</span> <span class="p">);</span>
+  <span class="p">},</span>
+  
+  </div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Visibility ...................................................................</p></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>@todo keep this updated!
+@type {boolean}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">apparent</span> <span class="o">:</span> <span class="kc">true</span><span class="p">,</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Show spirit element, recursively informing descendants.</p></div></div><div class="code"><div class="wrapper">  <span class="nx">show</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">spirit</span><span class="p">.</span><span class="nx">css</span><span class="p">.</span><span class="nx">remove</span><span class="p">(</span><span class="s2">&quot;_gui-invisible&quot;</span><span class="p">);</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">spirit</span><span class="p">.</span><span class="nx">visible</span> <span class="p">();</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Hide spirit element, recursively informing descendants.</p></div></div><div class="code"><div class="wrapper">  <span class="nx">hide</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">spirit</span><span class="p">.</span><span class="nx">css</span><span class="p">.</span><span class="nx">add</span><span class="p">(</span><span class="s2">&quot;_gui-invisible&quot;</span><span class="p">);</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">spirit</span><span class="p">.</span><span class="nx">invisible</span> <span class="p">();</span>
+  <span class="p">},</span>  
+  </div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>PRIVATES .....................................................................</p></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>@todo Explain custom "this" keyword in selector.
+@param {String} selector
+@returns {String}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_qualify</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">selector</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">SpiritDOM</span><span class="p">.</span><span class="nx">_qualify</span> <span class="p">(</span> <span class="nx">selector</span><span class="p">,</span> <span class="k">this</span><span class="p">.</span><span class="nx">spirit</span><span class="p">.</span><span class="nx">element</span> <span class="p">);</span>
+  <span class="p">}</span>
+  
+  
+<span class="p">},</span> <span class="p">{},</span> <span class="p">{</span> <span class="c1">// STATICS ...............................................................</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>@static
+Match custom "this" keyword in CSS selector. We use this to start 
+selector expressions with "this>*" to find immediate child, but 
+maybe we should look into the spec for something instead. The goal 
+here is to the make lookup indenpendant of spirit.element tagname.
+@type {RegExp}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_thiskeyword</span> <span class="o">:</span> <span class="sr">/^this|,this/g</span><span class="p">,</span> <span class="c1">// /^this\W|,this\W|^this$/g</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Spiritual-aware innerHTML with special setup for WebKit.
+Parse markup to node(s)
+Detach spirits and remove old nodes
+Append new nodes and attach spirits
+@param {Element} element
+@param @optional {String} markup</p></div></div><div class="code"><div class="wrapper">  <span class="nx">html</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">element</span><span class="p">,</span> <span class="nx">markup</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">guide</span> <span class="o">=</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">Guide</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="nx">element</span><span class="p">.</span><span class="nx">nodeType</span> <span class="o">===</span> <span class="nx">Node</span><span class="p">.</span><span class="nx">ELEMENT_NODE</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">Type</span><span class="p">.</span><span class="nx">isString</span> <span class="p">(</span> <span class="nx">markup</span> <span class="p">))</span> <span class="p">{</span>
+        <span class="kd">var</span> <span class="nx">nodes</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">HTMLParser</span> <span class="p">(</span> 
+          <span class="nx">element</span><span class="p">.</span><span class="nx">ownerDocument</span> 
+        <span class="p">).</span><span class="nx">parse</span> <span class="p">(</span> <span class="nx">markup</span><span class="p">,</span> <span class="nx">element</span> <span class="p">);</span>
+        <span class="nx">guide</span><span class="p">.</span><span class="nx">detachSub</span> <span class="p">(</span> <span class="nx">element</span> <span class="p">);</span>
+        <span class="nx">guide</span><span class="p">.</span><span class="nx">suspend</span> <span class="p">(</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+          <span class="nx">gui</span><span class="p">.</span><span class="nx">Observer</span><span class="p">.</span><span class="nx">suspend</span> <span class="p">(</span> <span class="nx">element</span><span class="p">,</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+            <span class="k">while</span> <span class="p">(</span> <span class="nx">element</span><span class="p">.</span><span class="nx">firstChild</span> <span class="p">)</span> <span class="p">{</span>
+              <span class="nx">element</span><span class="p">.</span><span class="nx">removeChild</span> <span class="p">(</span> <span class="nx">element</span><span class="p">.</span><span class="nx">firstChild</span> <span class="p">);</span>
+            <span class="p">}</span>
+            <span class="nx">nodes</span><span class="p">.</span><span class="nx">forEach</span> <span class="p">(</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">node</span> <span class="p">)</span> <span class="p">{</span>
+              <span class="nx">element</span><span class="p">.</span><span class="nx">appendChild</span> <span class="p">(</span> <span class="nx">node</span> <span class="p">);</span>
+            <span class="p">});</span>
+          <span class="p">});</span>
+        <span class="p">});</span>
+        <span class="nx">guide</span><span class="p">.</span><span class="nx">attachSub</span> <span class="p">(</span> <span class="nx">element</span> <span class="p">);</span>
+      <span class="p">}</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>throw new TypeError ();</p></div></div><div class="code"><div class="wrapper">    <span class="p">}</span>
+    <span class="k">return</span> <span class="nx">element</span><span class="p">.</span><span class="nx">innerHTML</span><span class="p">;</span> <span class="c1">// @todo skip this step on setter</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Spiritual-aware outerHTML, special setup for WebKit.
+@todo can outerHTML carry multiple nodes???
+@param {Element} element
+@param @optional {String} markup</p></div></div><div class="code"><div class="wrapper">  <span class="nx">outerHtml</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">element</span><span class="p">,</span> <span class="nx">markup</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">res</span> <span class="o">=</span> <span class="nx">element</span><span class="p">.</span><span class="nx">outerHTML</span><span class="p">;</span>
+    <span class="kd">var</span> <span class="nx">guide</span> <span class="o">=</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">Guide</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="nx">element</span><span class="p">.</span><span class="nx">nodeType</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">Type</span><span class="p">.</span><span class="nx">isString</span> <span class="p">(</span> <span class="nx">markup</span> <span class="p">))</span> <span class="p">{</span>
+        <span class="kd">var</span> <span class="nx">nodes</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">HTMLParser</span> <span class="p">(</span> 
+          <span class="nx">element</span><span class="p">.</span><span class="nx">ownerDocument</span> 
+        <span class="p">).</span><span class="nx">parse</span> <span class="p">(</span> <span class="nx">markup</span><span class="p">,</span> <span class="nx">element</span> <span class="p">);</span>
+        <span class="kd">var</span> <span class="nx">parent</span> <span class="o">=</span> <span class="nx">element</span><span class="p">.</span><span class="nx">parentNode</span><span class="p">;</span>
+        <span class="nx">guide</span><span class="p">.</span><span class="nx">detach</span> <span class="p">(</span> <span class="nx">element</span> <span class="p">);</span>
+        <span class="nx">guide</span><span class="p">.</span><span class="nx">suspend</span> <span class="p">(</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+          <span class="nx">gui</span><span class="p">.</span><span class="nx">Observer</span><span class="p">.</span><span class="nx">suspend</span> <span class="p">(</span> <span class="nx">parent</span><span class="p">,</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+            <span class="k">while</span> <span class="p">(</span> <span class="nx">nodes</span><span class="p">.</span><span class="nx">length</span> <span class="p">)</span> <span class="p">{</span>
+              <span class="nx">parent</span><span class="p">.</span><span class="nx">insertBefore</span> <span class="p">(</span> <span class="nx">nodes</span><span class="p">.</span><span class="nx">pop</span> <span class="p">(),</span> <span class="nx">element</span> <span class="p">);</span>
+            <span class="p">}</span>
+            <span class="nx">parent</span><span class="p">.</span><span class="nx">removeChild</span> <span class="p">(</span> <span class="nx">element</span> <span class="p">);</span>
+          <span class="p">});</span>
+        <span class="p">});</span>
+        <span class="nx">guide</span><span class="p">.</span><span class="nx">attachSub</span> <span class="p">(</span> <span class="nx">parent</span> <span class="p">);</span> <span class="c1">// @todo optimize</span>
+        <span class="nx">res</span> <span class="o">=</span> <span class="nx">element</span><span class="p">;</span> <span class="c1">// bad API design goes here...</span>
+      <span class="p">}</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+      <span class="k">throw</span> <span class="k">new</span> <span class="nx">TypeError</span> <span class="p">();</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="nx">res</span><span class="p">;</span> <span class="c1">// @todo skip this step on setter</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>@static
+Get ordinal position of element within container.
+@param {Element} element
+@returns {number}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">ordinal</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">element</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">result</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> 
+    <span class="kd">var</span> <span class="nx">node</span> <span class="o">=</span> <span class="nx">element</span><span class="p">.</span><span class="nx">parentNode</span><span class="p">.</span><span class="nx">firstElementChild</span><span class="p">;</span>
+    <span class="k">while</span> <span class="p">(</span> <span class="nx">node</span> <span class="o">!==</span> <span class="kc">null</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span> <span class="nx">node</span> <span class="o">===</span> <span class="nx">element</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="k">break</span><span class="p">;</span>
+      <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+        <span class="nx">node</span> <span class="o">=</span> <span class="nx">node</span><span class="p">.</span><span class="nx">nextElementSibling</span><span class="p">;</span>
+        <span class="nx">result</span> <span class="o">++</span><span class="p">;</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="nx">result</span><span class="p">;</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Is node in found in page DOM? Otherwise probable createElement scenario.
+@todo comprehend https://developer.mozilla.org/en/JavaScript/Reference/Operators/Bitwise<em>Operators#Example:</em>Flags<em>and</em>bitmasks
+@param {Element} element
+@returns {boolean}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">embedded</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">node</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="nx">node</span> <span class="o">=</span> <span class="nx">node</span> <span class="k">instanceof</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">Spirit</span> <span class="o">?</span> <span class="nx">node</span><span class="p">.</span><span class="nx">element</span> <span class="o">:</span> <span class="nx">node</span><span class="p">;</span>
+    <span class="kd">var</span> <span class="nx">check</span> <span class="o">=</span> <span class="nx">Node</span><span class="p">.</span><span class="nx">DOCUMENT_POSITION_CONTAINS</span> <span class="o">+</span> <span class="nx">Node</span><span class="p">.</span><span class="nx">DOCUMENT_POSITION_PRECEDING</span><span class="p">;</span>
+    <span class="k">return</span> <span class="nx">node</span><span class="p">.</span><span class="nx">compareDocumentPosition</span> <span class="p">(</span> <span class="nx">node</span><span class="p">.</span><span class="nx">ownerDocument</span> <span class="p">)</span> <span class="o">===</span> <span class="nx">check</span><span class="p">;</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>@static
+Get list of all elements that matches a selector.
+Optional type argument filters to spirits of type.
+@param {Node} node
+@param {String} selector
+@param @optional {function} type
+@returns {Array<object>} List of Element or gui.Spirit</p></div></div><div class="code"><div class="wrapper">  <span class="nx">qall</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">node</span><span class="p">,</span> <span class="nx">selector</span><span class="p">,</span> <span class="nx">type</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="nx">selector</span> <span class="o">=</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">SpiritDOM</span><span class="p">.</span><span class="nx">_qualify</span> <span class="p">(</span> <span class="nx">selector</span><span class="p">,</span> <span class="nx">node</span> <span class="p">);</span>
+    <span class="kd">var</span> <span class="nx">result</span> <span class="o">=</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">Type</span><span class="p">.</span><span class="nx">list</span> <span class="p">(</span> <span class="nx">node</span><span class="p">.</span><span class="nx">querySelectorAll</span> <span class="p">(</span> <span class="nx">selector</span> <span class="p">));</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="nx">type</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="nx">result</span> <span class="o">=</span> <span class="nx">result</span><span class="p">.</span><span class="nx">filter</span> <span class="p">(</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">el</span> <span class="p">)</span>  <span class="p">{</span>
+        <span class="k">return</span> <span class="nx">el</span><span class="p">.</span><span class="nx">spirit</span> <span class="o">&amp;&amp;</span> <span class="nx">el</span><span class="p">.</span><span class="nx">spirit</span> <span class="k">instanceof</span> <span class="nx">type</span><span class="p">;</span>
+      <span class="p">}).</span><span class="nx">map</span> <span class="p">(</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">el</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="nx">el</span><span class="p">.</span><span class="nx">spirit</span><span class="p">;</span>
+      <span class="p">});</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="nx">result</span><span class="p">;</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>@static
+Replace proprietary "this" keyword in CSS selector with element nodename.
+@todo There was something about a "scope" or similar keyword in CSS4??? 
+@param {String} selector
+@param {Node} node
+@returns {String}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_qualify</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">selector</span><span class="p">,</span> <span class="nx">node</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">result</span> <span class="o">=</span> <span class="nx">selector</span><span class="p">.</span><span class="nx">trim</span> <span class="p">();</span>
+    <span class="k">switch</span> <span class="p">(</span> <span class="nx">node</span><span class="p">.</span><span class="nx">nodeType</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="k">case</span> <span class="nx">Node</span><span class="p">.</span><span class="nx">ELEMENT_NODE</span> <span class="o">:</span>
+        <span class="nx">result</span> <span class="o">=</span> <span class="nx">selector</span><span class="p">.</span><span class="nx">replace</span> <span class="p">(</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">SpiritDOM</span><span class="p">.</span><span class="nx">_thiskeyword</span><span class="p">,</span> <span class="nx">node</span><span class="p">.</span><span class="nx">localName</span> <span class="p">);</span>
+        <span class="k">break</span><span class="p">;</span>
+      <span class="k">case</span> <span class="nx">Node</span><span class="p">.</span><span class="nx">DOCUMENT_NODE</span> <span class="o">:</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>@todo use ":root" for something?</p></div></div><div class="code"><div class="wrapper">        <span class="k">break</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="nx">result</span><span class="p">;</span>
+  <span class="p">}</span>
+    
+<span class="p">});</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>GENERATED METHODS ........................................................................</p></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>CSS query methods accept a CSS selector and an optional spirit constructor 
+as arguments. They return a spirit, an element or an array of either.</p></div></div><div class="code"><div class="wrapper"><span class="nx">gui</span><span class="p">.</span><span class="nb">Object</span><span class="p">.</span><span class="nx">each</span> <span class="p">({</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Get first descendant element matching selector. Optional type argument returns 
+spirit for first element to be associated to spirit of this type. Note that 
+this may not be the first element to match the selector. Also note that type 
+performs slower than betting on <code>this.dom.q ( "tagname" ).spirit</code>
+@param {String} selector
+@param @optional {function} type Spirit constructor (eg. gui.Spirit)
+@returns {object} Element or gui.Spirit</p></div></div><div class="code"><div class="wrapper">  <span class="nx">q</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">selector</span><span class="p">,</span> <span class="nx">type</span> <span class="p">)</span> <span class="p">{</span> 
+    <span class="kd">var</span> <span class="nx">result</span> <span class="o">=</span> <span class="kc">null</span><span class="p">;</span>
+    <span class="nx">selector</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">_qualify</span> <span class="p">(</span> <span class="nx">selector</span> <span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="nx">type</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="nx">result</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">qall</span> <span class="p">(</span> <span class="nx">selector</span><span class="p">,</span> <span class="nx">type</span> <span class="p">)[</span> <span class="mi">0</span> <span class="p">]</span> <span class="o">||</span> <span class="kc">null</span><span class="p">;</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+      <span class="nx">result</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">spirit</span><span class="p">.</span><span class="nx">element</span><span class="p">.</span><span class="nx">querySelector</span> <span class="p">(</span> <span class="nx">selector</span> <span class="p">);</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="nx">result</span><span class="p">;</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Get list of all descendant elements that matches a selector. Optional type <br />
+arguments returns instead all associated spirits to match the given type.
+@param {String} selector
+@param @optional {function} type Spirit constructor
+@returns {Array<object>} List of Element or gui.Spirit</p></div></div><div class="code"><div class="wrapper">  <span class="nx">qall</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">selector</span><span class="p">,</span> <span class="nx">type</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="nx">selector</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">_qualify</span> <span class="p">(</span> <span class="nx">selector</span> <span class="p">);</span>
+    <span class="k">return</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">SpiritDOM</span><span class="p">.</span><span class="nx">qall</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">spirit</span><span class="p">.</span><span class="nx">element</span><span class="p">,</span> <span class="nx">selector</span><span class="p">,</span> <span class="nx">type</span> <span class="p">);</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Same as q, but scoped from the document root. Use wisely.
+@param {String} selector
+@param @optional {function} type Spirit constructor
+@returns {object} Element or gui.Spirit</p></div></div><div class="code"><div class="wrapper">  <span class="nx">qdoc</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">selector</span><span class="p">,</span> <span class="nx">type</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">root</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">spirit</span><span class="p">.</span><span class="nb">document</span><span class="p">.</span><span class="nx">documentElement</span><span class="p">;</span>
+    <span class="k">return</span> <span class="nx">root</span><span class="p">.</span><span class="nx">spirit</span><span class="p">.</span><span class="nx">dom</span><span class="p">.</span><span class="nx">q</span><span class="p">.</span><span class="nx">apply</span> <span class="p">(</span> <span class="nx">root</span><span class="p">.</span><span class="nx">spirit</span><span class="p">.</span><span class="nx">dom</span><span class="p">,</span> <span class="nx">arguments</span> <span class="p">);</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Same as qall, but scoped from the document root. Use wisely.
+@param {String} selector
+@param @optional {function} type Spirit constructor
+returns {Array<object>} List of Element or gui.Spirit</p></div></div><div class="code"><div class="wrapper">  <span class="nx">qdocall</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">selector</span><span class="p">,</span> <span class="nx">type</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">root</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">spirit</span><span class="p">.</span><span class="nb">document</span><span class="p">.</span><span class="nx">documentElement</span><span class="p">;</span>
+    <span class="k">return</span> <span class="nx">root</span><span class="p">.</span><span class="nx">spirit</span><span class="p">.</span><span class="nx">dom</span><span class="p">.</span><span class="nx">qall</span><span class="p">.</span><span class="nx">apply</span> <span class="p">(</span> <span class="nx">root</span><span class="p">.</span><span class="nx">spirit</span><span class="p">.</span><span class="nx">dom</span><span class="p">,</span> <span class="nx">arguments</span> <span class="p">);</span>
+  <span class="p">}</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Adding methods to gui.SpiritDOM.prototype
+@param {String} name
+@param {function} method</p></div></div><div class="code"><div class="wrapper"><span class="p">},</span> <span class="kd">function</span> <span class="nx">addin</span> <span class="p">(</span> <span class="nx">name</span><span class="p">,</span> <span class="nx">method</span> <span class="p">)</span> <span class="p">{</span>
+  <span class="nx">gui</span><span class="p">.</span><span class="nx">SpiritDOM</span><span class="p">.</span><span class="nx">addin</span> <span class="p">(</span> <span class="nx">name</span><span class="p">,</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">selector</span> <span class="o">=</span> <span class="nx">arguments</span> <span class="p">[</span> <span class="mi">0</span> <span class="p">],</span> <span class="nx">type</span> <span class="o">=</span> <span class="nx">arguments</span> <span class="p">[</span> <span class="mi">1</span> <span class="p">];</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">Type</span><span class="p">.</span><span class="nx">isString</span> <span class="p">(</span> <span class="nx">selector</span> <span class="p">))</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span> <span class="nx">arguments</span><span class="p">.</span><span class="nx">length</span> <span class="o">===</span> <span class="mi">1</span> <span class="o">||</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">Type</span><span class="p">.</span><span class="nx">isFunction</span> <span class="p">(</span> <span class="nx">type</span> <span class="p">))</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="nx">method</span><span class="p">.</span><span class="nx">apply</span> <span class="p">(</span> <span class="k">this</span><span class="p">,</span> <span class="nx">arguments</span> <span class="p">);</span>
+      <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+        <span class="nx">type</span> <span class="o">=</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">Type</span><span class="p">.</span><span class="nx">of</span> <span class="p">(</span> <span class="nx">type</span> <span class="p">);</span>
+        <span class="k">throw</span> <span class="k">new</span> <span class="nx">TypeError</span> <span class="p">(</span> <span class="s2">&quot;Unknown spirit for query: &quot;</span> <span class="o">+</span> <span class="nx">name</span> <span class="o">+</span> <span class="s2">&quot;(&quot;</span> <span class="o">+</span> <span class="nx">selector</span> <span class="o">+</span> <span class="s2">&quot;,&quot;</span> <span class="o">+</span> <span class="nx">type</span> <span class="o">+</span> <span class="s2">&quot;)&quot;</span> <span class="p">);</span>
+      <span class="p">}</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+      <span class="k">throw</span> <span class="k">new</span> <span class="nx">TypeError</span> <span class="p">(</span> <span class="s2">&quot;Bad selector for query: &quot;</span> <span class="o">+</span> <span class="nx">name</span> <span class="o">+</span> <span class="s2">&quot;(&quot;</span> <span class="o">+</span> <span class="nx">selector</span> <span class="o">+</span> <span class="s2">&quot;)&quot;</span> <span class="p">);</span>
+    <span class="p">}</span>
+  <span class="p">});</span>
+<span class="p">});</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>DOM navigation methods accept an optional spirit constructor as 
+argument. They return a spirit, an element or an array of either.</p></div></div><div class="code"><div class="wrapper"><span class="nx">gui</span><span class="p">.</span><span class="nb">Object</span><span class="p">.</span><span class="nx">each</span> <span class="p">({</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Next element or next spirit of given type.
+@param @optional {function} type Spirit constructor
+@returns {object} Element or gui.Spirit</p></div></div><div class="code"><div class="wrapper">  <span class="nx">next</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">type</span> <span class="p">)</span> <span class="p">{</span>  
+    <span class="kd">var</span> <span class="nx">result</span> <span class="o">=</span> <span class="kc">null</span><span class="p">,</span> 
+      <span class="nx">spirit</span> <span class="o">=</span> <span class="kc">null</span><span class="p">,</span>
+      <span class="nx">el</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">spirit</span><span class="p">.</span><span class="nx">element</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="nx">type</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="k">while</span> <span class="p">((</span> <span class="nx">el</span> <span class="o">=</span> <span class="nx">el</span><span class="p">.</span><span class="nx">nextElementSibling</span> <span class="p">)</span> <span class="o">!==</span> <span class="kc">null</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="nx">spirit</span> <span class="o">=</span> <span class="nx">el</span><span class="p">.</span><span class="nx">spirit</span><span class="p">;</span>
+        <span class="k">if</span> <span class="p">(</span> <span class="nx">spirit</span> <span class="o">!==</span> <span class="kc">null</span> <span class="o">&amp;&amp;</span> <span class="nx">spirit</span> <span class="k">instanceof</span> <span class="nx">type</span> <span class="p">)</span> <span class="p">{</span>
+          <span class="nx">result</span> <span class="o">=</span> <span class="nx">spirit</span><span class="p">;</span>
+          <span class="k">break</span><span class="p">;</span>
+        <span class="p">}</span>
+      <span class="p">}</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+      <span class="nx">result</span> <span class="o">=</span> <span class="nx">el</span><span class="p">.</span><span class="nx">nextElementSibling</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="nx">result</span><span class="p">;</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Previous element or previous spirit of given type.
+@param @optional {function} type
+@returns {object} Element or gui.Spirit</p></div></div><div class="code"><div class="wrapper">  <span class="nx">previous</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">type</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">result</span> <span class="o">=</span> <span class="kc">null</span><span class="p">,</span>
+      <span class="nx">spirit</span> <span class="o">=</span> <span class="kc">null</span><span class="p">,</span>
+      <span class="nx">el</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">spirit</span><span class="p">.</span><span class="nx">element</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="nx">type</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="k">while</span> <span class="p">((</span> <span class="nx">el</span> <span class="o">=</span> <span class="nx">el</span><span class="p">.</span><span class="nx">previousElementSibling</span> <span class="p">)</span> <span class="o">!==</span> <span class="kc">null</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="nx">spirit</span> <span class="o">=</span> <span class="nx">el</span><span class="p">.</span><span class="nx">spirit</span><span class="p">;</span>
+        <span class="k">if</span> <span class="p">(</span> <span class="nx">spirit</span> <span class="o">!==</span> <span class="kc">null</span> <span class="o">&amp;&amp;</span> <span class="nx">spirit</span> <span class="k">instanceof</span> <span class="nx">type</span> <span class="p">)</span> <span class="p">{</span>
+          <span class="nx">result</span> <span class="o">=</span> <span class="nx">spirit</span><span class="p">;</span>
+          <span class="k">break</span><span class="p">;</span>
+        <span class="p">}</span>
+      <span class="p">}</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+      <span class="nx">result</span> <span class="o">=</span> <span class="nx">el</span><span class="p">.</span><span class="nx">previousElementSibling</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="nx">result</span><span class="p">;</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Hello.
+@param {function} type
+@returns {object} Element or gui.Spirit</p></div></div><div class="code"><div class="wrapper">  <span class="nx">first</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">type</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">result</span> <span class="o">=</span> <span class="kc">null</span><span class="p">,</span>
+      <span class="nx">spirit</span> <span class="o">=</span> <span class="kc">null</span><span class="p">,</span>
+      <span class="nx">el</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">spirit</span><span class="p">.</span><span class="nx">element</span><span class="p">.</span><span class="nx">firstElementChild</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="nx">type</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="k">while</span> <span class="p">(</span> <span class="nx">result</span> <span class="o">===</span> <span class="kc">null</span> <span class="o">&amp;&amp;</span> <span class="nx">el</span> <span class="o">!==</span> <span class="kc">null</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="nx">spirit</span> <span class="o">=</span> <span class="nx">el</span><span class="p">.</span><span class="nx">spirit</span><span class="p">;</span>
+        <span class="k">if</span> <span class="p">(</span> <span class="nx">spirit</span> <span class="o">!==</span> <span class="kc">null</span> <span class="o">&amp;&amp;</span> <span class="nx">spirit</span> <span class="k">instanceof</span> <span class="nx">type</span> <span class="p">)</span> <span class="p">{</span>
+          <span class="nx">result</span> <span class="o">=</span> <span class="nx">spirit</span><span class="p">;</span>
+        <span class="p">}</span>
+        <span class="nx">el</span> <span class="o">=</span> <span class="nx">el</span><span class="p">.</span><span class="nx">nextElementSibling</span><span class="p">;</span>
+      <span class="p">}</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+      <span class="nx">result</span> <span class="o">=</span> <span class="nx">el</span><span class="p">;</span> 
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="nx">result</span><span class="p">;</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Hello.
+@param {function} type
+@returns {object} Element or gui.Spirit</p></div></div><div class="code"><div class="wrapper">  <span class="nx">last</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">type</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">result</span> <span class="o">=</span> <span class="kc">null</span><span class="p">,</span>
+      <span class="nx">spirit</span> <span class="o">=</span> <span class="kc">null</span><span class="p">,</span>
+      <span class="nx">el</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">spirit</span><span class="p">.</span><span class="nx">element</span><span class="p">.</span><span class="nx">lastElementChild</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="nx">type</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="k">while</span> <span class="p">(</span> <span class="nx">result</span> <span class="o">===</span> <span class="kc">null</span> <span class="o">&amp;&amp;</span> <span class="nx">el</span> <span class="o">!==</span> <span class="kc">null</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="nx">spirit</span> <span class="o">=</span> <span class="nx">el</span><span class="p">.</span><span class="nx">spirit</span><span class="p">;</span>
+        <span class="k">if</span> <span class="p">(</span> <span class="nx">spirit</span> <span class="o">!==</span> <span class="kc">null</span> <span class="o">&amp;&amp;</span> <span class="nx">spirit</span> <span class="k">instanceof</span> <span class="nx">type</span> <span class="p">)</span> <span class="p">{</span>
+          <span class="nx">result</span> <span class="o">=</span> <span class="nx">spirit</span><span class="p">;</span>
+        <span class="p">}</span>
+        <span class="nx">el</span> <span class="o">=</span> <span class="nx">el</span><span class="p">.</span><span class="nx">previoustElementSibling</span><span class="p">;</span>
+      <span class="p">}</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+      <span class="nx">result</span> <span class="o">=</span> <span class="nx">el</span><span class="p">;</span> 
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="nx">result</span><span class="p">;</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Hello.
+@param {function} type
+@returns {object} Element or gui.Spirit</p></div></div><div class="code"><div class="wrapper">  <span class="nx">parent</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">type</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">result</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">spirit</span><span class="p">.</span><span class="nx">element</span><span class="p">.</span><span class="nx">parentNode</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="nx">type</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="kd">var</span> <span class="nx">spirit</span> <span class="o">=</span> <span class="nx">result</span><span class="p">.</span><span class="nx">spirit</span><span class="p">;</span>
+      <span class="k">if</span> <span class="p">(</span> <span class="nx">spirit</span> <span class="o">&amp;&amp;</span> <span class="nx">spirit</span> <span class="k">instanceof</span> <span class="nx">type</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="nx">result</span> <span class="o">=</span> <span class="nx">spirit</span><span class="p">;</span>
+      <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+        <span class="nx">result</span> <span class="o">=</span> <span class="kc">null</span><span class="p">;</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="nx">result</span><span class="p">;</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Hello.
+@param {function} type
+@returns {object} Element or gui.Spirit</p></div></div><div class="code"><div class="wrapper">  <span class="nx">child</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">type</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">result</span> <span class="o">=</span> <span class="kc">null</span><span class="p">,</span>
+      <span class="nx">spirit</span> <span class="o">=</span> <span class="kc">null</span><span class="p">,</span>
+      <span class="nx">el</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">spirit</span><span class="p">.</span><span class="nx">element</span><span class="p">.</span><span class="nx">firstElementChild</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="nx">el</span> <span class="o">&amp;&amp;</span> <span class="nx">type</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="k">while</span> <span class="p">(</span> <span class="nx">el</span> <span class="o">!==</span> <span class="kc">null</span> <span class="o">&amp;&amp;</span> <span class="nx">result</span> <span class="o">===</span> <span class="kc">null</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="nx">spirit</span> <span class="o">=</span> <span class="nx">el</span><span class="p">.</span><span class="nx">spirit</span><span class="p">;</span>
+        <span class="k">if</span> <span class="p">(</span> <span class="nx">spirit</span> <span class="o">&amp;&amp;</span> <span class="nx">spirit</span> <span class="k">instanceof</span> <span class="nx">type</span> <span class="p">)</span> <span class="p">{</span>
+          <span class="nx">result</span> <span class="o">=</span> <span class="nx">spirit</span><span class="p">;</span>
+        <span class="p">}</span>
+        <span class="nx">el</span> <span class="o">=</span> <span class="nx">el</span><span class="p">.</span><span class="nx">nextElementSibling</span><span class="p">;</span>
+      <span class="p">}</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+      <span class="nx">result</span> <span class="o">=</span> <span class="nx">el</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="nx">result</span><span class="p">;</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>@todo just use this.element.children :)
+@param {function} type
+@returns {Array<object>} Elements or gui.Spirits</p></div></div><div class="code"><div class="wrapper">  <span class="nx">children</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">type</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">result</span> <span class="o">=</span> <span class="p">[],</span>
+      <span class="nx">me</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">spirit</span><span class="p">.</span><span class="nx">element</span><span class="p">,</span>
+      <span class="nx">el</span> <span class="o">=</span> <span class="nx">me</span><span class="p">.</span><span class="nx">firstElementChild</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="nx">el</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="k">while</span> <span class="p">(</span> <span class="nx">el</span> <span class="o">!==</span> <span class="kc">null</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="nx">result</span><span class="p">.</span><span class="nx">push</span> <span class="p">(</span> <span class="nx">el</span> <span class="p">);</span>
+        <span class="nx">el</span> <span class="o">=</span> <span class="nx">el</span><span class="p">.</span><span class="nx">nextElementSibling</span><span class="p">;</span> 
+      <span class="p">}</span>
+      <span class="k">if</span> <span class="p">(</span> <span class="nx">type</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="nx">result</span> <span class="o">=</span> <span class="nx">result</span><span class="p">.</span><span class="nx">filter</span> <span class="p">(</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">el</span> <span class="p">)</span>  <span class="p">{</span>
+          <span class="k">return</span> <span class="nx">el</span><span class="p">.</span><span class="nx">spirit</span> <span class="o">&amp;&amp;</span> <span class="nx">el</span><span class="p">.</span><span class="nx">spirit</span> <span class="k">instanceof</span> <span class="nx">type</span><span class="p">;</span>
+        <span class="p">}).</span><span class="nx">map</span> <span class="p">(</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">el</span> <span class="p">)</span> <span class="p">{</span>
+          <span class="k">return</span> <span class="nx">el</span><span class="p">.</span><span class="nx">spirit</span><span class="p">;</span>
+        <span class="p">});</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="nx">result</span><span class="p">;</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>First ancestor of given type.
+@param {function} type
+@returns {object} Element or gui.Spirit</p></div></div><div class="code"><div class="wrapper">  <span class="nx">ancestor</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">type</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">result</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">parent</span> <span class="p">();</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="nx">type</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="nx">result</span> <span class="o">=</span> <span class="kc">null</span><span class="p">;</span>
+      <span class="k">new</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">Crawler</span> <span class="p">().</span><span class="nx">ascend</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">spirit</span><span class="p">.</span><span class="nx">element</span><span class="p">,</span> <span class="p">{</span>
+        <span class="nx">handleSpirit</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">spirit</span> <span class="p">)</span> <span class="p">{</span>
+          <span class="k">if</span> <span class="p">(</span> <span class="nx">spirit</span> <span class="k">instanceof</span> <span class="nx">type</span> <span class="p">)</span> <span class="p">{</span>
+            <span class="nx">result</span> <span class="o">=</span> <span class="nx">spirit</span><span class="p">;</span>
+            <span class="k">return</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">Crawler</span><span class="p">.</span><span class="nx">STOP</span><span class="p">;</span>
+          <span class="p">}</span>
+        <span class="p">}</span>
+      <span class="p">});</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="nx">result</span><span class="p">;</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>All ancestors of given type.
+@param {function} type
+@returns {Array<object>} Elements or gui.Spirits</p></div></div><div class="code"><div class="wrapper">  <span class="nx">ancestors</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">type</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">result</span> <span class="o">=</span> <span class="p">[];</span>
+    <span class="kd">var</span> <span class="nx">crawler</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">Crawler</span> <span class="p">();</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="nx">type</span> <span class="p">)</span> <span class="p">{</span> 
+      <span class="nx">crawler</span><span class="p">.</span><span class="nx">ascend</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">element</span><span class="p">,</span> <span class="p">{</span>
+        <span class="nx">handleSpirit</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">spirit</span> <span class="p">)</span> <span class="p">{</span>
+          <span class="k">if</span> <span class="p">(</span> <span class="nx">spirit</span> <span class="k">instanceof</span> <span class="nx">type</span> <span class="p">)</span> <span class="p">{</span>
+            <span class="nx">result</span><span class="p">.</span><span class="nx">push</span> <span class="p">(</span> <span class="nx">spirit</span> <span class="p">);</span>
+          <span class="p">}</span>
+        <span class="p">}</span>
+      <span class="p">});</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+      <span class="nx">crawler</span><span class="p">.</span><span class="nx">ascend</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">element</span><span class="p">,</span> <span class="p">{</span>
+        <span class="nx">handleElement</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">el</span> <span class="p">)</span> <span class="p">{</span>
+          <span class="nx">result</span><span class="p">.</span><span class="nx">push</span> <span class="p">(</span> <span class="nx">el</span> <span class="p">);</span>
+        <span class="p">}</span>
+      <span class="p">});</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="nx">result</span><span class="p">;</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>First descendant of given type.
+@param {function} type
+@returns {object} Element or gui.Spirit</p></div></div><div class="code"><div class="wrapper">  <span class="nx">descendant</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">type</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">result</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">child</span> <span class="p">();</span>
+    <span class="kd">var</span> <span class="nx">me</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">spirit</span><span class="p">.</span><span class="nx">element</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="nx">type</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="k">new</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">Crawler</span> <span class="p">().</span><span class="nx">descend</span> <span class="p">(</span> <span class="nx">me</span><span class="p">,</span> <span class="p">{</span>
+        <span class="nx">handleSpirit</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">spirit</span> <span class="p">)</span> <span class="p">{</span>
+          <span class="k">if</span> <span class="p">(</span> <span class="nx">spirit</span> <span class="k">instanceof</span> <span class="nx">type</span> <span class="p">)</span> <span class="p">{</span>
+            <span class="k">if</span> <span class="p">(</span> <span class="nx">spirit</span><span class="p">.</span><span class="nx">element</span> <span class="o">!==</span> <span class="nx">me</span> <span class="p">)</span> <span class="p">{</span>
+              <span class="nx">result</span> <span class="o">=</span> <span class="nx">spirit</span><span class="p">;</span>
+              <span class="k">return</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">Crawler</span><span class="p">.</span><span class="nx">STOP</span><span class="p">;</span>
+            <span class="p">}</span>
+          <span class="p">}</span>
+        <span class="p">}</span>
+      <span class="p">});</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="nx">result</span><span class="p">;</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Descendants of given type.
+@param {function} type
+@returns {Array<object>} Elements or gui.Spirits</p></div></div><div class="code"><div class="wrapper">  <span class="nx">descendants</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">type</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">result</span> <span class="o">=</span> <span class="p">[];</span>
+    <span class="kd">var</span> <span class="nx">me</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">spirit</span><span class="p">.</span><span class="nx">element</span><span class="p">;</span>
+    <span class="k">new</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">Crawler</span> <span class="p">().</span><span class="nx">descend</span> <span class="p">(</span> <span class="nx">me</span><span class="p">,</span> <span class="p">{</span>
+      <span class="nx">handleElement</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">element</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span> <span class="o">!</span><span class="nx">type</span> <span class="o">&amp;&amp;</span> <span class="nx">element</span> <span class="o">!==</span> <span class="nx">me</span> <span class="p">)</span> <span class="p">{</span>
+          <span class="nx">result</span><span class="p">.</span><span class="nx">push</span> <span class="p">(</span> <span class="nx">element</span> <span class="p">);</span>
+        <span class="p">}</span>
+      <span class="p">},</span>
+      <span class="nx">handleSpirit</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">spirit</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span> <span class="nx">type</span> <span class="o">&amp;&amp;</span> <span class="nx">spirit</span> <span class="k">instanceof</span> <span class="nx">type</span> <span class="p">)</span> <span class="p">{</span>
+          <span class="k">if</span> <span class="p">(</span> <span class="nx">spirit</span><span class="p">.</span><span class="nx">element</span> <span class="o">!==</span> <span class="nx">me</span> <span class="p">)</span> <span class="p">{</span>
+            <span class="nx">result</span><span class="p">.</span><span class="nx">push</span> <span class="p">(</span> <span class="nx">spirit</span> <span class="p">);</span>
+          <span class="p">}</span>
+        <span class="p">}</span>
+      <span class="p">}</span>
+    <span class="p">});</span>
+    <span class="k">return</span> <span class="nx">result</span><span class="p">;</span>
+  <span class="p">}</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Adding methods to gui.SpiritDOM.prototype
+@param {String} name
+@param {function} method</p></div></div><div class="code"><div class="wrapper"><span class="p">},</span>  <span class="kd">function</span> <span class="nx">addin</span> <span class="p">(</span> <span class="nx">name</span><span class="p">,</span> <span class="nx">method</span> <span class="p">)</span> <span class="p">{</span>
+  <span class="nx">gui</span><span class="p">.</span><span class="nx">SpiritDOM</span><span class="p">.</span><span class="nx">addin</span> <span class="p">(</span> <span class="nx">name</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">type</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="o">!</span><span class="nx">gui</span><span class="p">.</span><span class="nx">Type</span><span class="p">.</span><span class="nx">isDefined</span> <span class="p">(</span> <span class="nx">type</span> <span class="p">)</span> <span class="o">||</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">Type</span><span class="p">.</span><span class="nx">isFunction</span> <span class="p">(</span> <span class="nx">type</span> <span class="p">))</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="nx">method</span><span class="p">.</span><span class="nx">apply</span> <span class="p">(</span> <span class="k">this</span><span class="p">,</span> <span class="nx">arguments</span> <span class="p">);</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+      <span class="nx">type</span> <span class="o">=</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">Type</span><span class="p">.</span><span class="nx">of</span> <span class="p">(</span> <span class="nx">type</span> <span class="p">);</span>
+      <span class="k">throw</span> <span class="k">new</span> <span class="nx">TypeError</span> <span class="p">(</span> <span class="s2">&quot;Unknown spirit for query: &quot;</span> <span class="o">+</span> <span class="nx">name</span> <span class="o">+</span> <span class="s2">&quot;(&quot;</span> <span class="o">+</span> <span class="nx">type</span> <span class="o">+</span> <span class="s2">&quot;)&quot;</span> <span class="p">);</span>
+    <span class="p">}</span>
+  <span class="p">});</span>
+<span class="p">});</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>DOM insertion methods accept one argument: one spirit OR one element OR an array of either or both. 
+The input argument is returned as given. This allows for the following one-liner to be constructed: 
+this.something = this.dom.append ( gui.SomeThingSpirit.summon ( this.document )); // imagine 15 more</p></div></div><div class="code"><div class="wrapper"><span class="nx">gui</span><span class="p">.</span><span class="nb">Object</span><span class="p">.</span><span class="nx">each</span> <span class="p">({</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Append spirit OR element OR array of either.
+@param {object} things Complicated argument
+@returns {object} Returns the argument</p></div></div><div class="code"><div class="wrapper">  <span class="nx">append</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">things</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">els</span> <span class="o">=</span> <span class="nx">things</span><span class="p">,</span> <span class="nx">element</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">spirit</span><span class="p">.</span><span class="nx">element</span><span class="p">;</span>
+    <span class="nx">els</span><span class="p">.</span><span class="nx">forEach</span> <span class="p">(</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">el</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="nx">element</span><span class="p">.</span><span class="nx">appendChild</span> <span class="p">(</span> <span class="nx">el</span> <span class="p">);</span>
+    <span class="p">});</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Prepend spirit OR element OR array of either.
+@param {object} things Complicated argument
+@returns {object} Returns the argument</p></div></div><div class="code"><div class="wrapper">  <span class="nx">prepend</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">things</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">els</span> <span class="o">=</span> <span class="nx">things</span><span class="p">,</span> <span class="nx">element</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">spirit</span><span class="p">.</span><span class="nx">element</span><span class="p">,</span> <span class="nx">first</span> <span class="o">=</span> <span class="nx">element</span><span class="p">.</span><span class="nx">firstChild</span><span class="p">;</span>
+    <span class="nx">els</span><span class="p">.</span><span class="nx">reverse</span> <span class="p">().</span><span class="nx">forEach</span> <span class="p">(</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">el</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="nx">element</span><span class="p">.</span><span class="nx">insertBefore</span> <span class="p">(</span> <span class="nx">el</span><span class="p">,</span> <span class="nx">first</span> <span class="p">);</span>
+    <span class="p">});</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Insert spirit OR element OR array of either before this spirit.
+@param {object} things Complicated argument
+@returns {object} Returns the argument</p></div></div><div class="code"><div class="wrapper">  <span class="nx">before</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">things</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">els</span> <span class="o">=</span> <span class="nx">things</span><span class="p">,</span> <span class="nx">target</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">spirit</span><span class="p">.</span><span class="nx">element</span><span class="p">,</span> <span class="nx">parent</span> <span class="o">=</span> <span class="nx">target</span><span class="p">.</span><span class="nx">parentNode</span><span class="p">;</span>
+    <span class="nx">els</span><span class="p">.</span><span class="nx">reverse</span> <span class="p">().</span><span class="nx">forEach</span> <span class="p">(</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">el</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="nx">parent</span><span class="p">.</span><span class="nx">insertBefore</span> <span class="p">(</span> <span class="nx">el</span><span class="p">,</span> <span class="nx">target</span> <span class="p">);</span>
+    <span class="p">});</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Insert spirit OR element OR array of either after this spirit.
+@param {object} things Complicated argument
+@returns {object} Returns the argument</p></div></div><div class="code"><div class="wrapper">  <span class="nx">after</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">things</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">els</span> <span class="o">=</span> <span class="nx">things</span><span class="p">,</span> <span class="nx">target</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">spirit</span><span class="p">.</span><span class="nx">element</span><span class="p">,</span> <span class="nx">parent</span> <span class="o">=</span> <span class="nx">target</span><span class="p">.</span><span class="nx">parentNode</span><span class="p">;</span>
+    <span class="nx">els</span><span class="p">.</span><span class="nx">forEach</span> <span class="p">(</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">el</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="nx">parent</span><span class="p">.</span><span class="nx">insertBefore</span> <span class="p">(</span> <span class="nx">el</span><span class="p">,</span> <span class="nx">target</span><span class="p">.</span><span class="nx">nextSibling</span> <span class="p">);</span>
+    <span class="p">});</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Removing this spirit from it's parent container. Note that this will 
+schedule destruction of the spirit unless it gets reinserted somewhere. 
+Also note that this method is called on the spirit, not on the parent.
+@returns {gui.Spirit}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">remove</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">parent</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">spirit</span><span class="p">.</span><span class="nx">element</span><span class="p">.</span><span class="nx">parentNode</span><span class="p">;</span>
+    <span class="nx">parent</span><span class="p">.</span><span class="nx">removeChild</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">spirit</span><span class="p">.</span><span class="nx">element</span> <span class="p">);</span>
+    <span class="k">return</span> <span class="k">this</span><span class="p">;</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Replace the spirit with something else. This may nuke the spirit.
+Note that this method is called on the spirit, not on the parent.
+@param {object} things Complicated argument. 
+@returns {object} Returns the argument</p></div></div><div class="code"><div class="wrapper">  <span class="nx">replace</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">things</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">after</span> <span class="p">(</span> <span class="nx">things</span> <span class="p">);</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">remove</span> <span class="p">();</span>
+  <span class="p">}</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Adding methods to gui.SpiritDOM.prototype. These methods come highly overloaded.
+1) convert input to array of one or more elements
+2) confirm array of elements
+3) invoke the method
+4) return the input
+@param {String} name
+@param {function} method</p></div></div><div class="code"><div class="wrapper"><span class="p">},</span> <span class="kd">function</span> <span class="nx">addin</span> <span class="p">(</span> <span class="nx">name</span><span class="p">,</span> <span class="nx">method</span> <span class="p">)</span> <span class="p">{</span>
+  <span class="nx">gui</span><span class="p">.</span><span class="nx">SpiritDOM</span><span class="p">.</span><span class="nx">addin</span> <span class="p">(</span> <span class="nx">name</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">things</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">elms</span> <span class="o">=</span> <span class="nb">Array</span><span class="p">.</span><span class="nx">map</span> <span class="p">(</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">Type</span><span class="p">.</span><span class="nx">list</span> <span class="p">(</span> <span class="nx">things</span> <span class="p">),</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">thing</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="nx">thing</span> <span class="o">&amp;&amp;</span> <span class="nx">thing</span> <span class="k">instanceof</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">Spirit</span> <span class="o">?</span> <span class="nx">thing</span><span class="p">.</span><span class="nx">element</span> <span class="o">:</span> <span class="nx">thing</span><span class="p">;</span>
+    <span class="p">});</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="nx">elms</span><span class="p">.</span><span class="nx">every</span> <span class="p">(</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">elm</span> <span class="p">)</span> <span class="p">{</span> 
+      <span class="k">return</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">Type</span><span class="p">.</span><span class="nx">isNumber</span> <span class="p">(</span> <span class="nx">elm</span><span class="p">.</span><span class="nx">nodeType</span> <span class="p">);</span>
+    <span class="p">}))</span> <span class="p">{</span>
+      <span class="nx">method</span><span class="p">.</span><span class="nx">call</span> <span class="p">(</span> <span class="k">this</span><span class="p">,</span> <span class="nx">elms</span> <span class="p">);</span>
+      <span class="k">return</span> <span class="nx">things</span><span class="p">;</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+      <span class="k">throw</span> <span class="k">new</span> <span class="nx">TypeError</span> <span class="p">(</span> <span class="s2">&quot;Bad input for method: &quot;</span> <span class="o">+</span> <span class="nx">name</span> <span class="o">+</span> <span class="s2">&quot;(&quot;</span> <span class="o">+</span> <span class="nx">things</span> <span class="o">+</span> <span class="s2">&quot;)&quot;</span> <span class="p">);</span> 
+    <span class="p">}</span>
+  <span class="p">});</span>
+<span class="p">});</span></div></div></div></div></body></html>

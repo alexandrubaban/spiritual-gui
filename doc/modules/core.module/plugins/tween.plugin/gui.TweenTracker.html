@@ -1,0 +1,95 @@
+<!DOCTYPE html><html lang="en"><head><title>modules/core.module/plugins/tween.plugin/gui.TweenTracker</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content="../../../../"><meta name="groc-document-path" content="modules/core.module/plugins/tween.plugin/gui.TweenTracker"><meta name="groc-project-path" content="src/modules/core.module/plugins/tween.plugin/gui.TweenTracker.js"><link rel="stylesheet" type="text/css" media="all" href="../../../../assets/style.css"><script type="text/javascript" src="../../../../assets/behavior.js"></script><body><div id="meta"><div class="file-path">src/modules/core.module/plugins/tween.plugin/gui.TweenTracker.js</div></div><div id="document"><div class="segment"><div class="comments"><div class="wrapper"><h1 id="guitweentracker">gui.TweenTracker</h1>
+
+<p>Tracking tweens.
+@extends {gui.SpiritTracker}</p></div></div><div class="code"><div class="wrapper"><span class="nx">gui</span><span class="p">.</span><span class="nx">TweenTracker</span> <span class="o">=</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">SpiritTracker</span><span class="p">.</span><span class="nx">extend</span> <span class="p">(</span> <span class="s2">&quot;gui.TweenTracker&quot;</span><span class="p">,</span> <span class="p">{</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Add one or more broadcast handlers.
+@param {object} arg
+@returns {gui.TweenTracker}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">add</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">arg</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">sig</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">_global</span> <span class="o">?</span> <span class="kc">null</span> <span class="o">:</span> <span class="k">this</span><span class="p">.</span><span class="nx">_sig</span><span class="p">;</span>
+    <span class="kd">var</span> <span class="nx">message</span> <span class="o">=</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">BROADCAST_TWEEN</span><span class="p">;</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">_breakdown</span> <span class="p">(</span> <span class="nx">arg</span> <span class="p">).</span><span class="nx">forEach</span> <span class="p">(</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">type</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">_addchecks</span> <span class="p">(</span> <span class="nx">type</span><span class="p">,</span> <span class="p">[</span> <span class="k">this</span><span class="p">.</span><span class="nx">_global</span> <span class="p">]))</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">_global</span> <span class="p">)</span> <span class="p">{</span>
+          <span class="nx">gui</span><span class="p">.</span><span class="nx">Broadcast</span><span class="p">.</span><span class="nx">addGlobal</span> <span class="p">(</span> <span class="nx">message</span><span class="p">,</span> <span class="k">this</span> <span class="p">);</span>
+        <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+          <span class="nx">gui</span><span class="p">.</span><span class="nx">Broadcast</span><span class="p">.</span><span class="nx">add</span> <span class="p">(</span> <span class="nx">message</span><span class="p">,</span> <span class="k">this</span><span class="p">,</span> <span class="nx">sig</span> <span class="p">);</span>
+        <span class="p">}</span>
+      <span class="p">}</span>
+    <span class="p">},</span> <span class="k">this</span> <span class="p">);</span>
+    <span class="k">return</span> <span class="k">this</span><span class="p">;</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Remove one or more broadcast handlers.
+@param {object} arg
+@returns {gui.TweenTracker}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">remove</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">arg</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">sig</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">_global</span> <span class="o">?</span> <span class="kc">null</span> <span class="o">:</span> <span class="k">this</span><span class="p">.</span><span class="nx">_sig</span><span class="p">;</span>
+    <span class="kd">var</span> <span class="nx">message</span> <span class="o">=</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">BROADCAST_TWEEN</span><span class="p">;</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">_breakdown</span> <span class="p">(</span> <span class="nx">arg</span> <span class="p">).</span><span class="nx">forEach</span> <span class="p">(</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">type</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">_removechecks</span> <span class="p">(</span> <span class="nx">type</span><span class="p">,</span> <span class="p">[</span> <span class="k">this</span><span class="p">.</span><span class="nx">_global</span> <span class="p">]))</span> <span class="p">{</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>what</p></div></div><div class="code"><div class="wrapper">      <span class="p">}</span>
+    <span class="p">},</span> <span class="k">this</span> <span class="p">);</span>
+    <span class="k">return</span> <span class="k">this</span><span class="p">;</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Dispatch type(s).
+@param {object} arg
+@param @optional {object} data
+@returns {gui.Tween}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">dispatch</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">arg</span><span class="p">,</span> <span class="nx">data</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">result</span> <span class="o">=</span> <span class="kc">null</span><span class="p">;</span>
+    <span class="kd">var</span> <span class="nx">sig</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">_global</span> <span class="o">?</span> <span class="kc">null</span> <span class="o">:</span> <span class="k">this</span><span class="p">.</span><span class="nx">_sig</span><span class="p">;</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">_breakdown</span> <span class="p">(</span> <span class="nx">arg</span> <span class="p">).</span><span class="nx">forEach</span> <span class="p">(</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">type</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">_global</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="nx">result</span> <span class="o">=</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">Tween</span><span class="p">.</span><span class="nx">dispatchGlobal</span> <span class="p">(</span> <span class="nx">type</span><span class="p">,</span> <span class="nx">data</span> <span class="p">);</span>
+      <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+        <span class="nx">result</span> <span class="o">=</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">Tween</span><span class="p">.</span><span class="nx">dispatch</span> <span class="p">(</span> <span class="nx">type</span><span class="p">,</span> <span class="nx">data</span><span class="p">,</span> <span class="nx">sig</span> <span class="p">);</span>  
+      <span class="p">}</span>
+    <span class="p">},</span> <span class="k">this</span> <span class="p">);</span>
+    <span class="k">return</span> <span class="nx">result</span><span class="p">;</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Add handlers for global broadcast(s).
+@param {object} arg
+@returns {gui.TweenTracker}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">addGlobal</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">arg</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">_globalize</span> <span class="p">(</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">add</span> <span class="p">(</span> <span class="nx">arg</span> <span class="p">);</span>
+    <span class="p">});</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Add handlers for global broadcast(s).
+@param {object} arg
+@returns {gui.TweenTracker}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">removeGlobal</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">arg</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">_globalize</span> <span class="p">(</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">remove</span> <span class="p">(</span> <span class="nx">arg</span> <span class="p">);</span>
+    <span class="p">});</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Dispatch type(s) globally.
+@param {object} arg
+@param @optional {object} data
+@returns {gui.Tween}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">dispatchGlobal</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">arg</span><span class="p">,</span> <span class="nx">data</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">_globalize</span> <span class="p">(</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">dispatch</span> <span class="p">(</span> <span class="nx">arg</span><span class="p">,</span> <span class="nx">data</span> <span class="p">);</span>
+    <span class="p">});</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Handle broadcast.
+@param {gui.Broadcast} b</p></div></div><div class="code"><div class="wrapper">  <span class="nx">onbroadcast</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">b</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="k">switch</span> <span class="p">(</span> <span class="nx">b</span><span class="p">.</span><span class="nx">type</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="k">case</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">BROADCAST_TWEEN</span> <span class="o">:</span>
+        <span class="kd">var</span> <span class="nx">tween</span> <span class="o">=</span> <span class="nx">b</span><span class="p">.</span><span class="nx">data</span><span class="p">;</span>
+        <span class="k">if</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">_containschecks</span> <span class="p">(</span> <span class="nx">tween</span><span class="p">.</span><span class="nx">type</span><span class="p">,</span> <span class="p">[</span> <span class="nx">b</span><span class="p">.</span><span class="nx">isGlobal</span> <span class="p">]))</span> <span class="p">{</span>
+          <span class="k">this</span><span class="p">.</span><span class="nx">spirit</span><span class="p">.</span><span class="nx">ontween</span> <span class="p">(</span> <span class="nx">tween</span> <span class="p">);</span>
+        <span class="p">}</span>
+        <span class="k">break</span><span class="p">;</span>
+    <span class="p">}</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>PRIVATES ...................................................................</p></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Global mode?
+@type {boolean}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_global</span> <span class="o">:</span> <span class="kc">false</span><span class="p">,</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Execute operation in global mode.
+@param {function} operation
+@returns {object}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_globalize</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">operation</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">_global</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+    <span class="kd">var</span> <span class="nx">res</span> <span class="o">=</span> <span class="nx">operation</span><span class="p">.</span><span class="nx">call</span> <span class="p">(</span> <span class="k">this</span> <span class="p">);</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">_global</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
+    <span class="k">return</span> <span class="nx">res</span><span class="p">;</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Remove broadcast subscriptions on dispose.
+@overwrites {gui.SpiritTracker#_cleanup}
+@param {String} type
+@param {Array<object>} checks</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_cleanup</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">type</span><span class="p">,</span> <span class="nx">checks</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">message</span> <span class="o">=</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">BROADCAST_TWEEN</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">_removechecks</span> <span class="p">(</span> <span class="nx">type</span><span class="p">,</span> <span class="nx">checks</span> <span class="p">))</span> <span class="p">{</span>
+      <span class="kd">var</span> <span class="nx">global</span> <span class="o">=</span> <span class="nx">checks</span> <span class="p">[</span> <span class="mi">0</span> <span class="p">];</span>
+      <span class="kd">var</span> <span class="nx">sig</span> <span class="o">=</span> <span class="nx">global</span> <span class="o">?</span> <span class="kc">null</span> <span class="o">:</span> <span class="k">this</span><span class="p">.</span><span class="nx">_sig</span><span class="p">;</span>
+      <span class="k">if</span> <span class="p">(</span> <span class="nx">global</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="nx">gui</span><span class="p">.</span><span class="nx">Broadcast</span><span class="p">.</span><span class="nx">removeGlobal</span> <span class="p">(</span> <span class="nx">message</span><span class="p">,</span> <span class="k">this</span> <span class="p">);</span>
+      <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+        <span class="nx">gui</span><span class="p">.</span><span class="nx">Broadcast</span><span class="p">.</span><span class="nx">remove</span> <span class="p">(</span> <span class="nx">message</span><span class="p">,</span> <span class="k">this</span><span class="p">,</span> <span class="k">this</span><span class="p">.</span><span class="nx">_sig</span> <span class="p">);</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+
+<span class="p">});</span></div></div></div></div></body></html>

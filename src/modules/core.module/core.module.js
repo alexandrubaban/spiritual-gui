@@ -1,63 +1,43 @@
-/**
- * @module core
- * @desc Injects methods into {@link gui.Spirit} and such stuff.
- */
+// # Module "core"
+// Injects methods into {gui.Spirit} and such stuff.
 gui.module ( "core", {
-	
-	/*
-	 * Methods added to gui.Spirit.prototype
-	 */
+
+	// Methods added to gui.Spirit.prototype
 	addins : {
 
-		/**
-		 * Handle action.
-		 * @param {gui.Action} action
-		 */
+		// Handle action.
+		// @param {gui.Action} action
 		onaction : function ( action ) {},
 
-		/**
-		 * Handle broadcast.
-		 * @param {gui.Broadcast} broadcast
-		 */
+		// Handle broadcast.
+		// @param {gui.Broadcast} broadcast
 		onbroadcast : function ( broadcast ) {},
 
-		/**
-		 * Handle tick.
-		 * @param {gui.Tick} tick
-		 */
+		// Handle tick.
+		// @param {gui.Tick} tick
 		ontick : function ( tick ) {},
 
-		/**
-		 * Handle tween.
-		 * @param {gui.Tween}
-		 */
+		// Handle tween.
+		// @param {gui.Tween}
 		ontween : function ( tween ) {},
 
-		/**
-		 * Handle transiton end.
-		 * @param {gui.TransitionEnd} transition
-		 */
+		// Handle transiton end.
+		// @param {gui.TransitionEnd} transition
 		ontransition : function ( transition ) {},
 
-		/**
-		 * Handle event.
-		 * @param {Event} event
-		 */
+		// Handle event.
+		// @param {Event} event
 		onevent : function ( event ) {},
 
-		/**
-		 * Implements DOM2 EventListener.
-		 * Forwards to method onevent()
-		 * @param {Event} event
-		 */
+		// Implements DOM2 EventListener.
+		// Forwards to method onevent()
+		// @param {Event} event
 		handleEvent : function ( event ) {
 			this.onevent(event);
 		}
 	},
-	
-	/*
-	 * Assign plugins to prefixes.
-	 */
+
+	// Assign plugins to prefixes.
 	plugins : {
 		
 		action : gui.ActionTracker,
@@ -72,10 +52,8 @@ gui.module ( "core", {
 		transition : gui.TransitionPlugin,
 		attention : gui.AttentionPlugin
 	},
-	
-	/*
-	 * Channel spirits for CSS selectors.
-	 */
+
+	// Channel spirits for CSS selectors.
 	channels : [
 		
 		[ "html", "gui.DocumentSpirit" ],

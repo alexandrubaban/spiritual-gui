@@ -1,15 +1,11 @@
-/**
- * @class
- * From Raganwalds "Method Combinators".
- * @see https://github.com/raganwald/method-combinators/blob/master/README-JS.md
- * @see https://github.com/raganwald/homoiconic/blob/master/2012/09/precondition-and-postcondition.md
- */
+// # gui.Combinator
+// From Raganwalds "Method Combinators".
+// @see https://github.com/raganwald/method-combinators/blob/master/README-JS.md
+// @see https://github.com/raganwald/homoiconic/blob/master/2012/09/precondition-and-postcondition.md
 gui.Combinator = {
 
-	/**
-	 * @param {function} decoration
-	 * @returns {function}
-	 */
+	// @param {function} decoration
+	// @returns {function}
 	before : function ( decoration ) {
 		return function ( base ) {
 			return function () {
@@ -19,10 +15,8 @@ gui.Combinator = {
 		};
 	},
 
-	/**
-	 * @param {function} decoration
-	 * @returns {function}
-	 */
+	// @param {function} decoration
+	// @returns {function}
 	after : function ( decoration ) {
 		return function ( base ) {
 			return function () {
@@ -33,10 +27,8 @@ gui.Combinator = {
 		};
 	},
 
-	/**
-	 * @param {function} decoration
-	 * @returns {function}
-	 */
+	// @param {function} decoration
+	// @returns {function}
 	around : function ( decoration ) {
 		return function ( base ) {
 			return function () {
@@ -52,10 +44,8 @@ gui.Combinator = {
 		};
 	},
 
-	/**
-	 * Note that we added support for an "otherwise" function as the second argument.
-	 * @param {function} condition
-	 */
+	// Note that we added support for an "otherwise" function as the second argument.
+	// @param {function} condition
 	provided : function ( condition ){
 		return function ( base, otherwise ) {
 			return function () {

@@ -1,0 +1,71 @@
+<!DOCTYPE html><html lang="en"><head><title>modules/core.module/plugins/box.plugin/gui.SpiritBox</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content="../../../../"><meta name="groc-document-path" content="modules/core.module/plugins/box.plugin/gui.SpiritBox"><meta name="groc-project-path" content="src/modules/core.module/plugins/box.plugin/gui.SpiritBox.js"><link rel="stylesheet" type="text/css" media="all" href="../../../../assets/style.css"><script type="text/javascript" src="../../../../assets/behavior.js"></script><body><div id="meta"><div class="file-path">src/modules/core.module/plugins/box.plugin/gui.SpiritBox.js</div></div><div id="document"><div class="segment"><div class="comments"><div class="wrapper"><h1 id="guispiritbox">gui.SpiritBox</h1>
+
+<p>Spirit box object.
+@extends {gui.SpiritPlugin}</p></div></div><div class="code"><div class="wrapper"><span class="nx">gui</span><span class="p">.</span><span class="nx">SpiritBox</span> <span class="o">=</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">SpiritPlugin</span><span class="p">.</span><span class="nx">extend</span> <span class="p">(</span> <span class="s2">&quot;gui.SpiritBox&quot;</span><span class="p">,</span> <span class="p">{</span>
+  
+  <span class="nx">width</span>   <span class="o">:</span> <span class="mi">0</span><span class="p">,</span> <span class="c1">// width</span>
+  <span class="nx">height</span>  <span class="o">:</span> <span class="mi">0</span><span class="p">,</span> <span class="c1">// height</span>
+  <span class="nx">localX</span>  <span class="o">:</span> <span class="mi">0</span><span class="p">,</span> <span class="c1">// X relative to positioned ancestor</span>
+  <span class="nx">localY</span>  <span class="o">:</span> <span class="mi">0</span><span class="p">,</span> <span class="c1">// Y relative to positioned ancestor</span>
+  <span class="nx">pageX</span>   <span class="o">:</span> <span class="mi">0</span><span class="p">,</span> <span class="c1">// X relative to the full page (includes scrolling)</span>
+  <span class="nx">pageY</span>   <span class="o">:</span> <span class="mi">0</span><span class="p">,</span> <span class="c1">// Y telative to the full page (includes scrolling)    </span>
+  <span class="nx">clientX</span> <span class="o">:</span> <span class="mi">0</span><span class="p">,</span> <span class="c1">// X relative to the viewport (excludes scroll offset)</span>
+  <span class="nx">clientY</span> <span class="o">:</span> <span class="mi">0</span><span class="p">,</span> <span class="c1">// Y relative to the viewport (excludes scroll offset)</span>
+  <span class="nx">globalX</span> <span class="o">:</span> <span class="mi">0</span><span class="p">,</span> <span class="c1">// TODO</span>
+  <span class="nx">globalY</span> <span class="o">:</span> <span class="mi">0</span><span class="p">,</span> <span class="c1">// TODO,</span>
+  <span class="nx">screenX</span> <span class="o">:</span> <span class="mi">0</span><span class="p">,</span> <span class="c1">// TODO,</span>
+  <span class="nx">screenY</span> <span class="o">:</span> <span class="mi">0</span>  <span class="c1">// TODO</span>
+  
+<span class="p">});</span>
+
+<span class="nb">Object</span><span class="p">.</span><span class="nx">defineProperties</span> <span class="p">(</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">SpiritBox</span><span class="p">.</span><span class="nx">prototype</span><span class="p">,</span> <span class="p">{</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Get width.
+@returns {number}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">width</span> <span class="o">:</span> <span class="p">{</span>
+    <span class="nx">get</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">spirit</span><span class="p">.</span><span class="nx">element</span><span class="p">.</span><span class="nx">offsetWidth</span><span class="p">;</span>
+    <span class="p">}</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Get height.
+@returns {number}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">height</span> <span class="o">:</span> <span class="p">{</span>
+    <span class="nx">get</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">spirit</span><span class="p">.</span><span class="nx">element</span><span class="p">.</span><span class="nx">offsetHeight</span><span class="p">;</span>
+    <span class="p">}</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Get offsetParent left.
+@returns {number}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">localX</span> <span class="o">:</span> <span class="p">{</span>
+    <span class="nx">get</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">spirit</span><span class="p">.</span><span class="nx">element</span><span class="p">.</span><span class="nx">offsetLeft</span><span class="p">;</span>
+    <span class="p">}</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Get offsetParent top.
+@returns {number}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">localY</span> <span class="o">:</span> <span class="p">{</span>
+    <span class="nx">get</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">spirit</span><span class="p">.</span><span class="nx">element</span><span class="p">.</span><span class="nx">offsetTop</span><span class="p">;</span>
+    <span class="p">}</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>@returns {number}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">pageX</span> <span class="o">:</span> <span class="p">{</span>
+    <span class="nx">get</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">clientX</span> <span class="o">+</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">Client</span><span class="p">.</span><span class="nx">scrollRoot</span><span class="p">.</span><span class="nx">scrollLeft</span><span class="p">;</span>
+    <span class="p">}</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>@returns {number}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">pageY</span> <span class="o">:</span> <span class="p">{</span>
+    <span class="nx">get</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+      
+      <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">clientY</span> <span class="o">+</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">Client</span><span class="p">.</span><span class="nx">scrollRoot</span><span class="p">.</span><span class="nx">scrollTop</span><span class="p">;</span>
+    <span class="p">}</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>TODO
+@returns {number}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">globalX</span> <span class="o">:</span> <span class="p">{</span>
+    <span class="nx">get</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+      <span class="nx">console</span><span class="p">.</span><span class="nx">warn</span> <span class="p">(</span> <span class="s2">&quot;@todo gui.SpiritBox.globalX&quot;</span> <span class="p">);</span>
+      <span class="k">return</span> <span class="kc">null</span><span class="p">;</span>
+    <span class="p">}</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>TODO
+@returns {number}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">globalY</span> <span class="o">:</span> <span class="p">{</span>
+    <span class="nx">get</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+      <span class="nx">console</span><span class="p">.</span><span class="nx">warn</span> <span class="p">(</span> <span class="s2">&quot;@todo gui.SpiritBox.globalY&quot;</span> <span class="p">);</span>
+      <span class="k">return</span> <span class="kc">null</span><span class="p">;</span>
+    <span class="p">}</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>@returns {number}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">clientX</span> <span class="o">:</span> <span class="p">{</span>
+    <span class="nx">get</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">spirit</span><span class="p">.</span><span class="nx">element</span><span class="p">.</span><span class="nx">getBoundingClientRect</span> <span class="p">().</span><span class="nx">left</span><span class="p">;</span>
+    <span class="p">}</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>@returns {number}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">clientY</span> <span class="o">:</span> <span class="p">{</span>
+    <span class="nx">get</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">spirit</span><span class="p">.</span><span class="nx">element</span><span class="p">.</span><span class="nx">getBoundingClientRect</span> <span class="p">().</span><span class="nx">top</span><span class="p">;</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">});</span></div></div></div></div></body></html>

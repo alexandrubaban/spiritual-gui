@@ -1,0 +1,309 @@
+<!DOCTYPE html><html lang="en"><head><title>boot/gui.SpiritualAid</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content="../"><meta name="groc-document-path" content="boot/gui.SpiritualAid"><meta name="groc-project-path" content="src/boot/gui.SpiritualAid.js"><link rel="stylesheet" type="text/css" media="all" href="../assets/style.css"><script type="text/javascript" src="../assets/behavior.js"></script><body><div id="meta"><div class="file-path">src/boot/gui.SpiritualAid.js</div></div><div id="document"><div class="segment"><div class="comments"><div class="wrapper"><h1 id="guispiritualaid">gui.SpiritualAid</h1>
+
+<p>Patch potential missing features from ES5 and selected features from ES6.
+@todo Check for collisions with leading brand polyfills</p></div></div><div class="code"><div class="wrapper"><span class="nx">gui</span><span class="p">.</span><span class="nx">SpiritualAid</span> <span class="o">=</span> <span class="p">{</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Polyfill context.
+@param {Window} win
+@param @optional {boolean} worker</p></div></div><div class="code"><div class="wrapper">  <span class="nx">polyfill</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">win</span><span class="p">,</span> <span class="nx">worker</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="s2">&quot;use strict&quot;</span><span class="p">;</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">_strings</span> <span class="p">(</span> <span class="nx">win</span> <span class="p">);</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">_arrays</span>  <span class="p">(</span> <span class="nx">win</span> <span class="p">);</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">_functions</span> <span class="p">(</span> <span class="nx">win</span> <span class="p">);</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">_globals</span> <span class="p">(</span> <span class="nx">win</span> <span class="p">);</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">_extras</span>  <span class="p">(</span> <span class="nx">win</span> <span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="o">!</span><span class="nx">worker</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">_effects</span> <span class="p">(</span> <span class="nx">win</span> <span class="p">);</span>
+    <span class="p">}</span>
+  <span class="p">},</span>
+  
+  </div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>PRIVATES ...............................................................</p></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>@param {object} what
+@param {object} whit</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_extend</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">what</span><span class="p">,</span> <span class="nx">whit</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="nb">Object</span><span class="p">.</span><span class="nx">keys</span> <span class="p">(</span> <span class="nx">whit</span> <span class="p">).</span><span class="nx">forEach</span> <span class="p">(</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">key</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="kd">var</span> <span class="nx">def</span> <span class="o">=</span> <span class="nx">whit</span> <span class="p">[</span> <span class="nx">key</span> <span class="p">];</span>       
+      <span class="k">if</span> <span class="p">(</span> <span class="nx">what</span> <span class="p">[</span> <span class="nx">key</span> <span class="p">]</span> <span class="o">===</span> <span class="kc">undefined</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span> <span class="nx">def</span><span class="p">.</span><span class="nx">get</span> <span class="o">&amp;&amp;</span> <span class="nx">def</span><span class="p">.</span><span class="nx">set</span> <span class="p">)</span> <span class="p">{</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>@todo look at element.dataset polyfill (iOS?)</p></div></div><div class="code"><div class="wrapper">        <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+          <span class="nx">what</span> <span class="p">[</span> <span class="nx">key</span> <span class="p">]</span> <span class="o">=</span> <span class="nx">def</span><span class="p">;</span>
+        <span class="p">}</span>
+      <span class="p">}</span>
+    <span class="p">});</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Patching String.prototype
+@param {Window} win</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_strings</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">win</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">_extend</span> <span class="p">(</span> <span class="nx">win</span><span class="p">.</span><span class="nb">String</span><span class="p">.</span><span class="nx">prototype</span><span class="p">,</span> <span class="p">{</span>
+      <span class="nx">trim</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">replace</span> <span class="p">(</span> <span class="sr">/^\s*/</span><span class="p">,</span> <span class="s2">&quot;&quot;</span> <span class="p">).</span><span class="nx">replace</span> <span class="p">(</span> <span class="sr">/\s*$/</span><span class="p">,</span> <span class="s2">&quot;&quot;</span> <span class="p">);</span>
+      <span class="p">},</span>
+      <span class="nx">repeat</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">n</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="k">new</span> <span class="nx">win</span><span class="p">.</span><span class="nb">Array</span> <span class="p">(</span> <span class="nx">n</span> <span class="o">+</span> <span class="mi">1</span> <span class="p">).</span><span class="nx">join</span> <span class="p">(</span> <span class="k">this</span> <span class="p">);</span>
+      <span class="p">},</span>
+      <span class="nx">startsWith</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">sub</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">indexOf</span> <span class="p">(</span> <span class="nx">sub</span> <span class="p">)</span> <span class="o">===</span> <span class="mi">0</span><span class="p">;</span>
+      <span class="p">},</span>
+      <span class="nx">endsWith</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">sub</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="nx">sub</span> <span class="o">=</span> <span class="nb">String</span> <span class="p">(</span> <span class="nx">sub</span> <span class="p">);</span>
+        <span class="kd">var</span> <span class="nx">i</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">lastIndexOf</span> <span class="p">(</span> <span class="nx">sub</span> <span class="p">);</span>
+        <span class="k">return</span> <span class="nx">i</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="o">&amp;&amp;</span> <span class="nx">i</span> <span class="o">===</span> <span class="k">this</span><span class="p">.</span><span class="nx">length</span> <span class="o">-</span> <span class="nx">sub</span><span class="p">.</span><span class="nx">length</span><span class="p">;</span>
+      <span class="p">},</span>
+      <span class="nx">contains</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">sub</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">indexOf</span> <span class="p">(</span> <span class="nx">sub</span> <span class="p">)</span> <span class="o">&gt;-</span><span class="mi">1</span><span class="p">;</span>
+      <span class="p">},</span>
+      <span class="nx">toArray</span> <span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">split</span> <span class="p">(</span> <span class="s2">&quot;&quot;</span> <span class="p">);</span>
+      <span class="p">}</span>
+    <span class="p">});</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Patching Array versus Array.prototype
+@param {Window} win</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_arrays</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">win</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">_extend</span> <span class="p">(</span> <span class="nx">win</span><span class="p">.</span><span class="nb">Array</span><span class="p">.</span><span class="nx">prototype</span><span class="p">,</span> <span class="p">{</span> <span class="c1">// non-standard, see http://ejohn.org/blog/javascript-array-remove/#comment-296114</span>
+      <span class="nx">remove</span> <span class="o">:</span> <span class="kd">function</span> <span class="nx">remove</span> <span class="p">(</span> <span class="nx">from</span><span class="p">,</span> <span class="nx">to</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">splice</span> <span class="p">(</span> <span class="nx">from</span><span class="p">,</span> <span class="o">!</span><span class="nx">to</span> <span class="o">||</span> <span class="mi">1</span> <span class="o">+</span> <span class="nx">to</span> <span class="o">-</span> <span class="nx">from</span> <span class="o">+</span> <span class="p">(</span> <span class="o">!</span> <span class="p">(</span> <span class="nx">to</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="o">^</span> <span class="nx">from</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="p">(</span> <span class="nx">to</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="o">||</span> <span class="o">-</span><span class="mi">1</span> <span class="p">)</span> <span class="o">*</span> <span class="k">this</span><span class="p">.</span><span class="nx">length</span> <span class="p">));</span>
+        <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">length</span><span class="p">;</span>
+      <span class="p">}</span>
+    <span class="p">});</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">_extend</span> <span class="p">(</span> <span class="nx">win</span><span class="p">.</span><span class="nb">Array</span><span class="p">,</span> <span class="p">{</span>
+      <span class="nx">every</span> <span class="o">:</span> <span class="kd">function</span> <span class="nx">every</span> <span class="p">(</span> <span class="nx">array</span><span class="p">,</span> <span class="nx">fun</span><span class="p">,</span> <span class="nx">thisp</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="kd">var</span> <span class="nx">res</span> <span class="o">=</span> <span class="kc">true</span><span class="p">,</span> <span class="nx">len</span> <span class="o">=</span> <span class="nx">array</span><span class="p">.</span><span class="nx">length</span> <span class="o">&gt;&gt;&gt;</span> <span class="mi">0</span><span class="p">;</span>
+        <span class="k">for</span> <span class="p">(</span> <span class="kd">var</span> <span class="nx">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">i</span> <span class="o">&lt;</span> <span class="nx">len</span><span class="p">;</span> <span class="nx">i</span><span class="o">++</span> <span class="p">)</span> <span class="p">{</span>
+          <span class="k">if</span> <span class="p">(</span> <span class="nx">array</span> <span class="p">[</span> <span class="nx">i</span> <span class="p">]</span> <span class="o">!==</span> <span class="kc">undefined</span> <span class="p">)</span> <span class="p">{</span>
+            <span class="k">if</span> <span class="p">(</span> <span class="o">!</span><span class="nx">fun</span><span class="p">.</span><span class="nx">call</span> <span class="p">(</span> <span class="nx">thisp</span><span class="p">,</span> <span class="nx">array</span> <span class="p">[</span> <span class="nx">i</span> <span class="p">],</span> <span class="nx">i</span><span class="p">,</span> <span class="nx">array</span> <span class="p">))</span> <span class="p">{</span>
+              <span class="nx">res</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
+              <span class="k">break</span><span class="p">;</span>
+            <span class="p">}</span>
+          <span class="p">}</span>
+        <span class="p">}</span>
+        <span class="k">return</span> <span class="nx">res</span><span class="p">;</span>
+      <span class="p">},</span>
+      <span class="nx">forEach</span> <span class="o">:</span> <span class="kd">function</span> <span class="nx">forEach</span> <span class="p">(</span> <span class="nx">array</span><span class="p">,</span> <span class="nx">fun</span><span class="p">,</span> <span class="nx">thisp</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="kd">var</span> <span class="nx">len</span> <span class="o">=</span> <span class="nx">array</span><span class="p">.</span><span class="nx">length</span> <span class="o">&gt;&gt;&gt;</span> <span class="mi">0</span><span class="p">;</span>
+        <span class="k">for</span> <span class="p">(</span> <span class="kd">var</span> <span class="nx">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">i</span> <span class="o">&lt;</span> <span class="nx">len</span><span class="p">;</span> <span class="nx">i</span><span class="o">++</span> <span class="p">)</span> <span class="p">{</span>
+          <span class="k">if</span> <span class="p">(</span> <span class="nx">array</span> <span class="p">[</span> <span class="nx">i</span> <span class="p">]</span> <span class="o">!==</span> <span class="kc">undefined</span> <span class="p">)</span> <span class="p">{</span>
+            <span class="nx">fun</span><span class="p">.</span><span class="nx">call</span> <span class="p">(</span> <span class="nx">thisp</span><span class="p">,</span> <span class="nx">array</span> <span class="p">[</span> <span class="nx">i</span> <span class="p">],</span> <span class="nx">i</span><span class="p">,</span> <span class="nx">array</span> <span class="p">);</span>
+          <span class="p">}</span>
+        <span class="p">}</span>
+      <span class="p">},</span>
+      <span class="nx">map</span> <span class="o">:</span> <span class="kd">function</span> <span class="nx">map</span> <span class="p">(</span> <span class="nx">array</span><span class="p">,</span> <span class="nx">fun</span><span class="p">,</span> <span class="nx">thisp</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="kd">var</span> <span class="nx">m</span> <span class="o">=</span> <span class="p">[],</span> <span class="nx">len</span> <span class="o">=</span> <span class="nx">array</span><span class="p">.</span><span class="nx">length</span> <span class="o">&gt;&gt;&gt;</span> <span class="mi">0</span><span class="p">;</span>
+        <span class="k">for</span> <span class="p">(</span> <span class="kd">var</span> <span class="nx">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">i</span> <span class="o">&lt;</span> <span class="nx">len</span><span class="p">;</span> <span class="nx">i</span><span class="o">++</span> <span class="p">)</span> <span class="p">{</span>
+          <span class="k">if</span> <span class="p">(</span> <span class="nx">array</span> <span class="p">[</span> <span class="nx">i</span> <span class="p">]</span> <span class="o">!==</span> <span class="kc">undefined</span> <span class="p">)</span> <span class="p">{</span>
+            <span class="nx">m</span><span class="p">.</span><span class="nx">push</span> <span class="p">(</span> <span class="nx">fun</span><span class="p">.</span><span class="nx">call</span> <span class="p">(</span> <span class="nx">thisp</span><span class="p">,</span> <span class="nx">array</span> <span class="p">[</span> <span class="nx">i</span> <span class="p">],</span> <span class="nx">i</span><span class="p">,</span> <span class="nx">array</span> <span class="p">));</span>
+          <span class="p">}</span>
+        <span class="p">}</span>
+        <span class="k">return</span> <span class="nx">m</span><span class="p">;</span>
+      <span class="p">},</span>
+      <span class="nx">isArray</span> <span class="o">:</span> <span class="kd">function</span> <span class="nx">isArray</span> <span class="p">(</span> <span class="nx">o</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="nx">win</span><span class="p">.</span><span class="nb">Object</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">toString</span><span class="p">.</span><span class="nx">call</span> <span class="p">(</span> <span class="nx">o</span> <span class="p">)</span> <span class="o">===</span> <span class="s2">&quot;[object Array]&quot;</span><span class="p">;</span>
+      <span class="p">},</span>
+      <span class="nx">concat</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">a1</span><span class="p">,</span> <span class="nx">a2</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="kd">function</span> <span class="nx">map</span> <span class="p">(</span> <span class="nx">e</span> <span class="p">)</span> <span class="p">{</span> <span class="k">return</span> <span class="nx">e</span><span class="p">;</span> <span class="p">}</span>
+        <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">map</span> <span class="p">(</span> <span class="nx">a1</span><span class="p">,</span> <span class="nx">map</span> <span class="p">).</span><span class="nx">concat</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">map</span> <span class="p">(</span> <span class="nx">a2</span><span class="p">,</span> <span class="nx">map</span> <span class="p">));</span>       
+      <span class="p">}</span>
+    <span class="p">});</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Patching Function.prototype
+@param {Window} win</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_functions</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">win</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">_extend</span> <span class="p">(</span> <span class="nx">win</span><span class="p">.</span><span class="nb">Function</span><span class="p">.</span><span class="nx">prototype</span><span class="p">,</span> <span class="p">{</span>
+      <span class="nx">bind</span> <span class="o">:</span> <span class="kd">function</span> <span class="nx">bind</span> <span class="p">(</span> <span class="nx">oThis</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span> <span class="k">typeof</span> <span class="k">this</span> <span class="o">!==</span> <span class="s2">&quot;function&quot;</span> <span class="p">)</span> <span class="p">{</span>
+          <span class="k">throw</span> <span class="k">new</span> <span class="nx">win</span><span class="p">.</span><span class="nx">TypeError</span> <span class="p">(</span> <span class="s2">&quot;Function bind not callable&quot;</span> <span class="p">);</span>
+        <span class="p">}</span>
+        <span class="kd">var</span> <span class="nx">fSlice</span> <span class="o">=</span> <span class="nx">win</span><span class="p">.</span><span class="nb">Array</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">slice</span><span class="p">,</span>
+          <span class="nx">aArgs</span> <span class="o">=</span> <span class="nx">fSlice</span><span class="p">.</span><span class="nx">call</span> <span class="p">(</span> <span class="nx">arguments</span><span class="p">,</span> <span class="mi">1</span> <span class="p">),</span>
+          <span class="nx">fToBind</span> <span class="o">=</span> <span class="k">this</span><span class="p">,</span>
+          <span class="nx">Fnop</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{},</span>
+          <span class="nx">fBound</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+            <span class="k">return</span> <span class="nx">fToBind</span><span class="p">.</span><span class="nx">apply</span><span class="p">(</span>
+              <span class="k">this</span> <span class="k">instanceof</span> <span class="nx">Fnop</span> <span class="o">?</span> <span class="k">this</span> <span class="o">:</span> <span class="nx">oThis</span> <span class="o">||</span> <span class="nx">win</span><span class="p">,</span>
+              <span class="nx">aArgs</span><span class="p">.</span><span class="nx">concat</span> <span class="p">(</span> <span class="nx">fSlice</span><span class="p">.</span><span class="nx">call</span> <span class="p">(</span> <span class="nx">arguments</span> <span class="p">))</span>
+            <span class="p">);</span>
+          <span class="p">};</span>
+        <span class="nx">Fnop</span><span class="p">.</span><span class="nx">prototype</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">prototype</span><span class="p">;</span>
+        <span class="nx">fBound</span><span class="p">.</span><span class="nx">prototype</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Fnop</span><span class="p">();</span>
+          <span class="k">return</span> <span class="nx">fBound</span><span class="p">;</span>
+      <span class="p">}</span>
+    <span class="p">});</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Global objects Map and Set patched for <em>performance</em>, should only be used with primitive keys. 
+Need more? Include this before Spiritual loads: http://github.com/paulmillr/es6-shim
+@param {Window} win</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_globals</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">win</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">_extend</span> <span class="p">(</span> <span class="nx">win</span><span class="p">,</span> <span class="p">{</span> <span class="c1">// @todo investigate support for Object.getPrototypeOf ( win )</span>
+      <span class="nx">console</span> <span class="o">:</span> <span class="p">{</span>
+        <span class="nx">log</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{},</span>
+        <span class="nx">debug</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{},</span>
+        <span class="nx">warn</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{},</span>
+        <span class="nx">error</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{}</span>
+      <span class="p">},</span>      
+      <span class="nx">Map</span> <span class="o">:</span> <span class="p">(</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>     
+        <span class="kd">function</span> <span class="nx">Map</span> <span class="p">()</span> <span class="p">{</span>
+          <span class="k">this</span><span class="p">.</span><span class="nx">_map</span> <span class="o">=</span> <span class="nb">Object</span><span class="p">.</span><span class="nx">create</span> <span class="p">(</span> <span class="kc">null</span> <span class="p">);</span>
+        <span class="p">}</span>
+        <span class="nx">Map</span><span class="p">.</span><span class="nx">prototype</span> <span class="o">=</span> <span class="p">{</span>
+          <span class="nx">isNative</span> <span class="o">:</span> <span class="kc">false</span><span class="p">,</span>
+          <span class="nx">get</span> <span class="o">:</span> <span class="kd">function</span> <span class="nx">get</span> <span class="p">(</span> <span class="nx">key</span> <span class="p">)</span> <span class="p">{</span>
+            <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">_map</span> <span class="p">[</span> <span class="nx">key</span> <span class="p">];</span>
+          <span class="p">},</span>
+          <span class="nx">set</span> <span class="o">:</span> <span class="kd">function</span> <span class="nx">set</span> <span class="p">(</span> <span class="nx">key</span><span class="p">,</span> <span class="nx">val</span> <span class="p">)</span> <span class="p">{</span>
+            <span class="k">this</span><span class="p">.</span><span class="nx">_map</span> <span class="p">[</span> <span class="nx">key</span> <span class="p">]</span> <span class="o">=</span> <span class="nx">val</span><span class="p">;</span>
+          <span class="p">},</span>
+          <span class="nx">has</span> <span class="o">:</span> <span class="kd">function</span> <span class="nx">has</span> <span class="p">(</span> <span class="nx">key</span> <span class="p">)</span> <span class="p">{</span>
+            <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">_map</span> <span class="p">[</span> <span class="nx">key</span> <span class="p">]</span> <span class="o">!==</span> <span class="kc">undefined</span><span class="p">;</span>
+          <span class="p">},</span>
+          <span class="s2">&quot;delete&quot;</span> <span class="o">:</span> <span class="kd">function</span> <span class="nx">get</span> <span class="p">(</span> <span class="nx">key</span> <span class="p">)</span> <span class="p">{</span>
+            <span class="k">delete</span> <span class="k">this</span><span class="p">.</span><span class="nx">_map</span> <span class="p">[</span> <span class="nx">key</span> <span class="p">];</span>
+          <span class="p">},</span>
+          <span class="nx">size</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+            <span class="k">return</span> <span class="nb">Object</span><span class="p">.</span><span class="nx">keys</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">_map</span> <span class="p">).</span><span class="nx">length</span><span class="p">;</span>
+          <span class="p">}</span>
+        <span class="p">};</span>
+        <span class="k">return</span> <span class="nx">Map</span><span class="p">;</span>
+      <span class="p">})(),</span>
+      <span class="nx">Set</span> <span class="o">:</span> <span class="p">(</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+        <span class="kd">function</span> <span class="nx">Set</span> <span class="p">()</span> <span class="p">{</span>
+          <span class="k">this</span><span class="p">.</span><span class="nx">_map</span> <span class="o">=</span> <span class="nb">Object</span><span class="p">.</span><span class="nx">create</span> <span class="p">(</span> <span class="kc">null</span> <span class="p">);</span>
+        <span class="p">}</span>
+        <span class="nx">Set</span><span class="p">.</span><span class="nx">prototype</span> <span class="o">=</span> <span class="p">{</span>
+          <span class="nx">isNative</span> <span class="o">:</span> <span class="kc">false</span><span class="p">,</span>
+          <span class="nx">add</span> <span class="o">:</span> <span class="kd">function</span> <span class="nx">set</span> <span class="p">(</span> <span class="nx">key</span> <span class="p">)</span> <span class="p">{</span>
+            <span class="k">this</span><span class="p">.</span><span class="nx">_map</span> <span class="p">[</span> <span class="nx">key</span> <span class="p">]</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+          <span class="p">},</span>
+          <span class="nx">has</span> <span class="o">:</span> <span class="kd">function</span> <span class="nx">has</span> <span class="p">(</span> <span class="nx">key</span> <span class="p">)</span> <span class="p">{</span>
+            <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">_map</span> <span class="p">[</span> <span class="nx">key</span> <span class="p">]</span> <span class="o">===</span> <span class="kc">true</span><span class="p">;</span>
+          <span class="p">},</span>
+          <span class="s2">&quot;delete&quot;</span> <span class="o">:</span> <span class="kd">function</span> <span class="nx">get</span> <span class="p">(</span> <span class="nx">key</span> <span class="p">)</span> <span class="p">{</span>
+            <span class="k">delete</span> <span class="k">this</span><span class="p">.</span><span class="nx">_map</span> <span class="p">[</span> <span class="nx">key</span> <span class="p">];</span>
+          <span class="p">},</span>
+          <span class="nx">size</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+            <span class="k">return</span> <span class="nb">Object</span><span class="p">.</span><span class="nx">keys</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">_map</span> <span class="p">).</span><span class="nx">length</span><span class="p">;</span>
+          <span class="p">}</span>
+        <span class="p">};</span>
+        <span class="k">return</span> <span class="nx">Set</span><span class="p">;</span>
+      <span class="p">})(),</span>
+      <span class="nx">WeakMap</span> <span class="o">:</span> <span class="p">(</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span> <span class="c1">// @todo clean this up</span>
+        <span class="kd">function</span> <span class="nx">WeakMap</span> <span class="p">()</span> <span class="p">{</span>
+            <span class="kd">var</span> <span class="nx">keys</span> <span class="o">=</span> <span class="p">[],</span> <span class="nx">values</span> <span class="o">=</span> <span class="p">[];</span>
+            <span class="kd">function</span> <span class="nx">del</span><span class="p">(</span><span class="nx">key</span><span class="p">)</span> <span class="p">{</span>
+              <span class="k">if</span> <span class="p">(</span><span class="nx">has</span><span class="p">(</span><span class="nx">key</span><span class="p">))</span> <span class="p">{</span>
+                <span class="nx">keys</span><span class="p">.</span><span class="nx">splice</span><span class="p">(</span><span class="nx">i</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+                <span class="nx">values</span><span class="p">.</span><span class="nx">splice</span><span class="p">(</span><span class="nx">i</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+              <span class="p">}</span>
+              <span class="k">return</span> <span class="o">-</span><span class="mi">1</span> <span class="o">&lt;</span> <span class="nx">i</span><span class="p">;</span>
+            <span class="p">}</span>
+            <span class="kd">function</span> <span class="nx">get</span><span class="p">(</span><span class="nx">key</span><span class="p">,</span> <span class="nx">d3fault</span><span class="p">)</span> <span class="p">{</span>
+              <span class="k">return</span> <span class="nx">has</span><span class="p">(</span><span class="nx">key</span><span class="p">)</span> <span class="o">?</span> <span class="nx">values</span><span class="p">[</span><span class="nx">i</span><span class="p">]</span> <span class="o">:</span> <span class="nx">d3fault</span><span class="p">;</span>
+            <span class="p">}</span>
+            <span class="kd">function</span> <span class="nx">has</span><span class="p">(</span><span class="nx">key</span><span class="p">)</span> <span class="p">{</span>
+              <span class="nx">i</span> <span class="o">=</span> <span class="nx">indexOf</span><span class="p">.</span><span class="nx">call</span><span class="p">(</span><span class="nx">keys</span><span class="p">,</span> <span class="nx">key</span><span class="p">);</span>
+              <span class="k">return</span> <span class="o">-</span><span class="mi">1</span> <span class="o">&lt;</span> <span class="nx">i</span><span class="p">;</span>
+            <span class="p">}</span>
+            <span class="kd">function</span> <span class="nx">set</span><span class="p">(</span><span class="nx">key</span><span class="p">,</span> <span class="nx">value</span><span class="p">)</span> <span class="p">{</span>
+              <span class="k">if</span> <span class="p">(</span> <span class="nx">has</span><span class="p">(</span><span class="nx">key</span><span class="p">))</span> <span class="p">{</span>
+                <span class="nx">values</span><span class="p">[</span><span class="nx">i</span><span class="p">]</span> <span class="o">=</span> <span class="nx">value</span><span class="p">;</span>
+              <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+                <span class="nx">values</span><span class="p">[</span><span class="nx">keys</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">key</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="nx">value</span><span class="p">;</span>
+              <span class="p">}</span>
+            <span class="p">}</span>
+            <span class="k">return</span> <span class="nx">create</span><span class="p">(</span><span class="nx">WeakMapPrototype</span><span class="p">,</span> <span class="p">{</span>
+              <span class="nx">isNative</span> <span class="o">:</span> <span class="p">{</span><span class="nx">value</span> <span class="o">:</span> <span class="kc">false</span><span class="p">},</span>
+              <span class="s2">&quot;delete&quot;</span><span class="o">:</span> <span class="p">{</span><span class="nx">value</span><span class="o">:</span> <span class="nx">del</span><span class="p">},</span>
+              <span class="nx">del</span><span class="o">:</span> <span class="p">{</span><span class="nx">value</span><span class="o">:</span> <span class="nx">del</span><span class="p">},</span>
+              <span class="nx">get</span><span class="o">:</span> <span class="p">{</span><span class="nx">value</span><span class="o">:</span> <span class="nx">get</span><span class="p">},</span>
+              <span class="nx">has</span><span class="o">:</span> <span class="p">{</span><span class="nx">value</span><span class="o">:</span> <span class="nx">has</span><span class="p">},</span>
+              <span class="nx">set</span><span class="o">:</span> <span class="p">{</span><span class="nx">value</span><span class="o">:</span> <span class="nx">set</span><span class="p">}</span>
+            <span class="p">});</span>
+          <span class="p">}</span>
+          <span class="kd">function</span> <span class="nx">WeakMapInstance</span> <span class="p">()</span> <span class="p">{}</span>
+          <span class="kd">var</span> <span class="nb">Object</span> <span class="o">=</span> <span class="nx">win</span><span class="p">.</span><span class="nb">Object</span><span class="p">,</span> 
+            <span class="nx">WeakMapPrototype</span> <span class="o">=</span> <span class="nx">WeakMap</span><span class="p">.</span><span class="nx">prototype</span><span class="p">,</span>
+            <span class="nx">create</span> <span class="o">=</span> <span class="nb">Object</span><span class="p">.</span><span class="nx">create</span><span class="p">,</span> 
+            <span class="nx">indexOf</span> <span class="o">=</span> <span class="p">[].</span><span class="nx">indexOf</span><span class="p">,</span> <span class="nx">i</span><span class="p">;</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>used to follow FF behavior where WeakMap.prototype is a WeakMap itself</p></div></div><div class="code"><div class="wrapper">          <span class="nx">WeakMap</span><span class="p">.</span><span class="nx">prototype</span> <span class="o">=</span> <span class="nx">WeakMapInstance</span><span class="p">.</span><span class="nx">prototype</span> <span class="o">=</span> <span class="nx">WeakMapPrototype</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">WeakMap</span><span class="p">();</span>
+          <span class="k">return</span> <span class="nx">WeakMap</span><span class="p">;</span>
+      <span class="p">})()</span>
+    <span class="p">});</span>
+  <span class="p">},</span>
+
+  <span class="cm">/*</span>
+<span class="cm">  _element : function ( win ) {</span>
+<span class="cm">    function camelcase ( string ) {</span>
+<span class="cm">      return string.replace ( /-([a-z])/ig, function ( all, letter ) {</span>
+<span class="cm">        return letter.toUpperCase();</span>
+<span class="cm">      });</span>
+<span class="cm">    }</span>
+<span class="cm">    this._extend ( win.Element.prototype, {</span>
+<span class="cm">      dataset : {</span>
+<span class="cm">        get : function () {</span>
+<span class="cm">          var set = Object.create ( null );</span>
+<span class="cm">          Array.forEach ( this.attributes, function ( att ) {</span>
+<span class="cm">            if ( att.name.startsWith ( &quot;data-&quot; )) {}</span>
+<span class="cm">          });</span>
+<span class="cm">          return set;</span>
+<span class="cm">        },</span>
+<span class="cm">        set : function ( val ) {}</span>
+<span class="cm">      }</span>
+<span class="cm">    });</span>
+<span class="cm">  },</span>
+<span class="cm">  */</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Patching cheap DHTML effects with super-simplistic polyfills.
+@param [Window} win</p></div></div><div class="code"><div class="wrapper">  <span class="nx">_effects</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">win</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">_extend</span> <span class="p">(</span> <span class="nx">win</span><span class="p">,</span> <span class="p">{</span>
+      <span class="nx">requestAnimationFrame</span> <span class="o">:</span> <span class="p">(</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+        <span class="kd">var</span> <span class="nx">func</span> <span class="o">=</span> 
+          <span class="nx">win</span><span class="p">.</span><span class="nx">requestAnimationFrame</span> <span class="o">||</span> 
+          <span class="nx">win</span><span class="p">.</span><span class="nx">webkitRequestAnimationFrame</span> <span class="o">||</span> 
+          <span class="nx">win</span><span class="p">.</span><span class="nx">mozRequestAnimationFrame</span> <span class="o">||</span> 
+          <span class="nx">win</span><span class="p">.</span><span class="nx">oRequestAnimationFrame</span> <span class="o">||</span> 
+          <span class="nx">win</span><span class="p">.</span><span class="nx">msRequestAnimationFrame</span> <span class="o">||</span> 
+          <span class="p">(</span><span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+            <span class="kd">var</span> <span class="nx">lastTime</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+            <span class="k">return</span> <span class="kd">function</span><span class="p">(</span><span class="nx">callback</span><span class="p">,</span> <span class="nx">element</span><span class="p">)</span> <span class="p">{</span>
+              <span class="kd">var</span> <span class="nx">currTime</span> <span class="o">=</span> <span class="k">new</span> <span class="nb">Date</span><span class="p">().</span><span class="nx">getTime</span><span class="p">();</span>
+              <span class="kd">var</span> <span class="nx">timeToCall</span> <span class="o">=</span> <span class="nb">Math</span><span class="p">.</span><span class="nx">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">16</span> <span class="o">-</span> <span class="p">(</span><span class="nx">currTime</span> <span class="o">-</span> <span class="nx">lastTime</span><span class="p">));</span>
+              <span class="kd">var</span> <span class="nx">id</span> <span class="o">=</span> <span class="nb">window</span><span class="p">.</span><span class="nx">setTimeout</span><span class="p">(</span><span class="kd">function</span><span class="p">()</span> <span class="p">{</span> <span class="nx">callback</span><span class="p">(</span><span class="nx">currTime</span> <span class="o">+</span> <span class="nx">timeToCall</span><span class="p">);</span> <span class="p">},</span> 
+                <span class="nx">timeToCall</span><span class="p">);</span>
+              <span class="nx">lastTime</span> <span class="o">=</span> <span class="nx">currTime</span> <span class="o">+</span> <span class="nx">timeToCall</span><span class="p">;</span>
+              <span class="k">return</span> <span class="nx">id</span><span class="p">;</span>
+            <span class="p">};</span>
+          <span class="p">}());</span>
+          <span class="k">return</span> <span class="nx">func</span><span class="p">;</span>
+      <span class="p">})(),</span>
+
+      <span class="cm">/*</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>@todo cancelAnimationFrame!</p></div></div><div class="code"><div class="wrapper"><span class="cm">      if (!window.cancelAnimationFrame)</span>
+<span class="cm">        window.cancelAnimationFrame = function(id) {</span>
+<span class="cm">        clearTimeout(id);</span>
+<span class="cm">      };</span>
+<span class="cm">      */</span>
+      
+      <span class="nx">setImmediate</span> <span class="o">:</span> <span class="p">(</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+        <span class="kd">var</span> <span class="nx">list</span> <span class="o">=</span> <span class="p">[],</span> <span class="nx">handle</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+        <span class="kd">var</span> <span class="nx">name</span> <span class="o">=</span> <span class="s2">&quot;spiritual:emulated:setimmediate&quot;</span><span class="p">;</span>
+        <span class="nx">win</span><span class="p">.</span><span class="nx">addEventListener</span> <span class="p">(</span> <span class="s2">&quot;message&quot;</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">e</span> <span class="p">)</span> <span class="p">{</span>
+          <span class="k">if</span> <span class="p">(</span> <span class="nx">e</span><span class="p">.</span><span class="nx">data</span> <span class="o">===</span> <span class="nx">name</span> <span class="o">&amp;&amp;</span> <span class="nx">list</span><span class="p">.</span><span class="nx">length</span> <span class="p">)</span> <span class="p">{</span>
+            <span class="nx">list</span><span class="p">.</span><span class="nx">shift</span> <span class="p">().</span><span class="nx">apply</span> <span class="p">(</span> <span class="nx">win</span> <span class="p">);</span>
+            <span class="nx">e</span><span class="p">.</span><span class="nx">stopPropagation</span> <span class="p">();</span>
+          <span class="p">}</span>
+        <span class="p">},</span> <span class="kc">false</span> <span class="p">);</span>
+        <span class="k">return</span> <span class="kd">function</span> <span class="nx">emulated</span> <span class="p">(</span> <span class="nx">func</span> <span class="p">)</span> <span class="p">{</span>
+          <span class="nx">list</span><span class="p">.</span><span class="nx">push</span> <span class="p">(</span> <span class="nx">func</span> <span class="p">);</span> 
+          <span class="nx">win</span><span class="p">.</span><span class="nx">postMessage</span> <span class="p">(</span> <span class="nx">name</span><span class="p">,</span> <span class="s2">&quot;*&quot;</span> <span class="p">);</span>
+          <span class="k">return</span> <span class="nx">handle</span> <span class="o">++</span><span class="p">;</span>
+        <span class="p">};</span>
+      <span class="p">})()</span>
+    <span class="p">});</span>
+  <span class="p">},</span>
+  
+  <span class="cm">/**</span>
+<span class="cm">   * @param {Window} win</span>
+<span class="cm">   */</span>
+  <span class="nx">_extras</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">win</span> <span class="p">)</span> <span class="p">{</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>alias delete for Map</p></div></div><div class="code"><div class="wrapper">    <span class="k">this</span><span class="p">.</span><span class="nx">_extend</span> <span class="p">(</span> <span class="nx">win</span><span class="p">.</span><span class="nx">Map</span><span class="p">.</span><span class="nx">prototype</span><span class="p">,</span> <span class="p">{</span>
+      <span class="nx">del</span> <span class="o">:</span> <span class="kd">function</span> <span class="nx">del</span> <span class="p">(</span> <span class="nx">key</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="k">this</span> <span class="p">[</span> <span class="s2">&quot;delete&quot;</span> <span class="p">](</span> <span class="nx">key</span> <span class="p">);</span>
+      <span class="p">}</span>
+    <span class="p">});</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>alias delete for Set</p></div></div><div class="code"><div class="wrapper">    <span class="k">this</span><span class="p">.</span><span class="nx">_extend</span> <span class="p">(</span> <span class="nx">win</span><span class="p">.</span><span class="nx">Set</span><span class="p">.</span><span class="nx">prototype</span><span class="p">,</span> <span class="p">{</span>
+      <span class="nx">del</span> <span class="o">:</span> <span class="kd">function</span> <span class="nx">del</span> <span class="p">(</span> <span class="nx">key</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="k">this</span> <span class="p">[</span> <span class="s2">&quot;delete&quot;</span> <span class="p">](</span> <span class="nx">key</span> <span class="p">);</span>
+      <span class="p">}</span>
+    <span class="p">});</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>console.debug bad in IE</p></div></div><div class="code"><div class="wrapper">    <span class="k">this</span><span class="p">.</span><span class="nx">_extend</span> <span class="p">(</span> <span class="nx">win</span><span class="p">.</span><span class="nx">console</span><span class="p">,</span> <span class="p">{</span>
+      <span class="nx">debug</span> <span class="o">:</span> <span class="nx">win</span><span class="p">.</span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span>
+    <span class="p">});</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Hotfix IE</p></div></div><div class="code"><div class="wrapper">    <span class="k">this</span><span class="p">.</span><span class="nx">_extend</span> <span class="p">(</span> <span class="nx">XMLHttpRequest</span><span class="p">.</span><span class="nx">prototype</span><span class="p">,</span> <span class="p">{</span>
+      <span class="nx">overrideMimeType</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{}</span>
+    <span class="p">});</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Safari on iPad has no constants to reflect request state</p></div></div><div class="code"><div class="wrapper">    <span class="k">this</span><span class="p">.</span><span class="nx">_extend</span> <span class="p">(</span> <span class="nx">win</span><span class="p">.</span><span class="nx">XMLHttpRequest</span><span class="p">,</span> <span class="p">{</span>
+      <span class="nx">UNSENT</span> <span class="o">:</span> <span class="mi">0</span><span class="p">,</span>
+      <span class="nx">OPENED</span> <span class="o">:</span> <span class="mi">1</span><span class="p">,</span>
+      <span class="nx">HEADERS_RECEIVED</span> <span class="o">:</span> <span class="mi">2</span><span class="p">,</span>
+      <span class="nx">LOADING</span> <span class="o">:</span> <span class="mi">3</span><span class="p">,</span>
+      <span class="nx">DONE</span> <span class="o">:</span> <span class="mi">4</span>
+    <span class="p">});</span>
+  <span class="p">}</span>
+<span class="p">};</span></div></div></div></div></body></html>

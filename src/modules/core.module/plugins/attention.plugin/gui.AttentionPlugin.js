@@ -1,19 +1,14 @@
-/**
- * @class
- * Keyboard TAB manager. To be exported out of Spiritual core.
- * @extends {gui.SpiritTracker}
- * @todo nested attention traps (conflicts with missing focusin in FF?)
- * @todo empty queue when user moves escapes (all) attention traps?
- * @todo more life cycle hookins (hide, show, detach, exit)
- */
+// # gui.AttentionPlugin
+// Keyboard TAB manager (to be exported out of Spiritual core).
+// @extends {gui.SpiritTracker}
+// @todo nested attention traps (conflicts with missing focusin in FF?)
+// @todo empty queue when user moves escapes (all) attention traps?
+// @todo more life cycle hookins (hide, show, detach, exit)
 gui.AttentionPlugin = gui.SpiritPlugin.extend ( "gui.AttentionPlugin", {
 
-	/**
-	 * Trapping TAB navigation inside the spirit subtree.
-	 * @returns {gui.AttentionPlugin}
-	 */
+	// Trapping TAB navigation inside the spirit subtree.
+	// @returns {gui.AttentionPlugin}
 	trap : function () {
-
 		if ( !this._trapping ) {
 			this._trapping = true;
 			this._listen ();
@@ -22,12 +17,9 @@ gui.AttentionPlugin = gui.SpiritPlugin.extend ( "gui.AttentionPlugin", {
 		return this;
 	},
 
-	/**
-	 * Focus the last focused  element, defaulting to first focusable element.
-	 * @returns {gui.AttentionPlugin}
-	 */
+	// Focus the last focused  element, defaulting to first focusable element.
+	// @returns {gui.AttentionPlugin}
 	focus : function () {
-
 		if ( !this._focused ) {
 			if ( this._latest ) {
 				this._latest.focus ();
@@ -38,18 +30,14 @@ gui.AttentionPlugin = gui.SpiritPlugin.extend ( "gui.AttentionPlugin", {
 		return this;
 	},
 
-	/**
-	 * Blur anything that might be focused.
-	 * @returns {gui.AttentionPlugin}
-	 */
+	// Blur anything that might be focused.
+	// @returns {gui.AttentionPlugin}
 	blur : function () {
-
 		// @todo definitely not like this...
 		gui.Broadcast.dispatchGlobal ( null,
 			gui.BROADCAST_ATTENTION_OFF,
 			this.spirit.spiritkey
 		);
-
 		if ( this._focused ) {
 			if ( this._latest ) {
 				this._latest.blur ();
@@ -58,12 +46,9 @@ gui.AttentionPlugin = gui.SpiritPlugin.extend ( "gui.AttentionPlugin", {
 		return this;
 	},
 
-	/*
-	 * Something was focused or blurred.
-	 * @param {Event} e
-	 */
+	// Something was focused or blurred.
+	// @param {Event} e
 	handleEvent : function ( e ) {
-
 		switch ( e.type ) {
 			case "blur" :
 			case "focusout" :
@@ -76,12 +61,9 @@ gui.AttentionPlugin = gui.SpiritPlugin.extend ( "gui.AttentionPlugin", {
 		}
 	},
 
-	/*
-	 * Handle broadcast.
-	 * @param {gui.Broadcast} b
-	 */
+	// Handle broadcast.
+	// @param {gui.Broadcast} b
 	onbroadcast : function ( b ) {
-
 		if ( b.type === gui.BROADCAST_ATTENTION_GO ) {
 			if ( b.data === this.spirit.spiritkey ) {
 				this.focus ();
@@ -89,12 +71,9 @@ gui.AttentionPlugin = gui.SpiritPlugin.extend ( "gui.AttentionPlugin", {
 		}
 	},
 
-	/*
-	 * Handle spirit life cycle.
-	 * @param {gui.SpiritLife} life
-	 */
+	// Handle spirit life cycle.
+	// @param {gui.SpiritLife} life
 	onlife : function ( life ) {
-
 		switch ( life.type ) {
 			case gui.SpiritLife.DESTRUCT :
 				gui.Broadcast.removeGlobal ( gui.BROADCAST_ATTENTION_GO, this );
@@ -109,30 +88,21 @@ gui.AttentionPlugin = gui.SpiritPlugin.extend ( "gui.AttentionPlugin", {
 
 	// PRIVATES ........................................................................
 
-	/*
-	 * Trapping attention?
-	 * @type {boolean}
-	 */
+	// Trapping attention?
+	// @type {boolean}
 	_trapping : null,
 
-	/*
-	 * Latest focused element.
-	 * @type {Element}
-	 */
+	// Latest focused element.
+	// @type {Element}
 	_latest : null,
 
-	/*
-	 * Used to determine whether attention trap was just entered.
-	 * @type {number}
-	 */
+	// Used to determine whether attention trap was just entered.
+	// @type {number}
 	_flag : false,
 
-	/*
-	 * Append hidden inputs. When these are 
-	 * focused, we move the focus elsewhere.
-	 */
+	// Append hidden inputs. When these are 
+	// focused, we move the focus elsewhere.
 	_setup : function () {
-
 		[ "before", "after" ].forEach ( function ( pos ) {
 			var elm = this._input ( pos );
 			var dom = this.spirit.dom;
@@ -144,12 +114,9 @@ gui.AttentionPlugin = gui.SpiritPlugin.extend ( "gui.AttentionPlugin", {
 		}, this );
 	},
 
-	/*
-	 * Listen for all sorts of stuff going on.
-	 * @todo use focusin and focusout for IE/Opera?
-	 */
+	// Listen for all sorts of stuff going on.
+	// @todo use focusin and focusout for IE/Opera?
 	_listen : function () {
-
 		var elm = this.spirit.element;
 		elm.addEventListener ( "focus", this, true );
 		elm.addEventListener ( "blur", this, true );
@@ -157,15 +124,12 @@ gui.AttentionPlugin = gui.SpiritPlugin.extend ( "gui.AttentionPlugin", {
 		gui.Broadcast.addGlobal ( gui.BROADCAST_ATTENTION_GO, this );
 	},
 
-	/*
-	 * Insert hidden input at position.
-	 * @todo how to *keep* inputs at first and last position?
-	 * @todo removeEventListener on dispose perhaps
-	 * @param {String} pos
-	 * @returns {Element}
-	 */
+	// Insert hidden input at position.
+	// @todo how to *keep* inputs at first and last position?
+	// @todo removeEventListener on dispose perhaps
+	// @param {String} pos
+	// @returns {Element}
 	_input : function ( pos ) {
-
 		var dom = this.spirit.dom;
 		var doc = this.spirit.document;
 		var elm = gui.SpiritCSS.style ( 
@@ -175,35 +139,25 @@ gui.AttentionPlugin = gui.SpiritPlugin.extend ( "gui.AttentionPlugin", {
 				top: -5000
 			}
 		);
-
 		elm.className = "_gui-focus_" + pos;
 		return elm;
 	},
 
-	/*
-	 * Focus first element and return it.
-	 * @returns {Element}
-	 */
+	// Focus first element and return it.
+	// @returns {Element}
 	_first : function () {
-
 		return this._find ( true );
 	},
 
-	/*
-	 * Focus last element and return it.
-	 * @returns {Element}
-	 */
+	// Focus last element and return it.
+	// @returns {Element}
 	_last : function () {
-		
 		return this._find ( false );
 	},
 
-	/*
-	 * Find first or last form control.
-	 * @param {boolean} isfirst
-	 */
+	// Find first or last form control.
+	// @param {boolean} isfirst
 	_find : function ( isfirst ) {
-
 		var elm = null, all = this._elements ();
 		if ( all.length ) {
 			elm = all [ isfirst ? 0 : all.length - 1 ];
@@ -212,25 +166,19 @@ gui.AttentionPlugin = gui.SpiritPlugin.extend ( "gui.AttentionPlugin", {
 		return elm;
 	},
 
-	/*
-	 * List descendant form controls *plus* links except input @type="image".
-	 * @returns {Array<Element>}
-	 */
+	// List descendant form controls *plus* links except input @type="image".
+	// @returns {Array<Element>}
 	_elements : function () {
-
 		return this.spirit.dom.descendants ().filter ( function ( elm ) {
 			return this._focusable ( elm ) ? elm : undefined;
 		}, this );
 	},
 
-	/*
-	 * Element is focusable form control or link?
-	 * Excluding the hidden inputs for TAB contain.
-	 * @param {Element} elm
-	 * @returns {boolean}
-	 */
+	// Element is focusable form control or link?
+	// Excluding the hidden inputs for TAB contain.
+	// @param {Element} elm
+	// @returns {boolean}
 	_focusable : function ( elm ) {
-
 		var is = false;
 		switch ( elm.localName ) {
 			case "input" :
@@ -250,21 +198,16 @@ gui.AttentionPlugin = gui.SpiritPlugin.extend ( "gui.AttentionPlugin", {
 		return is;
 	},
 
-	/*
-	 * Something was focused.
-	 * @param {Element} elm
-	 */
+	// Something was focused.
+	// @param {Element} elm
 	_onfocus : function ( elm ) {
-
 		this._focused = true;
 		this._latest = elm;
-
 		// first time focus?
 		if ( !this._flag ) {
 			this._didcatch ();
 			this._flat = true;
 		}
-
 		// was hidden input?
 		var klas = elm.className;
 		if ( klas.startsWith ( "_gui-focus" )) {
@@ -276,11 +219,8 @@ gui.AttentionPlugin = gui.SpiritPlugin.extend ( "gui.AttentionPlugin", {
 		}
 	},
 
-	/*
-	 * Something was blurred.
-	 */
+	// Something was blurred.
 	_onblur : function ( node ) {
-
 		this._focused = false;
 		gui.Tick.next ( function () {
 			if ( !this._focused ) {
@@ -289,56 +229,40 @@ gui.AttentionPlugin = gui.SpiritPlugin.extend ( "gui.AttentionPlugin", {
 		}, this );
 	},
 
-	/*
-	 * Attention trap entered.
-	 */
+	// Attention trap entered.
 	_didcatch : function () {
-
 		gui.Broadcast.dispatchGlobal ( null,
 			gui.BROADCAST_ATTENTION_ON,
 			this.spirit.spiritkey
 		);
 	},
 
-	/*
-	 * Attention trap escaped.
-	 */
+	// Attention trap escaped.
 	_didescape : function () {
-
 		this._flag = false;
-		/*
 		gui.Broadcast.dispatchGlobal ( null,
 			gui.BROADCAST_ATTENTION_OFF,
 			this.spirit.spiritkey
 		);
-		*/
 	}
 
 
 }, { // STATICS ........................................................................
 
-	/*
-	 * @type {Array<String>}
-	 */
+	// @type {Array<String>}
 	_queue : [],
 
-	/*
-	 * Get next in line.
-	 * @todo continue until next is not hidden.
-	 * @returns {String}
-	 */
+	// Get next in line.
+	// @todo continue until next is not hidden.
+	// @returns {String}
 	_next : function () {
-
 		var q = this._queue; 
 		return q [ q.length - 1 ];
 	},
 
-	/*
-	 * Handle broadcast.
-	 * @param {gui.Broadcast} b
-	 */
+	// Handle broadcast.
+	// @param {gui.Broadcast} b
 	onbroadcast : function ( b ) {
-
 		var q = this._queue;
 		switch ( b.type ) {
 			case gui.BROADCAST_ATTENTION_ON :
@@ -364,14 +288,10 @@ gui.AttentionPlugin = gui.SpiritPlugin.extend ( "gui.AttentionPlugin", {
 
 });
 
-/*
- * Manage attention queue.
- */
+// Manage attention queue.
 ( function () {
-
 	gui.Broadcast.addGlobal ([ 
 		gui.BROADCAST_ATTENTION_ON,
 		gui.BROADCAST_ATTENTION_OFF
 	], gui.AttentionPlugin );
-
 }());

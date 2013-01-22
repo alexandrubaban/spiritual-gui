@@ -1,13 +1,9 @@
-/**
- * @class
- * Geometry.
- * @param {number} x
- * @param {number} y
- * @param {number} w
- * @param {number} h
- */
+// # gui.Geometry
+// @param {number} x
+// @param {number} y
+// @param {number} w
+// @param {number} h
 gui.Geometry = function ( x, y, w, h ) {
-
 	this.x = x ? x : 0;
 	this.y = y ? y : 0;
 	this.w = w ? w : 0;
@@ -15,46 +11,32 @@ gui.Geometry = function ( x, y, w, h ) {
 };
 
 gui.Geometry.prototype = {
-	
-	/**
-	 * X position.
-	 * @type {number}
-	 */
+
+	// X position.
+	// @type {number}
 	x : 0,
-	
-	/**
-	 * Y position.
-	 * @type {number}
-	 */
+
+	// Y position.
+	// @type {number}
 	y : 0,
-	
-	/**
-	 * Width.
-	 * @type {number}
-	 */
+
+	// Width.
+	// @type {number}
 	w : 0,
-	
-	/**
-	 * Height.
-	 * @type {number}
-	 */
+
+	// Height.
+	// @type {number}
 	h : 0,
-	
-	/**
-	 * Identification.
-	 * @returns {String}
-	 */
+
+	// Identification.
+	// @returns {String}
 	toString : function () {
-		
 		return "[object gui.Geometry(" + this.x + "," + this.y +"," + this.w +"," + this.h + ")]";
 	},
-	
-	/**
-	 * Intersects another geometry?
-	 * @param {gui.Geometry} geo
-	 */
+
+	// Intersects another geometry?
+	// @param {gui.Geometry} geo
 	hitTest : function ( geo ) {
-		
 		return gui.Geometry.hitTest ( this, geo );
 	}
 };
@@ -62,35 +44,26 @@ gui.Geometry.prototype = {
 
 // STATICS .............................................................
 
-/**
- * Compare two geometries.
- * @param {gui.Geometry} geo1
- * @param {gui.Geometry} geo2
- * @returns {boolean}
- */
+// Compare two geometries.
+// @param {gui.Geometry} geo1
+// @param {gui.Geometry} geo2
+// @returns {boolean}
 gui.Geometry.isEqual = function ( geo1, geo2 ) {
-	
 	return ( geo1.x === geo2.x ) && ( geo1.y === geo2.y ) && ( geo1.w === geo2.w ) && ( geo1.h === geo2.h );
 };
 
-/**
- * Hittest two geometries.
- * @param {gui.Geometry} geo1
- * @param {gui.Geometry} geo2
- * @returns {boolean}
- */
+// Hittest two geometries.
+// @param {gui.Geometry} geo1
+// @param {gui.Geometry} geo2
+// @returns {boolean}
 gui.Geometry.hitTest = function ( geo1, geo2 ) {
-	
 	function x ( g1, g2 ) {
 		return g1.x >= g2.x && g1.x <= g2.x + g2.w;
 	}
-	
 	function y ( g1, g2 ) {
 		return g1.y >= g2.y && g1.y <= g2.y + g2.h;
 	}
-	
 	var hitx = x ( geo1, geo2 ) || x ( geo2, geo1 );
 	var hity = y ( geo1, geo2 ) || y ( geo2, geo1 );
-	
 	return hitx && hity;
 };

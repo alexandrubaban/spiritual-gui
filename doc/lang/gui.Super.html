@@ -1,0 +1,129 @@
+<!DOCTYPE html><html lang="en"><head><title>lang/gui.Super</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content="../"><meta name="groc-document-path" content="lang/gui.Super"><meta name="groc-project-path" content="src/lang/gui.Super.js"><link rel="stylesheet" type="text/css" media="all" href="../assets/style.css"><script type="text/javascript" src="../assets/behavior.js"></script><body><div id="meta"><div class="file-path">src/lang/gui.Super.js</div></div><div id="document"><div class="segment"><div class="comments"><div class="wrapper"><h1 id="guisuper">gui.Super</h1>
+
+<p>Det er bare super.
+@param {function} constructor</p></div></div><div class="code"><div class="wrapper"><span class="nx">gui</span><span class="p">.</span><span class="nx">Super</span> <span class="o">=</span> <span class="kd">function</span> <span class="nx">Super</span> <span class="p">(</span> <span class="nx">constructor</span> <span class="p">)</span> <span class="p">{</span>
+  <span class="s2">&quot;use strict&quot;</span><span class="p">;</span>
+  <span class="nx">gui</span><span class="p">.</span><span class="nx">Super</span><span class="p">.</span><span class="nx">stubAll</span> <span class="p">(</span> <span class="k">this</span><span class="p">,</span> <span class="nx">constructor</span><span class="p">.</span><span class="nx">prototype</span> <span class="p">);</span>
+<span class="p">};</span>
+
+<span class="nx">gui</span><span class="p">.</span><span class="nx">Super</span><span class="p">.</span><span class="nx">prototype</span> <span class="o">=</span> <span class="nb">Object</span><span class="p">.</span><span class="nx">create</span> <span class="p">(</span> <span class="kc">null</span> <span class="p">);</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>STATICS .......................................................................</p></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>@static
+Instance of an i.Exemplar subclass (now invoking _super).
+@type {object}</p></div></div><div class="code"><div class="wrapper"><span class="nx">gui</span><span class="p">.</span><span class="nx">Super</span><span class="p">.</span><span class="nx">subject</span> <span class="o">=</span> <span class="kc">null</span><span class="p">;</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>EXPERIMENTAL.
+@type {boolean}</p></div></div><div class="code"><div class="wrapper"><span class="nx">gui</span><span class="p">.</span><span class="nx">Super</span><span class="p">.</span><span class="nx">sandbox</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Prepended to the result of calling 
+toString() on a modified function.
+@type {String}</p></div></div><div class="code"><div class="wrapper"><span class="nx">gui</span><span class="p">.</span><span class="nx">Super</span><span class="p">.</span><span class="nx">disclaimer</span> <span class="o">=</span> <span class="s2">&quot;/**\n&quot;</span> <span class="o">+</span>
+  <span class="s2">&quot; // The runtime execution of this method \n&quot;</span> <span class="o">+</span>
+  <span class="s2">&quot; // has been overloaded by the framework. \n&quot;</span> <span class="o">+</span>
+  <span class="s2">&quot; // This is an approximation of the code. \n&quot;</span> <span class="o">+</span>
+  <span class="s2">&quot;  */\n&quot;</span><span class="p">;</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>@static
+Declare all method stubs on gui.Super instance.
+@param {gui.Super} target
+@param {object} proto</p></div></div><div class="code"><div class="wrapper"><span class="nx">gui</span><span class="p">.</span><span class="nx">Super</span><span class="p">.</span><span class="nx">stubAll</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">target</span><span class="p">,</span> <span class="nx">proto</span> <span class="p">)</span> <span class="p">{</span>
+  <span class="nx">gui</span><span class="p">.</span><span class="nb">Object</span><span class="p">.</span><span class="nx">methods</span> <span class="p">(</span> <span class="nx">proto</span> <span class="p">).</span><span class="nx">forEach</span> <span class="p">(</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">method</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="nx">gui</span><span class="p">.</span><span class="nx">Super</span><span class="p">.</span><span class="nx">stubOne</span> <span class="p">(</span> <span class="nx">target</span><span class="p">,</span> <span class="nx">proto</span><span class="p">,</span> <span class="nx">method</span> <span class="p">);</span>
+  <span class="p">},</span> <span class="k">this</span> <span class="p">);</span>
+<span class="p">};</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>@static
+Declare single method stub on gui.Super instance.
+@param {gui.Super} target
+@param {object} proto
+@param {String} method Name of the method</p></div></div><div class="code"><div class="wrapper"><span class="nx">gui</span><span class="p">.</span><span class="nx">Super</span><span class="p">.</span><span class="nx">stubOne</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">target</span><span class="p">,</span> <span class="nx">proto</span><span class="p">,</span> <span class="nx">method</span> <span class="p">)</span> <span class="p">{</span>
+  <span class="kd">var</span> <span class="nx">func</span> <span class="o">=</span> <span class="nx">target</span> <span class="p">[</span> <span class="nx">method</span> <span class="p">]</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="nx">proto</span> <span class="p">[</span> <span class="nx">method</span> <span class="p">].</span><span class="nx">apply</span> <span class="p">(</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">Super</span><span class="p">.</span><span class="nx">subject</span><span class="p">,</span> <span class="nx">arguments</span> <span class="p">);</span>
+  <span class="p">};</span>
+  <span class="nx">func</span><span class="p">.</span><span class="nx">displayName</span> <span class="o">=</span> <span class="nx">method</span><span class="p">;</span>
+<span class="p">};</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>@static
+Stamp all properties from object onto prototype while overloading methods.
+@param {function} superconstructor
+@param {function} constructor
+@param {object} object</p></div></div><div class="code"><div class="wrapper"><span class="nx">gui</span><span class="p">.</span><span class="nx">Super</span><span class="p">.</span><span class="nx">stamp</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">superconstructor</span><span class="p">,</span> <span class="nx">constructor</span><span class="p">,</span> <span class="nx">object</span> <span class="p">)</span> <span class="p">{</span>
+  <span class="s2">&quot;use strict&quot;</span><span class="p">;</span>
+  <span class="kd">var</span> <span class="nx">prop</span> <span class="o">=</span> <span class="kc">null</span><span class="p">,</span> <span class="nx">proto</span> <span class="o">=</span> <span class="nx">constructor</span><span class="p">.</span><span class="nx">prototype</span><span class="p">;</span>
+  <span class="k">if</span> <span class="p">(</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">Type</span><span class="p">.</span><span class="nx">isObject</span> <span class="p">(</span> <span class="nx">object</span> <span class="p">))</span> <span class="p">{</span>
+    <span class="nb">Object</span><span class="p">.</span><span class="nx">keys</span> <span class="p">(</span> <span class="nx">object</span> <span class="p">).</span><span class="nx">forEach</span> <span class="p">(</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">key</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="nx">prop</span> <span class="o">=</span> <span class="nb">Object</span><span class="p">.</span><span class="nx">getOwnPropertyDescriptor</span> <span class="p">(</span> <span class="nx">object</span><span class="p">,</span> <span class="nx">key</span> <span class="p">);</span>
+      <span class="k">switch</span> <span class="p">(</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">Type</span><span class="p">.</span><span class="nx">of</span> <span class="p">(</span> <span class="nx">prop</span><span class="p">.</span><span class="nx">value</span> <span class="p">))</span> <span class="p">{</span>
+        <span class="k">case</span> <span class="s2">&quot;function&quot;</span> <span class="o">:</span> <span class="c1">// inject _super support into method type properties.</span>
+          <span class="k">if</span> <span class="p">(</span> <span class="o">!</span><span class="nx">gui</span><span class="p">.</span><span class="nx">Type</span><span class="p">.</span><span class="nx">isConstructor</span> <span class="p">(</span> <span class="nx">prop</span><span class="p">.</span><span class="nx">value</span> <span class="p">))</span> <span class="p">{</span>
+            <span class="nx">prop</span> <span class="o">=</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">Super</span><span class="p">.</span><span class="nx">_function</span> <span class="p">(</span> <span class="nx">object</span><span class="p">,</span> <span class="nx">key</span><span class="p">,</span> <span class="nx">prop</span><span class="p">,</span> <span class="nx">superconstructor</span> <span class="p">);</span>
+          <span class="p">}</span>
+          <span class="k">break</span><span class="p">;</span>
+        <span class="k">case</span> <span class="s2">&quot;object&quot;</span> <span class="o">:</span> <span class="c1">// setup getter-and-setter type declarations</span>
+          <span class="kd">var</span> <span class="nx">o</span> <span class="o">=</span> <span class="nx">prop</span><span class="p">.</span><span class="nx">value</span><span class="p">;</span>
+          <span class="k">if</span> <span class="p">(</span> <span class="nx">o</span><span class="p">.</span><span class="nx">get</span> <span class="o">||</span> <span class="nx">o</span><span class="p">.</span><span class="nx">set</span> <span class="p">)</span> <span class="p">{</span>
+            <span class="k">if</span> <span class="p">(</span> <span class="nb">Object</span><span class="p">.</span><span class="nx">keys</span> <span class="p">(</span> <span class="nx">o</span> <span class="p">).</span><span class="nx">every</span> <span class="p">(</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">k</span> <span class="p">)</span> <span class="p">{</span>
+              <span class="k">return</span> <span class="nx">k</span> <span class="o">===</span> <span class="s2">&quot;get&quot;</span> <span class="o">||</span> <span class="nx">k</span> <span class="o">===</span> <span class="s2">&quot;set&quot;</span><span class="p">;</span>
+            <span class="p">}))</span> <span class="p">{</span>
+              <span class="nx">prop</span> <span class="o">=</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">Super</span><span class="p">.</span><span class="nx">_property</span> <span class="p">(</span> <span class="nx">key</span><span class="p">,</span> <span class="nx">o</span><span class="p">,</span> <span class="nx">constructor</span> <span class="p">);</span>
+            <span class="p">}</span>
+          <span class="p">}</span>
+          <span class="k">break</span><span class="p">;</span>
+      <span class="p">}</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>stamp the property</p></div></div><div class="code"><div class="wrapper">      <span class="nb">Object</span><span class="p">.</span><span class="nx">defineProperty</span> <span class="p">(</span> <span class="nx">proto</span><span class="p">,</span> <span class="nx">key</span><span class="p">,</span> <span class="nx">prop</span> <span class="p">);</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>methods specials
+@todo not like this! If <em>not</em> a function, the property will now be accessed and fire the getter function we just declared!</p></div></div><div class="code"><div class="wrapper">      <span class="k">if</span> <span class="p">(</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">Type</span><span class="p">.</span><span class="nx">isFunction</span> <span class="p">(</span> <span class="nx">proto</span> <span class="p">[</span> <span class="nx">key</span> <span class="p">]))</span> <span class="p">{</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>update console display name (@todo does it work?)</p></div></div><div class="code"><div class="wrapper">        <span class="nb">Object</span><span class="p">.</span><span class="nx">defineProperty</span> <span class="p">(</span> <span class="nx">proto</span> <span class="p">[</span> <span class="nx">key</span> <span class="p">],</span> <span class="s2">&quot;displayName&quot;</span><span class="p">,</span> <span class="p">{</span>
+          <span class="nx">enumerable</span> <span class="o">:</span> <span class="kc">false</span><span class="p">,</span>
+          <span class="nx">configurable</span> <span class="o">:</span> <span class="kc">true</span><span class="p">,</span>
+          <span class="nx">get</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+            <span class="k">return</span> <span class="nx">key</span><span class="p">;</span>
+          <span class="p">}</span>
+        <span class="p">});</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>normalize toString() for debugging
+@todo Find the hat char for that regexp</p></div></div><div class="code"><div class="wrapper">        <span class="nx">proto</span> <span class="p">[</span> <span class="nx">key</span> <span class="p">].</span><span class="nx">toString</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+          <span class="kd">var</span> <span class="nx">tostring</span> <span class="o">=</span> <span class="nx">object</span> <span class="p">[</span> <span class="nx">key</span> <span class="p">].</span><span class="nx">toString</span> <span class="p">();</span>
+          <span class="nx">tostring</span> <span class="o">=</span> <span class="nx">tostring</span><span class="p">.</span><span class="nx">replace</span> <span class="p">(</span> <span class="sr">/\t/g</span><span class="p">,</span> <span class="s2">&quot;  &quot;</span> <span class="p">);</span>
+          <span class="k">return</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">Super</span><span class="p">.</span><span class="nx">disclaimer</span> <span class="o">+</span> <span class="nx">tostring</span><span class="p">;</span>
+        <span class="p">};</span>
+      <span class="p">}</span>
+    <span class="p">});</span>
+  <span class="p">}</span>
+<span class="p">};</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>@static 
+Compute property descriptor for function type definition.
+@param {object} object
+@param {String} key
+@param {object} prop
+@param {function} superconstructor
+@returns {object}</p></div></div><div class="code"><div class="wrapper"><span class="nx">gui</span><span class="p">.</span><span class="nx">Super</span><span class="p">.</span><span class="nx">_function</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">object</span><span class="p">,</span> <span class="nx">key</span><span class="p">,</span> <span class="nx">prop</span><span class="p">,</span> <span class="nx">superconstructor</span> <span class="p">)</span> <span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span> <span class="o">!</span><span class="nx">prop</span><span class="p">.</span><span class="nx">value</span><span class="p">.</span><span class="nx">__data__</span> <span class="p">)</span> <span class="p">{</span> <span class="c1">// @todo hmm...................................... !!!</span>
+    <span class="nx">prop</span><span class="p">.</span><span class="nx">value</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+      <span class="kd">var</span> <span class="nx">sub</span> <span class="o">=</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">Super</span><span class="p">.</span><span class="nx">subject</span><span class="p">;</span>
+      <span class="kd">var</span> <span class="nx">was</span> <span class="o">=</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">Super</span><span class="p">.</span><span class="nx">sandbox</span><span class="p">;</span>
+      <span class="nx">gui</span><span class="p">.</span><span class="nx">Super</span><span class="p">.</span><span class="nx">subject</span> <span class="o">=</span> <span class="k">this</span><span class="p">;</span>
+      <span class="nx">gui</span><span class="p">.</span><span class="nx">Super</span><span class="p">.</span><span class="nx">sandbox</span> <span class="o">=</span> <span class="p">(</span> <span class="nx">was</span> <span class="o">===</span> <span class="kc">false</span> <span class="o">&amp;&amp;</span> <span class="k">this</span><span class="p">.</span><span class="nx">sandboxed</span> <span class="o">===</span> <span class="kc">true</span> <span class="p">);</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">_super</span> <span class="o">=</span> <span class="nx">superconstructor</span><span class="p">.</span><span class="nx">__super__</span><span class="p">;</span>
+      <span class="kd">var</span> <span class="nx">result</span> <span class="o">=</span> <span class="nx">object</span> <span class="p">[</span> <span class="nx">key</span> <span class="p">].</span><span class="nx">apply</span> <span class="p">(</span> <span class="k">this</span><span class="p">,</span> <span class="nx">arguments</span> <span class="p">);</span>
+      <span class="nx">gui</span><span class="p">.</span><span class="nx">Super</span><span class="p">.</span><span class="nx">subject</span> <span class="o">=</span> <span class="nx">sub</span><span class="p">;</span>
+      <span class="nx">gui</span><span class="p">.</span><span class="nx">Super</span><span class="p">.</span><span class="nx">sandbox</span> <span class="o">=</span> <span class="nx">was</span><span class="p">;</span>
+      <span class="k">return</span> <span class="nx">result</span><span class="p">;</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>return ( gui.Super.sandbox ? gui.SandBox.censor ( result, key ) : result );</p></div></div><div class="code"><div class="wrapper">    <span class="p">};</span>
+  <span class="p">}</span>
+  <span class="k">return</span> <span class="nx">prop</span><span class="p">;</span>
+<span class="p">};</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>@static
+Compute property descriptor for getter-setter type definition.
+@param {String} key
+@param {object} o
+@param {function} constructor
+@returns {object}</p></div></div><div class="code"><div class="wrapper"><span class="nx">gui</span><span class="p">.</span><span class="nx">Super</span><span class="p">.</span><span class="nx">_property</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">key</span><span class="p">,</span> <span class="nx">o</span><span class="p">,</span> <span class="nx">constructor</span> <span class="p">)</span> <span class="p">{</span>
+  <span class="s2">&quot;use strict&quot;</span><span class="p">;</span>
+  <span class="p">[</span> <span class="s2">&quot;get&quot;</span><span class="p">,</span> <span class="s2">&quot;set&quot;</span> <span class="p">].</span><span class="nx">forEach</span> <span class="p">(</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">what</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">d</span><span class="p">,</span> <span class="nx">p</span> <span class="o">=</span> <span class="nx">constructor</span><span class="p">.</span><span class="nx">prototype</span><span class="p">;</span>
+    <span class="k">while</span> <span class="p">(</span> <span class="nx">p</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="nx">gui</span><span class="p">.</span><span class="nx">Type</span><span class="p">.</span><span class="nx">isDefined</span> <span class="p">(</span> <span class="nx">o</span> <span class="p">[</span> <span class="nx">what</span> <span class="p">]))</span> <span class="p">{</span>
+      <span class="nx">p</span> <span class="o">=</span> <span class="nb">Object</span><span class="p">.</span><span class="nx">getPrototypeOf</span> <span class="p">(</span> <span class="nx">p</span> <span class="p">);</span>
+      <span class="nx">d</span> <span class="o">=</span> <span class="nb">Object</span><span class="p">.</span><span class="nx">getOwnPropertyDescriptor</span> <span class="p">(</span> <span class="nx">p</span><span class="p">,</span> <span class="nx">key</span> <span class="p">);</span>
+      <span class="k">if</span> <span class="p">(</span> <span class="nx">d</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="nx">o</span> <span class="p">[</span> <span class="nx">what</span> <span class="p">]</span> <span class="o">=</span> <span class="nx">d</span> <span class="p">[</span> <span class="nx">what</span> <span class="p">];</span>
+        <span class="cm">/*</span>
+<span class="cm">        o [ what ] = function () {</span>
+<span class="cm">          alert ( &quot;@todo sandbox&quot; );</span>
+<span class="cm">          return d [ what ].call ( this );</span>
+<span class="cm">        };</span>
+<span class="cm">        */</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="p">});</span>
+  <span class="k">return</span> <span class="p">{</span>
+    <span class="nx">enumerable</span> <span class="o">:</span> <span class="kc">true</span><span class="p">,</span>
+    <span class="nx">configurable</span> <span class="o">:</span> <span class="kc">true</span><span class="p">,</span>
+    <span class="nx">get</span> <span class="o">:</span> <span class="nx">o</span><span class="p">.</span><span class="nx">get</span> <span class="o">||</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+      <span class="k">throw</span> <span class="k">new</span> <span class="nb">Error</span> <span class="p">(</span> <span class="nx">constructor</span> <span class="o">+</span> <span class="s2">&quot; Getting a property that has only a setter: &quot;</span> <span class="o">+</span> <span class="nx">key</span> <span class="p">);</span>
+    <span class="p">},</span>
+    <span class="nx">set</span> <span class="o">:</span> <span class="nx">o</span><span class="p">.</span><span class="nx">set</span> <span class="o">||</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+      <span class="k">throw</span> <span class="k">new</span> <span class="nb">Error</span> <span class="p">(</span> <span class="nx">constructor</span> <span class="o">+</span> <span class="s2">&quot; Setting a property that has only a getter: &quot;</span> <span class="o">+</span> <span class="nx">key</span> <span class="p">);</span>
+    <span class="p">}</span>
+  <span class="p">};</span>
+<span class="p">};</span></div></div></div></div></body></html>

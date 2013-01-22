@@ -1,0 +1,59 @@
+<!DOCTYPE html><html lang="en"><head><title>modules/core.module/plugins/att.plugin/gui.SpiritAtt</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content="../../../../"><meta name="groc-document-path" content="modules/core.module/plugins/att.plugin/gui.SpiritAtt"><meta name="groc-project-path" content="src/modules/core.module/plugins/att.plugin/gui.SpiritAtt.js"><link rel="stylesheet" type="text/css" media="all" href="../../../../assets/style.css"><script type="text/javascript" src="../../../../assets/behavior.js"></script><body><div id="meta"><div class="file-path">src/modules/core.module/plugins/att.plugin/gui.SpiritAtt.js</div></div><div id="document"><div class="segment"><div class="comments"><div class="wrapper"><h1 id="guispiritatt">gui.SpiritAtt</h1>
+
+<p>Methods to read and write DOM attributes.
+@extends {gui.SpiritTracker}</p></div></div><div class="code"><div class="wrapper"><span class="nx">gui</span><span class="p">.</span><span class="nx">SpiritAtt</span> <span class="o">=</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">SpiritPlugin</span><span class="p">.</span><span class="nx">extend</span> <span class="p">(</span> <span class="s2">&quot;gui.SpiritAtt&quot;</span><span class="p">,</span> <span class="p">{</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Get single element attribute cast to an inferred type.
+@param {String} att
+@returns {object} String, boolean or number</p></div></div><div class="code"><div class="wrapper">  <span class="nx">get</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">name</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">Type</span><span class="p">.</span><span class="nx">cast</span> <span class="p">(</span> 
+      <span class="k">this</span><span class="p">.</span><span class="nx">spirit</span><span class="p">.</span><span class="nx">element</span><span class="p">.</span><span class="nx">getAttribute</span> <span class="p">(</span> <span class="nx">name</span> <span class="p">)</span>
+    <span class="p">);</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Set single element attribute (use null to remove).
+@param {String} name
+@param {String} value
+@returns {Spirit}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">set</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">name</span><span class="p">,</span> <span class="nx">value</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="nx">value</span> <span class="o">===</span> <span class="kc">null</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">del</span> <span class="p">(</span> <span class="nx">name</span> <span class="p">);</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span> <span class="o">!</span><span class="k">this</span><span class="p">.</span><span class="nx">__suspended__</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">spirit</span><span class="p">.</span><span class="nx">element</span><span class="p">.</span><span class="nx">setAttribute</span> <span class="p">(</span> <span class="nx">name</span><span class="p">,</span> <span class="nb">String</span> <span class="p">(</span> <span class="nx">value</span> <span class="p">));</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="k">this</span><span class="p">;</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Element has attribute?
+@param {String} att
+@returns {boolean}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">has</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">name</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">spirit</span><span class="p">.</span><span class="nx">element</span><span class="p">.</span><span class="nx">getAttribute</span> <span class="p">(</span> <span class="nx">name</span> <span class="p">)</span> <span class="o">!==</span> <span class="kc">null</span><span class="p">;</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Remove element attribute.
+@param {String} att</p></div></div><div class="code"><div class="wrapper">  <span class="nx">del</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">name</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="o">!</span><span class="k">this</span><span class="p">.</span><span class="nx">__suspended__</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">spirit</span><span class="p">.</span><span class="nx">element</span><span class="p">.</span><span class="nx">removeAttribute</span> <span class="p">(</span> <span class="nx">name</span> <span class="p">);</span>
+    <span class="p">}</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Collect attributes as an array (of DOMAttributes).
+@returns {Array<Attr>}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">all</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="nb">Array</span><span class="p">.</span><span class="nx">map</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">spirit</span><span class="p">.</span><span class="nx">element</span><span class="p">.</span><span class="nx">attributes</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">att</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="nx">att</span><span class="p">;</span>
+    <span class="p">});</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Get all attributes as hashmap type object. 
+Values are converted to an inferred type.
+@returns {Map<String,String>} </p></div></div><div class="code"><div class="wrapper">  <span class="nx">getup</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">map</span> <span class="o">=</span> <span class="nb">Object</span><span class="p">.</span><span class="nx">create</span> <span class="p">(</span> <span class="kc">null</span> <span class="p">);</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">all</span> <span class="p">().</span><span class="nx">forEach</span> <span class="p">(</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">att</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="nx">map</span> <span class="p">[</span> <span class="nx">att</span><span class="p">.</span><span class="nx">name</span> <span class="p">]</span> <span class="o">=</span> <span class="nx">gui</span><span class="p">.</span><span class="nx">Type</span><span class="p">.</span><span class="nx">cast</span> <span class="p">(</span> <span class="nx">att</span><span class="p">.</span><span class="nx">value</span> <span class="p">);</span>
+    <span class="p">});</span>
+    <span class="k">return</span> <span class="nx">map</span><span class="p">;</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Invoke multiple attributes update via hashmap 
+argument. Use null value to remove an attribute.
+@param {Map<String,String>} </p></div></div><div class="code"><div class="wrapper">  <span class="nx">setup</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">map</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="nx">gui</span><span class="p">.</span><span class="nb">Object</span><span class="p">.</span><span class="nx">each</span> <span class="p">(</span> <span class="nx">map</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">name</span><span class="p">,</span> <span class="nx">value</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">set</span> <span class="p">(</span> <span class="nx">name</span><span class="p">,</span> <span class="nx">value</span> <span class="p">);</span>
+    <span class="p">},</span> <span class="k">this</span> <span class="p">);</span>
+  <span class="p">},</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>SECRETS .........................................</p></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Disable attribute updates.
+@type {boolean}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">__suspended__</span> <span class="o">:</span> <span class="kc">false</span><span class="p">,</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Suspend attribute updates for the duration of 
+the action (kind of framework internal stuff).
+@param {function} action
+@retruns {object}</p></div></div><div class="code"><div class="wrapper">  <span class="nx">__suspend__</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">action</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">__suspended__</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+    <span class="kd">var</span> <span class="nx">res</span> <span class="o">=</span> <span class="nx">action</span><span class="p">.</span><span class="nx">apply</span> <span class="p">(</span> <span class="k">this</span><span class="p">,</span> <span class="nx">arguments</span> <span class="p">);</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">__suspended__</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
+    <span class="k">return</span> <span class="nx">res</span><span class="p">;</span>
+  <span class="p">}</span>
+  
+<span class="p">});</span></div></div></div></div></body></html>

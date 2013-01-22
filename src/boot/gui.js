@@ -1,36 +1,29 @@
 /**
- * @namespace gui
+ * Namespace Johnson.
+ * @type {Object}
  */
 var gui = {
 
-	/*
-	 * Spiritual version. Hardcoded for now.
-	 * @todo Deprecate or generate buildtime.
-	 * @type {String}
-	 */
+	// Spiritual version. Hardcoded for now.
+	// @todo Deprecate or generate buildtime.
+	// @type {String}
 	version : "0.0.4",
 
-	/**
-	 * @constant
-	 * Native mode: Overloading native DOM methods and setters.
-	 */
+	// @constant
+	// Native mode: Overloading native DOM methods and setters.
 	MODE_NATIVE : "native",
 
-	/**
-	 * @constant
-	 * jquery mode: Overloading JQuery DOM manipulation methods.
-	 */
+	// @constant
+	// jquery mode: Overloading JQuery DOM manipulation methods.
 	MODE_JQUERY : "jquery",
 
-	/**
-	 * @constant
-	 * Optimized mode: use native if supported, fallback on jquery.
-	 */
+	// @constant
+	// Optimized mode: use native if supported, fallback on jquery.
 	MODE_OPTIMIZE : "optimize",
 
-	/*
+	/**
 	 * Global broadcasts
-	 * TODO : harmonize some naming with action types
+	 * @todo harmonize some naming with action types
 	 */
 	BROADCAST_KICKSTART : "gui-broadcast-kickstart",
 	BROADCAST_DOMCONTENT : "gui-broadcast-document-domcontentloaded",
@@ -51,9 +44,8 @@ var gui = {
 	BROADCAST_CHANNELS_LOADED : "gui-broadcast-channels-loaded",
 	BROADCAST_TWEEN : "gui-broadcast-tween",
 
-	/*
+	/** 
 	 * Plugin broadcast types
-	 * TODO : assign these via module system at some point
 	 */
 	BROADCAST_ORIENTATIONCHANGE : "gui-broadcast-orientationchange",
 	BROADCAST_TOUCHSTART : "gui-broadcast-touchstart",
@@ -74,7 +66,7 @@ var gui = {
 	BROADCAST_ATTENTION_OFF : "gui-broadcast-attention-off",
 	BROADCAST_ATTENTION_GO : "gui-broadcast-attention-go",
 
-	/*
+	/** 
 	 * Global actions
 	 */
 	ACTION_DOCUMENT_CONSTRUCT : "gui-action-document-construct",
@@ -84,19 +76,20 @@ var gui = {
 	ACTION_DOCUMENT_FIT : "gui-action-document-fit",
 	ACTION_DOCUMENT_DONE : "gui-action-document-done",
 
-	/*
+	/**
 	 * Local actions.
 	 */
 	ACTION_WINDOW_LOADING : "gui-action-window-loading",
 	ACTION_WINDOW_LOADED : "gui-action-window-loaded",
 
-	/*
-	 * Questionable types (future)
+	/**
+	 * Questionable types
+	 * @deprecated
 	 */
 	ACTION_DRAG_START : "gui-action-drag-start",
 	ACTION_COMMAND : "gui-action-command",
-	
-	/*
+
+	/**
 	 * Crawler types
 	 */
 	CRAWLER_ATTACH : "gui-crawler-attach",
@@ -106,7 +99,7 @@ var gui = {
 	CRAWLER_VISIBLE : "gui-crawler-visible",
 	CRAWLER_INVISIBLE : "gui-crawler-invisible",
 
-	/*
+	/**
 	 * Tick types (timed events)
 	 */
 	TICK_DESTRUCT_DETACHED : "gui-tick-destruct-detached",
@@ -115,14 +108,14 @@ var gui = {
 	TICK_SPIRIT_NULL : "gui-tick-spirit-null",
 	TICK_FIT : "gui-tick-fit",
 
-	/*
-	 * CSS classnames. Underscore indicates 
-	 * that the classname are managed by JS.
+	/** 
+	 * CSS classnames.
+	 * @desc Underscore indicates that the classname are managed by JS.
 	 */
 	CLASS_INVISIBLE : "_gui-invisible",
 	CLASS_HIDDEN : "_gui-hidden",
 
-	/*
+	/**
 	 * Device orientation.
 	 * TODO : Get this out of here
 	 * @todo gui.Observerice or something
