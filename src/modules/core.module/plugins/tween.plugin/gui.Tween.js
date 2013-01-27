@@ -1,6 +1,9 @@
-// # gui.Tween
-// @param {String} type
-// @param @optional {object} data
+/**
+ * # gui.Tween
+ * Tweening away.
+ * @param {String} type
+ * @param @optional {object} data
+ */
 gui.Tween = function ( type, data ) {
 	this.type = type;
 	this.data = data;
@@ -8,28 +11,39 @@ gui.Tween = function ( type, data ) {
 
 gui.Tween.prototype = {
 
-	// Tween type.
-	// @type {String}
+	/**
+	 * Tween type.
+	 * @type {String}
+	 */
 	type : null,
 
-	// Optional tween data.
-	// @type {object}
+	/**
+	 * Optional tween data.
+	 * @type {object}
+	 */
 	data : null,
 
-	// Between zero and one.
-	// @type {number}
+	/**
+	 * Between zero and one.
+	 * @type {number}
+	 */
 	value : 0,
 
-	// Done when value is one.
-	// @type {boolean}
+	/**
+	 * Done when value is one.
+	 * @type {boolean}
+	 */
 	done : false
 };
 
-// STATICS ............................................
- 
-// Coordinate a global (cross frame) animation sequence.
-// @param {ui.Animation} animation
-// @returns {gui.Tween} but why?
+// STATICS .............................................
+
+/** 
+ * Coordinate a global (cross-frame) animation sequence.
+ * @todo Coordinate this more or less cross-domain.
+ * @param {ui.Animation} animation
+ * @returns {gui.Tween} but why?
+ */
 gui.Tween.dispatchGlobal = function ( type, data ){
 	var that = this;
 	var start = new Date ().getTime ();

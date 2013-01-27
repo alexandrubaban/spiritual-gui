@@ -1,68 +1,96 @@
-// # gui.SpiritLifeTracker
-// Tracking spirit life cycle events.
-// @extends {gui.SpiritTracker}
+/**
+ * # gui.SpiritLifeTracker
+ * Tracking spirit life cycle events.
+ * @extends {gui.SpiritTracker}
+ */
 gui.SpiritLifeTracker = gui.SpiritTracker.extend ( "gui.SpiritLifeTracker", {
 
-	// Spirit is constructed? This is almost certainly true by 
-	// the time you address the spirit.
-	// @type {boolean}
+	/**
+	 * Spirit is constructed? This is almost certainly true by 
+	 * the time you address the spirit.
+	 * @type {boolean}
+	 */
 	constructed : false,
 
-	// @todo EXPERIMENT...
-	// @type {boolean}
+	/**
+	 * @todo EXPERIMENT...
+	 * @type {boolean}
+	 */
 	configured : false,
 
-	// Is now or has ever been in page DOM?
-	// @type {boolean}
+	/**
+	 * Is now or has ever been in page DOM?
+	 * @type {boolean}
+	 */
 	entered : false,
 
-	// Is curently located in page DOM? 
-	// False whenever detached is true. 
-	// @type {boolean}
+	/**
+	 * Is curently located in page DOM? 
+	 * False whenever detached is true. 
+	 * @type {boolean}
+	 */
 	attached : false,
 
-	// Is currently not located in page DOM? Note that this is initially 
-	// true until the spirit has been discovered and registered as attached.
-	// @type {boolean}
+	/**
+	 * Is currently not located in page DOM? Note that this is initially 
+	 * true until the spirit has been discovered and registered as attached.
+	 * @type {boolean}
+	 */
 	detached : true,
 
-	// Is ready? If so, it implies that all descendant spirits are also ready.
-	// @type {boolean}
+	/**
+	 * Is ready? If so, it implies that all descendant spirits are also ready.
+	 * @type {boolean}
+	 */
 	ready : false,
 
-	// Not hidden.
-	// @type {boolean}
+	/**
+	 * Not hidden.
+	 * @type {boolean}
+	 */
 	visible : true,
 
-	// Not shown.
-	// @type {boolean}
+	/**
+	 * Not shown.
+	 * @type {boolean}
+	 */
 	invisible : false,
 
-	// Spirit was in page DOM, but has now been removed (ie. it was 
-	// detached and not re-attached in the same execution stack). 
-	// This schedules the spirit for destruction.
-	// @type {boolean}
+	/**
+	 * Spirit was in page DOM, but has now been removed (ie. it was 
+	 * detached and not re-attached in the same execution stack). 
+	 * This schedules the spirit for destruction.
+	 * @type {boolean}
+	 */
 	exited : false,
 
-	// Is destructed? If true, don't try anything funny.
-	// @type {boolean}
+	/**
+	 * Is destructed? If true, don't try anything funny.
+	 * @type {boolean}
+	 */
 	destructed : false,
 
-	// @todo move declaration to super!
-	// @type {Map<String,Array<object>}
+	/**
+	 * @todo move declaration to super!
+	 * @type {Map<String,Array<object>}
+	 */
 	_handlers : null,
 
-	// Construction time.
-	// @overloads {gui.SpiritTracker#construct}
+	/**
+	 * Construction time.
+	 * @overloads {gui.SpiritTracker#construct}
+	 */
 	onconstruct : function () {
 		this._super.onconstruct ();
 		this._handlers = Object.create ( null );
 	},
 
-	// Add one or more action handlers.
-	// @param {object} arg
-	// @param @optional {object} handler implements LifeListener interface, defaults to this.spirit
-	// @returns {gui.Spirit}
+	/**
+	 * Add one or more action handlers.
+	 * @param {object} arg
+	 * @param @optional {object} handler implements LifeListener interface, defaults to this.spirit
+	 * @returns {gui.Spirit}
+	 */
 	add : function ( arg, handler ) {		
 		handler = handler ? handler : this.spirit;
 		this._breakdown ( arg ).forEach ( function ( type ) {
@@ -76,10 +104,12 @@ gui.SpiritLifeTracker = gui.SpiritTracker.extend ( "gui.SpiritLifeTracker", {
 		return this.spirit;
 	},
 
-	// Remove one or more action handlers.
-	// @param {object} arg
-	// @param @optional {object} handler implements LifeListener interface, defaults to spirit
-	// @returns {gui.Spirit}
+	/**
+	 * Remove one or more action handlers.
+	 * @param {object} arg
+	 * @param @optional {object} handler implements LifeListener interface, defaults to spirit
+	 * @returns {gui.Spirit}
+	 */
 	remove : function ( arg, handler ) {
 		handler = handler ? handler : this.spirit;
 		this._breakdown ( arg ).forEach ( function ( type ) {
@@ -94,8 +124,10 @@ gui.SpiritLifeTracker = gui.SpiritTracker.extend ( "gui.SpiritLifeTracker", {
 		return this.spirit;
 	},
 
-	// Dispatch type.
-	// @param {String} type
+	/**
+	 * Dispatch type and cleanup handlers for life cycle events that only occurs once.
+	 * @param {String} type
+	 */
 	dispatch : function ( type ) {
 		var list = this._handlers [ type ];
 		if ( list !== undefined ) {
@@ -103,7 +135,6 @@ gui.SpiritLifeTracker = gui.SpiritTracker.extend ( "gui.SpiritLifeTracker", {
 			list.forEach ( function ( handler ) {
 				handler.onlife ( life );
 			});
-			// Cleanup handlers for life cycle events that only occurs once.
 			switch ( type ) {
 				case gui.SpiritLife.ATTACH :
 				case gui.SpiritLife.DETACH :
@@ -119,9 +150,11 @@ gui.SpiritLifeTracker = gui.SpiritTracker.extend ( "gui.SpiritLifeTracker", {
 	}	
 });
 
-// Generate methods to update life cycle status:
-// 1) Update booleans entered, attached, detached etc.
-// 2) Dispatch life-event gui.SpiritLife.ATTACH etc.
+/**
+ * Generate methods to update life cycle status:
+ * 1) Update booleans entered, attached, detached etc.
+ * 2) Dispatch life-event gui.SpiritLife.ATTACH etc.
+ */
 ( function generatecode () {
 	var states = {
 		construct : gui.SpiritLife.CONSTRUCT,
@@ -135,7 +168,7 @@ gui.SpiritLifeTracker = gui.SpiritTracker.extend ( "gui.SpiritLifeTracker", {
 		exit : gui.SpiritLife.EXIT,
 		destruct : gui.SpiritLife.DESTRUCT
 	};
-	// Prefix methods with "on", suffix booleans with "ed"
+	// prefix methods with "on", suffix booleans with "ed"
 	gui.Object.each ( states, function ( state, event ) {
 		gui.SpiritLifeTracker.addin ( "go" + state , function () {
 			var prop = state;
@@ -169,5 +202,7 @@ gui.SpiritLifeTracker = gui.SpiritTracker.extend ( "gui.SpiritLifeTracker", {
 	});
 })();
 
-// Register plugin (not served in a module this plugin).
+/**
+ * Register plugin (not served in a module this plugin).
+ */
 gui.Spirit.plugin ( "life", gui.SpiritLifeTracker );

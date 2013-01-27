@@ -1,11 +1,15 @@
-// # gui.Interface
-// Checks an object for required methods such as onevent, onaction, onbroadcast etc.
+/**
+ * # gui.Interface
+ * Checks an object for required methods and properties.
+ */
 gui.Interface = {
 
-	// Check for implemented interface; throw an exception if not.
-	// @param {object} interfais 
-	// @param {object} object
-	// @returns {boolean}
+	/**
+	 * Check object interface. Throw exception on fail.
+	 * @param {object} interfais 
+	 * @param {object} osbject
+	 * @returns {boolean}
+	 */
 	validate : function ( interfais, object ) {
 		var is = true;
 		var expected = interfais.toString ();

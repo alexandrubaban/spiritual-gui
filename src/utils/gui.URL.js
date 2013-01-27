@@ -1,7 +1,9 @@
-// # gui.URL
-// Split() the #fragment identifier once and for all.
-// @param {Document} doc
-// @param {String} href
+ /**
+ * # gui.URL
+ * Split() the #fragment identifier once and for all.
+ * @param {Document} doc
+ * @param {String} href
+ */
 gui.URL = function ( doc, href ) {
 	var link = doc.createElement ( "a" ); link.href = href;
 	Object.keys ( gui.URL.prototype ).forEach ( function ( key ) {
@@ -25,5 +27,5 @@ gui.URL.prototype = {
 	protocol : null, // http:
 	search : null, // ?q=devmo
 	id : null,	// test
-	external : false // external relative to *document*, not the server host
+	external : false // external relative to//document*, not the server host
 };

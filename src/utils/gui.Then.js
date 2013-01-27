@@ -1,4 +1,5 @@
 /**
+ * # The heading
  * Encapsulates a callback for future use.
  */
 gui.Then = function Then () {};
@@ -17,7 +18,6 @@ gui.Then.prototype = {
    * Setup callback with optional this-pointer.
    * @param {function} callback
    * @param @optional {object} pointer
-   * @api public
    */
   then : function ( callback, thisp ) {
     this._callback = callback ? callback : null;

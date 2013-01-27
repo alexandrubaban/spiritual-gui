@@ -1,6 +1,8 @@
-// # gui.Super
-// Det er bare super.
-// @param {function} constructor
+/**
+ * # gui.Super
+ * Det er bare super.
+ * @param {function} constructor
+ */
 gui.Super = function Super ( constructor ) {
 	"use strict";
 	gui.Super.stubAll ( this, constructor.prototype );
@@ -11,39 +13,46 @@ gui.Super.prototype = Object.create ( null );
 
 // STATICS .......................................................................
 
-// @static
-// Instance of an i.Exemplar subclass (now invoking _super).
-// @type {object}
+/**
+ * Instance of an i.Exemplar subclass (now invoking _super).
+ * @type {object}
+ */
 gui.Super.subject = null;
 
-// EXPERIMENTAL.
-// @type {boolean}
+/**
+ * EXPERIMENTAL.
+ * @type {boolean}
+ */
 gui.Super.sandbox = false;
 
-// Prepended to the result of calling 
-// toString() on a modified function.
-// @type {String}
+/**
+ * Prepended to the result of calling 
+ * toString() on a modified function.
+ * @type {String}
+ */
 gui.Super.disclaimer = "/**\n" +
-	" // The runtime execution of this method \n" +
-	" // has been overloaded by the framework. \n" +
-	" // This is an approximation of the code. \n" +
+	"  * The runtime execution of this method \n" +
+	"  * has been overloaded by the framework. \n" +
+	"  * This is an approximation of the code. \n" +
 	"  */\n";
 
-// @static
-// Declare all method stubs on gui.Super instance.
-// @param {gui.Super} target
-// @param {object} proto
+/**
+ * Declare all method stubs on gui.Super instance.
+ * @param {gui.Super} target
+ * @param {object} proto
+ */
 gui.Super.stubAll = function ( target, proto ) {
 	gui.Object.methods ( proto ).forEach ( function ( method ) {
 		gui.Super.stubOne ( target, proto, method );
 	}, this );
 };
 
-// @static
-// Declare single method stub on gui.Super instance.
-// @param {gui.Super} target
-// @param {object} proto
-// @param {String} method Name of the method
+/**
+ * Declare single method stub on gui.Super instance.
+ * @param {gui.Super} target
+ * @param {object} proto
+ * @param {String} method Name of the method
+ */
 gui.Super.stubOne = function ( target, proto, method ) {
 	var func = target [ method ] = function () {
 		return proto [ method ].apply ( gui.Super.subject, arguments );
@@ -51,11 +60,12 @@ gui.Super.stubOne = function ( target, proto, method ) {
 	func.displayName = method;
 };
 
-// @static
-// Stamp all properties from object onto prototype while overloading methods.
-// @param {function} superconstructor
-// @param {function} constructor
-// @param {object} object
+/**
+ * Stamp all properties from object onto prototype while overloading methods.
+ * @param {function} superconstructor
+ * @param {function} constructor
+ * @param {object} object
+ */
 gui.Super.stamp = function ( superconstructor, constructor, object ) {
 	"use strict";
 	var prop = null, proto = constructor.prototype;
@@ -104,15 +114,16 @@ gui.Super.stamp = function ( superconstructor, constructor, object ) {
 	}
 };
 
-// @static 
-// Compute property descriptor for function type definition.
-// @param {object} object
-// @param {String} key
-// @param {object} prop
-// @param {function} superconstructor
-// @returns {object}
+/**
+ * Compute property descriptor for function type definition.
+ * @param {object} object
+ * @param {String} key
+ * @param {object} prop
+ * @param {function} superconstructor
+ * @returns {object}
+ */
 gui.Super._function = function ( object, key, prop, superconstructor ) {
-	if ( !prop.value.__data__ ) { // @todo hmm...................................... !!!
+	if ( !prop.value.__data__ ) { // @todo hmm...
 		prop.value = function () {
 			var sub = gui.Super.subject;
 			var was = gui.Super.sandbox;
@@ -129,12 +140,13 @@ gui.Super._function = function ( object, key, prop, superconstructor ) {
 	return prop;
 };
 
-// @static
-// Compute property descriptor for getter-setter type definition.
-// @param {String} key
-// @param {object} o
-// @param {function} constructor
-// @returns {object}
+ /**
+ * Compute property descriptor for getter-setter type definition.
+ * @param {String} key
+ * @param {object} o
+ * @param {function} constructor
+ * @returns {object}
+ */
 gui.Super._property = function ( key, o, constructor ) {
 	"use strict";
 	[ "get", "set" ].forEach ( function ( what ) {

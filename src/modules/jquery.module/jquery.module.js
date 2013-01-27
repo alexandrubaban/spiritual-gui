@@ -1,19 +1,25 @@
-// # Module "jquery"
-// Do what Spiritual does by overloading JQuery methods instead of native DOM methods.
-// @todo (Angular special) handle function replaceWith, "a special jqLite.replaceWith, which can replace items which have no parents"
-// @todo Henrik says "$(iframe.contentDocument).remove() før man skifter URL eller fjerner iframen" (jQuery.cache og jQuery.fragments)
+/**
+ * # Module "jquery"
+ * Do what Spiritual does by overloading JQuery methods instead of native DOM methods.
+ * @todo (Angular special) handle function replaceWith, "a special jqLite.replaceWith, which can replace items which have no parents"
+ * @todo Henrik says "$(iframe.contentDocument).remove() før man skifter URL eller fjerner iframen" (jQuery.cache og jQuery.fragments)
+ */
 gui.module ( "jquery", {
 
-	// Hack Spiritual in top window.
-	// @param {Window} context
+	/**
+	 * Hack Spiritual in top window.
+	 * @param {Window} context
+	 */
 	init : function ( context ) {
 		if ( context === top ) {
 			this._spiritualdom ();
 		}
 	},
 
-	// Hack JQuery in all windows.
-	// @param {Window} context
+	/**
+	 * Hack JQuery in all windows.
+	 * @param {Window} context
+	 */
 	ready : function ( context ) {
 		var root = context.document.documentElement;
 		if ( context.gui.mode === gui.MODE_JQUERY ) {
@@ -28,19 +34,27 @@ gui.module ( "jquery", {
 
 	// PRIVATE .............................................................
 
-	// Injecting Spiritual awareness into 
-	// JQuery DOM manipulation methods.
-	// @param {jQuery} jq
+	/**
+	 * Injecting Spiritual awareness into 
+	 * JQuery DOM manipulation methods.
+	 * @param {jQuery} jq
+	 */
 	_expandos : function ( jq ) {
 		var guide = gui.Guide;
 		jq.__suspend = false;
-		// Element in page DOM?
-		// @param {Element} el
-		// @returns {boolean}
+
+		/**
+		 * Element in page DOM?
+		 * @param {Element} el
+		 * @returns {boolean}
+		 */
 		function indom ( el ) {
 			return gui.SpiritDOM.embedded ( el );
 		}
-		// Attach spirits to collection.
+
+		/**
+		 * Attach spirits to collection.
+		 */
 		jq.fn.__attach = function () {
 			return this.each ( function ( i, el ) {
 				if ( indom ( el )) {
@@ -48,7 +62,10 @@ gui.module ( "jquery", {
 				}
 			});
 		};
-		// Attach spirits to collection subtree.
+
+		/**
+		 * Attach spirits to collection subtree.
+		 */
 		jq.fn.__attachSub = function () {
 			return this.each ( function ( i, el ) {
 				if ( indom ( el )) {
@@ -56,7 +73,10 @@ gui.module ( "jquery", {
 				}
 			});
 		};
-		// Attach spirits to collection non-crawling.
+
+		/**
+		 * Attach spirits to collection non-crawling.
+		 */
 		jq.fn.__attachOne = function () {
 			return this.each ( function ( i, el ) {
 				if ( indom ( el )) {
@@ -64,7 +84,10 @@ gui.module ( "jquery", {
 				}
 			});
 		};
-		// Detach spirits from collection.
+
+		/**
+		 * Detach spirits from collection.
+		 */
 		jq.fn.__detach = function ( skip ) {
 			return this.each ( function ( i, el ) {
 				if ( indom ( el )) {
@@ -72,7 +95,10 @@ gui.module ( "jquery", {
 				}
 			});
 		};
-		// Detach spirits from collection subtree.
+
+		/**
+		 * Detach spirits from collection subtree.
+		 */
 		jq.fn.__detachSub = function ( skip ) {
 			return this.each ( function ( i, el ) {
 				if ( indom ( el )) {
@@ -80,7 +106,10 @@ gui.module ( "jquery", {
 				}
 			});
 		};
-		// Detach spirits from collection non-crawling.
+
+		/**
+		 * Detach spirits from collection non-crawling.
+		 */
 		jq.fn.__detachOne = function () {
 			return this.each ( function ( i, el ) {
 				if ( indom ( el )) {
@@ -90,9 +119,11 @@ gui.module ( "jquery", {
 		};
 	},
 
-	// Fixing JQuery instance constructor to detect when the user 
-	// instantiates JQuery in an external window context (iframes).
-	// @param {function} jq JQuery constructor
+	/**
+	 * Fixing JQuery instance constructor to detect when the user 
+	 * instantiates JQuery in an external window context (iframes).
+	 * @param {function} jq JQuery constructor
+	 */
 	_instance : function ( jq ) {
 		var Init = jq.fn.init;
 		var home = jq.__rootnode.ownerDocument.defaultView;
@@ -110,9 +141,11 @@ gui.module ( "jquery", {
 		}
 	},
 
-	// Overloading DOM manipulation methods.
-	// @todo attr and removeAttr must be hooked into gui.SpiritAtt setup...
-	// @param {function} jq Constructor
+	/**
+	 * Overloading DOM manipulation methods.
+	 * @todo attr and removeAttr must be hooked into gui.SpiritAtt setup...
+	 * @param {function} jq Constructor
+	 */
 	_overload : function ( jq ) {
 		var naive = Object.create ( null ); // mapping unmodified methods
 		[
@@ -259,17 +292,21 @@ gui.module ( "jquery", {
 		});
 	},
 	
-	// Overload Spiritual to attach/detach spirits on DOM mutation and to 
-	// suspend mutation monitoring while DOM updating. This would normally 
-	// be baked into native DOM methods appendChild, removeChild and so on.
-	// @see {gui.SpiritDOM}
+	/**
+	 * Overload Spiritual to attach/detach spirits on DOM mutation and to 
+	 * suspend mutation monitoring while DOM updating. This would normally 
+	 * be baked into native DOM methods appendChild, removeChild and so on.
+	 * @see {gui.SpiritDOM}
+	 */
 	_spiritualdom : function () {
-		// overloading prototype of this guy
+
+		// overloading this fellow
 		var plugin = gui.SpiritDOM.prototype;
-		// Desperate attempt to preserve readability
-		// in messy method overloads presented below.
-		// @param {gui.Spirit} spirit
-		// @returns {object}
+
+		/*
+		 * @param {gui.Spirit} spirit
+		 * @returns {object}
+		 */
 		function breakdown ( spirit ) {
 			var elm = spirit.element;
 			var doc = elm.ownerDocument;
@@ -278,7 +315,9 @@ gui.module ( "jquery", {
 			var is$ = win.gui.mode === gui.MODE_JQUERY;
 			return { elm : elm, doc : doc, win : win, dom : dom, is$ : is$ };
 		}
-		// manage invoker subtree
+		/**
+		 * Manage invoker subtree.
+		 */
 		[ "html", "empty", "text" ].forEach ( function ( method ) {
 			var old = plugin [ method ];
 			plugin [ method ] = function ( arg ) {
@@ -299,7 +338,9 @@ gui.module ( "jquery", {
 				return res;
 			};
 		});
-		// manage invoker itself		
+		/**
+		 * Manage invoker itself.
+		 */
 		[ "remove" ].forEach ( function ( method ) {
 			var old = plugin [ method ];
 			plugin [ method ] = function ( arg ) {
@@ -317,7 +358,9 @@ gui.module ( "jquery", {
 				return res;
 			};
 		});
-		// manage targeted element(s)
+		/**
+		 * Manage targeted element(s)
+		 */
 		[ "append", "prepend", "before", "after" ].forEach ( function ( method ) {
 			var old = plugin [ method ];
 			plugin [ method ] = function ( things ) {

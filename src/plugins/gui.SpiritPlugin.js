@@ -1,24 +1,39 @@
-// # gui.SpiritPlugin
-// Base class for all spirit plugins.
+/**
+ * # gui.SpiritPlugin
+ * Base class for all spirit plugins.
+ * @todo "context" should be required in constructor
+ * @todo Rename "gui.Plugin"
+ * @todo Rename *all* plugins to gui.SomethingPlugin :)
+ */
 gui.SpiritPlugin = gui.Exemplar.create ( "gui.SpiritPlugin", Object.prototype, {
 
-	// Associated spirit.
-	// @type {gui.Spirit}
+	/**
+	 * Associated spirit.
+	 * @type {gui.Spirit}
+	 */
 	spirit : null,
 
-	// Plugins may be designed to work without an associated spirit. 
-	// In that case, an external entity might need to define this. 
-	// @type {Global} Typically identical to this.spirit.window
+	/**
+	 * Plugins may be designed to work without an associated spirit. 
+	 * In that case, an external entity might need to define this. 
+	 * @type {Global} Typically identical to this.spirit.window
+	 */
 	context : null,
 
-	// Construct
+	/**
+	 * Construct
+	 */
 	onconstruct : function () {},
 
-	// Destruct.
+	/**
+	 * Destruct.
+	 */
 	destruct : function () {},
 
-	// Implements DOM2 EventListener. Forwards to onevent().
-	// @param {Event} e
+	/**
+	 * Implements DOM2 EventListener. Forwards to onevent().
+	 * @param {Event} e
+	 */
 	handleEvent : function ( e ) {
 		if ( gui.Type.isFunction ( this.onevent )) {
 			this.onevent ( e );
@@ -28,17 +43,21 @@ gui.SpiritPlugin = gui.Exemplar.create ( "gui.SpiritPlugin", Object.prototype, {
 	
 	// Secrets ...........................................................
 
-	// Secret constructor. Can we identify the 
-	// spirit and it's associated window? Not, 
-	// then we are maybe inside a Web Worker.
-	// @param {gui.Spirit} spirit
+	/**
+	 * Secret constructor. Can we identify the 
+	 * spirit and it's associated window? Not, 
+	 * then we are maybe inside a Web Worker.
+	 * @param {gui.Spirit} spirit
+	 */
 	__construct__ : function ( spirit ) {
 		this.spirit = spirit || null;
 		this.context = spirit ? spirit.window : null;
 	},
 
-	// Secret destructor. Catching stuff that 
-	// might be executed on a timed schedule.
+	/**
+	 * Secret destructor. Catching stuff that 
+	 * might be executed on a timed schedule.
+	 */
 	__destruct__ : function () {
 		this.destruct ();
 		if ( this.spirit !== null ) {
@@ -47,13 +66,19 @@ gui.SpiritPlugin = gui.Exemplar.create ( "gui.SpiritPlugin", Object.prototype, {
 	}
 	
 
-}, { // RECURRING STATICS ........................................
+}, { 
 
-	// By default constructed only when needed. 
-	// @type {Boolean}
+	// RECURRING STATICS ........................................
+
+	/**
+	 * By default constructed only when needed. 
+	 * @type {Boolean}
+	 */
 	lazy : true,
 
-	// Plugins don't infuse.
+	/**
+	 * Plugins don't infuse.
+	 */
 	infuse : function () {
 		throw new Error ( 
 			'Plugins must use the "extend" method and not "infuse".'
@@ -61,12 +86,17 @@ gui.SpiritPlugin = gui.Exemplar.create ( "gui.SpiritPlugin", Object.prototype, {
 	}
 
 
-}, { // STATICS ..................................................
+}, { 
 
-	// [experimental]
-	// @param {gui.SpiritPlugin} Plugin
-	// @param {String} prefix
-	// @param {gui.Spirit} spirit
+	// STATICS ..................................................
+
+	/**
+	 * Lazy initialization stuff.
+	 * @experimental
+	 * @param {gui.SpiritPlugin} Plugin
+	 * @param {String} prefix
+	 * @param {gui.Spirit} spirit
+	 */
 	later : function ( Plugin, prefix, spirit, map ) {
 		map [ prefix ] = true;
 		Object.defineProperty ( spirit, prefix, {
@@ -74,9 +104,6 @@ gui.SpiritPlugin = gui.Exemplar.create ( "gui.SpiritPlugin", Object.prototype, {
 			configurable : true,
 			get : function () {
 				if ( map [ prefix ] === true ) {
-					if ( prefix === "tween" ) {
-						throw new Error ( "WHY?" );
-					}
 					map [ prefix ] = new Plugin ( spirit );
 					map [ prefix ].onconstruct ();
 				}
@@ -86,7 +113,6 @@ gui.SpiritPlugin = gui.Exemplar.create ( "gui.SpiritPlugin", Object.prototype, {
 				map [ prefix ] = x; // or what?
 			}
 		});
-		// spirit [ prefix ] = new Plugin ( spirit );
 	}
 
 });

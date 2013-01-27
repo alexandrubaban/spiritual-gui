@@ -1,7 +1,9 @@
-// # gui.Request
-// Simplistic XMLHttpRequest wrapper. 
-// Work in progress, lot's to do here.
-// @param @optional {String} url
+/**
+ * # gui.Request
+ * Simplistic XMLHttpRequest wrapper. 
+ * Work in progress, lot's to do here.
+ * @param @optional {String} url
+ */
 gui.Request = function ( url ) {
 	if ( url ) {
 		this.url ( url );
@@ -10,74 +12,94 @@ gui.Request = function ( url ) {
 
 gui.Request.prototype = {
 
-	// Set request address.
-	// @param {String} url
+	/**
+	 * Set request address.
+	 * @param {String} url
+	 */
 	url : function ( url ) {
 		this._url = url;
 		return this;
 	},
 
-	// Convert to synchronous request.
+	/**
+	 * Convert to synchronous request.
+	 */
 	sync : function () {
 		this._async = false;
 		return this;
 	},
 
-	// Convert to asynchronous request.
+	/**
+	 * Convert to asynchronous request.
+	 */
 	async : function () {
 		this._async = true;
 		return this;
 	},
 
-	// Expected response type. Sets the accept header and formats 
-	// callback result accordingly (eg. as JSON object, XML document) 
-	// @param {String} mimetype
-	// @returns {gui.SpiritRquest}
+	/**
+	 * Expected response type. Sets the accept header and formats 
+	 * callback result accordingly (eg. as JSON object, XML document) 
+	 * @param {String} mimetype
+	 * @returns {gui.SpiritRquest}
+	 */
 	accept : function ( mimetype ) {
 		this._accept = mimetype;
 		return this;
 	},
 
-	// Expect JSON response.
-	// @returns {gui.SpiritRquest}
+	/**
+	 * Expect JSON response.
+	 * @returns {gui.SpiritRquest}
+	 */
 	acceptJSON : function () {
 		return this.accept ( "application/json" );
 	},
 
-	// Expect XML response.
-	// @returns {gui.SpiritRquest}
+	/**
+	 * Expect XML response.
+	 * @returns {gui.SpiritRquest}
+	 */
 	acceptXML : function () {
 		return this.accept ( "text/xml" );
 	},
 
-	// Expect text response.
-	// @returns {gui.SpiritRquest}
+	/**
+	 * Expect text response.
+	 * @returns {gui.SpiritRquest}
+	 */
 	acceptText : function () {
 		return this.accept ( "text/plain" );
 	},
 
-	// Request content type (when posting data to service).
-	// @param {String} mimetype
-	// @returns {gui.SpiritRquest}
+	/**
+	 * Request content type (when posting data to service).
+	 * @param {String} mimetype
+	 * @returns {gui.SpiritRquest}
+	 */
 	format : function ( mimetype ) {
 		this._format = mimetype;
 		return this;
 	},
 
-	// Set request header.
-	// @param {String} name
-	// @param {String} value
-	// @returns {gui.SpiritRquest}
+	/**
+	 * Set request header.
+	 * @param {String} name
+	 * @param {String} value
+	 * @returns {gui.SpiritRquest}
+	 */
 	header : function ( name, value ) {
 		console.warn ( "@todo request headers" );
 		return this;
 	},
 
-	// Get stuff.
-	// @todo Synchronous version
-	// @todo Unhardcode status
-	// @param {function} callback
-	// @param {object} thisp
+	/**
+	 * Get stuff.
+	 * @todo Synchronous version
+	 * @todo Unhardcode status
+	 * @param {function} callback
+	 * @param {object} thisp
+	 */
 	get : function ( callback, thisp ) {	
 		var that = this, request = new XMLHttpRequest ();
 		request.onreadystatechange = function () {
@@ -97,24 +119,34 @@ gui.Request.prototype = {
 	
 	// PRIVATES ...................................................................................
 
-	// @type {boolean}
+	/**
+	 * @type {boolean}
+	 */
 	_async : true,
 
-	// @type {String}
+	/**
+	 * @type {String}
+	 */
 	_url : null,
 
-	// Expexted response type.
-	// @todo an array?
-	// @type {String}
+	/**
+	 * Expected response type.
+	 * @todo an array?
+	 * @type {String}
+	 */
 	_accept : "text/plain",
 
-	// Default request type.
-	// @type {String}
+	/**
+	 * Default request type.
+	 * @type {String}
+	 */
 	_format : "application/x-www-form-urlencoded",
 
-	// Parse response to expected type.
-	// @param {String} text
-	// @returns {object}
+	/**
+	 * Parse response to expected type.
+	 * @param {String} text
+	 * @returns {object}
+	 */
 	_parse : function ( text ) {	
 		var result = text;
 		try {

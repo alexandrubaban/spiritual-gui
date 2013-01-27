@@ -1,6 +1,8 @@
-// # gui.SpiritBox
-// Spirit box object.
-// @extends {gui.SpiritPlugin}
+/**
+ * # gui.SpiritBox
+ * Spirit box object.
+ * @extends {gui.SpiritPlugin}
+ */
 gui.SpiritBox = gui.SpiritPlugin.extend ( "gui.SpiritBox", {
 	
 	width   : 0, // width
@@ -20,46 +22,58 @@ gui.SpiritBox = gui.SpiritPlugin.extend ( "gui.SpiritBox", {
 
 Object.defineProperties ( gui.SpiritBox.prototype, {
 
-	// Get width.
-	// @returns {number}
+	/**
+	 * Get width.
+	 * @returns {number}
+	 */
 	width : {
 		get : function () {
 			return this.spirit.element.offsetWidth;
 		}
 	},
 
-	// Get height.
-	// @returns {number}
+	/**
+	 * Get height.
+	 * @returns {number}
+	 */
 	height : {
 		get : function () {
 			return this.spirit.element.offsetHeight;
 		}
 	},
 
-	// Get offsetParent left.
-	// @returns {number}
+	/**
+	 * Get offsetParent left.
+	 * @returns {number}
+	 */
 	localX : {
 		get : function () {
 			return this.spirit.element.offsetLeft;
 		}
 	},
 
-	// Get offsetParent top.
-	// @returns {number}
+	/**
+	 * Get offsetParent top.
+	 * @returns {number}
+	 */
 	localY : {
 		get : function () {
 			return this.spirit.element.offsetTop;
 		}
 	},
 
-	// @returns {number}
+	/**
+	 * @returns {number}
+	 */
 	pageX : {
 		get : function () {
 			return this.clientX + gui.Client.scrollRoot.scrollLeft;
 		}
 	},
 
-	// @returns {number}
+	/**
+	 * @returns {number}
+	 */
 	pageY : {
 		get : function () {
 			
@@ -67,8 +81,10 @@ Object.defineProperties ( gui.SpiritBox.prototype, {
 		}
 	},
 
-	// TODO
-	// @returns {number}
+	/**
+	 * TODO
+	 * @returns {number}
+	 */
 	globalX : {
 		get : function () {
 			console.warn ( "@todo gui.SpiritBox.globalX" );
@@ -76,8 +92,10 @@ Object.defineProperties ( gui.SpiritBox.prototype, {
 		}
 	},
 
-	// TODO
-	// @returns {number}
+	/**
+	 * TODO
+	 * @returns {number}
+	 */
 	globalY : {
 		get : function () {
 			console.warn ( "@todo gui.SpiritBox.globalY" );
@@ -85,14 +103,18 @@ Object.defineProperties ( gui.SpiritBox.prototype, {
 		}
 	},
 
-	// @returns {number}
+	/**
+	 * @returns {number}
+	 */
 	clientX : {
 		get : function () {
 			return this.spirit.element.getBoundingClientRect ().left;
 		}
 	},
 
-	// @returns {number}
+	/**
+	 * @returns {number}
+	 */
 	clientY : {
 		get : function () {
 			return this.spirit.element.getBoundingClientRect ().top;

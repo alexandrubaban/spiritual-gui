@@ -1,18 +1,20 @@
-// # gui.Exemplar
-// The term "exemplar" has been proposed to avoid the term "class" which is misleading 
-// for prototypal inheritance. Nevertheless, this fellow allow us to create a newable 
-// constructor that can be easily "subclassed". Instances of this constructor may use a 
-// special "_super" method to overload members of the "superclass" prototype. 
-// @todo Evaluate static stuff first so that proto can declare vals as static props 
-// @todo Support lazy declaration via "namespace" objects
-gui.Exemplar = {
+/**
+ * # gui.Exemplar
+ * The term "exemplar" has been proposed to avoid the term "class" which is misleading 
+ * for prototypal inheritance. Nevertheless, this fellow allow us to create a newable 
+ * constructor that can be easily "subclassed". Instances of this constructor may use a 
+ * special `_super` method to overload members of the "superclass" prototype. 
+ */
+gui.Exemplar = { // @todo Evaluate static stuff first so that proto can declare vals as static props 
 
-	// Create magic constructor. Use static method "extend" on constructor to subclass further.
-	// @param {object} proto Base prototype
-	// @param {object} expando Prototype expandos
-	// @param {object} recurring Constructor and subconstructor expandos
-	// @param {object} statics Constructor expandos
-	// @returns {function}
+	/**
+	 * Create magic constructor. Use static method `extend` on the constructor to subclass further.
+	 * @param {object} proto Base prototype
+	 * @param {object} expando Prototype expandos
+	 * @param {object} recurring Constructor and subconstructor expandos
+	 * @param {object} statics Constructor expandos
+	 * @returns {function}
+	 */
 	create : function () {
 		var args = this._breakdown_base ( arguments );
 		var name = args.name || "Anonymous";
@@ -30,10 +32,12 @@ gui.Exemplar = {
 		return C;
 	},
 
-	// We want to make the string (naming) argument optional, but we still want to keep is as 
-	// first argument; so the other arguments must be identified by whether or not it's present. 
-	// @param {Arguments} args
-	// @returns {object}
+	/**
+	 * We want to make the string (naming) argument optional, but we still want to keep is as 
+	 * first argument; so the other arguments must be identified by whether or not it's present. 
+	 * @param {Arguments} args
+	 * @returns {object}
+	 */
 	breakdown : function ( args ) {
 		var named = gui.Type.isString ( args [ 0 ]);
 		return {
@@ -44,12 +48,14 @@ gui.Exemplar = {
 		};
 	},
 
-	// Create subclass constructor.
-	// @param {object} proto Base prototype
-	// @param {object} expando Prototype expandos
-	// @param {object} recurring Constructor and subconstructor expandos
-	// @param {object} statics Constructor expandos
-	// @returns {function} Constructor
+	/**
+	 * Create subclass constructor.
+	 * @param {object} proto Base prototype
+	 * @param {object} expando Prototype expandos
+	 * @param {object} recurring Constructor and subconstructor expandos
+	 * @param {object} statics Constructor expandos
+	 * @returns {function} Constructor
+	 */
 	extend : function () { // expando, recurring, statics 
 		var args = gui.Exemplar.breakdown ( arguments );		
 		this.__super__ = this.__super__ || new gui.Super ( this ); // support _super() in subclass
@@ -58,20 +64,24 @@ gui.Exemplar = {
 	
 	// UTILITIES ....................................................
 
-	// Apply action to immediate subclasses of given class.
-	// @param {function} C constructor
-	// @param {function} action
-	// @param @optional {object} thisp
+	/**
+	 * Apply action to immediate subclasses of given class.
+	 * @param {function} C constructor
+	 * @param {function} action
+	 * @param @optional {object} thisp
+	 */
 	children : function ( C, action, thisp ) {
 		C.__extenders__.forEach ( function ( sub ) {
 			action.call ( thisp, sub );
 		}, thisp );
 	},
 
-	// Apply action recursively to all derived subclasses of given class.
-	// @param {function} C constructor
-	// @param {function} action
-	// @param @optional {object} thisp 
+	/**
+	 * Apply action recursively to all derived subclasses of given class.
+	 * @param {function} C constructor
+	 * @param {function} action
+	 * @param @optional {object} thisp 
+	 */
 	descendants : function ( C, action, thisp ) {
 		C.__extenders__.forEach ( function ( sub ) {
 			action.call ( thisp, sub );
@@ -79,20 +89,24 @@ gui.Exemplar = {
 		}, thisp );
 	},
 
-	// Apply action recursively to base class and all derived subclasses.
-	// @param {function} C constructor
-	// @param {function} action
-	// @param @optional {object} thisp
+	/**
+	 * Apply action recursively to base class and all derived subclasses.
+	 * @param {function} C constructor
+	 * @param {function} action
+	 * @param @optional {object} thisp
+	 */
 	family : function ( C, action, thisp ) {
 		action.call ( thisp, C );
 		this.descendants ( C, action, thisp );
 	},
 
-	// Assign method or property to prototype, checking for naming collision.
-	// @todo http://www.nczonline.net/blog/2012/12/11/are-your-mixins-ecmascript-5-compatible
-	// @param {String} name
-	// @param {object} value
-	// @param @optional {boolean} override Disable collision detection
+	/**
+	 * Assign method or property to prototype, checking for naming collision.
+	 * @todo http://www.nczonline.net/blog/2012/12/11/are-your-mixins-ecmascript-5-compatible
+	 * @param {String} name
+	 * @param {object} value
+	 * @param @optional {boolean} override Disable collision detection
+	 */
 	addin : function ( name, value, override ) {
 		if ( this.prototype [ name ] === undefined || override ) {
 			this.prototype [ name ] = value;
@@ -109,10 +123,12 @@ gui.Exemplar = {
 	
 	// PRIVATES .....................................................
 
-	// Breakdown arguments for base exemplar only (has one extra argument).
-	// @see {gui.Exemplar#breakdown}
-	// @param {Arguments} args
-	// @returns {object}
+	/**
+	 * Breakdown arguments for base exemplar only (has one extra argument).
+	 * @see {gui.Exemplar#breakdown}
+	 * @param {Arguments} args
+	 * @returns {object}
+	 */
 	_breakdown_base : function ( args ) {
 		var named = gui.Type.isString ( args [ 0 ]);
 		return {
@@ -124,13 +140,15 @@ gui.Exemplar = {
 		};
 	},
 
-	// Create subclass constructor.
-	// @param {object} constructor Super constructor
-	// @param {object} expando Prototype expandos
-	// @param {object} recurring Constructor and subconstructor expandos
-	// @param {object} statics Constructor expandos
-	// @param {String} generated display name (for development)
-	// @returns {function} Constructor
+	/**
+	 * Create subclass constructor.
+	 * @param {object} constructor Super constructor
+	 * @param {object} expando Prototype expandos
+	 * @param {object} recurring Constructor and subconstructor expandos
+	 * @param {object} statics Constructor expandos
+	 * @param {String} generated display name (for development)
+	 * @returns {function} Constructor
+	 */
 	_extend : function ( constructor, expando, recurring, statics, name ) {
 		name = name || "Anonymous";
 		var C = this._create ( constructor.prototype, name );
@@ -151,10 +169,12 @@ gui.Exemplar = {
 		return C;
 	},
 
-	// @todo comments here!
-	// @param {object} proto Prototype of superconstructor
-	// @param {String} name Constructor name (for debug).
-	// @returns {function}
+	/**
+	 * @todo comments here!
+	 * @param {object} proto Prototype of superconstructor
+	 * @param {String} name Constructor name (for debug).
+	 * @returns {function}
+	 */
 	_create : function ( proto, name ) {
 		var C = this._constructor ( name );
 		C.prototype = Object.create ( proto );
@@ -166,9 +186,11 @@ gui.Exemplar = {
 		return C;
 	},
 
-	// Create named constructor.
-	// @param {String} name
-	// @returns {function} constructor
+	/**
+	 * Create named constructor.
+	 * @param {String} name
+	 * @returns {function} constructor
+	 */
 	_constructor : function ( name ) {
 		if ( name.contains ( "." )) {
 			var index = name.lastIndexOf ( "." );
@@ -186,19 +208,23 @@ gui.Exemplar = {
 		return named ();
 	},
 
-	// Name constructor and instance.
-	// @param {function} C
-	// @param {String} name
+	/**
+	 * Name constructor and instance.
+	 * @param {function} C
+	 * @param {String} name
+	 */
 	_name : function ( C, name ) {
 		this._nameIt ( C, "function", name );
 		this._nameIt ( C.prototype, "object", name );
 	},
 
-	// Name constructor or instance.
-	// @todo does it work ?????????????????????????????????
-	// @param {object} what
-	// @param {String} type
-	// @param {String} name
+	/**
+	 * Name constructor or instance.
+	 * @todo does it work ?
+	 * @param {object} what
+	 * @param {String} type
+	 * @param {String} name
+	 */
 	_nameIt : function ( what, type, name ) {
 		if ( !what.hasOwnProperty ( "toString" )) {
 			what.toString = function toString () {

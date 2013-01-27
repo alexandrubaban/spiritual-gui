@@ -1,20 +1,26 @@
-// # gui.FileLoader
-// We load a text file from the server. This might be used instead 
-// of a XMLHttpRequest to cache the result and save repeated lookups.
-// @todo custom protocol handlers to load from localstorage
+/**
+ * # gui.FileLoader
+ * We load a text file from the server. This might be used instead 
+ * of a XMLHttpRequest to cache the result and save repeated lookups.
+ * @todo custom protocol handlers to load from localstorage
+ */
 gui.FileLoader = gui.Exemplar.create ( "gui.FileLoader", Object.prototype, {
 
-	// Construction time again.
-	// @param {Document} doc
+	/**
+	 * Construction time again.
+	 * @param {Document} doc
+	 */
 	onconstruct : function ( doc ) {
 		this._cache = gui.FileLoader._cache;
 		this._document = doc;
 	},
 
-	// Load file as text/plain and serve to callback.
-	// @param {String} src Relative to document URL
-	// @param {function} callback
-	// @param @optional {object} thisp
+	/**
+	 * Load file as text/plain and serve to callback.
+	 * @param {String} src Relative to document URL
+	 * @param {function} callback
+	 * @param @optional {object} thisp
+	 */
 	load : function ( src, callback, thisp ) {
 		var url = new gui.URL ( this._document, src );
 		if ( this._cache.has ( url.location )) {
@@ -24,11 +30,13 @@ gui.FileLoader = gui.Exemplar.create ( "gui.FileLoader", Object.prototype, {
 		}
 	},
 
-	// Handle loaded file.
-	// @param {String} text
-	// @param {gui.URL} url
-	// @param {function} callback
-	// @param @optional {object} thisp
+	/**
+	 * Handle loaded file.
+	 * @param {String} text
+	 * @param {gui.URL} url
+	 * @param {function} callback
+	 * @param @optional {object} thisp
+	 */
 	onload : function ( text, url, callback, thisp ) {
 		callback.call ( thisp, text );
 	},
@@ -36,21 +44,27 @@ gui.FileLoader = gui.Exemplar.create ( "gui.FileLoader", Object.prototype, {
 	
 	// PRIVATES ........................................................
 
-	// Cached is shared between all instances of gui.FileLoader.
-	// @see {gui.FileLoader#_cache}
-	// @type {Map<String,String>}
+	/**
+	 * Cached is shared between all instances of gui.FileLoader.
+	 * @see {gui.FileLoader#_cache}
+	 * @type {Map<String,String>}
+	 */
 	_cache : null,
 
-	// File address resolved relative to this document.
-	// @type {Document}
+	/**
+	 * File address resolved relative to this document.
+	 * @type {Document}
+	 */
 	_document : null,
 
-	// Request external file.
-	// @param {gui.URL} url
-	// @param {function} callback
-	// @param @optional {object} thisp
+	/**
+	 * Request external file while blocking subsequent similar request.
+	 * @param {gui.URL} url
+	 * @param {function} callback
+	 * @param @optional {object} thisp
+	 */
 	_request : function ( url, callback, thisp ) {
-		this._cache.set ( url.location, null ); // blocking similar request
+		this._cache.set ( url.location, null );
 		new gui.Request ( url.href ).get ( function ( status, text ) {
 			this.onload ( text, url, callback, thisp );
 			this._cache.set ( url.location, text );
@@ -58,14 +72,16 @@ gui.FileLoader = gui.Exemplar.create ( "gui.FileLoader", Object.prototype, {
 		}, this );
 	},
 
-	// Hello.
-	// @param {gui.URL} url
-	// @param {Map<String,String>} cache
-	// @param {function} callback
-	// @param @optional {object} thisp
+	/**
+	 * Hello.
+	 * @param {gui.URL} url
+	 * @param {Map<String,String>} cache
+	 * @param {function} callback
+	 * @param @optional {object} thisp
+	 */
 	_cached : function ( url, callback, thisp ) {
 		var cached = this._cache.get ( url.location );
-		if ( cached !== null ) { // note that null check is important
+		if ( cached !== null ) { // note that null type is important
 			this.onload ( cached, url, callback, thisp );
 		} else {
 			var that = this;
@@ -78,10 +94,12 @@ gui.FileLoader = gui.Exemplar.create ( "gui.FileLoader", Object.prototype, {
 
 	// SECRETS .........................................................
 
-	// Secret constructor.
-	// @param {gui.Spirit} spirit
-	// @param {Window} window
-	// @param {function} handler
+	/**
+	 * Secret constructor.
+	 * @param {gui.Spirit} spirit
+	 * @param {Window} window
+	 * @param {function} handler
+	 */
 	__construct__ : function ( doc ) {
 		if ( doc && doc.nodeType === Node.DOCUMENT_NODE ) {
 			this.onconstruct ( doc );
@@ -91,29 +109,35 @@ gui.FileLoader = gui.Exemplar.create ( "gui.FileLoader", Object.prototype, {
 	}
 
 	
-}, {}, { // STATICS ....................................................
+}, {}, { 
 
-	// @static
-	// Cache previously retrieved files, mapping URL to file text.
-	// @type {Map<String,String>}
+	// STATICS ....................................................
+
+	/**
+	 * Cache previously retrieved files, mapping URL to file text.
+	 * @type {Map<String,String>}
+	 */
 	_cache : new Map (),
 
-	// @static
-	// Queue handlers for identical requests, mapping URL to function.
-	// @type {Array<String,function>}
+	/**
+	 * Queue handlers for identical requests, mapping URL to function.
+	 * @type {Array<String,function>}
+	 */
 	_queue : new Map (),
 
-	// @static
-	// Queue onload handler for identical request.
-	// @param {String}
+	/**
+	 * Queue onload handler for identical request.
+	 * @param {String}
+	 */
 	queue : function ( src, action ) {
 		this._queue [ src ] =  this._queue [ src ] || [];
 		this._queue [ src ].push ( action );
 	},
 
-	// @static
-	// Execute queued onload handlers.
-	// @param {String} src
+	/**
+	 * Execute queued onload handlers.
+	 * @param {String} src
+	 */
 	unqueue : function ( src ) {
 		var text = this._cache.get ( src );
 		if ( this._queue [ src ]) {

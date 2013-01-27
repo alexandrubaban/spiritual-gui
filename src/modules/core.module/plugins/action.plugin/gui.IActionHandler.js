@@ -1,13 +1,20 @@
-// # gui.IActionHandler
-// Interface ActionHandler.
+/**
+ * # gui.IActionHandler
+ * Interface ActionHandler.
+ */
 gui.IActionHandler = {
 
-	// @ignore
+	/**
+	 * Identification.
+	 * @returns {String}
+	 */
 	toString : function () {
 		return "[object IActionHandler]";
 	},
 
-	// Handle action.
-	// @param {gui.Action} action
+	/**
+	 * Handle action.
+	 * @param {gui.Action} action
+	 */
 	onaction : function ( action ) {}
 };

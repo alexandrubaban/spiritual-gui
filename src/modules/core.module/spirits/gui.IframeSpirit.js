@@ -1,14 +1,20 @@
-// # gui.IframeSpirit
-// @extends {gui.Spirit}
-// Spirit of the iframe.
+/**
+ * # gui.IframeSpirit
+ * @extends {gui.Spirit}
+ * Spirit of the iframe.
+ */
 gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
 
-	// Signs iframe URLs with a unique identifier eg. to 
-	// relay spirit actions from across exotic domains.
-	// @type {String}
+	/**
+	 * Signs iframe URLs with a unique identifier eg. to 
+	 * relay spirit actions from across exotic domains.
+	 * @type {String}
+	 */
 	signature : null,
 
-	// Construct.
+	/**
+	 * Construct.
+	 */
 	onconstruct : function () {
 		this._super.onconstruct ();
 		if ( this.signature === null ) {
@@ -16,9 +22,11 @@ gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
 		}
 	},
 
-	// Get or set iframe source.
-	// See also method path.
-	// @param {String} src
+	/**
+	 * Get or set iframe source.
+	 * See also method path.
+	 * @param {String} src
+	 */
 	src : function ( src ) {
 		if ( gui.Type.isString ( src )) {
 			if ( gui.IframeSpirit.isExternal ( src )) {
@@ -30,12 +38,16 @@ gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
 	}
 	
 	
-}, { // RECURRING  ...........................................................
+}, { 
 
-	// Summon spirit.
-	// @param {Document} doc
-	// @param {String} src
-	// @returns {gui.IframeSpirit}
+	// RECURRING  ...........................................................
+
+	/**
+	 * Summon spirit.
+	 * @param {Document} doc
+	 * @param {String} src
+	 * @returns {gui.IframeSpirit}
+	 */
 	summon : function ( doc, src ) {
 		// Unique key stamped into iframe SRC.
 		var sig = gui.IframeSpirit.generateSignature ();
@@ -56,60 +68,78 @@ gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
 	}
 
 
-}, { // STATIC ................................................................
+}, { 
 
-	// The stuff going on here has to do with a future project 
-	// about supporting cross-doman spiritualized websites
+	// STATIC ................................................................
 
-	// Presumably harmless iframe source. The issue here is that "about:blank" 
-	// may raise security concerns for some browsers when running HTTPS setup.
-	// @type {String} 
+	/**
+	 * The stuff going on here has to do with a future project 
+	 * about supporting cross-doman spiritualized websites
+	 */
+
+	/**
+	 * Presumably harmless iframe source. The issue here is that "about:blank" 
+	 * may raise security concerns for some browsers when running HTTPS setup.
+	 * @type {String}
+	 */
 	SRC_DEFAULT : "javascript:void(false);",
 
-	// Overwrite this property to create a parameter name for  
-	// signing that looks somewhat less like a spyware attack.
-	// @type {String}
+	/**
+	 * Overwrite this property to create a parameter name for  
+	 * signing that looks somewhat less like a spyware attack.
+	 * @type {String}
+	 */
 	KEY_SIGNATURE : "spiritual-signature",
 
-	// Generate unique signature (for this session).
-	// @returns {String}
+	/**
+	 * Generate unique signature (for this session).
+	 * @returns {String}
+	 */
 	generateSignature : function () {
 		return gui.KeyMaster.generateKey ().replace ( "key", "sig" );
 	},
 
-	// Sign URL with signature.
-	// @param {String} url
-	// @param @optional {String} signature
-	// @returns {String}
+	/**
+	 * Sign URL with signature.
+	 * @param {String} url
+	 * @param @optional {String} signature
+	 * @returns {String}
+	 */
 	sign : function ( url, signature ) {
 		return this.setParam ( url, this.KEY_SIGNATURE, signature || this.generateSignature ());
 	},
 
-	// Remove signature from URL (prettyfied for end user). 
-	// @param {String} url
-	// @param {String} sign
-	// @returns {String}
+	/**
+	 * Remove signature from URL (prettyfied for end user). 
+	 * @param {String} url
+	 * @param {String} sign
+	 * @returns {String}
+	 */
 	unsign : function ( url ) {	
 		return this.setParam ( url, this.KEY_SIGNATURE, null );
 	},
 
-	// Extract querystring parameter value from URL.
-	// @param {String} url
-	// @param {String} name
-	// @returns {String} String or null
+	/**
+	 * Extract querystring parameter value from URL.
+	 * @param {String} url
+	 * @param {String} name
+	 * @returns {String} String or null
+	 */
 	getParam : function ( url, name ) {
 		name = name.replace( /(\[|\])/g, "\\$1" ); // was: name = name.replace ( /[\[]/, "\\\[" ).replace( /[\]]/, "\\\]" ); (http://stackoverflow.com/questions/2338547/why-does-jslint-returns-bad-escapement-on-this-line-of-code)
 		var results = new RegExp ( "[\\?&]" + name + "=([^&#]*)" ).exec ( url );
 		return results === null ? null : results [ 1 ];
 	},
 
-	// Add or remove querystring parameter from URL. If the parameter 
-	// already exists, we'll replace it's (first ancountered!) value. 
-	// @todo Something simpler
-	// @param {String} url
-	// @param {String} name
-	// @param {String} value Use null to remove
-	// @returns {String} String
+	/**
+	 * Add or remove querystring parameter from URL. If the parameter 
+	 * already exists, we'll replace it's (first ancountered!) value. 
+	 * @todo Something simpler
+	 * @param {String} url
+	 * @param {String} name
+	 * @param {String} value Use null to remove
+	 * @returns {String} String
+	 */
 	setParam : function ( url, name, value ) {
 		var params = [], cut, index = -1;
 		name = encodeURIComponent ( name );
@@ -142,8 +172,10 @@ gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
 		return url + ( params.length > 0 ? "?" + params.join ( "&" ) : "" );
 	},
 
-	// Is external address?
-	// @returns {boolean}
+	/**
+	 * Is external address?
+	 * @returns {boolean}
+	 */
 	isExternal : function ( url ) {
 		var a = document.createElement ( "a" );
 		a.href = url;

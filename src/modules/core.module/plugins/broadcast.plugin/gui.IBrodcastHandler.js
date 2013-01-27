@@ -1,14 +1,20 @@
-// # gui.IBroadcastHandler
-// Interface BroadcastHandler.
+/**
+ * # gui.IBroadcastHandler
+ * Interface BroadcastHandler.
+ */
 gui.IBroadcastHandler = {
 
-	// @ignore
+	/**
+	 * Identification.
+	 * @returns {String}
+	 */
 	toString : function () {
 		return "[object IBroadcastHandler]";
 	},
 
-	// @static
-	// Handle broadcast.
-	// @param {gui.Broadcast} broadcast
+	/**
+	 * Handle broadcast.
+	 * @param {gui.Broadcast} broadcast
+	 */
 	onbroadcast : function ( broadcast ) {}
 };

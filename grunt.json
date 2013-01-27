@@ -1,5 +1,5 @@
 [
-	"src/boot/gui.js",
+	"src/gui.js",
 	"src/boot/gui.SpiritualAid.js",
 	"src/boot/gui.Spiritual.js",
 
@@ -56,7 +56,7 @@
 	"src/modules/core.module/plugins/attention.plugin/gui.AttentionPlugin.js",
 	"src/modules/core.module/core.module.js",
 
-	"src/core/gui.Client.js",
+	"src/utils/gui.Client.js",
 	
 	"src/modules/core.module/spirits/gui.DocumentSpirit.js",
 	"src/modules/core.module/spirits/gui.WindowSpirit.js",
@@ -67,10 +67,10 @@
 
 	"src/modules/jquery.module/jquery.module.js",
 
-	"src/core/gui.UPGRADE.js",
-	"src/core/gui.WEBKIT.js",
+	"src/dom/gui.DOMChanger.js",
+	"src/dom/gui.DOMCombos.js",
+	"src/dom/gui.DOMPatcher.js",
 
-	"src/core/gui.Observer.js",
-	"src/core/gui.World.js",
+	"src/dev/gui.Observer.js",
 	"src/core/gui.Guide.js"
 ]

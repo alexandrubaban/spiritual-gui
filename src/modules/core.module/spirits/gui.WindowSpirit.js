@@ -1,24 +1,34 @@
-// # gui.WindowSpirit
-// @extends {gui.Spirit}
-// Spirit of the window.
-// @todo use this name?
+/**
+ * # gui.WindowSpirit
+ * @extends {gui.Spirit}
+ * Spirit of the window.
+ * @todo use this name?
+ */
 gui.WindowSpirit = gui.Spirit.infuse ( "gui.WindowSpirit", {
 
-	// When to hide the loading splash cover. 
-	// @todo Match one of "ready" "load" "fit"
-	// Defaults to "fit" (harcoded for now)
+	/**
+	 * When to hide the loading splash cover. 
+	 * @todo Match one of "ready" "load" "fit"
+	 * Defaults to "fit" (harcoded for now)
+	 */
 	cover : "fit",
 
-	// Fit height to iframe contained document height?
-	// @todo setter for this to allow runtime update.
-	// @type {boolean}
+	/**
+	 * Fit height to iframe contained document height?
+	 * @todo setter for this to allow runtime update.
+	 * @type {boolean}
+	 */
 	fit : true,
 
-	// Manage CSS internally?
-	// @type {boolean}
+	/**
+	 * Manage CSS internally?
+	 * @type {boolean}
+	 */
 	style : true,
 
-	// Prepending iframe and cover.
+	/**
+	 * Prepending iframe and cover.
+	 */
 	onenter : function () {
 		this._super.onenter ();
 		this._cover = this.dom.prepend ( gui.CoverSpirit.summon ( this.document ));
@@ -29,9 +39,11 @@ gui.WindowSpirit = gui.Spirit.infuse ( "gui.WindowSpirit", {
 		}
 	},
 
-	// Get or set src.
-	// @param @optional {String} src
-	// @returns {String} 
+	/**
+	 * Get or set src.
+	 * @param @optional {String} src
+	 * @returns {String}
+	 */
 	src : function ( src ) {
 		var result = null;
 		if ( this.life.entered ) {
@@ -45,8 +57,10 @@ gui.WindowSpirit = gui.Spirit.infuse ( "gui.WindowSpirit", {
 		return result;
 	},
 
-	// Handle action.
-	// @param {gui.Action} action
+	/**
+	 * Handle action.
+	 * @param {gui.Action} action
+	 */
 	onaction : function ( action ) {
 		this._super.onaction ( action );
 		switch ( action.type ) {
@@ -56,10 +70,8 @@ gui.WindowSpirit = gui.Spirit.infuse ( "gui.WindowSpirit", {
 				break;
 			case gui.ACTION_DOCUMENT_FIT :
 				if ( this.fit ) {
-					// immediate
 					this.css.height = action.data.height;
 					this.action.dispatchGlobal ( action.type, action.data.height );
-					// backup (webkit)
 					this._height = action.data.height;
 					var tick = "TICK-TEMP";
 					this.tick.one ( tick ).dispatch ( tick, 0 );
@@ -69,8 +81,10 @@ gui.WindowSpirit = gui.Spirit.infuse ( "gui.WindowSpirit", {
 		}
 	},
 
-	// Handle tick.
-	// @param {gui.Tick} tick
+	/**
+	 * Handle tick.
+	 * @param {gui.Tick} tick
+	 */
 	ontick : function ( tick ) {
 		this._super.ontick ( tick );
 		if ( tick.type === "TICK-TEMP" ) {
@@ -81,22 +95,32 @@ gui.WindowSpirit = gui.Spirit.infuse ( "gui.WindowSpirit", {
 	
 	// PRIVATES ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
-	// Spirit of the iframe.
-	// @type {gui.IframeSpirit}
+	/**
+	 * Spirit of the iframe.
+	 * @type {gui.IframeSpirit}
+	 */
 	_frame : null,
 
-	// Hm............
-	// @type {String}
+	/**
+	 * Hm............
+	 * @type {String}
+	 */
 	_src : null,
 
-	// Spirit of the cover.
-	// @type {gui.CoverSpirit}
+	/**
+	 * Spirit of the cover.
+	 * @type {gui.CoverSpirit}
+	 */
 	_cover : null,
 
-	// @type {number}
+	/**
+	 * @type {number}
+	 */
 	_height : 0,
  
-	// Loading. 
+	/**
+	 * Loading. 
+	 */
 	_loading : function () {
 		if ( this.life.entered && this.cover ) {
 			this._cover.dom.show ();
@@ -104,7 +128,9 @@ gui.WindowSpirit = gui.Spirit.infuse ( "gui.WindowSpirit", {
 		this.action.dispatch ( gui.ACTION_WINDOW_LOADING );
 	},
 
-	// Loaded.
+	/**
+	 * Loaded.
+	 */
 	_loaded : function () {
 		if ( this.life.entered && this.cover ) {
 			this._cover.dom.hide ();
@@ -112,9 +138,11 @@ gui.WindowSpirit = gui.Spirit.infuse ( "gui.WindowSpirit", {
 		this.action.dispatch ( gui.ACTION_WINDOW_LOADED );
 	},
 
-	// Autostyling.
-	// @todo use top right bottom left instead of width and height?
-	// @see {gui.WindowSpirit#style}
+	/**
+	 * Autostyling.
+	 * @todo use top right bottom left instead of width and height?
+	 * @see {gui.WindowSpirit#style}
+	 */
 	_style : function () {
 		if ( this.css.compute ( "position" ) === "static" ) {
 			this.css.position = "relative";
@@ -130,9 +158,11 @@ gui.WindowSpirit = gui.Spirit.infuse ( "gui.WindowSpirit", {
 
 }, { // STATICS ..........................................................
 
-	// Summon spirit.
-	// @param {Document} doc
-	// @param @optional {String} src
+	/**
+	 * Summon spirit.
+	 * @param {Document} doc
+	 * @param @optional {String} src
+	 */
 	summon : function ( doc, src ) {
 		var div = doc.createElement ( "div" );
 		var spirit = this.animate ( div );
