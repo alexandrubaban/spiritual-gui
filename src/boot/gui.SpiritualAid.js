@@ -27,9 +27,9 @@ gui.SpiritualAid = {
 	// PRIVATES ...............................................................
 
 	/**
-	 * Extend something with something elses methods.
-	 * @param {object} what Usually a native prototype
-	 * @param {object} whit Set of extension methods
+	 * Extend one object with another.
+	 * @param {object} what Native prototype
+	 * @param {object} whit Extension methods
 	 */
 	_extend : function ( what, whit ) {
 		Object.keys ( whit ).forEach ( function ( key ) {

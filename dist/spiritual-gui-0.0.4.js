@@ -534,7 +534,7 @@ gui.Spiritual.prototype = {
 	 */
 	go : function () {
 		this._ready = true;
-		gui.DOMChanger.descend ( this.context );
+		gui.DOMChanger.change ( this.context );
 		gui.Tick.add ( gui.TICK_DESTRUCT_DETACHED, this, this.signature );
 		if ( this._configs !== null ) {
 			this._configs.forEach ( function ( config ) {

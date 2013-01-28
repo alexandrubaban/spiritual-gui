@@ -16,10 +16,15 @@ gui.Spiritual.prototype = {
 	 */
 	constructor: gui.Spiritual,
 
+	/** 
+	 * ## TESTING
+	 */
+	hans : false,
+
 	/**
-	 * Uniquely identifies this instance of gui.Spiritual. All 
-	 * local instances of gui.Spirit gets stamped with a copy.
-	 * @todo rename "guikey" or "windowkey" or "contextkey" ...
+	 * Uniquely identifies this instance of `gui.Spiritual` 
+	 * knowing that other instances may exist in iframes.
+	 * @todo rename guikey or windowkey or contextkey
 	 * @type {String}
 	 */
 	signature : null,
@@ -31,9 +36,14 @@ gui.Spiritual.prototype = {
 	context : null,
 
 	/**
-	 * Spirit management mode. Matches native | jquery | optimize. 
-	 * Note that this will deprecate as soon as iOS supports 
-	 * a mechanism for grabbing the native innerHTML setter.
+	 * Spirit management mode. Matches one of 
+	 * 
+	 * - native
+	 * - jquery
+	 * - optimize.
+	 * - manage (todo)
+	 *  
+	 * @note This will deprecate as soon as iOS supports a mechanism for grabbing the native innerHTML setter.
 	 * @type {String}
 	 */
 	mode : "optimize", // recommended setting for iOS support
@@ -58,7 +68,7 @@ gui.Spiritual.prototype = {
 	 */
 	go : function () {
 		this._ready = true;
-		gui.DOMChanger.descend ( this.context );
+		gui.DOMChanger.change ( this.context );
 		gui.Tick.add ( gui.TICK_DESTRUCT_DETACHED, this, this.signature );
 		if ( this._configs !== null ) {
 			this._configs.forEach ( function ( config ) {
@@ -143,7 +153,7 @@ gui.Spiritual.prototype = {
 	/**
 	 * Channel spirits to CSS selectors.
 	 * @param {String} select CSS selector
-	 * @param {object|String} klass Spirit constructor(name)
+	 * @param {object|String} klass Constructor or name
 	 */
 	channel : function ( select, klass ) {
 		var spirit = null;
@@ -170,11 +180,13 @@ gui.Spiritual.prototype = {
 	},
 
 	/**
-	 * Transfer Spirit world to a parallel window in three easy steps.
+	 * Portal Spiritual to a parallel window in three easy steps.
 	 * 
-	 * 1. Extend Element.prototype in window
-	 * 2. Declare local ui object in window
-	 * 3. Declare spirit world objects, pointing back to this window
+	 * 1. Create a local instance of `gui.Spiritual` (this class) and assign it to the global variable `gui` in remote window.
+	 * 2. For all members of local `gui`, stamp a reference onto remote `gui`. In remote window, the variable `gui.Spirit` now points to a class declared in this window.
+	 * 3. Setup {gui.Guide} to attach remote spirits when the document loads.
+	 *
+	 * Members of the `gui` namespace can be setup not to portal by setting the static boolean `portals=false` on the constructor.
 	 * @param {Window} sub An external window.
 	 */
 	portal : function ( sub ) {
@@ -221,8 +233,8 @@ gui.Spiritual.prototype = {
 	},
 
 	/**
-	 * Kickstart Spiritual manuallay. Use this if you lazyload (module-require) 
-	 * Spiritual after the document.DOMContentLoaded and window.onload events fire.
+	 * Kickstart Spiritual manuallay. Use this if you somehow 
+	 * load Spiritual after DOMContentLoaded event has fired.
 	 */
 	kickstart : function () {
 		switch ( document.readyState ) {
@@ -296,9 +308,9 @@ gui.Spiritual.prototype = {
 	},
 
 	/**
-	 * TODO: RENAME BROADCASTGLOBAL !
-	 * Broadcast event details globally. Use this if you stopPropagate   
-	 * an event for personal reasons and don't want to keep it a secret.
+	 * TODO: Must be renamed to broadcastGlobal! Broadcast event details globally. 
+	 * Use this if you stopPropagate an event for personal reasons and don't want 
+	 * to keep it a secret (also, update this description).
 	 * @param {String} message gui.BROADCAST_MOUSECLICK or similar
 	 * @param @optional {object} arg This could well be a MouseEvent
 	 */
@@ -406,7 +418,7 @@ gui.Spiritual.prototype = {
 		}, this );
 	},
 	
-	
+
 	// PRIVATES ......................................................................................................
 
 	/**

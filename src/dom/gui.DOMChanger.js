@@ -27,15 +27,15 @@ gui.DOMChanger = {
 	/**
 	 * Declare "spirit" as a fundamental property of things 
 	 * and extend native DOM methods in given window scope.
+	 * @todo WeakMap<Element,gui.Spirit> in supporting agents
 	 * @param {Window} win
 	 */
-	descend : function ( win ) {
+	change : function ( win ) {
 		var element = win.Element.prototype;
 		if ( gui.Type.isDefined ( element.spirit )) {
 			throw new Error ( "Spiritual loaded twice?" );
 		} else {
-			// @todo WeakMap<Element,gui.Spirit> in supporting agents
-			element.spirit = null; // defineProperty fails in iOS 5.0
+			element.spirit = null; // defineProperty fails in iOS5
 			switch ( win.gui.mode ) {
 				case gui.MODE_NATIVE :
 				case gui.MODE_OPTIMIZE : 

@@ -45,8 +45,8 @@ gui.Guide = {
 	},
 
 	/**
-	 * Elaborate setup to spiritualize document 
-	 * after async evaluation of gui-stylesheets.
+	 * Elaborate setup to spiritualize document after async 
+	 * evaluation of gui-stylesheets (future project).
 	 * @see {gui.StyleSheetSpirit}
 	 * @param {gui.Broadcast} b
 	 */
@@ -81,9 +81,8 @@ gui.Guide = {
 	/**
 	 * Construct spirits for element and descendants, 
 	 * then attach all spirits in document order.
-	 * @todo JUMP DETACHED SPIRIT IF MATCHING ID!
+	 * @todo Jump detached spirit if matching id (!)
 	 * @param {Element} elm
-	 * @param {boolean} skip Eval descendants only
 	 */
 	attach : function ( elm ) {
 		this._attach ( elm, false, false );
@@ -108,7 +107,6 @@ gui.Guide = {
 	/**
 	 * Detach spirits from element and descendants.
 	 * @param {Element} elm
-	 * @param @optional {boolean} skip Eval descendants only 
 	 */
 	detach : function ( elm ) {
 		this._detach ( elm, false, false );
@@ -133,7 +131,7 @@ gui.Guide = {
 	/**
 	 * Detach spirits from element and descendants.
 	 * @param {Node} node
-	 * @param @optional {boolean} skip Eval descendants only 
+	 * @param @optional {boolean} unloading Trigger synchronous destruction of spirit on unload.
 	 */
 	dispose : function ( node, unloading ) {
 		this._collect ( node, false, gui.CRAWLER_DISPOSE ).forEach ( function ( spirit ) {
@@ -242,7 +240,7 @@ gui.Guide = {
 	},
 
 	/**
-	 * Step 1. Great name...
+	 * Step 1. Great name.
 	 * @param {Document} doc
 	 */
 	_step1 : function ( doc ) {
@@ -251,8 +249,7 @@ gui.Guide = {
 		this._metatags ( win ); // configure runtime
 		win.gui.go (); // channel spirits
 		this._stylesheets ( win ); // more spirits?
-		// resolving spiritual stylesheets? 
-		// If not, skip directly to _step2.
+		// resolving spiritual stylesheets? If not, skip directly to _step2.
 		if ( !this._windows [ sig ]) {
 			this._step2 ( doc );
 		}

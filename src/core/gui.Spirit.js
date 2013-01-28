@@ -47,10 +47,9 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	// Lifecycle ..............................................................
 
 	/**
-	 * ## Lifecycle
 	 * You can safely overload or overwrite methods in the lifecycle section, 
-	 * but you should leave it to the {gui.Guide} to invoke them. Also, do make 
-	 * sure to always call this._super.themethod () unless you really mean it.
+	 * but you should always leave it to the {gui.Guide} to invoke them. Also, do make 
+	 * sure to always call `this._super.method()` unless you really mean it.
 	 */
 	
 	/**
@@ -102,21 +101,21 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	},
 
 	/**
-	 * Hello!
+	 * `onvisible` has some explaining to do.
 	 */
 	onvisible : function () {
 		this.life.govisible ();
 	},
 
 	/**
-	 * Hello.
+	 * `oninvisible` has some explaining to do.
 	 */
 	oninvisible : function () {
 		this.life.goinvisible ();
 	},
 
 	/**
-	 * Invoked whenever spirit element is detached from the DOM tree. 
+	 * `ondetach` gets callend whenever the spirit element is detached from the DOM tree. 
 	 */
 	ondetach : function () {
 		this.window.gui.outside ( this );
@@ -124,10 +123,10 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	},
 	
 	/**
-	 * Invoked when spirit is detached and not re-attached in the same thread. 
-	 * This triggers destruction *unless* you return false. In this case, make sure 
-	 * to manually dispose the spirit later (using method `dispose`).  
-	 * @returns {boolean} Optionally return false to manage your own destruction
+	 * `onexit` gets called when spirit is detached and not re-attached in the same 
+	 * execution stack. This triggers destruction unless you return `false`. In this 
+	 * case, make sure to manually dispose the spirit later (using method `dispose`).  
+	 * @returns {udenfined|boolean} False to stay alive
 	 */
 	onexit : function () {
 		this.life.goexit (); // do not call _super.onexit if you return false
@@ -431,12 +430,13 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	 */
 	plugin : function ( prefix, plugin, override ) {
 		var plugins = this.__plugins__;
-		if ( !this.prototype.hasOwnProperty ( prefix ) || this.prototype.prefix === null || override ) {
+		var proto = this.prototype;
+		if ( !proto.hasOwnProperty ( prefix ) || proto.prefix === null || override ) {
 			if ( !plugins [ prefix ] || override ) {
 				plugins [ prefix ] = plugin;
-				this.prototype.prefix = null;
-				gui.Exemplar.children ( this, function ( sub ) {
-					sub.plugin ( prefix, plugin, override );
+				proto.prefix = null;
+				gui.Exemplar.children ( this, function ( child ) {
+					child.plugin ( prefix, plugin, override ); // recurses to descendants
 				});
 			}
 		} else {
