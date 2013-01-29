@@ -148,6 +148,7 @@ gui.Guide = {
 	 * @returns {Spirit}
 	 */
 	animate : function ( element, C ) {
+
 		var spirit = new C ();
 		spirit.element = element;
 		spirit.document = element.ownerDocument;
@@ -266,34 +267,14 @@ gui.Guide = {
 	 */
 	_step2 : function ( doc ) {
 
-		/*
-		var win = doc.defaultView;
-		var sig = win.gui.signature;
-
-		// In development mode, setup a mutation observer to monitor the document for unhandled DOM updates. 
-		if ( win.gui.debug ){
-			if ( win.gui.mode === gui.MODE_JQUERY ) {
-				setImmediate ( function () {  // @todo somehow not conflict with http://stackoverflow.com/questions/11406515/domnodeinserted-behaves-weird-when-performing-dom-manipulation-on-body
-					gui.Observer.observe ( win ); // @idea move all of _step2 to next stack?
-				});
-			} else {
-				gui.Observer.observe ( win );
-			}
-		}
-		if ( gui.Client.isWebKit ) {
-			if ( win.gui.mode === gui.MODE_NATIVE ) {
-				gui.DOMPatcher.patch ( doc.documentElement );
-			}
-		}
-		*/
-	
 		var win = doc.defaultView;
 		var sig = win.gui.signature;
 
 		// broadcast before and after spirits attach
+		this.attachOne ( doc.documentElement );
 		if ( win.gui.mode !== gui.MODE_MANAGED ) {
 			gui.broadcast ( gui.BROADCAST_WILL_SPIRITUALIZE, sig );
-			this.attach ( doc.documentElement );
+			this.attachSub ( doc.documentElement );
 			gui.broadcast ( gui.BROADCAST_DID_SPIRITUALIZE, sig );
 		}
 	},
@@ -363,11 +344,16 @@ gui.Guide = {
 	 * @param {boolean} one Skip the subtree?
 	 */
 	_attach : function ( node, skip, one ) {
+		var hack = node.ownerDocument.title === "Modes";
+
 		if ( this._handles ( node )) {
 			var attach = [];
 			var readys = [];
+			//var count = 0;
+			//console.time ( "Crawling DOM" )
 			new gui.Crawler ( gui.CRAWLER_ATTACH ).descend ( node, {
 				handleElement : function ( elm ) {
+					//count ++;
 					if ( !skip || elm !== node ) {
 						var spirit = elm.spirit;
 						if ( !spirit ) {
@@ -382,6 +368,9 @@ gui.Guide = {
 					return one ? gui.Crawler.STOP : gui.Crawler.CONTINUE;
 				}
 			});
+			//console.timeEnd ( "Crawling DOM" );
+			//console.log ( "Evaluated " + count + " elements ");
+			//console.time ( "Attaching " + attach.length + " spirits" );
 			attach.forEach ( function ( spirit ) {
 				if ( !spirit.life.configured ) {
 					spirit.onconfigure ();
@@ -406,6 +395,7 @@ gui.Guide = {
 			readys.reverse ().forEach ( function ( spirit ) {
 				spirit.onready ();
 			}, this );
+			//console.timeEnd ( "Attaching " + attach.length + " spirits" );
 		}
 	},
 
@@ -433,6 +423,7 @@ gui.Guide = {
 	 * @returns {Spirit} or null
 	 */
 	_evaluate : function ( element ) {
+		var hack = element.ownerDocument.title === "Modes";
 		if ( !element.spirit ) {
 			var doc = element.ownerDocument;
 			var win = doc.defaultView;

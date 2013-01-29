@@ -1,7 +1,7 @@
 /**
  * # gui.DOMCombos
- * We need a text here.
- * @todo Standard dom exceptions for missing arguments and so on.
+ * This is where it gets interesting.
+ * @todo Standard DOM exceptions for missing arguments and so on.
  * @todo insertAdjecantHTML
  * @todo DOM4 methods
  */
@@ -26,7 +26,8 @@ gui.DOMCombos = {
 	/**
 	 * Building combinations when first requested. Note that property setters such as 
 	 * innerHTML and textContent are skipped for WebKit where the stuff only works because 
-	 * properties have been re-implemented using methods in all WebKit based browsers.
+	 * properties have been re-implemented using methods in all WebKit based browsers. 
+	 * @see {gui.DOMPatcher}
 	 */
 	_create : function () {
 
@@ -151,12 +152,20 @@ gui.DOMCombos = {
 		 */
 		var patchafter = combo.after ( function ( node ) {
 			if ( gui.Client.isWebKit ) {
-				gui.DOMPatcher.patch ( node );
+				//gui.DOMPatcher.patch ( node );
 			}
 		});
 
 		/**
-		 * sugar
+		 * Pretend nothing happened when running in "managed" mode.
+		 * @todo Simply mirror this prop with an internal boolean
+		 */
+		var ifenabled = combo.provided ( function () {
+			return this.ownerDocument.defaultView.gui.mode !== gui.MODE_MANAGED;
+		});
+
+		/**
+		 * Sugar for combo readability.
 		 * @param {function} action
 		 * @returns {function}
 		 */
@@ -168,61 +177,80 @@ gui.DOMCombos = {
 		 * Here we go.
 		 */
 		return {
+
 			appendChild : function ( base ) {
 				return (
-					ifembedded ( attachafter ( patchafter ( suspending ( base ))), 
+					ifenabled ( 
+						ifembedded ( attachafter ( patchafter ( suspending ( base ))), 
+						otherwise ( base )),
 					otherwise ( base ))
 				);
 			},
 			removeChild : function ( base ) {
 				return (
-					ifembedded ( detachbefore ( suspending ( base )),
+					ifenabled ( 
+						ifembedded ( detachbefore ( suspending ( base )),
+						otherwise ( base )),
 					otherwise ( base ))
 				);
 			},
 			insertBefore : function ( base ) {
 				return (
-					ifembedded ( attachafter ( patchafter ( suspending ( base ))), 
+					ifenabled ( 
+						ifembedded ( attachafter ( patchafter ( suspending ( base ))), 
+						otherwise ( base )),
 					otherwise ( base ))
 				);
 			},
 			replaceChild : function ( base ) {
 				return (
-					ifembedded ( detacholdbefore ( attachnewafter ( patchafter ( suspending ( base )))), 
+					ifenabled ( 
+						ifembedded ( detacholdbefore ( attachnewafter ( patchafter ( suspending ( base )))), 
+						otherwise ( base )),
 					otherwise ( base ))
 				);
 			},
 			setAttribute : function ( base ) {
 				return ( 
-					ifembedded ( 
-						ifspirit ( setattafter ( base ), 
+					ifenabled ( 
+						ifembedded ( 
+							ifspirit ( setattafter ( base ), 
+							otherwise ( base )),
 						otherwise ( base )),
 					otherwise ( base ))
 				);
 			},
 			removeAttribute : function ( base ) {
 				return ( 
-					ifembedded ( 
-						ifspirit ( delattafter ( base ),
+					ifenabled ( 
+						ifembedded ( 
+							ifspirit ( delattafter ( base ),
+							otherwise ( base )),
 						otherwise ( base )),
 					otherwise ( base ))
 				);
 			},
 			innerHTML : function ( base ) {
 				return (
-					ifembedded ( detachsubbefore ( attachsubafter ( suspending ( base ))),
+					ifenabled ( 
+						ifembedded ( detachsubbefore ( attachsubafter ( suspending ( base ))),
+						otherwise ( base )),
 					otherwise ( base ))
 				);
 			},
 			outerHTML : function ( base ) {
 				return (
-					ifembedded ( detachthisbefore ( attachparentafter ( suspending ( base ))),
+					ifenabled ( 
+						ifembedded ( detachthisbefore ( attachparentafter ( suspending ( base ))),
+						otherwise ( base )),
 					otherwise ( base ))
 				);
 			},
 			textContent : function ( base ) {
 				return (
-					ifembedded ( detachsubbefore ( suspending ( base )),
+					ifenabled ( 
+						ifembedded ( detachsubbefore ( suspending ( base )),
+						otherwise ( base )),
 					otherwise ( base ))
 				);
 			}

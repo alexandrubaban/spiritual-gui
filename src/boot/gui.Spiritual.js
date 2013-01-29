@@ -1,4 +1,4 @@
-/**lowercase
+/**
  * # gui.Spiritual
  * An instance of this thing may be referenced as `gui` inside all windows. 
  * @param {Window} win Window or Worker scope
@@ -15,12 +15,6 @@ gui.Spiritual.prototype = {
 	 * @type {function}
 	 */
 	constructor: gui.Spiritual,
-
-	/* 
-	 * ## TESTING
-	 *
-	hans : false,
-	*/
 
 	/**
 	 * Uniquely identifies this instance of `gui.Spiritual` 
@@ -42,7 +36,7 @@ gui.Spiritual.prototype = {
 	 * - native
 	 * - jquery
 	 * - optimize.
-	 * - manage (todo)
+	 * - managed
 	 *  
 	 * @note This will deprecate as soon as iOS supports a mechanism for grabbing the native innerHTML setter.
 	 * @type {String}
@@ -68,9 +62,7 @@ gui.Spiritual.prototype = {
 	 * @see {gui.Guide}
 	 */
 	go : function () {
-		
 		this._ready = true;
-
 		if ( this.debug ) {
 			switch ( this.mode ) {
 				case gui.MODE_JQUERY :
@@ -83,17 +75,14 @@ gui.Spiritual.prototype = {
 					break;
 			}
 		}
-
 		switch ( this.mode ) {
 			case gui.MODE_NATIVE :
 			case gui.MODE_JQUERY :
 			case gui.MODE_OPTIMIZE :
+			case gui.MODE_MANAGED :
 				gui.DOMChanger.change ( this.context );
 				break;
-			case gui.MODE_MANAGED :
-				break;
 		}
-
 		gui.Tick.add ( gui.TICK_DESTRUCT_DETACHED, this, this.signature );
 		if ( this._configs !== null ) {
 			this._configs.forEach ( function ( config ) {
@@ -389,7 +378,7 @@ gui.Spiritual.prototype = {
 	},
 
 	/**
-	 * Register spirit outside document (scheduled for destruction).
+	 * Register spirit outside document (now scheduled for destruction).
 	 * @todo move? rename?
 	 * @param {gui.Spirit} spirit
 	 */

@@ -20,20 +20,13 @@ gui.Super.prototype = Object.create ( null );
 gui.Super.subject = null;
 
 /**
- * EXPERIMENTAL.
- * @type {boolean}
- */
-gui.Super.sandbox = false;
-
-/**
  * Prepended to the result of calling 
  * toString() on a modified function.
  * @type {String}
  */
 gui.Super.disclaimer = "/**\n" +
-	"  * The runtime execution of this method \n" +
-	"  * has been overloaded by the framework. \n" +
-	"  * This is an approximation of the code. \n" +
+	"  * Method was overloaded by the framework. \n" +
+	"  * This is an approximation of the code :) \n" +
 	"  */\n";
 
 /**
@@ -126,15 +119,11 @@ gui.Super._function = function ( object, key, prop, superconstructor ) {
 	if ( !prop.value.__data__ ) { // @todo hmm...
 		prop.value = function () {
 			var sub = gui.Super.subject;
-			var was = gui.Super.sandbox;
 			gui.Super.subject = this;
-			gui.Super.sandbox = ( was === false && this.sandboxed === true );
 			this._super = superconstructor.__super__;
 			var result = object [ key ].apply ( this, arguments );
 			gui.Super.subject = sub;
-			gui.Super.sandbox = was;
 			return result;
-			// return ( gui.Super.sandbox ? gui.SandBox.censor ( result, key ) : result );
 		};
 	}
 	return prop;
@@ -156,12 +145,6 @@ gui.Super._property = function ( key, o, constructor ) {
 			d = Object.getOwnPropertyDescriptor ( p, key );
 			if ( d ) {
 				o [ what ] = d [ what ];
-				/*
-				o [ what ] = function () {
-					alert ( "@todo sandbox" );
-					return d [ what ].call ( this );
-				};
-				*/
 			}
 		}
 	});
