@@ -1,4 +1,4 @@
-/**
+/**lowercase
  * # gui.Spiritual
  * An instance of this thing may be referenced as `gui` inside all windows. 
  * @param {Window} win Window or Worker scope
@@ -11,15 +11,16 @@ gui.Spiritual.prototype = {
 
 	/**
 	 * The constructor gui.Spiritual does not exist after first instance gets declared, 
-	 * but we may keep something newable allocated by referencing the constructor.  
+	 * but we may keep something newable allocated by referencing it around here.
 	 * @type {function}
 	 */
 	constructor: gui.Spiritual,
 
-	/** 
+	/* 
 	 * ## TESTING
-	 */
+	 *
 	hans : false,
+	*/
 
 	/**
 	 * Uniquely identifies this instance of `gui.Spiritual` 
@@ -67,8 +68,32 @@ gui.Spiritual.prototype = {
 	 * @see {gui.Guide}
 	 */
 	go : function () {
+		
 		this._ready = true;
-		gui.DOMChanger.change ( this.context );
+
+		if ( this.debug ) {
+			switch ( this.mode ) {
+				case gui.MODE_JQUERY :
+					gui.Tick.next ( function () {  // @todo somehow not conflict with http://stackoverflow.com/questions/11406515/domnodeinserted-behaves-weird-when-performing-dom-manipulation-on-body
+						gui.Observer.observe ( this.context ); // @idea move all of _step2 to next stack?
+					}, this );
+					break;
+				default :
+					gui.Observer.observe ( this.context );
+					break;
+			}
+		}
+
+		switch ( this.mode ) {
+			case gui.MODE_NATIVE :
+			case gui.MODE_JQUERY :
+			case gui.MODE_OPTIMIZE :
+				gui.DOMChanger.change ( this.context );
+				break;
+			case gui.MODE_MANAGED :
+				break;
+		}
+
 		gui.Tick.add ( gui.TICK_DESTRUCT_DETACHED, this, this.signature );
 		if ( this._configs !== null ) {
 			this._configs.forEach ( function ( config ) {

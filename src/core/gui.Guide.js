@@ -244,11 +244,16 @@ gui.Guide = {
 	 * @param {Document} doc
 	 */
 	_step1 : function ( doc ) {
+
 		var win = doc.defaultView;
 		var sig = win.gui.signature;
+
 		this._metatags ( win ); // configure runtime
-		win.gui.go (); // channel spirits
+
+		win.gui.go (); // hello
+
 		this._stylesheets ( win ); // more spirits?
+		
 		// resolving spiritual stylesheets? If not, skip directly to _step2.
 		if ( !this._windows [ sig ]) {
 			this._step2 ( doc );
@@ -256,15 +261,16 @@ gui.Guide = {
 	},
 
 	/**
-	 * Attach all spirits and proclaim document 
-	 * spiritualized (isolated for async invoke).
+	 * Attach all spirits and proclaim document spiritualized (isolated for async invoke).
 	 * @param {Document} doc
 	 */
 	_step2 : function ( doc ) {
+
+		/*
 		var win = doc.defaultView;
 		var sig = win.gui.signature;
-		// In development mode, we setup a mutation observer 
-		// to monitor the document for unhandled DOM updates. 
+
+		// In development mode, setup a mutation observer to monitor the document for unhandled DOM updates. 
 		if ( win.gui.debug ){
 			if ( win.gui.mode === gui.MODE_JQUERY ) {
 				setImmediate ( function () {  // @todo somehow not conflict with http://stackoverflow.com/questions/11406515/domnodeinserted-behaves-weird-when-performing-dom-manipulation-on-body
@@ -279,10 +285,17 @@ gui.Guide = {
 				gui.DOMPatcher.patch ( doc.documentElement );
 			}
 		}
+		*/
+	
+		var win = doc.defaultView;
+		var sig = win.gui.signature;
+
 		// broadcast before and after spirits attach
-		gui.broadcast ( gui.BROADCAST_WILL_SPIRITUALIZE, sig );
-		this.attach ( doc.documentElement );
-		gui.broadcast ( gui.BROADCAST_DID_SPIRITUALIZE, sig );
+		if ( win.gui.mode !== gui.MODE_MANAGED ) {
+			gui.broadcast ( gui.BROADCAST_WILL_SPIRITUALIZE, sig );
+			this.attach ( doc.documentElement );
+			gui.broadcast ( gui.BROADCAST_DID_SPIRITUALIZE, sig );
+		}
 	},
 
 	/**

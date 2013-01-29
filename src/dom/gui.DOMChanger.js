@@ -37,6 +37,9 @@ gui.DOMChanger = {
 		} else {
 			element.spirit = null; // defineProperty fails in iOS5
 			switch ( win.gui.mode ) {
+				case gui.MODE_MANAGED :
+					// nein
+					break;
 				case gui.MODE_NATIVE :
 				case gui.MODE_OPTIMIZE : 
 					this.upgrade ( win, gui.DOMCombos.getem ());

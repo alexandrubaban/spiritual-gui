@@ -32,10 +32,10 @@ var gui = {
 	MODE_OPTIMIZE : "optimize",
 
 	/**
-	 * Managed mode; not yet implemented.
+	 * Managed mode.
 	 * @type {String}
 	 */
-	MODE_MANAGE : "manage",
+	MODE_MANAGED : "managed",
 
 	/**
 	 * Global broadcasts
