@@ -173,6 +173,7 @@ gui.DOMChanger = {
 			case "webkit" :
 				if ( gui.DOMPatcher.canpatch ( win )) {
 					this.innerhtml.local = true;
+					gui.DOMPatcher.patch ( win.document );
 				} else {
 					this.innerhtml.local = false;
 					this.innerhtml.missing = true;
