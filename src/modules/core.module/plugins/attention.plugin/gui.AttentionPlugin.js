@@ -1,7 +1,7 @@
 /**
  * # gui.AttentionPlugin
  * Work in progress keyboard TAB manager.
- * @extends {gui.TrackerPlugin}
+ * @extends {gui.Tracker}
  * @todo Get this out of here
  * @todo Nested attention traps (conflicts with missing focusin in FF?)
  * @todo Empty queue when user moves escapes (all) attention traps?
@@ -90,7 +90,7 @@ gui.AttentionPlugin = gui.Plugin.extend ( "gui.AttentionPlugin", {
 	 */
 	onlife : function ( life ) {
 		switch ( life.type ) {
-			case gui.Life.DESTRUCT :
+			case gui.LIFE_DESTRUCT :
 				gui.Broadcast.removeGlobal ( gui.BROADCAST_ATTENTION_GO, this );
 				gui.Broadcast.dispatchGlobal ( null,
 					gui.BROADCAST_ATTENTION_OFF,
@@ -145,7 +145,7 @@ gui.AttentionPlugin = gui.Plugin.extend ( "gui.AttentionPlugin", {
 		var elm = this.spirit.element;
 		elm.addEventListener ( "focus", this, true );
 		elm.addEventListener ( "blur", this, true );
-		this.spirit.life.add ( gui.Life.DESTRUCT, this );
+		this.spirit.life.add ( gui.LIFE_DESTRUCT, this );
 		gui.Broadcast.addGlobal ( gui.BROADCAST_ATTENTION_GO, this );
 	},
 

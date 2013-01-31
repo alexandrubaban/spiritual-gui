@@ -3305,11 +3305,20 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	onlife : function ( life ) {},
 	
 	
-	// (Heading) ........................................................................
+	// More stuff ........................................................................
+
+	/**
+	 * Mark spirit visible. THis adds the classname "_gui-invisible" and 
+	 * triggers a call to `oninvisible()` on this and all descendant spirits.
+	 * @returns {gui.Spirit}
+	 */
+	invisible : function () {
+		return gui.Spirit.invisible ( this );
+	},
 	
 	/**
-	 * Mark spirit visible. This triggers a call to `onvisible()` 
-	 * on this and all descendant spirits.
+	 * Mark spirit visible. Removes the classname "_gui-invisible" and 
+	 * triggers a call to `onvisible()` on this and all descendant spirits.
 	 * @returns {gui.Spirit}
 	 */
 	visible : function () {
@@ -3317,18 +3326,9 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	},
 
 	/**
-	 * Mark spirit visible. This triggers a call to `oninvisible()` 
-	 * on this and all descendant spirits.
-	 * @returns {gui.Spirit}
-	 */
-	invisible : function () {
-		return gui.Spirit.invisible ( this );
-	},
-
-	/**
-	 * @todo boolean trap in this API
 	 * Terminate the spirit and remove the element (optionally keep it). 
 	 * @param {boolean} keep True to leave the element on stage.
+	 * @todo Terrible boolean trap in this API
 	 */
 	dispose : function ( keep ) {
 		if ( !keep ) {
@@ -3341,25 +3341,27 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	// Secret ....................................................................
 	
 	/**
-	 * Secret constructor.
+	 * Secret constructor. Doesn't do much.
 	 */
 	__construct__ : function () {},
 
 	/**
-	 * Experimental.
-	 * @type {[type]}
+	 * Mapping lazy plugins to prefixes.
+	 * @type {Map<String,gui.Plugin>}
 	 */
 	__lazyplugins__ : null,
 
 	/**
-	 * Instantiate plugins.
+	 * Plug in the plugins.
+	 *
+	 * - life plugin first
+	 * - config plugin second
+	 * - bonus plugins galore
 	 */
 	__plugin__ : function () {
-		// core plugins first
 		this.life = new gui.LifePlugin ( this );
 		this.config = new gui.ConfigPlugin ( this );
 		this.__lazyplugins__ = Object.create ( null );
-		// bonus plugins second
 		var prefixes = [], plugins = this.constructor.__plugins__;
 		gui.Object.each ( plugins, function ( prefix, Plugin ) {
 			switch ( Plugin ) {
@@ -3376,13 +3378,10 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 					break;
 			}
 		}, this );
-		// construct plugins in that order
 		this.life.onconstruct ();
 		this.config.onconstruct ();
 		prefixes.forEach ( function ( prefix ) {
-			if ( this.__lazyplugins__ [ prefix ]) {
-				// lazy plugins constructed when addressed
-			} else {
+			if ( !this.__lazyplugins__ [ prefix ]) {
 				this [ prefix ].onconstruct ();
 			}
 		}, this );
@@ -3794,11 +3793,11 @@ gui.Plugin = gui.Exemplar.create ( "gui.Plugin", Object.prototype, {
 
 
 /**
- * # gui.TrackerPlugin
+ * # gui.Tracker
  * Comment goes here.
  * @extends {gui.Plugin}
  */
-gui.TrackerPlugin = gui.Plugin.extend ( "gui.TrackerPlugin", {
+gui.Tracker = gui.Plugin.extend ( "gui.Tracker", {
 
 	/**
 	 * Bookkeeping assigned types and handlers.
@@ -3825,7 +3824,7 @@ gui.TrackerPlugin = gui.Plugin.extend ( "gui.TrackerPlugin", {
 	/**
 	 * @todo Toggle type(s).
 	 * @param {object} arg
-	 * @returns {gui.TrackerPlugin}
+	 * @returns {gui.Tracker}
 	 */
 	toggle : function ( arg, checks ) {
 		console.error ( "@todo SpiritTracker#toggle" );
@@ -3968,8 +3967,8 @@ gui.TrackerPlugin = gui.Plugin.extend ( "gui.TrackerPlugin", {
 	},
 
 	/**
-	 * Resolve single argument into array (one or more entries).
-	 * @param {object} arg
+	 * Resolve single argument into array with one or more entries.
+	 * @param {Array<String>|String} arg
 	 * @returns {Array<String>}
 	 */
 	_breakdown : function ( arg ) {
@@ -4024,9 +4023,9 @@ gui.Life.prototype = {
 /**
  * # gui.LifePlugin
  * Tracking spirit life cycle events.
- * @extends {gui.TrackerPlugin}
+ * @extends {gui.Tracker}
  */
-gui.LifePlugin = gui.TrackerPlugin.extend ( "gui.LifePlugin", {
+gui.LifePlugin = gui.Tracker.extend ( "gui.LifePlugin", {
 
 	/**
 	 * Spirit is constructed? This is almost certainly true by 
@@ -4101,7 +4100,7 @@ gui.LifePlugin = gui.TrackerPlugin.extend ( "gui.LifePlugin", {
 
 	/**
 	 * Construction time.
-	 * @overloads {gui.TrackerPlugin#construct}
+	 * @overloads {gui.Tracker#construct}
 	 */
 	onconstruct : function () {
 		this._super.onconstruct ();
@@ -4458,9 +4457,9 @@ gui.Action.dispatch = function dispatch ( target, type, data, direction, global 
  /**
  * # gui.ActionPlugin
  * Tracking actions.
- * @extends {gui.TrackerPlugin}
+ * @extends {gui.Tracker}
  */
-gui.ActionPlugin = gui.TrackerPlugin.extend ( "gui.ActionPlugin", {
+gui.ActionPlugin = gui.Tracker.extend ( "gui.ActionPlugin", {
 
 	/**
 	 * Free slot for spirit to define any single type of action to dispatch. 
@@ -4656,7 +4655,7 @@ gui.ActionPlugin = gui.TrackerPlugin.extend ( "gui.ActionPlugin", {
 	/**
 	 * Remove delegated handlers. 
 	 * @todo verify that this works
-	 * @overwrites {gui.TrackerPlugin#_cleanup}
+	 * @overwrites {gui.Tracker#_cleanup}
 	 * @param {String} type
 	 * @param {Array<object>} checks
 	 */
@@ -4699,7 +4698,7 @@ gui.IActionHandler = {
 /**
  * # gui.AttPlugin
  * Methods to read and write DOM attributes.
- * @extends {gui.TrackerPlugin}
+ * @extends {gui.Tracker}
  */
 gui.AttPlugin = gui.Plugin.extend ( "gui.AttPlugin", {
 
@@ -4809,7 +4808,7 @@ gui.AttPlugin = gui.Plugin.extend ( "gui.AttPlugin", {
 
 /**
  * # gui.BoxPlugin
- * Spirit box object. Note that all these are properties and not methods. 
+ * Spirit box object. Note that these are all properties, not methods. 
  * @extends {gui.Plugin}
  * @todo Support globalX, globalY, screenX, screenY
  */
@@ -5128,9 +5127,9 @@ gui.Broadcast._dispatch = function ( target, type, data, sig ) {
 /**
  * # gui.BroadcastPlugin
  * Tracking broadcasts.
- * @extends {gui.TrackerPlugin}
+ * @extends {gui.Tracker}
  */
-gui.BroadcastPlugin = gui.TrackerPlugin.extend ( "gui.BroadcastPlugin", {
+gui.BroadcastPlugin = gui.Tracker.extend ( "gui.BroadcastPlugin", {
 
 	/**
 	 * Add one or more broadcast handlers.
@@ -5251,7 +5250,7 @@ gui.BroadcastPlugin = gui.TrackerPlugin.extend ( "gui.BroadcastPlugin", {
 
 	/**
 	 * Remove delegated handlers. 
-	 * @overwrites {gui.TrackerPlugin#_cleanup}
+	 * @overwrites {gui.Tracker#_cleanup}
 	 * @param {String} type
 	 * @param {Array<object>} checks
 	 */
@@ -6498,9 +6497,9 @@ gui.Object.each ({
  * # gui.EventPlugin
  * Tracking DOM events.
  * @todo Static interface for general consumption.
- * @extends {gui.TrackerPlugin}
+ * @extends {gui.Tracker}
  */
-gui.EventPlugin = gui.TrackerPlugin.extend ( "gui.EventPlugin", {
+gui.EventPlugin = gui.Tracker.extend ( "gui.EventPlugin", {
 
 	/**
 	 * Add one or more DOM event handlers.
@@ -6906,9 +6905,9 @@ gui.Tick._dispatch = function ( type, time, sig ) {
  * # gui.TickPlugin
  * Tracking timed events.
  * @todo Global timed events.
- * @extends {gui.TrackerPlugin}
+ * @extends {gui.Tracker}
  */
-gui.TickPlugin = gui.TrackerPlugin.extend ( "gui.TickPlugin", {
+gui.TickPlugin = gui.Tracker.extend ( "gui.TickPlugin", {
 
 	/**
 	 * Add one or more tick handlers.
@@ -7032,7 +7031,7 @@ gui.TickPlugin = gui.TrackerPlugin.extend ( "gui.TickPlugin", {
 
 	/**
 	 * Remove delegated handlers. 
-	 * @overloads {gui.TrackerPlugin#_cleanup}
+	 * @overloads {gui.Tracker#_cleanup}
 	 * @param {String} type
 	 * @param {Array<object>} checks
 	 */
@@ -7158,9 +7157,9 @@ gui.Tween.dispatchGlobal = function ( type, data ){
 /**
  * # gui.TweenPlugin
  * Tracking tweens.
- * @extends {gui.TrackerPlugin}
+ * @extends {gui.Tracker}
  */
-gui.TweenPlugin = gui.TrackerPlugin.extend ( "gui.TweenPlugin", {
+gui.TweenPlugin = gui.Tracker.extend ( "gui.TweenPlugin", {
 
 	/**
 	 * Add one or more broadcast handlers.
@@ -7288,7 +7287,7 @@ gui.TweenPlugin = gui.TrackerPlugin.extend ( "gui.TweenPlugin", {
 
 	/**
 	 * Remove broadcast subscriptions on dispose.
-	 * @overwrites {gui.TrackerPlugin#_cleanup}
+	 * @overwrites {gui.Tracker#_cleanup}
 	 * @param {String} type
 	 * @param {Array<object>} checks
 	 */
@@ -7561,7 +7560,7 @@ gui.Transition.prototype = {
 /**
  * # gui.AttentionPlugin
  * Work in progress keyboard TAB manager.
- * @extends {gui.TrackerPlugin}
+ * @extends {gui.Tracker}
  * @todo Get this out of here
  * @todo Nested attention traps (conflicts with missing focusin in FF?)
  * @todo Empty queue when user moves escapes (all) attention traps?
@@ -7650,7 +7649,7 @@ gui.AttentionPlugin = gui.Plugin.extend ( "gui.AttentionPlugin", {
 	 */
 	onlife : function ( life ) {
 		switch ( life.type ) {
-			case gui.Life.DESTRUCT :
+			case gui.LIFE_DESTRUCT :
 				gui.Broadcast.removeGlobal ( gui.BROADCAST_ATTENTION_GO, this );
 				gui.Broadcast.dispatchGlobal ( null,
 					gui.BROADCAST_ATTENTION_OFF,
@@ -7705,7 +7704,7 @@ gui.AttentionPlugin = gui.Plugin.extend ( "gui.AttentionPlugin", {
 		var elm = this.spirit.element;
 		elm.addEventListener ( "focus", this, true );
 		elm.addEventListener ( "blur", this, true );
-		this.spirit.life.add ( gui.Life.DESTRUCT, this );
+		this.spirit.life.add ( gui.LIFE_DESTRUCT, this );
 		gui.Broadcast.addGlobal ( gui.BROADCAST_ATTENTION_GO, this );
 	},
 
@@ -9772,6 +9771,7 @@ gui.DOMChanger = {
 			case "webkit" :
 				if ( gui.DOMPatcher.canpatch ( win )) {
 					this.innerhtml.local = true;
+					gui.DOMPatcher.patch ( win.document );
 				} else {
 					this.innerhtml.local = false;
 					this.innerhtml.missing = true;

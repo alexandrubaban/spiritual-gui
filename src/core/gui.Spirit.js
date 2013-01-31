@@ -165,11 +165,20 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	onlife : function ( life ) {},
 	
 	
-	// (Heading) ........................................................................
+	// More stuff ........................................................................
+
+	/**
+	 * Mark spirit visible. THis adds the classname "_gui-invisible" and 
+	 * triggers a call to `oninvisible()` on this and all descendant spirits.
+	 * @returns {gui.Spirit}
+	 */
+	invisible : function () {
+		return gui.Spirit.invisible ( this );
+	},
 	
 	/**
-	 * Mark spirit visible. This triggers a call to `onvisible()` 
-	 * on this and all descendant spirits.
+	 * Mark spirit visible. Removes the classname "_gui-invisible" and 
+	 * triggers a call to `onvisible()` on this and all descendant spirits.
 	 * @returns {gui.Spirit}
 	 */
 	visible : function () {
@@ -177,18 +186,9 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	},
 
 	/**
-	 * Mark spirit visible. This triggers a call to `oninvisible()` 
-	 * on this and all descendant spirits.
-	 * @returns {gui.Spirit}
-	 */
-	invisible : function () {
-		return gui.Spirit.invisible ( this );
-	},
-
-	/**
-	 * @todo boolean trap in this API
 	 * Terminate the spirit and remove the element (optionally keep it). 
 	 * @param {boolean} keep True to leave the element on stage.
+	 * @todo Terrible boolean trap in this API
 	 */
 	dispose : function ( keep ) {
 		if ( !keep ) {
@@ -201,25 +201,27 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	// Secret ....................................................................
 	
 	/**
-	 * Secret constructor.
+	 * Secret constructor. Doesn't do much.
 	 */
 	__construct__ : function () {},
 
 	/**
-	 * Experimental.
-	 * @type {[type]}
+	 * Mapping lazy plugins to prefixes.
+	 * @type {Map<String,gui.Plugin>}
 	 */
 	__lazyplugins__ : null,
 
 	/**
-	 * Instantiate plugins.
+	 * Plug in the plugins.
+	 *
+	 * - life plugin first
+	 * - config plugin second
+	 * - bonus plugins galore
 	 */
 	__plugin__ : function () {
-		// core plugins first
 		this.life = new gui.LifePlugin ( this );
 		this.config = new gui.ConfigPlugin ( this );
 		this.__lazyplugins__ = Object.create ( null );
-		// bonus plugins second
 		var prefixes = [], plugins = this.constructor.__plugins__;
 		gui.Object.each ( plugins, function ( prefix, Plugin ) {
 			switch ( Plugin ) {
@@ -236,13 +238,10 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 					break;
 			}
 		}, this );
-		// construct plugins in that order
 		this.life.onconstruct ();
 		this.config.onconstruct ();
 		prefixes.forEach ( function ( prefix ) {
-			if ( this.__lazyplugins__ [ prefix ]) {
-				// lazy plugins constructed when addressed
-			} else {
+			if ( !this.__lazyplugins__ [ prefix ]) {
 				this [ prefix ].onconstruct ();
 			}
 		}, this );

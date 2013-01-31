@@ -1,9 +1,9 @@
 /**
  * # gui.TweenPlugin
  * Tracking tweens.
- * @extends {gui.TrackerPlugin}
+ * @extends {gui.Tracker}
  */
-gui.TweenPlugin = gui.TrackerPlugin.extend ( "gui.TweenPlugin", {
+gui.TweenPlugin = gui.Tracker.extend ( "gui.TweenPlugin", {
 
 	/**
 	 * Add one or more broadcast handlers.
@@ -131,7 +131,7 @@ gui.TweenPlugin = gui.TrackerPlugin.extend ( "gui.TweenPlugin", {
 
 	/**
 	 * Remove broadcast subscriptions on dispose.
-	 * @overwrites {gui.TrackerPlugin#_cleanup}
+	 * @overwrites {gui.Tracker#_cleanup}
 	 * @param {String} type
 	 * @param {Array<object>} checks
 	 */

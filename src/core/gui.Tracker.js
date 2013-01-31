@@ -1,9 +1,9 @@
 /**
- * # gui.TrackerPlugin
+ * # gui.Tracker
  * Comment goes here.
  * @extends {gui.Plugin}
  */
-gui.TrackerPlugin = gui.Plugin.extend ( "gui.TrackerPlugin", {
+gui.Tracker = gui.Plugin.extend ( "gui.Tracker", {
 
 	/**
 	 * Bookkeeping assigned types and handlers.
@@ -30,7 +30,7 @@ gui.TrackerPlugin = gui.Plugin.extend ( "gui.TrackerPlugin", {
 	/**
 	 * @todo Toggle type(s).
 	 * @param {object} arg
-	 * @returns {gui.TrackerPlugin}
+	 * @returns {gui.Tracker}
 	 */
 	toggle : function ( arg, checks ) {
 		console.error ( "@todo SpiritTracker#toggle" );
@@ -173,8 +173,8 @@ gui.TrackerPlugin = gui.Plugin.extend ( "gui.TrackerPlugin", {
 	},
 
 	/**
-	 * Resolve single argument into array (one or more entries).
-	 * @param {object} arg
+	 * Resolve single argument into array with one or more entries.
+	 * @param {Array<String>|String} arg
 	 * @returns {Array<String>}
 	 */
 	_breakdown : function ( arg ) {

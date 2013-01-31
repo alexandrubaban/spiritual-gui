@@ -1,9 +1,9 @@
  /**
  * # gui.ActionPlugin
  * Tracking actions.
- * @extends {gui.TrackerPlugin}
+ * @extends {gui.Tracker}
  */
-gui.ActionPlugin = gui.TrackerPlugin.extend ( "gui.ActionPlugin", {
+gui.ActionPlugin = gui.Tracker.extend ( "gui.ActionPlugin", {
 
 	/**
 	 * Free slot for spirit to define any single type of action to dispatch. 
@@ -199,7 +199,7 @@ gui.ActionPlugin = gui.TrackerPlugin.extend ( "gui.ActionPlugin", {
 	/**
 	 * Remove delegated handlers. 
 	 * @todo verify that this works
-	 * @overwrites {gui.TrackerPlugin#_cleanup}
+	 * @overwrites {gui.Tracker#_cleanup}
 	 * @param {String} type
 	 * @param {Array<object>} checks
 	 */

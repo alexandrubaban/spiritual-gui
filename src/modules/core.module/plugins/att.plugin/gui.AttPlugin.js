@@ -1,7 +1,7 @@
 /**
  * # gui.AttPlugin
  * Methods to read and write DOM attributes.
- * @extends {gui.TrackerPlugin}
+ * @extends {gui.Tracker}
  */
 gui.AttPlugin = gui.Plugin.extend ( "gui.AttPlugin", {
 

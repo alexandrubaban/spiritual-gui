@@ -27,12 +27,12 @@
 	"src/utils/gui.Request.js",
 
 	"src/core/gui.Spirit.js",
+	"src/core/gui.Plugin.js",
+	"src/core/gui.Tracker.js",
 
-	"src/plugins/gui.Plugin.js",
-	"src/plugins/gui.TrackerPlugin.js",
-	"src/plugins/life.plugin/gui.Life.js",
-	"src/plugins/life.plugin/gui.LifePlugin.js",
-	"src/plugins/config.plugin/gui.ConfigPlugin.js",
+	"src/modules/core.module/plugins/life.plugin/gui.Life.js",
+	"src/modules/core.module/plugins/life.plugin/gui.LifePlugin.js",
+	"src/modules/core.module/plugins/config.plugin/gui.ConfigPlugin.js",
 
 	"src/modules/core.module/plugins/action.plugin/gui.Action.js",
 	"src/modules/core.module/plugins/action.plugin/gui.ActionPlugin.js",

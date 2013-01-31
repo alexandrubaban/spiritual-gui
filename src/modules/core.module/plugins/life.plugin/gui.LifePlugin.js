@@ -1,9 +1,9 @@
 /**
  * # gui.LifePlugin
  * Tracking spirit life cycle events.
- * @extends {gui.TrackerPlugin}
+ * @extends {gui.Tracker}
  */
-gui.LifePlugin = gui.TrackerPlugin.extend ( "gui.LifePlugin", {
+gui.LifePlugin = gui.Tracker.extend ( "gui.LifePlugin", {
 
 	/**
 	 * Spirit is constructed? This is almost certainly true by 
@@ -78,7 +78,7 @@ gui.LifePlugin = gui.TrackerPlugin.extend ( "gui.LifePlugin", {
 
 	/**
 	 * Construction time.
-	 * @overloads {gui.TrackerPlugin#construct}
+	 * @overloads {gui.Tracker#construct}
 	 */
 	onconstruct : function () {
 		this._super.onconstruct ();

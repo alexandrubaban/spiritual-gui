@@ -2,9 +2,9 @@
  * # gui.TickPlugin
  * Tracking timed events.
  * @todo Global timed events.
- * @extends {gui.TrackerPlugin}
+ * @extends {gui.Tracker}
  */
-gui.TickPlugin = gui.TrackerPlugin.extend ( "gui.TickPlugin", {
+gui.TickPlugin = gui.Tracker.extend ( "gui.TickPlugin", {
 
 	/**
 	 * Add one or more tick handlers.
@@ -128,7 +128,7 @@ gui.TickPlugin = gui.TrackerPlugin.extend ( "gui.TickPlugin", {
 
 	/**
 	 * Remove delegated handlers. 
-	 * @overloads {gui.TrackerPlugin#_cleanup}
+	 * @overloads {gui.Tracker#_cleanup}
 	 * @param {String} type
 	 * @param {Array<object>} checks
 	 */

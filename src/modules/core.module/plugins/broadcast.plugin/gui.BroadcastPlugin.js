@@ -1,9 +1,9 @@
 /**
  * # gui.BroadcastPlugin
  * Tracking broadcasts.
- * @extends {gui.TrackerPlugin}
+ * @extends {gui.Tracker}
  */
-gui.BroadcastPlugin = gui.TrackerPlugin.extend ( "gui.BroadcastPlugin", {
+gui.BroadcastPlugin = gui.Tracker.extend ( "gui.BroadcastPlugin", {
 
 	/**
 	 * Add one or more broadcast handlers.
@@ -124,7 +124,7 @@ gui.BroadcastPlugin = gui.TrackerPlugin.extend ( "gui.BroadcastPlugin", {
 
 	/**
 	 * Remove delegated handlers. 
-	 * @overwrites {gui.TrackerPlugin#_cleanup}
+	 * @overwrites {gui.Tracker#_cleanup}
 	 * @param {String} type
 	 * @param {Array<object>} checks
 	 */
