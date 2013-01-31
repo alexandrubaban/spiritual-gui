@@ -106,6 +106,29 @@ var gui = {
 	ACTION_WINDOW_LOADED : "gui-action-window-loaded",
 
 	/**
+	 * Lifecycle types.
+	 */
+	LIFE_CONSTRUCT : "gui-life-construct",
+	LIFE_CONFIGURE : "gui-life-configure",
+	LIFE_ENTER : "gui-life-enter",
+	LIFE_ATTACH : "gui-life-attach",
+	LIFE_READY : "gui-life-ready",
+	LIFE_SHOW : "gui-life-show",
+	LIFE_HIDE : "gui-life-hide",
+	LIFE_DETACH : "gui-life-detach",
+	LIFE_EXIT	: "gui-life-exit",
+	LIFE_DESTRUCT : "life-destruct",
+
+	/**
+	 * Tick types (timed events)
+	 */
+	TICK_DESTRUCT_DETACHED : "gui-tick-destruct-detached",
+	TICK_SCRIPT_UPDATE : "gui-tick-spiritscript-update", // @todo move this to EDB
+	TICK_COLLECT_INPUT : "gui-tick-collect-input",
+	TICK_SPIRIT_NULL : "gui-tick-spirit-null",
+	TICK_FIT : "gui-tick-fit",
+
+	/**
 	 * Crawler types
 	 */
 	CRAWLER_ATTACH : "gui-crawler-attach",
@@ -114,15 +137,6 @@ var gui = {
 	CRAWLER_ACTION : "gui-crawler-action",
 	CRAWLER_VISIBLE : "gui-crawler-visible",
 	CRAWLER_INVISIBLE : "gui-crawler-invisible",
-
-	/**
-	 * Tick types (timed events)
-	 */
-	TICK_DESTRUCT_DETACHED : "gui-tick-destruct-detached",
-	TICK_SCRIPT_UPDATE : "gui-tick-spiritscript-update", // @todo move to EDB
-	TICK_COLLECT_INPUT : "gui-tick-collect-input",
-	TICK_SPIRIT_NULL : "gui-tick-spirit-null",
-	TICK_FIT : "gui-tick-fit",
 
 	/** 
 	 * CSS classnames. Underscore indicates that the classname are managed by JS.
@@ -789,7 +803,7 @@ gui.Spiritual.prototype = {
 				win.gui._channels.every ( function ( def ) {
 					var select = def [ 0 ];
 					var spirit = def [ 1 ];
-					if ( gui.SpiritCSS.matches ( element, select )) {
+					if ( gui.CSSPlugin.matches ( element, select )) {
 						res = spirit;
 					}
 					return res === null;
@@ -3286,7 +3300,7 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	
 	/**
 	 * Handle life (tell me more)
-	 * @param {gui.SpiritLife} life
+	 * @param {gui.Life} life
 	 */
 	onlife : function ( life ) {},
 	
@@ -3342,19 +3356,19 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	 */
 	__plugin__ : function () {
 		// core plugins first
-		this.life = new gui.SpiritLifeTracker ( this );
-		this.config = new gui.SpiritConfig ( this );
+		this.life = new gui.LifePlugin ( this );
+		this.config = new gui.ConfigPlugin ( this );
 		this.__lazyplugins__ = Object.create ( null );
 		// bonus plugins second
 		var prefixes = [], plugins = this.constructor.__plugins__;
 		gui.Object.each ( plugins, function ( prefix, Plugin ) {
 			switch ( Plugin ) {
-				case gui.SpiritLifeTracker :
-				case gui.SpiritConfig :
+				case gui.LifePlugin :
+				case gui.ConfigPlugin :
 					break;
 				default :
 					if ( Plugin.lazy ) {
-						gui.SpiritPlugin.later ( Plugin, prefix, this, this.__lazyplugins__ );
+						gui.Plugin.later ( Plugin, prefix, this, this.__lazyplugins__ );
 					} else {
 						this [ prefix ] = new Plugin ( this );
 					}
@@ -3412,7 +3426,7 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 			var thing = this [ prop ];
 			switch ( gui.Type.of ( thing )) {
 				case "object" :
-					if ( thing instanceof gui.SpiritPlugin ) {
+					if ( thing instanceof gui.Plugin ) {
 						if ( thing !== this.life ) {
 							thing.__destruct__ ( unloading );
 						}
@@ -3664,13 +3678,13 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 
 
 /**
- * # gui.SpiritPlugin
+ * # gui.Plugin
  * Base class for all spirit plugins.
  * @todo "context" should be required in constructor
  * @todo Rename "gui.Plugin"
  * @todo Rename *all* plugins to gui.SomethingPlugin :)
  */
-gui.SpiritPlugin = gui.Exemplar.create ( "gui.SpiritPlugin", Object.prototype, {
+gui.Plugin = gui.Exemplar.create ( "gui.Plugin", Object.prototype, {
 
 	/**
 	 * Associated spirit.
@@ -3754,7 +3768,7 @@ gui.SpiritPlugin = gui.Exemplar.create ( "gui.SpiritPlugin", Object.prototype, {
 	/**
 	 * Lazy initialization stuff.
 	 * @experimental
-	 * @param {gui.SpiritPlugin} Plugin
+	 * @param {gui.Plugin} Plugin
 	 * @param {String} prefix
 	 * @param {gui.Spirit} spirit
 	 */
@@ -3780,11 +3794,11 @@ gui.SpiritPlugin = gui.Exemplar.create ( "gui.SpiritPlugin", Object.prototype, {
 
 
 /**
- * # gui.SpiritTracker
- * Tracking event-type handlers. 
- * @extends {gui.SpiritPlugin}
+ * # gui.TrackerPlugin
+ * Comment goes here.
+ * @extends {gui.Plugin}
  */
-gui.SpiritTracker = gui.SpiritPlugin.extend ( "gui.SpiritTracker", {
+gui.TrackerPlugin = gui.Plugin.extend ( "gui.TrackerPlugin", {
 
 	/**
 	 * Bookkeeping assigned types and handlers.
@@ -3811,7 +3825,7 @@ gui.SpiritTracker = gui.SpiritPlugin.extend ( "gui.SpiritTracker", {
 	/**
 	 * @todo Toggle type(s).
 	 * @param {object} arg
-	 * @returns {gui.SpiritTracker}
+	 * @returns {gui.TrackerPlugin}
 	 */
 	toggle : function ( arg, checks ) {
 		console.error ( "@todo SpiritTracker#toggle" );
@@ -3974,18 +3988,18 @@ gui.SpiritTracker = gui.SpiritPlugin.extend ( "gui.SpiritTracker", {
 
 
 /**
- * # gui.SpiritLife
+ * # gui.Life
  * SpiritLife is a non-bubbling event type that covers the life cycle of a spirit.
- * @see {gui.SpiritLifeTracker}
+ * @see {gui.LifePlugin}
  * @param {gui.Spirit} target
  * @param {String} type
  */
-gui.SpiritLife = function SpiritLife ( target, type ) {
+gui.Life = function SpiritLife ( target, type ) {
 	this.target = target;
 	this.type = type;
 };
 
-gui.SpiritLife.prototype = {
+gui.Life.prototype = {
 
 	/**
 	 * @type {gui.Spirit}
@@ -4002,35 +4016,17 @@ gui.SpiritLife.prototype = {
 	 * @returns {String}
 	 */
 	toString : function () {
-		return "[object gui.SpiritLife]";
+		return "[object gui.Life]";
 	}
 };
 
 
- // Static .....................................
-
- /**
- * Important milestones in the life of a spirit.
- * @todo perhaps move to gui.js
- */
-gui.SpiritLife.CONSTRUCT = "gui-life-construct";
-gui.SpiritLife.CONFIGURE = "gui-life-configure";
-gui.SpiritLife.ENTER = "gui-life-enter";
-gui.SpiritLife.ATTACH = "gui-life-attach";
-gui.SpiritLife.READY = "gui-life-ready";
-gui.SpiritLife.SHOW = "gui-life-show";
-gui.SpiritLife.HIDE = "gui-life-hide";
-gui.SpiritLife.DETACH = "gui-life-detach";
-gui.SpiritLife.EXIT	= "gui-life-exit";
-gui.SpiritLife.DESTRUCT = "life-destruct";
-
-
 /**
- * # gui.SpiritLifeTracker
+ * # gui.LifePlugin
  * Tracking spirit life cycle events.
- * @extends {gui.SpiritTracker}
+ * @extends {gui.TrackerPlugin}
  */
-gui.SpiritLifeTracker = gui.SpiritTracker.extend ( "gui.SpiritLifeTracker", {
+gui.LifePlugin = gui.TrackerPlugin.extend ( "gui.LifePlugin", {
 
 	/**
 	 * Spirit is constructed? This is almost certainly true by 
@@ -4105,7 +4101,7 @@ gui.SpiritLifeTracker = gui.SpiritTracker.extend ( "gui.SpiritLifeTracker", {
 
 	/**
 	 * Construction time.
-	 * @overloads {gui.SpiritTracker#construct}
+	 * @overloads {gui.TrackerPlugin#construct}
 	 */
 	onconstruct : function () {
 		this._super.onconstruct ();
@@ -4158,15 +4154,15 @@ gui.SpiritLifeTracker = gui.SpiritTracker.extend ( "gui.SpiritLifeTracker", {
 	dispatch : function ( type ) {
 		var list = this._handlers [ type ];
 		if ( list !== undefined ) {
-			var life = new gui.SpiritLife ( this.spirit, type );
+			var life = new gui.Life ( this.spirit, type );
 			list.forEach ( function ( handler ) {
 				handler.onlife ( life );
 			});
 			switch ( type ) {
-				case gui.SpiritLife.ATTACH :
-				case gui.SpiritLife.DETACH :
-				case gui.SpiritLife.VISIBLE :
-				case gui.SpiritLife.INVISIBLE :
+				case gui.Life.ATTACH :
+				case gui.Life.DETACH :
+				case gui.Life.VISIBLE :
+				case gui.Life.INVISIBLE :
 					// may happen more than once
 					break;
 				default :
@@ -4180,24 +4176,24 @@ gui.SpiritLifeTracker = gui.SpiritTracker.extend ( "gui.SpiritLifeTracker", {
 /**
  * Generate methods to update life cycle status:
  * 1) Update booleans entered, attached, detached etc.
- * 2) Dispatch life-event gui.SpiritLife.ATTACH etc.
+ * 2) Dispatch life-event gui.Life.ATTACH etc.
  */
 ( function generatecode () {
 	var states = {
-		construct : gui.SpiritLife.CONSTRUCT,
-		configure : gui.SpiritLife.CONFIGURE,
-		enter : gui.SpiritLife.ENTER,
-		attach : gui.SpiritLife.ATTACH,
-		ready : gui.SpiritLife.READY,
-		visible : gui.SpiritLife.VISIBLE,
-		invisible : gui.SpiritLife.INVISIBLE,
-		detach : gui.SpiritLife.DETACH,
-		exit : gui.SpiritLife.EXIT,
-		destruct : gui.SpiritLife.DESTRUCT
+		construct : gui.Life.CONSTRUCT,
+		configure : gui.Life.CONFIGURE,
+		enter : gui.Life.ENTER,
+		attach : gui.Life.ATTACH,
+		ready : gui.Life.READY,
+		visible : gui.Life.VISIBLE,
+		invisible : gui.Life.INVISIBLE,
+		detach : gui.Life.DETACH,
+		exit : gui.Life.EXIT,
+		destruct : gui.Life.DESTRUCT
 	};
 	// prefix methods with "on", suffix booleans with "ed"
 	gui.Object.each ( states, function ( state, event ) {
-		gui.SpiritLifeTracker.addin ( "go" + state , function () {
+		gui.LifePlugin.addin ( "go" + state , function () {
 			var prop = state;
 			switch ( state ) {
 				case "ready" :
@@ -4232,15 +4228,15 @@ gui.SpiritLifeTracker = gui.SpiritTracker.extend ( "gui.SpiritLifeTracker", {
 /**
  * Register plugin (not served in a module this plugin).
  */
-gui.Spirit.plugin ( "life", gui.SpiritLifeTracker );
+gui.Spirit.plugin ( "life", gui.LifePlugin );
 
 
 /**
- * # gui.SpiritConfig
+ * # gui.ConfigPlugin
  * Configures a spirit by attribute parsing.
- * @extends {gui.SpiritPlugin}
+ * @extends {gui.Plugin}
  */
-gui.SpiritConfig = gui.SpiritPlugin.extend ( "gui.SpiritConfig", {
+gui.ConfigPlugin = gui.Plugin.extend ( "gui.ConfigPlugin", {
 
 	/**
 	 * Mapping shorthands to expanded syntax.
@@ -4324,7 +4320,7 @@ gui.SpiritConfig = gui.SpiritPlugin.extend ( "gui.SpiritConfig", {
 /**
  * Register plugin (not served in a module this plugin).
  */
-gui.Spirit.plugin ( "config", gui.SpiritConfig );
+gui.Spirit.plugin ( "config", gui.ConfigPlugin );
 
 
 /**
@@ -4460,11 +4456,11 @@ gui.Action.dispatch = function dispatch ( target, type, data, direction, global 
 
 
  /**
- * # gui.ActionTracker
+ * # gui.ActionPlugin
  * Tracking actions.
- * @extends {gui.SpiritTracker}
+ * @extends {gui.TrackerPlugin}
  */
-gui.ActionTracker = gui.SpiritTracker.extend ( "gui.ActionTracker", {
+gui.ActionPlugin = gui.TrackerPlugin.extend ( "gui.ActionPlugin", {
 
 	/**
 	 * Free slot for spirit to define any single type of action to dispatch. 
@@ -4482,7 +4478,7 @@ gui.ActionTracker = gui.SpiritTracker.extend ( "gui.ActionTracker", {
 	 * Add one or more action handlers.
 	 * @param {array|string} arg
 	 * @param @optional {object|function} handler
-	 * @returns {gui.ActionTracker}
+	 * @returns {gui.ActionPlugin}
 	 */
 	add : function ( arg, handler ) {
 		if ( gui.Arguments.validate ( arguments, "array|string", "(object|function)" )) {
@@ -4500,7 +4496,7 @@ gui.ActionTracker = gui.SpiritTracker.extend ( "gui.ActionTracker", {
 	 * Remove one or more action handlers.
 	 * @param {object} arg
 	 * @param @optional {object} handler
-	 * @returns {gui.ActionTracker}
+	 * @returns {gui.ActionPlugin}
 	 */
 	remove : function ( arg, handler ) {
 		if ( gui.Arguments.validate ( arguments, "array|string", "(object|function)" )) {
@@ -4518,7 +4514,7 @@ gui.ActionTracker = gui.SpiritTracker.extend ( "gui.ActionTracker", {
 	 * Add global action handler(s).
 	 * @param {object} arg
 	 * @param @optional {object} handler
-	 * @returns {gui.ActionTracker}
+	 * @returns {gui.ActionPlugin}
 	 */
 	addGlobal : function ( arg, handler ) {
 		return this._globalize ( function () {
@@ -4530,7 +4526,7 @@ gui.ActionTracker = gui.SpiritTracker.extend ( "gui.ActionTracker", {
 	 * Remove global action handler(s).
 	 * @param {object} arg
 	 * @param @optional {object} handler
-	 * @returns {gui.ActionTracker}
+	 * @returns {gui.ActionPlugin}
 	 */
 	removeGlobal : function ( arg, handler ) {
 		return this._globalize ( function () {
@@ -4540,7 +4536,7 @@ gui.ActionTracker = gui.SpiritTracker.extend ( "gui.ActionTracker", {
 
 	/**
 	 * Dispatch type(s) ascending by default.
-	 * @alias {gui.ActionTracker#ascend}
+	 * @alias {gui.ActionPlugin#ascend}
 	 * @param {String} type
 	 * @param @optional {object} data
 	 * @param @optional {String} direction "ascend" or "descend"
@@ -4560,7 +4556,7 @@ gui.ActionTracker = gui.SpiritTracker.extend ( "gui.ActionTracker", {
 
 	/**
 	 * Dispatch type(s) ascending.
-	 * @alias {gui.ActionTracker#dispatch}
+	 * @alias {gui.ActionPlugin#dispatch}
 	 * @param {object} arg
 	 * @param @optional {object} data
 	 * @returns {gui.Action}
@@ -4571,7 +4567,7 @@ gui.ActionTracker = gui.SpiritTracker.extend ( "gui.ActionTracker", {
 
 	/**
 	 * Dispatch type(s) descending.
-	 * @alias {gui.ActionTracker#dispatch}
+	 * @alias {gui.ActionPlugin#dispatch}
 	 * @param {object} arg
 	 * @param @optional {object} data
 	 * @returns {gui.Action}
@@ -4660,7 +4656,7 @@ gui.ActionTracker = gui.SpiritTracker.extend ( "gui.ActionTracker", {
 	/**
 	 * Remove delegated handlers. 
 	 * @todo verify that this works
-	 * @overwrites {gui.SpiritTracker#_cleanup}
+	 * @overwrites {gui.TrackerPlugin#_cleanup}
 	 * @param {String} type
 	 * @param {Array<object>} checks
 	 */
@@ -4701,11 +4697,11 @@ gui.IActionHandler = {
 
 
 /**
- * # gui.SpiritAtt
+ * # gui.AttPlugin
  * Methods to read and write DOM attributes.
- * @extends {gui.SpiritTracker}
+ * @extends {gui.TrackerPlugin}
  */
-gui.SpiritAtt = gui.SpiritPlugin.extend ( "gui.SpiritAtt", {
+gui.AttPlugin = gui.Plugin.extend ( "gui.AttPlugin", {
 
 	/**
 	 * Get single element attribute cast to an inferred type.
@@ -4812,12 +4808,12 @@ gui.SpiritAtt = gui.SpiritPlugin.extend ( "gui.SpiritAtt", {
 
 
 /**
- * # gui.SpiritBox
+ * # gui.BoxPlugin
  * Spirit box object. Note that all these are properties and not methods. 
- * @extends {gui.SpiritPlugin}
+ * @extends {gui.Plugin}
  * @todo Support globalX, globalY, screenX, screenY
  */
-gui.SpiritBox = gui.SpiritPlugin.extend ( "gui.SpiritBox", {
+gui.BoxPlugin = gui.Plugin.extend ( "gui.BoxPlugin", {
 	
 	width   : 0, // width
 	height  : 0, // height
@@ -4829,7 +4825,7 @@ gui.SpiritBox = gui.SpiritPlugin.extend ( "gui.SpiritBox", {
 	clientY : 0  // Y relative to the viewport (excludes scrolling)
 });
 
-Object.defineProperties ( gui.SpiritBox.prototype, {
+Object.defineProperties ( gui.BoxPlugin.prototype, {
 
 	/**
 	 * Width.
@@ -5130,17 +5126,17 @@ gui.Broadcast._dispatch = function ( target, type, data, sig ) {
 
 
 /**
- * # gui.BroadcastTracker
+ * # gui.BroadcastPlugin
  * Tracking broadcasts.
- * @extends {gui.SpiritTracker}
+ * @extends {gui.TrackerPlugin}
  */
-gui.BroadcastTracker = gui.SpiritTracker.extend ( "gui.BroadcastTracker", {
+gui.BroadcastPlugin = gui.TrackerPlugin.extend ( "gui.BroadcastPlugin", {
 
 	/**
 	 * Add one or more broadcast handlers.
 	 * @param {object} arg
 	 * @param @optional {object} handler implements BroadcastListener (defaults to spirit)
-	 * @returns {gui.BroadcastTracker}
+	 * @returns {gui.BroadcastPlugin}
 	 */
 	add : function ( arg, handler ) {
 		handler = handler ? handler : this.spirit;
@@ -5161,7 +5157,7 @@ gui.BroadcastTracker = gui.SpiritTracker.extend ( "gui.BroadcastTracker", {
 	 * Remove one or more broadcast handlers.
 	 * @param {object} arg
 	 * @param @optional {object} handler implements BroadcastListener (defaults to spirit)
-	 * @returns {gui.BroadcastTracker}
+	 * @returns {gui.BroadcastPlugin}
 	 */
 	remove : function ( arg, handler ) {
 		handler = handler ? handler : this.spirit;
@@ -5201,7 +5197,7 @@ gui.BroadcastTracker = gui.SpiritTracker.extend ( "gui.BroadcastTracker", {
 	 * Add handlers for global broadcast(s).
 	 * @param {object} arg
 	 * @param @optional {object} handler implements BroadcastListener (defaults to spirit)
-	 * @returns {gui.BroadcastTracker}
+	 * @returns {gui.BroadcastPlugin}
 	 */
 	addGlobal : function ( arg, handler ) {
 		return this._globalize ( function () {
@@ -5213,7 +5209,7 @@ gui.BroadcastTracker = gui.SpiritTracker.extend ( "gui.BroadcastTracker", {
 	 * Add handlers for global broadcast(s).
 	 * @param {object} arg
 	 * @param @optional {object} handler implements BroadcastListener (defaults to spirit)
-	 * @returns {gui.BroadcastTracker}
+	 * @returns {gui.BroadcastPlugin}
 	 */
 	removeGlobal : function ( arg, handler ) {
 		return this._globalize ( function () {
@@ -5255,7 +5251,7 @@ gui.BroadcastTracker = gui.SpiritTracker.extend ( "gui.BroadcastTracker", {
 
 	/**
 	 * Remove delegated handlers. 
-	 * @overwrites {gui.SpiritTracker#_cleanup}
+	 * @overwrites {gui.TrackerPlugin#_cleanup}
 	 * @param {String} type
 	 * @param {Array<object>} checks
 	 */
@@ -5297,11 +5293,11 @@ gui.IBroadcastHandler = {
 
 
 /**
- * # gui.SpiritCSS
+ * # gui.CSSPlugin
  * Spirit styling studio.
- * @extends {gui.SpiritPlugin}
+ * @extends {gui.Plugin}
  */
-gui.SpiritCSS = gui.SpiritPlugin.extend ( "gui.SpiritCSS", {
+gui.CSSPlugin = gui.Plugin.extend ( "gui.CSSPlugin", {
 
 	/**
 	 * Set single element.style.
@@ -5310,7 +5306,7 @@ gui.SpiritCSS = gui.SpiritPlugin.extend ( "gui.SpiritCSS", {
 	 * @returns {gui.Spirit}
 	 */
 	set : function ( prop, val ) {
-		gui.SpiritCSS.set ( this.spirit.element, prop, val );
+		gui.CSSPlugin.set ( this.spirit.element, prop, val );
 		return this.spirit;
 	},
 
@@ -5320,7 +5316,7 @@ gui.SpiritCSS = gui.SpiritPlugin.extend ( "gui.SpiritCSS", {
 	 * @returns {String}
 	 */
 	get : function ( prop ) {
-		return gui.SpiritCSS.get ( this.spirit.element, prop );
+		return gui.CSSPlugin.get ( this.spirit.element, prop );
 	},
 
 	/**
@@ -5329,7 +5325,7 @@ gui.SpiritCSS = gui.SpiritPlugin.extend ( "gui.SpiritCSS", {
 	 * @returns {String}
 	 */
 	compute : function ( prop ) {
-		return gui.SpiritCSS.compute ( this.spirit.element, prop );
+		return gui.CSSPlugin.compute ( this.spirit.element, prop );
 	},
 
 	/**
@@ -5338,7 +5334,7 @@ gui.SpiritCSS = gui.SpiritPlugin.extend ( "gui.SpiritCSS", {
 	 * @returns {gui.Spirit}
 	 */
 	style : function ( map ) {
-		gui.SpiritCSS.style ( this.spirit.element, map );
+		gui.CSSPlugin.style ( this.spirit.element, map );
 		return this.spirit;
 	},
 
@@ -5362,7 +5358,7 @@ gui.SpiritCSS = gui.SpiritPlugin.extend ( "gui.SpiritCSS", {
 	 * @returns {gui.Spirit}
 	 */
 	add : function ( name ) {
-		gui.SpiritCSS.add ( this.spirit.element, name );
+		gui.CSSPlugin.add ( this.spirit.element, name );
 		return this.spirit;
 	},
 
@@ -5372,7 +5368,7 @@ gui.SpiritCSS = gui.SpiritPlugin.extend ( "gui.SpiritCSS", {
 	 * @returns {gui.Spirit}
 	 */
 	remove : function ( name ) {
-		gui.SpiritCSS.remove ( this.spirit.element, name );
+		gui.CSSPlugin.remove ( this.spirit.element, name );
 		return this.spirit;
 	},
 
@@ -5382,7 +5378,7 @@ gui.SpiritCSS = gui.SpiritPlugin.extend ( "gui.SpiritCSS", {
 	 * @returns {gui.Spirit}
 	 */
 	toggle : function ( name ) {
-		gui.SpiritCSS.toggle ( this.spirit.element, name );
+		gui.CSSPlugin.toggle ( this.spirit.element, name );
 		return this.spirit;
 	},
 
@@ -5392,7 +5388,7 @@ gui.SpiritCSS = gui.SpiritPlugin.extend ( "gui.SpiritCSS", {
 	 * @returns {boolean}
 	 */
 	contains : function ( name ) {
-		return gui.SpiritCSS.contains ( this.spirit.element, name );
+		return gui.CSSPlugin.contains ( this.spirit.element, name );
 	}, 
 
 	/**
@@ -5401,7 +5397,7 @@ gui.SpiritCSS = gui.SpiritPlugin.extend ( "gui.SpiritCSS", {
 	 * @returns {boolean}
 	 */
 	matches : function ( selector ) {
-		return gui.SpiritCSS.matches ( this.spirit.element, selector );
+		return gui.CSSPlugin.matches ( this.spirit.element, selector );
 	}
 	
 	
@@ -5439,7 +5435,7 @@ gui.SpiritCSS = gui.SpiritPlugin.extend ( "gui.SpiritCSS", {
 	 * classList.remove
 	 * @param {Element} element
 	 * @param {String} name
-	 * @returns {gui.SpiritCSS}
+	 * @returns {gui.CSSPlugin}
 	 */
 	remove : function ( element, name ) {
 		if ( name.indexOf ( " " ) >-1 ) {
@@ -5467,7 +5463,7 @@ gui.SpiritCSS = gui.SpiritPlugin.extend ( "gui.SpiritCSS", {
 	 * classList.toggle
 	 * @param {Element} element
 	 * @param {String} name
-	 * @returns {gui.SpiritCSS}
+	 * @returns {gui.CSSPlugin}
 	 */
 	toggle : function ( element, name ) {
 		if ( this._supports ) {
@@ -5503,7 +5499,7 @@ gui.SpiritCSS = gui.SpiritPlugin.extend ( "gui.SpiritCSS", {
 	 * @todo also automate shorthands such as "10px 20px 10px 20px"
 	 * @param {Element}
 	 * @param {String} prop
-	 * @returns {gui.SpiritCSS}
+	 * @returns {gui.CSSPlugin}
 	 */
 	set : function ( element, prop, value ) {
 		if ( gui.Type.isNumber ( value )) {
@@ -5724,7 +5720,7 @@ gui.SpiritCSS = gui.SpiritPlugin.extend ( "gui.SpiritCSS", {
  */
 ( function shorthands () {
 	function getset ( prop ) {
-		Object.defineProperty ( gui.SpiritCSS.prototype, prop, {
+		Object.defineProperty ( gui.CSSPlugin.prototype, prop, {
 			enumerable : true,
 			configurable : true,
 			get : function get () {
@@ -5735,7 +5731,7 @@ gui.SpiritCSS = gui.SpiritPlugin.extend ( "gui.SpiritCSS", {
 			}
 		});
 	}
-	var shorts = gui.SpiritCSS._shorthands;
+	var shorts = gui.CSSPlugin._shorthands;
 	for ( var prop in shorts ) {
 		if ( shorts.hasOwnProperty ( prop )) {
 			getset ( prop );
@@ -5745,13 +5741,13 @@ gui.SpiritCSS = gui.SpiritPlugin.extend ( "gui.SpiritCSS", {
 
 
 /**
- * # gui.SpiritDOM
+ * # gui.DOMPlugin
  * DOM query and manipulation.
- * @extends {gui.SpiritPlugin}
+ * @extends {gui.Plugin}
  * @todo implement missing stuff
  * @todo performance for all this
  */
-gui.SpiritDOM = gui.SpiritPlugin.extend ( "gui.SpiritDOM", {
+gui.DOMPlugin = gui.Plugin.extend ( "gui.DOMPlugin", {
 
 	/**
 	 * Get or set element id.
@@ -5803,7 +5799,7 @@ gui.SpiritDOM = gui.SpiritPlugin.extend ( "gui.SpiritDOM", {
 	 * @returns {boolean}
 	 */
 	embedded : function () {
-		return gui.SpiritDOM.embedded ( this.spirit.element );
+		return gui.DOMPlugin.embedded ( this.spirit.element );
 	},
 
 	/**
@@ -5818,7 +5814,7 @@ gui.SpiritDOM = gui.SpiritPlugin.extend ( "gui.SpiritDOM", {
 			if ( position ) {
 				element.insertAdjacentHTML ( position, html ); // @todo spiritualize this :)
 			} else {
-				gui.SpiritDOM.html ( element, html );
+				gui.DOMPlugin.html ( element, html );
 			}			
 		} else {
 			res = element.innerHTML;
@@ -5879,7 +5875,7 @@ gui.SpiritDOM = gui.SpiritPlugin.extend ( "gui.SpiritDOM", {
 	 * @returns {String}
 	 */
 	_qualify : function ( selector ) {
-		return gui.SpiritDOM._qualify ( selector, this.spirit.element );
+		return gui.DOMPlugin._qualify ( selector, this.spirit.element );
 	}
 	
 	
@@ -6001,7 +5997,7 @@ gui.SpiritDOM = gui.SpiritPlugin.extend ( "gui.SpiritDOM", {
 	 * @returns {Array<object>} List of Element or gui.Spirit
 	 */
 	qall : function ( node, selector, type ) {
-		selector = gui.SpiritDOM._qualify ( selector, node );
+		selector = gui.DOMPlugin._qualify ( selector, node );
 		var result = gui.Type.list ( node.querySelectorAll ( selector ));
 		if ( type ) {
 			result = result.filter ( function ( el )  {
@@ -6024,7 +6020,7 @@ gui.SpiritDOM = gui.SpiritPlugin.extend ( "gui.SpiritDOM", {
 		var result = selector.trim ();
 		switch ( node.nodeType ) {
 			case Node.ELEMENT_NODE :
-				result = selector.replace ( gui.SpiritDOM._thiskeyword, node.localName );
+				result = selector.replace ( gui.DOMPlugin._thiskeyword, node.localName );
 				break;
 			case Node.DOCUMENT_NODE :
 				// @todo use ":root" for something?
@@ -6071,7 +6067,7 @@ gui.Object.each ({
 	 */
 	qall : function ( selector, type ) {
 		selector = this._qualify ( selector );
-		return gui.SpiritDOM.qall ( this.spirit.element, selector, type );
+		return gui.DOMPlugin.qall ( this.spirit.element, selector, type );
 	},
 
 	/**
@@ -6097,12 +6093,12 @@ gui.Object.each ({
 	}
 
 	/**
-	 * Adding methods to gui.SpiritDOM.prototype
+	 * Adding methods to gui.DOMPlugin.prototype
 	 * @param {String} name
 	 * @param {function} method
 	 */
 }, function addin ( name, method ) {
-	gui.SpiritDOM.addin ( name, function () {
+	gui.DOMPlugin.addin ( name, function () {
 		var selector = arguments [ 0 ], type = arguments [ 1 ];
 		if ( gui.Type.isString ( selector )) {
 			if ( arguments.length === 1 || gui.Type.isFunction ( type )) {
@@ -6378,12 +6374,12 @@ gui.Object.each ({
 	}
 
 	/**
-	 * Adding methods to gui.SpiritDOM.prototype
+	 * Adding methods to gui.DOMPlugin.prototype
 	 * @param {String} name
 	 * @param {function} method
 	 */
 },  function addin ( name, method ) {
-	gui.SpiritDOM.addin ( name, function ( type ) {
+	gui.DOMPlugin.addin ( name, function ( type ) {
 		if ( !gui.Type.isDefined ( type ) || gui.Type.isFunction ( type )) {
 			return method.apply ( this, arguments );
 		} else {
@@ -6472,7 +6468,7 @@ gui.Object.each ({
 	}
 
 	/**
-	 * Adding methods to gui.SpiritDOM.prototype. These methods come highly overloaded.
+	 * Adding methods to gui.DOMPlugin.prototype. These methods come highly overloaded.
 	 * 
 	 * 1. Convert input to array of one or more elements
 	 * 2. Confirm array of elements
@@ -6482,7 +6478,7 @@ gui.Object.each ({
 	 * @param {function} method
 	 */
 }, function addin ( name, method ) {
-	gui.SpiritDOM.addin ( name, function ( things ) {
+	gui.DOMPlugin.addin ( name, function ( things ) {
 		var elms = Array.map ( gui.Type.list ( things ), function ( thing ) {
 			return thing && thing instanceof gui.Spirit ? thing.element : thing;
 		});
@@ -6499,12 +6495,12 @@ gui.Object.each ({
 
 
 /**
- * # gui.EventTracker
+ * # gui.EventPlugin
  * Tracking DOM events.
  * @todo Static interface for general consumption.
- * @extends {gui.SpiritTracker}
+ * @extends {gui.TrackerPlugin}
  */
-gui.EventTracker = gui.SpiritTracker.extend ( "gui.EventTracker", {
+gui.EventPlugin = gui.TrackerPlugin.extend ( "gui.EventPlugin", {
 
 	/**
 	 * Add one or more DOM event handlers.
@@ -6907,19 +6903,19 @@ gui.Tick._dispatch = function ( type, time, sig ) {
 
 
 /** 
- * # gui.TickTracker
+ * # gui.TickPlugin
  * Tracking timed events.
  * @todo Global timed events.
- * @extends {gui.SpiritTracker}
+ * @extends {gui.TrackerPlugin}
  */
-gui.TickTracker = gui.SpiritTracker.extend ( "gui.TickTracker", {
+gui.TickPlugin = gui.TrackerPlugin.extend ( "gui.TickPlugin", {
 
 	/**
 	 * Add one or more tick handlers.
 	 * @param {object} arg
 	 * @param @optional {object} handler
 	 * @param @optional {boolean} one Remove handler after on tick of this type?
-	 * @returns {gui.TickTracker}
+	 * @returns {gui.TickPlugin}
 	 */
 	add : function ( arg, handler, one ) {
 		handler = handler ? handler : this.spirit;
@@ -6938,7 +6934,7 @@ gui.TickTracker = gui.SpiritTracker.extend ( "gui.TickTracker", {
 	 * @todo This on ALL trackers :)
 	 * @param {object} arg
 	 * @param @optional {object} handler
-	 * @returns {gui.TickTracker}
+	 * @returns {gui.TickPlugin}
 	 */
 	one : function ( arg, handler ) {
 		return this.add ( arg, handler, true );
@@ -6956,7 +6952,7 @@ gui.TickTracker = gui.SpiritTracker.extend ( "gui.TickTracker", {
 	 * Remove one or more tick handlers.
 	 * @param {object} arg
 	 * @param @optional {object} handler implements ActionListener interface, defaults to spirit
-	 * @returns {gui.TickTracker}
+	 * @returns {gui.TickPlugin}
 	 */
 	remove : function ( arg, handler ) {
 		handler = handler ? handler : this.spirit;
@@ -7036,7 +7032,7 @@ gui.TickTracker = gui.SpiritTracker.extend ( "gui.TickTracker", {
 
 	/**
 	 * Remove delegated handlers. 
-	 * @overloads {gui.SpiritTracker#_cleanup}
+	 * @overloads {gui.TrackerPlugin#_cleanup}
 	 * @param {String} type
 	 * @param {Array<object>} checks
 	 */
@@ -7160,16 +7156,16 @@ gui.Tween.dispatchGlobal = function ( type, data ){
 
 
 /**
- * # gui.TweenTracker
+ * # gui.TweenPlugin
  * Tracking tweens.
- * @extends {gui.SpiritTracker}
+ * @extends {gui.TrackerPlugin}
  */
-gui.TweenTracker = gui.SpiritTracker.extend ( "gui.TweenTracker", {
+gui.TweenPlugin = gui.TrackerPlugin.extend ( "gui.TweenPlugin", {
 
 	/**
 	 * Add one or more broadcast handlers.
 	 * @param {object} arg
-	 * @returns {gui.TweenTracker}
+	 * @returns {gui.TweenPlugin}
 	 */
 	add : function ( arg ) {
 		var sig = this._global ? null : this._sig;
@@ -7189,7 +7185,7 @@ gui.TweenTracker = gui.SpiritTracker.extend ( "gui.TweenTracker", {
 	/**
 	 * Remove one or more broadcast handlers.
 	 * @param {object} arg
-	 * @returns {gui.TweenTracker}
+	 * @returns {gui.TweenPlugin}
 	 */
 	remove : function ( arg ) {
 		var sig = this._global ? null : this._sig;
@@ -7224,7 +7220,7 @@ gui.TweenTracker = gui.SpiritTracker.extend ( "gui.TweenTracker", {
 	/**
 	 * Add handlers for global broadcast(s).
 	 * @param {object} arg
-	 * @returns {gui.TweenTracker}
+	 * @returns {gui.TweenPlugin}
 	 */
 	addGlobal : function ( arg ) {
 		return this._globalize ( function () {
@@ -7235,7 +7231,7 @@ gui.TweenTracker = gui.SpiritTracker.extend ( "gui.TweenTracker", {
 	/**
 	 * Add handlers for global broadcast(s).
 	 * @param {object} arg
-	 * @returns {gui.TweenTracker}
+	 * @returns {gui.TweenPlugin}
 	 */
 	removeGlobal : function ( arg ) {
 		return this._globalize ( function () {
@@ -7292,7 +7288,7 @@ gui.TweenTracker = gui.SpiritTracker.extend ( "gui.TweenTracker", {
 
 	/**
 	 * Remove broadcast subscriptions on dispose.
-	 * @overwrites {gui.SpiritTracker#_cleanup}
+	 * @overwrites {gui.TrackerPlugin#_cleanup}
 	 * @param {String} type
 	 * @param {Array<object>} checks
 	 */
@@ -7315,10 +7311,10 @@ gui.TweenTracker = gui.SpiritTracker.extend ( "gui.TweenTracker", {
 /**
  * # gui.TransitionPlugin
  * Experimental CSS transitioning plugin. Work in progress.
- * @extends {gui.SpiritPlugin}
+ * @extends {gui.Plugin}
  * @todo Just add the transitonend listener on construct?
  */
-gui.TransitionPlugin = gui.SpiritPlugin.extend ( "gui.TransitionPlugin", {
+gui.TransitionPlugin = gui.Plugin.extend ( "gui.TransitionPlugin", {
 
 	/**
 	 * Handle event.
@@ -7565,13 +7561,13 @@ gui.Transition.prototype = {
 /**
  * # gui.AttentionPlugin
  * Work in progress keyboard TAB manager.
- * @extends {gui.SpiritTracker}
+ * @extends {gui.TrackerPlugin}
  * @todo Get this out of here
  * @todo Nested attention traps (conflicts with missing focusin in FF?)
  * @todo Empty queue when user moves escapes (all) attention traps?
  * @todo More life cycle hookins (hide, show, detach, exit)
  */
-gui.AttentionPlugin = gui.SpiritPlugin.extend ( "gui.AttentionPlugin", {
+gui.AttentionPlugin = gui.Plugin.extend ( "gui.AttentionPlugin", {
 
 	/**
 	 * Trapping TAB navigation inside the spirit subtree.
@@ -7650,11 +7646,11 @@ gui.AttentionPlugin = gui.SpiritPlugin.extend ( "gui.AttentionPlugin", {
 
 	/**
 	 * Handle spirit life cycle.
-	 * @param {gui.SpiritLife} life
+	 * @param {gui.Life} life
 	 */
 	onlife : function ( life ) {
 		switch ( life.type ) {
-			case gui.SpiritLife.DESTRUCT :
+			case gui.Life.DESTRUCT :
 				gui.Broadcast.removeGlobal ( gui.BROADCAST_ATTENTION_GO, this );
 				gui.Broadcast.dispatchGlobal ( null,
 					gui.BROADCAST_ATTENTION_OFF,
@@ -7709,7 +7705,7 @@ gui.AttentionPlugin = gui.SpiritPlugin.extend ( "gui.AttentionPlugin", {
 		var elm = this.spirit.element;
 		elm.addEventListener ( "focus", this, true );
 		elm.addEventListener ( "blur", this, true );
-		this.spirit.life.add ( gui.SpiritLife.DESTRUCT, this );
+		this.spirit.life.add ( gui.Life.DESTRUCT, this );
 		gui.Broadcast.addGlobal ( gui.BROADCAST_ATTENTION_GO, this );
 	},
 
@@ -7723,7 +7719,7 @@ gui.AttentionPlugin = gui.SpiritPlugin.extend ( "gui.AttentionPlugin", {
 	_input : function ( pos ) {
 		var dom = this.spirit.dom;
 		var doc = this.spirit.document;
-		var elm = gui.SpiritCSS.style ( 
+		var elm = gui.CSSPlugin.style ( 
 			doc.createElement ( "input" ), {
 				position : "absolute",
 				opacity : 0,
@@ -7976,15 +7972,15 @@ gui.module ( "core", {
 	 */
 	plugins : {
 		
-		action : gui.ActionTracker,
-		att : gui.SpiritAtt,
-		box : gui.SpiritBox,
-		broadcast	: gui.BroadcastTracker,
-		css : gui.SpiritCSS,
-		dom	: gui.SpiritDOM,
-		event	: gui.EventTracker,
-		tick : gui.TickTracker,
-		tween : gui.TweenTracker,
+		action : gui.ActionPlugin,
+		att : gui.AttPlugin, 
+		box : gui.BoxPlugin,
+		broadcast	: gui.BroadcastPlugin,
+		css : gui.CSSPlugin,
+		dom	: gui.DOMPlugin,
+		event	: gui.EventPlugin,
+		tick : gui.TickPlugin,
+		tween : gui.TweenPlugin,
 		transition : gui.TransitionPlugin,
 		attention : gui.AttentionPlugin
 	},
@@ -8003,7 +7999,6 @@ gui.module ( "core", {
 		[ ".gui-spirit", "gui.Spirit" ]
 	]
 });
-
 
 
 /**
@@ -8201,7 +8196,7 @@ gui.Client = ( new function Client () {
 		root = null;
 		// make sure window is scrollable
 		var temp = body.appendChild ( 
-			gui.SpiritCSS.style ( doc.createElement ( "div" ), {
+			gui.CSSPlugin.style ( doc.createElement ( "div" ), {
 				position : "absolute",
 				height : "10px",
 				width: "10px",
@@ -8213,7 +8208,7 @@ gui.Client = ( new function Client () {
 		root = body.scrollTop ? body : html;
 		this.scrollRoot = root;
 		// supports position fixed?
-		gui.SpiritCSS.style ( temp, {
+		gui.CSSPlugin.style ( temp, {
 			position : "fixed",
 			top : "10px"
 		});
@@ -8223,11 +8218,11 @@ gui.Client = ( new function Client () {
 		body.removeChild ( temp );
 		win.scrollBy ( 0, -10 );
 		// compute scrollbar size
-		var inner = gui.SpiritCSS.style ( document.createElement ( "p" ), {
+		var inner = gui.CSSPlugin.style ( document.createElement ( "p" ), {
 			width : "100%",
 			height : "200px"
 		});
-		var outer = gui.SpiritCSS.style ( document.createElement ( "div" ), {
+		var outer = gui.CSSPlugin.style ( document.createElement ( "div" ), {
 			position : "absolute",
 			top : "0",
 			left : "0",
@@ -9264,7 +9259,7 @@ gui.module ( "jquery", {
 		 * @returns {boolean}
 		 */
 		function indom ( el ) {
-			return gui.SpiritDOM.embedded ( el );
+			return gui.DOMPlugin.embedded ( el );
 		}
 
 		/**
@@ -9358,7 +9353,7 @@ gui.module ( "jquery", {
 
 	/**
 	 * Overloading DOM manipulation methods.
-	 * @todo attr and removeAttr must be hooked into gui.SpiritAtt setup...
+	 * @todo attr and removeAttr must be hooked into gui.AttPlugin setup...
 	 * @param {function} jq Constructor
 	 */
 	_overload : function ( jq ) {
@@ -9511,12 +9506,12 @@ gui.module ( "jquery", {
 	 * Overload Spiritual to attach/detach spirits on DOM mutation and to 
 	 * suspend mutation monitoring while DOM updating. This would normally 
 	 * be baked into native DOM methods appendChild, removeChild and so on.
-	 * @see {gui.SpiritDOM}
+	 * @see {gui.DOMPlugin}
 	 */
 	_spiritualdom : function () {
 
 		// overloading this fellow
-		var plugin = gui.SpiritDOM.prototype;
+		var plugin = gui.DOMPlugin.prototype;
 
 		/*
 		 * @param {gui.Spirit} spirit
@@ -9951,7 +9946,7 @@ gui.DOMCombos = {
 		 * @returns {boolean}
 		 */
 		var ifembedded = combo.provided ( function () {
-			return gui.SpiritDOM.embedded ( this );
+			return gui.DOMPlugin.embedded ( this );
 		});
 
 		/**
@@ -10227,7 +10222,7 @@ gui.DOMPatcher = {
 			return new gui.DOMSerializer ().subserialize ( this );
 		},
 		set : function ( html ) {
-			gui.SpiritDOM.html ( this, html );
+			gui.DOMPlugin.html ( this, html );
 		}
 	},
 
@@ -10240,7 +10235,7 @@ gui.DOMPatcher = {
 			return new gui.DOMSerializer ().serialize ( this );
 		},
 		set : function ( html ) {
-			gui.SpiritDOM.outerHtml ( this, html );
+			gui.DOMPlugin.outerHtml ( this, html );
 		}
 	},
 
@@ -10264,7 +10259,7 @@ gui.DOMPatcher = {
 			return res;
 		},
 		set : function ( html ) {
-			gui.SpiritDOM.html ( this, html.
+			gui.DOMPlugin.html ( this, html.
 				replace ( /&/g, "&amp;" ).
 				replace ( /</g, "&lt;" ).
 				replace ( />/g, "&gt;" ).
@@ -10637,7 +10632,7 @@ gui.Guide = {
 	_handles : function ( node ) {
 		return !this._suspended && 
 			gui.Type.isDefined ( node ) && 
-			gui.SpiritDOM.embedded ( node ) &&
+			gui.DOMPlugin.embedded ( node ) &&
 			node.nodeType === Node.ELEMENT_NODE;
 	},
 

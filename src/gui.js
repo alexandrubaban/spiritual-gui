@@ -98,7 +98,7 @@ var gui = {
 	ACTION_WINDOW_LOADED : "gui-action-window-loaded",
 
 	/**
- 	 * Lifecycle types.
+	 * Lifecycle types.
 	 */
 	LIFE_CONSTRUCT : "gui-life-construct",
 	LIFE_CONFIGURE : "gui-life-configure",
