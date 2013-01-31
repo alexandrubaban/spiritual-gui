@@ -1,9 +1,9 @@
 /**
- * # gui.SpiritCSS
+ * # gui.CSSPlugin
  * Spirit styling studio.
- * @extends {gui.SpiritPlugin}
+ * @extends {gui.Plugin}
  */
-gui.SpiritCSS = gui.SpiritPlugin.extend ( "gui.SpiritCSS", {
+gui.CSSPlugin = gui.Plugin.extend ( "gui.CSSPlugin", {
 
 	/**
 	 * Set single element.style.
@@ -12,7 +12,7 @@ gui.SpiritCSS = gui.SpiritPlugin.extend ( "gui.SpiritCSS", {
 	 * @returns {gui.Spirit}
 	 */
 	set : function ( prop, val ) {
-		gui.SpiritCSS.set ( this.spirit.element, prop, val );
+		gui.CSSPlugin.set ( this.spirit.element, prop, val );
 		return this.spirit;
 	},
 
@@ -22,7 +22,7 @@ gui.SpiritCSS = gui.SpiritPlugin.extend ( "gui.SpiritCSS", {
 	 * @returns {String}
 	 */
 	get : function ( prop ) {
-		return gui.SpiritCSS.get ( this.spirit.element, prop );
+		return gui.CSSPlugin.get ( this.spirit.element, prop );
 	},
 
 	/**
@@ -31,7 +31,7 @@ gui.SpiritCSS = gui.SpiritPlugin.extend ( "gui.SpiritCSS", {
 	 * @returns {String}
 	 */
 	compute : function ( prop ) {
-		return gui.SpiritCSS.compute ( this.spirit.element, prop );
+		return gui.CSSPlugin.compute ( this.spirit.element, prop );
 	},
 
 	/**
@@ -40,7 +40,7 @@ gui.SpiritCSS = gui.SpiritPlugin.extend ( "gui.SpiritCSS", {
 	 * @returns {gui.Spirit}
 	 */
 	style : function ( map ) {
-		gui.SpiritCSS.style ( this.spirit.element, map );
+		gui.CSSPlugin.style ( this.spirit.element, map );
 		return this.spirit;
 	},
 
@@ -64,7 +64,7 @@ gui.SpiritCSS = gui.SpiritPlugin.extend ( "gui.SpiritCSS", {
 	 * @returns {gui.Spirit}
 	 */
 	add : function ( name ) {
-		gui.SpiritCSS.add ( this.spirit.element, name );
+		gui.CSSPlugin.add ( this.spirit.element, name );
 		return this.spirit;
 	},
 
@@ -74,7 +74,7 @@ gui.SpiritCSS = gui.SpiritPlugin.extend ( "gui.SpiritCSS", {
 	 * @returns {gui.Spirit}
 	 */
 	remove : function ( name ) {
-		gui.SpiritCSS.remove ( this.spirit.element, name );
+		gui.CSSPlugin.remove ( this.spirit.element, name );
 		return this.spirit;
 	},
 
@@ -84,7 +84,7 @@ gui.SpiritCSS = gui.SpiritPlugin.extend ( "gui.SpiritCSS", {
 	 * @returns {gui.Spirit}
 	 */
 	toggle : function ( name ) {
-		gui.SpiritCSS.toggle ( this.spirit.element, name );
+		gui.CSSPlugin.toggle ( this.spirit.element, name );
 		return this.spirit;
 	},
 
@@ -94,7 +94,7 @@ gui.SpiritCSS = gui.SpiritPlugin.extend ( "gui.SpiritCSS", {
 	 * @returns {boolean}
 	 */
 	contains : function ( name ) {
-		return gui.SpiritCSS.contains ( this.spirit.element, name );
+		return gui.CSSPlugin.contains ( this.spirit.element, name );
 	}, 
 
 	/**
@@ -103,7 +103,7 @@ gui.SpiritCSS = gui.SpiritPlugin.extend ( "gui.SpiritCSS", {
 	 * @returns {boolean}
 	 */
 	matches : function ( selector ) {
-		return gui.SpiritCSS.matches ( this.spirit.element, selector );
+		return gui.CSSPlugin.matches ( this.spirit.element, selector );
 	}
 	
 	
@@ -141,7 +141,7 @@ gui.SpiritCSS = gui.SpiritPlugin.extend ( "gui.SpiritCSS", {
 	 * classList.remove
 	 * @param {Element} element
 	 * @param {String} name
-	 * @returns {gui.SpiritCSS}
+	 * @returns {gui.CSSPlugin}
 	 */
 	remove : function ( element, name ) {
 		if ( name.indexOf ( " " ) >-1 ) {
@@ -169,7 +169,7 @@ gui.SpiritCSS = gui.SpiritPlugin.extend ( "gui.SpiritCSS", {
 	 * classList.toggle
 	 * @param {Element} element
 	 * @param {String} name
-	 * @returns {gui.SpiritCSS}
+	 * @returns {gui.CSSPlugin}
 	 */
 	toggle : function ( element, name ) {
 		if ( this._supports ) {
@@ -205,7 +205,7 @@ gui.SpiritCSS = gui.SpiritPlugin.extend ( "gui.SpiritCSS", {
 	 * @todo also automate shorthands such as "10px 20px 10px 20px"
 	 * @param {Element}
 	 * @param {String} prop
-	 * @returns {gui.SpiritCSS}
+	 * @returns {gui.CSSPlugin}
 	 */
 	set : function ( element, prop, value ) {
 		if ( gui.Type.isNumber ( value )) {
@@ -426,7 +426,7 @@ gui.SpiritCSS = gui.SpiritPlugin.extend ( "gui.SpiritCSS", {
  */
 ( function shorthands () {
 	function getset ( prop ) {
-		Object.defineProperty ( gui.SpiritCSS.prototype, prop, {
+		Object.defineProperty ( gui.CSSPlugin.prototype, prop, {
 			enumerable : true,
 			configurable : true,
 			get : function get () {
@@ -437,7 +437,7 @@ gui.SpiritCSS = gui.SpiritPlugin.extend ( "gui.SpiritCSS", {
 			}
 		});
 	}
-	var shorts = gui.SpiritCSS._shorthands;
+	var shorts = gui.CSSPlugin._shorthands;
 	for ( var prop in shorts ) {
 		if ( shorts.hasOwnProperty ( prop )) {
 			getset ( prop );

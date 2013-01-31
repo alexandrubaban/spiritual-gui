@@ -1,11 +1,11 @@
 /**
- * # gui.SpiritPlugin
+ * # gui.Plugin
  * Base class for all spirit plugins.
  * @todo "context" should be required in constructor
  * @todo Rename "gui.Plugin"
  * @todo Rename *all* plugins to gui.SomethingPlugin :)
  */
-gui.SpiritPlugin = gui.Exemplar.create ( "gui.SpiritPlugin", Object.prototype, {
+gui.Plugin = gui.Exemplar.create ( "gui.Plugin", Object.prototype, {
 
 	/**
 	 * Associated spirit.
@@ -89,7 +89,7 @@ gui.SpiritPlugin = gui.Exemplar.create ( "gui.SpiritPlugin", Object.prototype, {
 	/**
 	 * Lazy initialization stuff.
 	 * @experimental
-	 * @param {gui.SpiritPlugin} Plugin
+	 * @param {gui.Plugin} Plugin
 	 * @param {String} prefix
 	 * @param {gui.Spirit} spirit
 	 */

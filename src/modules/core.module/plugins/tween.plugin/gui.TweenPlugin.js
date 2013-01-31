@@ -1,14 +1,14 @@
 /**
- * # gui.TweenTracker
+ * # gui.TweenPlugin
  * Tracking tweens.
- * @extends {gui.SpiritTracker}
+ * @extends {gui.TrackerPlugin}
  */
-gui.TweenTracker = gui.SpiritTracker.extend ( "gui.TweenTracker", {
+gui.TweenPlugin = gui.TrackerPlugin.extend ( "gui.TweenPlugin", {
 
 	/**
 	 * Add one or more broadcast handlers.
 	 * @param {object} arg
-	 * @returns {gui.TweenTracker}
+	 * @returns {gui.TweenPlugin}
 	 */
 	add : function ( arg ) {
 		var sig = this._global ? null : this._sig;
@@ -28,7 +28,7 @@ gui.TweenTracker = gui.SpiritTracker.extend ( "gui.TweenTracker", {
 	/**
 	 * Remove one or more broadcast handlers.
 	 * @param {object} arg
-	 * @returns {gui.TweenTracker}
+	 * @returns {gui.TweenPlugin}
 	 */
 	remove : function ( arg ) {
 		var sig = this._global ? null : this._sig;
@@ -63,7 +63,7 @@ gui.TweenTracker = gui.SpiritTracker.extend ( "gui.TweenTracker", {
 	/**
 	 * Add handlers for global broadcast(s).
 	 * @param {object} arg
-	 * @returns {gui.TweenTracker}
+	 * @returns {gui.TweenPlugin}
 	 */
 	addGlobal : function ( arg ) {
 		return this._globalize ( function () {
@@ -74,7 +74,7 @@ gui.TweenTracker = gui.SpiritTracker.extend ( "gui.TweenTracker", {
 	/**
 	 * Add handlers for global broadcast(s).
 	 * @param {object} arg
-	 * @returns {gui.TweenTracker}
+	 * @returns {gui.TweenPlugin}
 	 */
 	removeGlobal : function ( arg ) {
 		return this._globalize ( function () {
@@ -131,7 +131,7 @@ gui.TweenTracker = gui.SpiritTracker.extend ( "gui.TweenTracker", {
 
 	/**
 	 * Remove broadcast subscriptions on dispose.
-	 * @overwrites {gui.SpiritTracker#_cleanup}
+	 * @overwrites {gui.TrackerPlugin#_cleanup}
 	 * @param {String} type
 	 * @param {Array<object>} checks
 	 */

@@ -49,7 +49,7 @@ gui.module ( "jquery", {
 		 * @returns {boolean}
 		 */
 		function indom ( el ) {
-			return gui.SpiritDOM.embedded ( el );
+			return gui.DOMPlugin.embedded ( el );
 		}
 
 		/**
@@ -143,7 +143,7 @@ gui.module ( "jquery", {
 
 	/**
 	 * Overloading DOM manipulation methods.
-	 * @todo attr and removeAttr must be hooked into gui.SpiritAtt setup...
+	 * @todo attr and removeAttr must be hooked into gui.AttPlugin setup...
 	 * @param {function} jq Constructor
 	 */
 	_overload : function ( jq ) {
@@ -296,12 +296,12 @@ gui.module ( "jquery", {
 	 * Overload Spiritual to attach/detach spirits on DOM mutation and to 
 	 * suspend mutation monitoring while DOM updating. This would normally 
 	 * be baked into native DOM methods appendChild, removeChild and so on.
-	 * @see {gui.SpiritDOM}
+	 * @see {gui.DOMPlugin}
 	 */
 	_spiritualdom : function () {
 
 		// overloading this fellow
-		var plugin = gui.SpiritDOM.prototype;
+		var plugin = gui.DOMPlugin.prototype;
 
 		/*
 		 * @param {gui.Spirit} spirit

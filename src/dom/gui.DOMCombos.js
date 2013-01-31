@@ -39,7 +39,7 @@ gui.DOMCombos = {
 		 * @returns {boolean}
 		 */
 		var ifembedded = combo.provided ( function () {
-			return gui.SpiritDOM.embedded ( this );
+			return gui.DOMPlugin.embedded ( this );
 		});
 
 		/**

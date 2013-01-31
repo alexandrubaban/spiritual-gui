@@ -200,7 +200,7 @@ gui.Guide = {
 	_handles : function ( node ) {
 		return !this._suspended && 
 			gui.Type.isDefined ( node ) && 
-			gui.SpiritDOM.embedded ( node ) &&
+			gui.DOMPlugin.embedded ( node ) &&
 			node.nodeType === Node.ELEMENT_NODE;
 	},
 

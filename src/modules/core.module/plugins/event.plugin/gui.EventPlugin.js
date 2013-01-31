@@ -1,10 +1,10 @@
 /**
- * # gui.EventTracker
+ * # gui.EventPlugin
  * Tracking DOM events.
  * @todo Static interface for general consumption.
- * @extends {gui.SpiritTracker}
+ * @extends {gui.TrackerPlugin}
  */
-gui.EventTracker = gui.SpiritTracker.extend ( "gui.EventTracker", {
+gui.EventPlugin = gui.TrackerPlugin.extend ( "gui.EventPlugin", {
 
 	/**
 	 * Add one or more DOM event handlers.

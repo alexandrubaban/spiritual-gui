@@ -312,7 +312,7 @@ gui.Spiritual.prototype = {
 				win.gui._channels.every ( function ( def ) {
 					var select = def [ 0 ];
 					var spirit = def [ 1 ];
-					if ( gui.SpiritCSS.matches ( element, select )) {
+					if ( gui.CSSPlugin.matches ( element, select )) {
 						res = spirit;
 					}
 					return res === null;

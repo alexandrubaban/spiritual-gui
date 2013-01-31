@@ -54,7 +54,7 @@ gui.DOMPatcher = {
 			return new gui.DOMSerializer ().subserialize ( this );
 		},
 		set : function ( html ) {
-			gui.SpiritDOM.html ( this, html );
+			gui.DOMPlugin.html ( this, html );
 		}
 	},
 
@@ -67,7 +67,7 @@ gui.DOMPatcher = {
 			return new gui.DOMSerializer ().serialize ( this );
 		},
 		set : function ( html ) {
-			gui.SpiritDOM.outerHtml ( this, html );
+			gui.DOMPlugin.outerHtml ( this, html );
 		}
 	},
 
@@ -91,7 +91,7 @@ gui.DOMPatcher = {
 			return res;
 		},
 		set : function ( html ) {
-			gui.SpiritDOM.html ( this, html.
+			gui.DOMPlugin.html ( this, html.
 				replace ( /&/g, "&amp;" ).
 				replace ( /</g, "&lt;" ).
 				replace ( />/g, "&gt;" ).

@@ -1,9 +1,9 @@
  /**
- * # gui.ActionTracker
+ * # gui.ActionPlugin
  * Tracking actions.
- * @extends {gui.SpiritTracker}
+ * @extends {gui.TrackerPlugin}
  */
-gui.ActionTracker = gui.SpiritTracker.extend ( "gui.ActionTracker", {
+gui.ActionPlugin = gui.TrackerPlugin.extend ( "gui.ActionPlugin", {
 
 	/**
 	 * Free slot for spirit to define any single type of action to dispatch. 
@@ -21,7 +21,7 @@ gui.ActionTracker = gui.SpiritTracker.extend ( "gui.ActionTracker", {
 	 * Add one or more action handlers.
 	 * @param {array|string} arg
 	 * @param @optional {object|function} handler
-	 * @returns {gui.ActionTracker}
+	 * @returns {gui.ActionPlugin}
 	 */
 	add : function ( arg, handler ) {
 		if ( gui.Arguments.validate ( arguments, "array|string", "(object|function)" )) {
@@ -39,7 +39,7 @@ gui.ActionTracker = gui.SpiritTracker.extend ( "gui.ActionTracker", {
 	 * Remove one or more action handlers.
 	 * @param {object} arg
 	 * @param @optional {object} handler
-	 * @returns {gui.ActionTracker}
+	 * @returns {gui.ActionPlugin}
 	 */
 	remove : function ( arg, handler ) {
 		if ( gui.Arguments.validate ( arguments, "array|string", "(object|function)" )) {
@@ -57,7 +57,7 @@ gui.ActionTracker = gui.SpiritTracker.extend ( "gui.ActionTracker", {
 	 * Add global action handler(s).
 	 * @param {object} arg
 	 * @param @optional {object} handler
-	 * @returns {gui.ActionTracker}
+	 * @returns {gui.ActionPlugin}
 	 */
 	addGlobal : function ( arg, handler ) {
 		return this._globalize ( function () {
@@ -69,7 +69,7 @@ gui.ActionTracker = gui.SpiritTracker.extend ( "gui.ActionTracker", {
 	 * Remove global action handler(s).
 	 * @param {object} arg
 	 * @param @optional {object} handler
-	 * @returns {gui.ActionTracker}
+	 * @returns {gui.ActionPlugin}
 	 */
 	removeGlobal : function ( arg, handler ) {
 		return this._globalize ( function () {
@@ -79,7 +79,7 @@ gui.ActionTracker = gui.SpiritTracker.extend ( "gui.ActionTracker", {
 
 	/**
 	 * Dispatch type(s) ascending by default.
-	 * @alias {gui.ActionTracker#ascend}
+	 * @alias {gui.ActionPlugin#ascend}
 	 * @param {String} type
 	 * @param @optional {object} data
 	 * @param @optional {String} direction "ascend" or "descend"
@@ -99,7 +99,7 @@ gui.ActionTracker = gui.SpiritTracker.extend ( "gui.ActionTracker", {
 
 	/**
 	 * Dispatch type(s) ascending.
-	 * @alias {gui.ActionTracker#dispatch}
+	 * @alias {gui.ActionPlugin#dispatch}
 	 * @param {object} arg
 	 * @param @optional {object} data
 	 * @returns {gui.Action}
@@ -110,7 +110,7 @@ gui.ActionTracker = gui.SpiritTracker.extend ( "gui.ActionTracker", {
 
 	/**
 	 * Dispatch type(s) descending.
-	 * @alias {gui.ActionTracker#dispatch}
+	 * @alias {gui.ActionPlugin#dispatch}
 	 * @param {object} arg
 	 * @param @optional {object} data
 	 * @returns {gui.Action}
@@ -199,7 +199,7 @@ gui.ActionTracker = gui.SpiritTracker.extend ( "gui.ActionTracker", {
 	/**
 	 * Remove delegated handlers. 
 	 * @todo verify that this works
-	 * @overwrites {gui.SpiritTracker#_cleanup}
+	 * @overwrites {gui.TrackerPlugin#_cleanup}
 	 * @param {String} type
 	 * @param {Array<object>} checks
 	 */

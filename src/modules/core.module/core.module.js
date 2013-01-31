@@ -60,15 +60,15 @@ gui.module ( "core", {
 	 */
 	plugins : {
 		
-		action : gui.ActionTracker,
-		att : gui.SpiritAtt,
-		box : gui.SpiritBox,
-		broadcast	: gui.BroadcastTracker,
-		css : gui.SpiritCSS,
-		dom	: gui.SpiritDOM,
-		event	: gui.EventTracker,
-		tick : gui.TickTracker,
-		tween : gui.TweenTracker,
+		action : gui.ActionPlugin,
+		att : gui.AttPlugin, 
+		box : gui.BoxPlugin,
+		broadcast	: gui.BroadcastPlugin,
+		css : gui.CSSPlugin,
+		dom	: gui.DOMPlugin,
+		event	: gui.EventPlugin,
+		tick : gui.TickPlugin,
+		tween : gui.TweenPlugin,
 		transition : gui.TransitionPlugin,
 		attention : gui.AttentionPlugin
 	},

@@ -1,9 +1,9 @@
 /**
- * # gui.SpiritConfig
+ * # gui.ConfigPlugin
  * Configures a spirit by attribute parsing.
- * @extends {gui.SpiritPlugin}
+ * @extends {gui.Plugin}
  */
-gui.SpiritConfig = gui.SpiritPlugin.extend ( "gui.SpiritConfig", {
+gui.ConfigPlugin = gui.Plugin.extend ( "gui.ConfigPlugin", {
 
 	/**
 	 * Mapping shorthands to expanded syntax.
@@ -87,4 +87,4 @@ gui.SpiritConfig = gui.SpiritPlugin.extend ( "gui.SpiritConfig", {
 /**
  * Register plugin (not served in a module this plugin).
  */
-gui.Spirit.plugin ( "config", gui.SpiritConfig );
+gui.Spirit.plugin ( "config", gui.ConfigPlugin );

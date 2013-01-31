@@ -1,15 +1,15 @@
 /**
- * # gui.BroadcastTracker
+ * # gui.BroadcastPlugin
  * Tracking broadcasts.
- * @extends {gui.SpiritTracker}
+ * @extends {gui.TrackerPlugin}
  */
-gui.BroadcastTracker = gui.SpiritTracker.extend ( "gui.BroadcastTracker", {
+gui.BroadcastPlugin = gui.TrackerPlugin.extend ( "gui.BroadcastPlugin", {
 
 	/**
 	 * Add one or more broadcast handlers.
 	 * @param {object} arg
 	 * @param @optional {object} handler implements BroadcastListener (defaults to spirit)
-	 * @returns {gui.BroadcastTracker}
+	 * @returns {gui.BroadcastPlugin}
 	 */
 	add : function ( arg, handler ) {
 		handler = handler ? handler : this.spirit;
@@ -30,7 +30,7 @@ gui.BroadcastTracker = gui.SpiritTracker.extend ( "gui.BroadcastTracker", {
 	 * Remove one or more broadcast handlers.
 	 * @param {object} arg
 	 * @param @optional {object} handler implements BroadcastListener (defaults to spirit)
-	 * @returns {gui.BroadcastTracker}
+	 * @returns {gui.BroadcastPlugin}
 	 */
 	remove : function ( arg, handler ) {
 		handler = handler ? handler : this.spirit;
@@ -70,7 +70,7 @@ gui.BroadcastTracker = gui.SpiritTracker.extend ( "gui.BroadcastTracker", {
 	 * Add handlers for global broadcast(s).
 	 * @param {object} arg
 	 * @param @optional {object} handler implements BroadcastListener (defaults to spirit)
-	 * @returns {gui.BroadcastTracker}
+	 * @returns {gui.BroadcastPlugin}
 	 */
 	addGlobal : function ( arg, handler ) {
 		return this._globalize ( function () {
@@ -82,7 +82,7 @@ gui.BroadcastTracker = gui.SpiritTracker.extend ( "gui.BroadcastTracker", {
 	 * Add handlers for global broadcast(s).
 	 * @param {object} arg
 	 * @param @optional {object} handler implements BroadcastListener (defaults to spirit)
-	 * @returns {gui.BroadcastTracker}
+	 * @returns {gui.BroadcastPlugin}
 	 */
 	removeGlobal : function ( arg, handler ) {
 		return this._globalize ( function () {
@@ -124,7 +124,7 @@ gui.BroadcastTracker = gui.SpiritTracker.extend ( "gui.BroadcastTracker", {
 
 	/**
 	 * Remove delegated handlers. 
-	 * @overwrites {gui.SpiritTracker#_cleanup}
+	 * @overwrites {gui.TrackerPlugin#_cleanup}
 	 * @param {String} type
 	 * @param {Array<object>} checks
 	 */

@@ -1,13 +1,13 @@
 /**
  * # gui.AttentionPlugin
  * Work in progress keyboard TAB manager.
- * @extends {gui.SpiritTracker}
+ * @extends {gui.TrackerPlugin}
  * @todo Get this out of here
  * @todo Nested attention traps (conflicts with missing focusin in FF?)
  * @todo Empty queue when user moves escapes (all) attention traps?
  * @todo More life cycle hookins (hide, show, detach, exit)
  */
-gui.AttentionPlugin = gui.SpiritPlugin.extend ( "gui.AttentionPlugin", {
+gui.AttentionPlugin = gui.Plugin.extend ( "gui.AttentionPlugin", {
 
 	/**
 	 * Trapping TAB navigation inside the spirit subtree.
@@ -86,11 +86,11 @@ gui.AttentionPlugin = gui.SpiritPlugin.extend ( "gui.AttentionPlugin", {
 
 	/**
 	 * Handle spirit life cycle.
-	 * @param {gui.SpiritLife} life
+	 * @param {gui.Life} life
 	 */
 	onlife : function ( life ) {
 		switch ( life.type ) {
-			case gui.SpiritLife.DESTRUCT :
+			case gui.Life.DESTRUCT :
 				gui.Broadcast.removeGlobal ( gui.BROADCAST_ATTENTION_GO, this );
 				gui.Broadcast.dispatchGlobal ( null,
 					gui.BROADCAST_ATTENTION_OFF,
@@ -145,7 +145,7 @@ gui.AttentionPlugin = gui.SpiritPlugin.extend ( "gui.AttentionPlugin", {
 		var elm = this.spirit.element;
 		elm.addEventListener ( "focus", this, true );
 		elm.addEventListener ( "blur", this, true );
-		this.spirit.life.add ( gui.SpiritLife.DESTRUCT, this );
+		this.spirit.life.add ( gui.Life.DESTRUCT, this );
 		gui.Broadcast.addGlobal ( gui.BROADCAST_ATTENTION_GO, this );
 	},
 
@@ -159,7 +159,7 @@ gui.AttentionPlugin = gui.SpiritPlugin.extend ( "gui.AttentionPlugin", {
 	_input : function ( pos ) {
 		var dom = this.spirit.dom;
 		var doc = this.spirit.document;
-		var elm = gui.SpiritCSS.style ( 
+		var elm = gui.CSSPlugin.style ( 
 			doc.createElement ( "input" ), {
 				position : "absolute",
 				opacity : 0,

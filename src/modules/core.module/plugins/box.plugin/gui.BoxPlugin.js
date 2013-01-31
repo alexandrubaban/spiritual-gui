@@ -1,10 +1,10 @@
 /**
- * # gui.SpiritBox
+ * # gui.BoxPlugin
  * Spirit box object. Note that all these are properties and not methods. 
- * @extends {gui.SpiritPlugin}
+ * @extends {gui.Plugin}
  * @todo Support globalX, globalY, screenX, screenY
  */
-gui.SpiritBox = gui.SpiritPlugin.extend ( "gui.SpiritBox", {
+gui.BoxPlugin = gui.Plugin.extend ( "gui.BoxPlugin", {
 	
 	width   : 0, // width
 	height  : 0, // height
@@ -16,7 +16,7 @@ gui.SpiritBox = gui.SpiritPlugin.extend ( "gui.SpiritBox", {
 	clientY : 0  // Y relative to the viewport (excludes scrolling)
 });
 
-Object.defineProperties ( gui.SpiritBox.prototype, {
+Object.defineProperties ( gui.BoxPlugin.prototype, {
 
 	/**
 	 * Width.

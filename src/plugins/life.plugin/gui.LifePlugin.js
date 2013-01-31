@@ -1,9 +1,9 @@
 /**
- * # gui.SpiritLifeTracker
+ * # gui.LifePlugin
  * Tracking spirit life cycle events.
- * @extends {gui.SpiritTracker}
+ * @extends {gui.TrackerPlugin}
  */
-gui.SpiritLifeTracker = gui.SpiritTracker.extend ( "gui.SpiritLifeTracker", {
+gui.LifePlugin = gui.TrackerPlugin.extend ( "gui.LifePlugin", {
 
 	/**
 	 * Spirit is constructed? This is almost certainly true by 
@@ -78,7 +78,7 @@ gui.SpiritLifeTracker = gui.SpiritTracker.extend ( "gui.SpiritLifeTracker", {
 
 	/**
 	 * Construction time.
-	 * @overloads {gui.SpiritTracker#construct}
+	 * @overloads {gui.TrackerPlugin#construct}
 	 */
 	onconstruct : function () {
 		this._super.onconstruct ();
@@ -131,15 +131,15 @@ gui.SpiritLifeTracker = gui.SpiritTracker.extend ( "gui.SpiritLifeTracker", {
 	dispatch : function ( type ) {
 		var list = this._handlers [ type ];
 		if ( list !== undefined ) {
-			var life = new gui.SpiritLife ( this.spirit, type );
+			var life = new gui.Life ( this.spirit, type );
 			list.forEach ( function ( handler ) {
 				handler.onlife ( life );
 			});
 			switch ( type ) {
-				case gui.SpiritLife.ATTACH :
-				case gui.SpiritLife.DETACH :
-				case gui.SpiritLife.VISIBLE :
-				case gui.SpiritLife.INVISIBLE :
+				case gui.Life.ATTACH :
+				case gui.Life.DETACH :
+				case gui.Life.VISIBLE :
+				case gui.Life.INVISIBLE :
 					// may happen more than once
 					break;
 				default :
@@ -153,24 +153,24 @@ gui.SpiritLifeTracker = gui.SpiritTracker.extend ( "gui.SpiritLifeTracker", {
 /**
  * Generate methods to update life cycle status:
  * 1) Update booleans entered, attached, detached etc.
- * 2) Dispatch life-event gui.SpiritLife.ATTACH etc.
+ * 2) Dispatch life-event gui.Life.ATTACH etc.
  */
 ( function generatecode () {
 	var states = {
-		construct : gui.SpiritLife.CONSTRUCT,
-		configure : gui.SpiritLife.CONFIGURE,
-		enter : gui.SpiritLife.ENTER,
-		attach : gui.SpiritLife.ATTACH,
-		ready : gui.SpiritLife.READY,
-		visible : gui.SpiritLife.VISIBLE,
-		invisible : gui.SpiritLife.INVISIBLE,
-		detach : gui.SpiritLife.DETACH,
-		exit : gui.SpiritLife.EXIT,
-		destruct : gui.SpiritLife.DESTRUCT
+		construct : gui.Life.CONSTRUCT,
+		configure : gui.Life.CONFIGURE,
+		enter : gui.Life.ENTER,
+		attach : gui.Life.ATTACH,
+		ready : gui.Life.READY,
+		visible : gui.Life.VISIBLE,
+		invisible : gui.Life.INVISIBLE,
+		detach : gui.Life.DETACH,
+		exit : gui.Life.EXIT,
+		destruct : gui.Life.DESTRUCT
 	};
 	// prefix methods with "on", suffix booleans with "ed"
 	gui.Object.each ( states, function ( state, event ) {
-		gui.SpiritLifeTracker.addin ( "go" + state , function () {
+		gui.LifePlugin.addin ( "go" + state , function () {
 			var prop = state;
 			switch ( state ) {
 				case "ready" :
@@ -205,4 +205,4 @@ gui.SpiritLifeTracker = gui.SpiritTracker.extend ( "gui.SpiritLifeTracker", {
 /**
  * Register plugin (not served in a module this plugin).
  */
-gui.Spirit.plugin ( "life", gui.SpiritLifeTracker );
+gui.Spirit.plugin ( "life", gui.LifePlugin );

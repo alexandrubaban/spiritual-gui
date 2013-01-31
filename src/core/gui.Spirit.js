@@ -160,7 +160,7 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	
 	/**
 	 * Handle life (tell me more)
-	 * @param {gui.SpiritLife} life
+	 * @param {gui.Life} life
 	 */
 	onlife : function ( life ) {},
 	
@@ -216,19 +216,19 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	 */
 	__plugin__ : function () {
 		// core plugins first
-		this.life = new gui.SpiritLifeTracker ( this );
-		this.config = new gui.SpiritConfig ( this );
+		this.life = new gui.LifePlugin ( this );
+		this.config = new gui.ConfigPlugin ( this );
 		this.__lazyplugins__ = Object.create ( null );
 		// bonus plugins second
 		var prefixes = [], plugins = this.constructor.__plugins__;
 		gui.Object.each ( plugins, function ( prefix, Plugin ) {
 			switch ( Plugin ) {
-				case gui.SpiritLifeTracker :
-				case gui.SpiritConfig :
+				case gui.LifePlugin :
+				case gui.ConfigPlugin :
 					break;
 				default :
 					if ( Plugin.lazy ) {
-						gui.SpiritPlugin.later ( Plugin, prefix, this, this.__lazyplugins__ );
+						gui.Plugin.later ( Plugin, prefix, this, this.__lazyplugins__ );
 					} else {
 						this [ prefix ] = new Plugin ( this );
 					}
@@ -286,7 +286,7 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 			var thing = this [ prop ];
 			switch ( gui.Type.of ( thing )) {
 				case "object" :
-					if ( thing instanceof gui.SpiritPlugin ) {
+					if ( thing instanceof gui.Plugin ) {
 						if ( thing !== this.life ) {
 							thing.__destruct__ ( unloading );
 						}

@@ -1,9 +1,9 @@
 /**
- * # gui.SpiritAtt
+ * # gui.AttPlugin
  * Methods to read and write DOM attributes.
- * @extends {gui.SpiritTracker}
+ * @extends {gui.TrackerPlugin}
  */
-gui.SpiritAtt = gui.SpiritPlugin.extend ( "gui.SpiritAtt", {
+gui.AttPlugin = gui.Plugin.extend ( "gui.AttPlugin", {
 
 	/**
 	 * Get single element attribute cast to an inferred type.

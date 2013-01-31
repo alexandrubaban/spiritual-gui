@@ -1,17 +1,17 @@
 /** 
- * # gui.TickTracker
+ * # gui.TickPlugin
  * Tracking timed events.
  * @todo Global timed events.
- * @extends {gui.SpiritTracker}
+ * @extends {gui.TrackerPlugin}
  */
-gui.TickTracker = gui.SpiritTracker.extend ( "gui.TickTracker", {
+gui.TickPlugin = gui.TrackerPlugin.extend ( "gui.TickPlugin", {
 
 	/**
 	 * Add one or more tick handlers.
 	 * @param {object} arg
 	 * @param @optional {object} handler
 	 * @param @optional {boolean} one Remove handler after on tick of this type?
-	 * @returns {gui.TickTracker}
+	 * @returns {gui.TickPlugin}
 	 */
 	add : function ( arg, handler, one ) {
 		handler = handler ? handler : this.spirit;
@@ -30,7 +30,7 @@ gui.TickTracker = gui.SpiritTracker.extend ( "gui.TickTracker", {
 	 * @todo This on ALL trackers :)
 	 * @param {object} arg
 	 * @param @optional {object} handler
-	 * @returns {gui.TickTracker}
+	 * @returns {gui.TickPlugin}
 	 */
 	one : function ( arg, handler ) {
 		return this.add ( arg, handler, true );
@@ -48,7 +48,7 @@ gui.TickTracker = gui.SpiritTracker.extend ( "gui.TickTracker", {
 	 * Remove one or more tick handlers.
 	 * @param {object} arg
 	 * @param @optional {object} handler implements ActionListener interface, defaults to spirit
-	 * @returns {gui.TickTracker}
+	 * @returns {gui.TickPlugin}
 	 */
 	remove : function ( arg, handler ) {
 		handler = handler ? handler : this.spirit;
@@ -128,7 +128,7 @@ gui.TickTracker = gui.SpiritTracker.extend ( "gui.TickTracker", {
 
 	/**
 	 * Remove delegated handlers. 
-	 * @overloads {gui.SpiritTracker#_cleanup}
+	 * @overloads {gui.TrackerPlugin#_cleanup}
 	 * @param {String} type
 	 * @param {Array<object>} checks
 	 */

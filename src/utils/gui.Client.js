@@ -193,7 +193,7 @@ gui.Client = ( new function Client () {
 		root = null;
 		// make sure window is scrollable
 		var temp = body.appendChild ( 
-			gui.SpiritCSS.style ( doc.createElement ( "div" ), {
+			gui.CSSPlugin.style ( doc.createElement ( "div" ), {
 				position : "absolute",
 				height : "10px",
 				width: "10px",
@@ -205,7 +205,7 @@ gui.Client = ( new function Client () {
 		root = body.scrollTop ? body : html;
 		this.scrollRoot = root;
 		// supports position fixed?
-		gui.SpiritCSS.style ( temp, {
+		gui.CSSPlugin.style ( temp, {
 			position : "fixed",
 			top : "10px"
 		});
@@ -215,11 +215,11 @@ gui.Client = ( new function Client () {
 		body.removeChild ( temp );
 		win.scrollBy ( 0, -10 );
 		// compute scrollbar size
-		var inner = gui.SpiritCSS.style ( document.createElement ( "p" ), {
+		var inner = gui.CSSPlugin.style ( document.createElement ( "p" ), {
 			width : "100%",
 			height : "200px"
 		});
-		var outer = gui.SpiritCSS.style ( document.createElement ( "div" ), {
+		var outer = gui.CSSPlugin.style ( document.createElement ( "div" ), {
 			position : "absolute",
 			top : "0",
 			left : "0",

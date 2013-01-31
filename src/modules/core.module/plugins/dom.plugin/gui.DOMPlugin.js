@@ -1,11 +1,11 @@
 /**
- * # gui.SpiritDOM
+ * # gui.DOMPlugin
  * DOM query and manipulation.
- * @extends {gui.SpiritPlugin}
+ * @extends {gui.Plugin}
  * @todo implement missing stuff
  * @todo performance for all this
  */
-gui.SpiritDOM = gui.SpiritPlugin.extend ( "gui.SpiritDOM", {
+gui.DOMPlugin = gui.Plugin.extend ( "gui.DOMPlugin", {
 
 	/**
 	 * Get or set element id.
@@ -57,7 +57,7 @@ gui.SpiritDOM = gui.SpiritPlugin.extend ( "gui.SpiritDOM", {
 	 * @returns {boolean}
 	 */
 	embedded : function () {
-		return gui.SpiritDOM.embedded ( this.spirit.element );
+		return gui.DOMPlugin.embedded ( this.spirit.element );
 	},
 
 	/**
@@ -72,7 +72,7 @@ gui.SpiritDOM = gui.SpiritPlugin.extend ( "gui.SpiritDOM", {
 			if ( position ) {
 				element.insertAdjacentHTML ( position, html ); // @todo spiritualize this :)
 			} else {
-				gui.SpiritDOM.html ( element, html );
+				gui.DOMPlugin.html ( element, html );
 			}			
 		} else {
 			res = element.innerHTML;
@@ -133,7 +133,7 @@ gui.SpiritDOM = gui.SpiritPlugin.extend ( "gui.SpiritDOM", {
 	 * @returns {String}
 	 */
 	_qualify : function ( selector ) {
-		return gui.SpiritDOM._qualify ( selector, this.spirit.element );
+		return gui.DOMPlugin._qualify ( selector, this.spirit.element );
 	}
 	
 	
@@ -255,7 +255,7 @@ gui.SpiritDOM = gui.SpiritPlugin.extend ( "gui.SpiritDOM", {
 	 * @returns {Array<object>} List of Element or gui.Spirit
 	 */
 	qall : function ( node, selector, type ) {
-		selector = gui.SpiritDOM._qualify ( selector, node );
+		selector = gui.DOMPlugin._qualify ( selector, node );
 		var result = gui.Type.list ( node.querySelectorAll ( selector ));
 		if ( type ) {
 			result = result.filter ( function ( el )  {
@@ -278,7 +278,7 @@ gui.SpiritDOM = gui.SpiritPlugin.extend ( "gui.SpiritDOM", {
 		var result = selector.trim ();
 		switch ( node.nodeType ) {
 			case Node.ELEMENT_NODE :
-				result = selector.replace ( gui.SpiritDOM._thiskeyword, node.localName );
+				result = selector.replace ( gui.DOMPlugin._thiskeyword, node.localName );
 				break;
 			case Node.DOCUMENT_NODE :
 				// @todo use ":root" for something?
@@ -325,7 +325,7 @@ gui.Object.each ({
 	 */
 	qall : function ( selector, type ) {
 		selector = this._qualify ( selector );
-		return gui.SpiritDOM.qall ( this.spirit.element, selector, type );
+		return gui.DOMPlugin.qall ( this.spirit.element, selector, type );
 	},
 
 	/**
@@ -351,12 +351,12 @@ gui.Object.each ({
 	}
 
 	/**
-	 * Adding methods to gui.SpiritDOM.prototype
+	 * Adding methods to gui.DOMPlugin.prototype
 	 * @param {String} name
 	 * @param {function} method
 	 */
 }, function addin ( name, method ) {
-	gui.SpiritDOM.addin ( name, function () {
+	gui.DOMPlugin.addin ( name, function () {
 		var selector = arguments [ 0 ], type = arguments [ 1 ];
 		if ( gui.Type.isString ( selector )) {
 			if ( arguments.length === 1 || gui.Type.isFunction ( type )) {
@@ -632,12 +632,12 @@ gui.Object.each ({
 	}
 
 	/**
-	 * Adding methods to gui.SpiritDOM.prototype
+	 * Adding methods to gui.DOMPlugin.prototype
 	 * @param {String} name
 	 * @param {function} method
 	 */
 },  function addin ( name, method ) {
-	gui.SpiritDOM.addin ( name, function ( type ) {
+	gui.DOMPlugin.addin ( name, function ( type ) {
 		if ( !gui.Type.isDefined ( type ) || gui.Type.isFunction ( type )) {
 			return method.apply ( this, arguments );
 		} else {
@@ -726,7 +726,7 @@ gui.Object.each ({
 	}
 
 	/**
-	 * Adding methods to gui.SpiritDOM.prototype. These methods come highly overloaded.
+	 * Adding methods to gui.DOMPlugin.prototype. These methods come highly overloaded.
 	 * 
 	 * 1. Convert input to array of one or more elements
 	 * 2. Confirm array of elements
@@ -736,7 +736,7 @@ gui.Object.each ({
 	 * @param {function} method
 	 */
 }, function addin ( name, method ) {
-	gui.SpiritDOM.addin ( name, function ( things ) {
+	gui.DOMPlugin.addin ( name, function ( things ) {
 		var elms = Array.map ( gui.Type.list ( things ), function ( thing ) {
 			return thing && thing instanceof gui.Spirit ? thing.element : thing;
 		});
