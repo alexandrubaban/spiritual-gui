@@ -98,6 +98,29 @@ var gui = {
 	ACTION_WINDOW_LOADED : "gui-action-window-loaded",
 
 	/**
+ 	 * Lifecycle types.
+	 */
+	LIFE_CONSTRUCT : "gui-life-construct",
+	LIFE_CONFIGURE : "gui-life-configure",
+	LIFE_ENTER : "gui-life-enter",
+	LIFE_ATTACH : "gui-life-attach",
+	LIFE_READY : "gui-life-ready",
+	LIFE_SHOW : "gui-life-show",
+	LIFE_HIDE : "gui-life-hide",
+	LIFE_DETACH : "gui-life-detach",
+	LIFE_EXIT	: "gui-life-exit",
+	LIFE_DESTRUCT : "life-destruct",
+
+	/**
+	 * Tick types (timed events)
+	 */
+	TICK_DESTRUCT_DETACHED : "gui-tick-destruct-detached",
+	TICK_SCRIPT_UPDATE : "gui-tick-spiritscript-update", // @todo move this to EDB
+	TICK_COLLECT_INPUT : "gui-tick-collect-input",
+	TICK_SPIRIT_NULL : "gui-tick-spirit-null",
+	TICK_FIT : "gui-tick-fit",
+
+	/**
 	 * Crawler types
 	 */
 	CRAWLER_ATTACH : "gui-crawler-attach",
@@ -106,15 +129,6 @@ var gui = {
 	CRAWLER_ACTION : "gui-crawler-action",
 	CRAWLER_VISIBLE : "gui-crawler-visible",
 	CRAWLER_INVISIBLE : "gui-crawler-invisible",
-
-	/**
-	 * Tick types (timed events)
-	 */
-	TICK_DESTRUCT_DETACHED : "gui-tick-destruct-detached",
-	TICK_SCRIPT_UPDATE : "gui-tick-spiritscript-update", // @todo move to EDB
-	TICK_COLLECT_INPUT : "gui-tick-collect-input",
-	TICK_SPIRIT_NULL : "gui-tick-spirit-null",
-	TICK_FIT : "gui-tick-fit",
 
 	/** 
 	 * CSS classnames. Underscore indicates that the classname are managed by JS.

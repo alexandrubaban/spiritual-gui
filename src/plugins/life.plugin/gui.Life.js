@@ -30,21 +30,3 @@ gui.Life.prototype = {
 		return "[object gui.Life]";
 	}
 };
-
-
- // Static .....................................
-
- /**
- * Important milestones in the life of a spirit.
- * @todo perhaps move to gui.js
- */
-gui.Life.CONSTRUCT = "gui-life-construct";
-gui.Life.CONFIGURE = "gui-life-configure";
-gui.Life.ENTER = "gui-life-enter";
-gui.Life.ATTACH = "gui-life-attach";
-gui.Life.READY = "gui-life-ready";
-gui.Life.SHOW = "gui-life-show";
-gui.Life.HIDE = "gui-life-hide";
-gui.Life.DETACH = "gui-life-detach";
-gui.Life.EXIT	= "gui-life-exit";
-gui.Life.DESTRUCT = "life-destruct";
