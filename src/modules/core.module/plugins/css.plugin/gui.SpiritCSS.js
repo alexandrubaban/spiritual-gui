@@ -109,7 +109,7 @@ gui.SpiritCSS = gui.SpiritPlugin.extend ( "gui.SpiritCSS", {
 	
 }, {}, {
 
-	 // Statics ......................................................................
+	 // Static ......................................................................
 
 	 /**
 	 * classList.add
@@ -120,7 +120,7 @@ gui.SpiritCSS = gui.SpiritPlugin.extend ( "gui.SpiritCSS", {
 		if ( name.indexOf ( " " ) >-1 ) {
 			name = name.split ( " " );
 		}
-		if ( Array.isArray ( name )) {
+		if ( gui.Type.isArray ( name )) {
 			name.forEach ( function ( n ) {
 				this.add ( element, n );
 			}, this );
@@ -147,7 +147,7 @@ gui.SpiritCSS = gui.SpiritPlugin.extend ( "gui.SpiritCSS", {
 		if ( name.indexOf ( " " ) >-1 ) {
 			name = name.split ( " " );
 		}
-		if ( Array.isArray ( name )) {
+		if ( gui.Type.isArray ( name )) {
 			name.forEach ( function ( n ) {
 				this.remove ( element, n );
 			}, this );

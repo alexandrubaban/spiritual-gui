@@ -50,7 +50,7 @@ gui.Broadcast.prototype = {
 };
 
 
-// STATICS .........................................................
+// Static .........................................................
 
 /**
  * Tracking global handlers (mapping broadcast types to list of handlers).

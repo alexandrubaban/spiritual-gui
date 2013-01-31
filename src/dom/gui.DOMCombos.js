@@ -15,7 +15,7 @@ gui.DOMCombos = {
 		return this._creation || ( this._creation = this._create ());
 	},
 
-	// PRIVATE .......................................................................
+	// Private .......................................................................
 	
 	/**
 	 * Cache combinations for reuse when next requested.
@@ -152,7 +152,7 @@ gui.DOMCombos = {
 		 */
 		var patchafter = combo.after ( function ( node ) {
 			if ( gui.Client.isWebKit ) {
-				//gui.DOMPatcher.patch ( node );
+				gui.DOMPatcher.patch ( node );
 			}
 		});
 

@@ -1,8 +1,8 @@
 /**
  * # gui.IEventHandler
- * Interface EventHandler. This matches DOM interface EventListener. 
- * If possible, we would like to forward events to method onevent().
- * http://www.w3.org/TR/DOM-Level-3-Events/#interface-EventListener
+ * Interface EventHandler. This is a real DOM interface, it's used for native event 
+ * handling. We usually choose to forward the event to the spirits `onevent` method.
+ * @see http://www.w3.org/TR/DOM-Level-3-Events/#interface-EventListener
  */
 gui.IEventHandler = {
 
@@ -15,8 +15,7 @@ gui.IEventHandler = {
 	},
 
 	/**
-	 * @static
-	 * Handle event. This is likely to forward the event to onevent()
+	 * Handle event.
 	 * @param {Event} e
 	 */
 	handleEvent : function ( e ) {}

@@ -131,13 +131,8 @@ gui.TransitionPlugin = gui.SpiritPlugin.extend ( "gui.TransitionPlugin", {
 		return then;
 	},
 
-	// Privates ..............................................................................
 
-	/**
-	 * ???
-	 * @type {String}
-	 */
-	_when : null,
+	// Private ..............................................................................
 
 	/**
 	 * Default transition duration time milliseconds.

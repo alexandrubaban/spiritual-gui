@@ -74,7 +74,7 @@ gui.SpiritTracker = gui.SpiritPlugin.extend ( "gui.SpiritTracker", {
 	},
 	
 	
-	// PRIVATE .....................................................
+	// Private .....................................................
 
 	/**
 	 * Can add type of given checks?

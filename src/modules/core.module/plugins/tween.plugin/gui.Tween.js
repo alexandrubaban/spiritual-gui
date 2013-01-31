@@ -36,7 +36,7 @@ gui.Tween.prototype = {
 	done : false
 };
 
-// STATICS .............................................
+// Static .............................................
 
 /** 
  * Coordinate a global (cross-frame) animation sequence.

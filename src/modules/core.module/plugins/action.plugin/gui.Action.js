@@ -37,11 +37,10 @@ gui.Action.prototype = {
 	data : null,
 
 	/**
-	 * Is travelling up or down the DOM?
-	 * Matches "ascending" or "descending".
+	 * Is travelling up or down? Matches "ascending" or "descending".
 	 * @type {String}
 	 */
-	derection : null,
+	direction : null,
 
 	/**
 	 * Traverse iframe boundaries?
@@ -96,10 +95,12 @@ gui.Action.prototype = {
 	}
 };
 
+
+// Static .........................................................................
+
 /**
- * Dispatch SpiritAction ascending. The dispatching 
- * spirit will not onaction() its own action.
- * @todo support custom gui.Action as only param.
+ * Dispatch action. The dispatching spirit will not `onaction()` its own action.
+ * @todo support custom `gui.Action` as an argument
  * @todo common exemplar for action, broadcast etc?
  * @param {gui.Spirit} target
  * @param {String} type
@@ -116,7 +117,7 @@ gui.Action.dispatch = function dispatch ( target, type, data, direction, global 
 		handleSpirit : function ( spirit ) {
 			var directive = gui.Crawler.CONTINUE;
 			if ( spirit.action.contains ( type )) {
-				spirit.action.handle ( action );
+				spirit.action.handleAction ( action );
 				if ( action.isConsumed ) {
 					directive = gui.Crawler.STOP;
 					action.consumer = spirit;

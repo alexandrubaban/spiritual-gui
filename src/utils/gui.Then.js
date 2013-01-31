@@ -38,7 +38,7 @@ gui.Then.prototype = {
   },
 
 
-  // PRIVATES .................................................
+  // Private .................................................
 
   /**
    * Callback to execute when transition is done.

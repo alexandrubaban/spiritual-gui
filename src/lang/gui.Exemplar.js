@@ -62,8 +62,6 @@ gui.Exemplar = { // @todo Evaluate static stuff first so that proto can declare 
 		return gui.Exemplar._extend ( this, args.expando, args.recurring, args.statics, args.name );
 	},
 	
-	// UTILITIES ....................................................
-
 	/**
 	 * Apply action to immediate subclasses of given class.
 	 * @param {function} C constructor
@@ -103,6 +101,7 @@ gui.Exemplar = { // @todo Evaluate static stuff first so that proto can declare 
 	/**
 	 * Assign method or property to prototype, checking for naming collision.
 	 * @todo http://www.nczonline.net/blog/2012/12/11/are-your-mixins-ecmascript-5-compatible
+	 * @todo Rename this method
 	 * @param {String} name
 	 * @param {object} value
 	 * @param @optional {boolean} override Disable collision detection
@@ -121,7 +120,7 @@ gui.Exemplar = { // @todo Evaluate static stuff first so that proto can declare 
 		}
 	},
 	
-	// PRIVATES .....................................................
+	// Private .....................................................
 
 	/**
 	 * Breakdown arguments for base exemplar only (has one extra argument).

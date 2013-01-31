@@ -1,10 +1,8 @@
 /**
  * # gui.HTMLParser
- * Parse HTML string to DOM node(s) in given document context.
+ * Parse HTML string to DOM node(s) in given document context. 
  * Adapted from https://github.com/petermichaux/arbutus
- * @todo High level awareness of HTMLparser elements. Plugin 
- *       ui.SpiritDOM and ui.Spirit.parse should know about 
- *       added historic HTML chrome and strip when inserted.
+ * @todo High level awareness of HTMLparser elements. Plugin ui.SpiritDOM and ui.Spirit.parse should know about added historic HTML chrome and strip when inserted.
  * @param {Document} doc
  * @todo: make this whole thing static
  */
@@ -25,7 +23,7 @@ gui.HTMLParser.prototype = {
 	_document : null,
 
 	/**
-	 * Parse HTML to DOM node(s). Note that this returns an Array.
+	 * Parse HTML to DOM node(s). Note that this always returns an array.
 	 * @param {String} html
 	 * @param @optional {Element} element
 	 * @returns {Array<Node>}

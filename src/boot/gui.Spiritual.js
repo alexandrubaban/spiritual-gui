@@ -58,11 +58,12 @@ gui.Spiritual.prototype = {
 	},
 
 	/**
-	 * Channel spirits on startup.
+	 * Channel spirits on startup. 
+	 * Called by the {gui.Guide}
 	 * @see {gui.Guide}
 	 */
 	go : function () {
-		this._ready = true;
+		this._gone = true;
 		if ( this.debug ) {
 			switch ( this.mode ) {
 				case gui.MODE_JQUERY :
@@ -171,7 +172,7 @@ gui.Spiritual.prototype = {
 	 */
 	channel : function ( select, klass ) {
 		var spirit = null;
-		if ( this._ready ) {
+		if ( this._gone ) {
 			if ( typeof klass === "string" ) {
 				spirit = gui.Object.lookup ( klass, this.context );
 			} else {
@@ -348,7 +349,8 @@ gui.Spiritual.prototype = {
 	},
 
 	/**
-	 * Terminate spirit management.
+	 * Stop tracking the spirit. Called 
+	 * by the spirit when it destructs.
 	 * @param {gui.Spirit} spirit
 	 */
 	destruct : function ( spirit ) {
@@ -359,7 +361,7 @@ gui.Spiritual.prototype = {
 	},
 	
 	
-	// INTERNALS .....................................................................................................
+	// Internal .................................................................
 
 	/**
 	 * Register spirit in document (framework internal method).
@@ -433,7 +435,7 @@ gui.Spiritual.prototype = {
 	},
 	
 
-	// PRIVATES ......................................................................................................
+	// Private .................................................................
 
 	/**
 	 * Document context.
@@ -461,10 +463,10 @@ gui.Spiritual.prototype = {
 	_spaces : null,
 
 	/**
-	 * Comment.
+	 * Flipped to `true` after `go()`
 	 * @type {boolean}
 	 */
-	_ready : false,
+	_gone : false,
 
 	/**
 	 * Comment back.

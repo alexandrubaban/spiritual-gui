@@ -49,7 +49,7 @@ gui.EventSummary.prototype = {
 	},
 
 
-	// PRIVATES ..............................................
+	// Private ..............................................
 
 	/**
 	 * Breakdown event argument into more manegable properties 

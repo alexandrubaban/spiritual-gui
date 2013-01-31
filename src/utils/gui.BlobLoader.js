@@ -25,9 +25,10 @@ gui.BlobLoader = {
 		}
 	},
 
-	// PRIVATES .............................
+	// Private .............................
 
 	/**
+	 * Weirdo URL object.
 	 * @type {URL}
 	 */
 	_URL : ( window.URL || window.webkitURL )

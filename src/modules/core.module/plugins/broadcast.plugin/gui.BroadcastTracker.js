@@ -102,7 +102,7 @@ gui.BroadcastTracker = gui.SpiritTracker.extend ( "gui.BroadcastTracker", {
 		});
 	},
 
-	// PRIVATES ...................................................................
+	// Private ...................................................................
 
 	/**
 	 * Global mode?

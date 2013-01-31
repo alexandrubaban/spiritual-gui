@@ -97,7 +97,7 @@ gui.Crawler.prototype = {
 	},
 
 
-	// PRIVATES .................................................................
+	// Private .................................................................
 
 	/**
 	 * Iterate descending.
@@ -182,7 +182,7 @@ gui.Crawler.prototype = {
 };
 
 
-// STATICS ..............................................................
+// Static ..............................................................
 
 gui.Crawler.ASCENDING = "ascending";
 gui.Crawler.DESCENDING = "descending";

@@ -8,9 +8,8 @@
 
 /**
  * # gui
- * Top namespace object for everything Spiritual. On startup, the global variable 
- * `gui` gets redefined to an instance of {gui.Spiritual} but all these constants 
- * get copied in the process and can still be accessed.
+ * Top namespace object for everything Spiritual. On startup, the global variable `gui` gets 
+ * redefined to an instance of {gui.Spiritual}. All these constants get copied in the process.
  */
 var gui = {
 
@@ -40,10 +39,10 @@ var gui = {
 	MODE_OPTIMIZE : "optimize",
 
 	/**
-	 * Managed mode; not yet implemented.
+	 * Managed mode.
 	 * @type {String}
 	 */
-	MODE_MANAGE : "manage",
+	MODE_MANAGED : "managed",
 
 	/**
 	 * Global broadcasts
@@ -143,7 +142,9 @@ var gui = {
 
 /**
  * # gui.SpiritualAid
- * Patch potential missing features from ES5 and selected features from ES6.
+ * Polyfilling missing features from ES5 and selected features from ES6. 
+ * Some of these are implemented weakly and should be used with caution 
+ * (See Map, Set and WeakMap).
  */
 gui.SpiritualAid = {
 
@@ -165,12 +166,12 @@ gui.SpiritualAid = {
 	},
 	
 	
-	// PRIVATES ...............................................................
+	// Private ...............................................................
 
 	/**
-	 * Extend something with something elses methods.
-	 * @param {object} what Usually a native prototype
-	 * @param {object} whit Set of extension methods
+	 * Extend one object with another.
+	 * @param {object} what Native prototype
+	 * @param {object} whit Extension methods
 	 */
 	_extend : function ( what, whit ) {
 		Object.keys ( whit ).forEach ( function ( key ) {
@@ -475,8 +476,8 @@ gui.SpiritualAid = {
 
 
 /**
- * # gui.SpiritualAid
- * An instance of this thing may be referenced as `gui` inside all windows.
+ * # gui.Spiritual
+ * An instance of this thing may be referenced as `gui` inside all windows. 
  * @param {Window} win Window or Worker scope
  */
 gui.Spiritual = function Spiritual ( win ) {
@@ -487,15 +488,15 @@ gui.Spiritual.prototype = {
 
 	/**
 	 * The constructor gui.Spiritual does not exist after first instance gets declared, 
-	 * but we may keep something newable allocated by referencing the constructor.  
+	 * but we may keep something newable allocated by referencing it around here.
 	 * @type {function}
 	 */
 	constructor: gui.Spiritual,
 
 	/**
-	 * Uniquely identifies this instance of gui.Spiritual. All 
-	 * local instances of gui.Spirit gets stamped with a copy.
-	 * @todo rename "guikey" or "windowkey" or "contextkey" ...
+	 * Uniquely identifies this instance of `gui.Spiritual` 
+	 * knowing that other instances may exist in iframes.
+	 * @todo rename guikey or windowkey or contextkey
 	 * @type {String}
 	 */
 	signature : null,
@@ -507,9 +508,14 @@ gui.Spiritual.prototype = {
 	context : null,
 
 	/**
-	 * Spirit management mode. Matches native | jquery | optimize. 
-	 * Note that this will deprecate as soon as iOS supports 
-	 * a mechanism for grabbing the native innerHTML setter.
+	 * Spirit management mode. Matches one of 
+	 * 
+	 * - native
+	 * - jquery
+	 * - optimize.
+	 * - managed
+	 *  
+	 * @note This will deprecate as soon as iOS supports a mechanism for grabbing the native innerHTML setter.
 	 * @type {String}
 	 */
 	mode : "optimize", // recommended setting for iOS support
@@ -529,12 +535,32 @@ gui.Spiritual.prototype = {
 	},
 
 	/**
-	 * Channel spirits on startup.
+	 * Channel spirits on startup. 
+	 * Called by the {gui.Guide}
 	 * @see {gui.Guide}
 	 */
 	go : function () {
-		this._ready = true;
-		gui.DOMChanger.change ( this.context );
+		this._gone = true;
+		if ( this.debug ) {
+			switch ( this.mode ) {
+				case gui.MODE_JQUERY :
+					gui.Tick.next ( function () {  // @todo somehow not conflict with http://stackoverflow.com/questions/11406515/domnodeinserted-behaves-weird-when-performing-dom-manipulation-on-body
+						gui.Observer.observe ( this.context ); // @idea move all of _step2 to next stack?
+					}, this );
+					break;
+				default :
+					gui.Observer.observe ( this.context );
+					break;
+			}
+		}
+		switch ( this.mode ) {
+			case gui.MODE_NATIVE :
+			case gui.MODE_JQUERY :
+			case gui.MODE_OPTIMIZE :
+			case gui.MODE_MANAGED :
+				gui.DOMChanger.change ( this.context );
+				break;
+		}
 		gui.Tick.add ( gui.TICK_DESTRUCT_DETACHED, this, this.signature );
 		if ( this._configs !== null ) {
 			this._configs.forEach ( function ( config ) {
@@ -608,9 +634,8 @@ gui.Spiritual.prototype = {
 	},
 
 	/**
-	 * Has module? In a multi frame setup, modules may be 
-	 * loaded only for the local instance of gui.Spiritual.
-	 * @param {String} name
+	 * Has module registered?
+	 * @param {String} name Module name
 	 * @returns {boolean}
 	 */
 	hasModule : function ( name ) {
@@ -618,14 +643,13 @@ gui.Spiritual.prototype = {
 	},
 
 	/**
-	 * Channel spirits to CSS selectors in this window 
-	 * and windows that import us via the portal method.
+	 * Channel spirits to CSS selectors.
 	 * @param {String} select CSS selector
-	 * @param {object} klass Spirit constructor (as object or string)
+	 * @param {object|String} klass Constructor or name
 	 */
 	channel : function ( select, klass ) {
 		var spirit = null;
-		if ( this._ready ) {
+		if ( this._gone ) {
 			if ( typeof klass === "string" ) {
 				spirit = gui.Object.lookup ( klass, this.context );
 			} else {
@@ -648,10 +672,13 @@ gui.Spiritual.prototype = {
 	},
 
 	/**
-	 * Transfer Spirit world to a parallel window in three easy steps.
-	 * * Extend Element.prototype in window
-	 * * Declare local ui object in window
-	 * * Declare spirit world objects, pointing back to this window
+	 * Portal Spiritual to a parallel window in three easy steps.
+	 * 
+	 * 1. Create a local instance of `gui.Spiritual` (this class) and assign it to the global variable `gui` in remote window.
+	 * 2. For all members of local `gui`, stamp a reference onto remote `gui`. In remote window, the variable `gui.Spirit` now points to a class declared in this window.
+	 * 3. Setup {gui.Guide} to attach remote spirits when the document loads.
+	 *
+	 * Members of the `gui` namespace can be setup not to portal by setting the static boolean `portals=false` on the constructor.
 	 * @param {Window} sub An external window.
 	 */
 	portal : function ( sub ) {
@@ -698,8 +725,8 @@ gui.Spiritual.prototype = {
 	},
 
 	/**
-	 * Kickstart Spiritual manuallay. Use this if you lazyload (module-require) 
-	 * Spiritual after the document.DOMContentLoaded and window.onload events fire.
+	 * Kickstart Spiritual manuallay. Use this if you somehow 
+	 * load Spiritual after DOMContentLoaded event has fired.
 	 */
 	kickstart : function () {
 		switch ( document.readyState ) {
@@ -732,10 +759,10 @@ gui.Spiritual.prototype = {
 	},
 
 	/**
-	 * Get Spirit implementation for DOM element.
-	 * Spirit may be local to containing window.
-	 * 1) Test for element "gui" attribute
-	 * 2) Test if element matches selectors 
+	 * Get Spirit constructor for element.
+	 * 
+	 * 1. Test for element `gui` attribute
+	 * 2. Test if element matches selectors 
 	 * @param {Element} element
 	 * @returns {function} Spirit constructor
 	 */
@@ -773,9 +800,9 @@ gui.Spiritual.prototype = {
 	},
 
 	/**
-	 * TODO: RENAME BROADCASTGLOBAL !
-	 * Broadcast event details globally. Use this if you stopPropagate   
-	 * an event for personal reasons and don't want to keep it a secret.
+	 * TODO: Must be renamed to broadcastGlobal! Broadcast event details globally. 
+	 * Use this if you stopPropagate an event for personal reasons and don't want 
+	 * to keep it a secret (also, update this description).
 	 * @param {String} message gui.BROADCAST_MOUSECLICK or similar
 	 * @param @optional {object} arg This could well be a MouseEvent
 	 */
@@ -799,7 +826,8 @@ gui.Spiritual.prototype = {
 	},
 
 	/**
-	 * Terminate spirit management.
+	 * Stop tracking the spirit. Called 
+	 * by the spirit when it destructs.
 	 * @param {gui.Spirit} spirit
 	 */
 	destruct : function ( spirit ) {
@@ -810,7 +838,7 @@ gui.Spiritual.prototype = {
 	},
 	
 	
-	// INTERNALS .....................................................................................................
+	// Internal .................................................................
 
 	/**
 	 * Register spirit in document (framework internal method).
@@ -829,7 +857,7 @@ gui.Spiritual.prototype = {
 	},
 
 	/**
-	 * Register spirit outside document (scheduled for destruction).
+	 * Register spirit outside document (now scheduled for destruction).
 	 * @todo move? rename?
 	 * @param {gui.Spirit} spirit
 	 */
@@ -883,8 +911,8 @@ gui.Spiritual.prototype = {
 		}, this );
 	},
 	
-	
-	// PRIVATES ......................................................................................................
+
+	// Private .................................................................
 
 	/**
 	 * Document context.
@@ -912,10 +940,10 @@ gui.Spiritual.prototype = {
 	_spaces : null,
 
 	/**
-	 * Comment.
+	 * Flipped to `true` after `go()`
 	 * @type {boolean}
 	 */
-	_ready : false,
+	_gone : false,
 
 	/**
 	 * Comment back.
@@ -1052,13 +1080,13 @@ gui.Arguments = {
 
 	/**
 	 * Use this to check the runtime signature of a function call: 
-	 * gui.Arguments.match ( arguments, "string", "string", "number" );
+	 * gui.Arguments.match ( arguments, "string", "number" ); 
 	 * Note that some args may be omitted and still pass the test, 
 	 * eg. the example would pass if only a single string was given. 
-	 * Note that gui.Type.of may return different xbrowser results 
+	 * Note that `gui.Type.of` may return different xbrowser results 
 	 * for certain exotic objects. Use the pipe char to compensate: 
-	 * gui.Arguments.match ( arguments, "xxx|yyy|zzz" );
-	 * @param {object} args Array-like 
+	 * gui.Arguments.match ( arguments, "window|domwindow" );
+	 * @param {object} args Array or array-like object
 	 * @returns {boolean}
 	 */
 	match : function () {
@@ -1087,7 +1115,7 @@ gui.Arguments = {
 	},
 
 
-	// PRIVATE ...........................................................
+	// Private ...........................................................
 
 	/**
 	 * Validating mode?
@@ -1146,14 +1174,12 @@ gui.Arguments = {
  * The term "exemplar" has been proposed to avoid the term "class" which is misleading 
  * for prototypal inheritance. Nevertheless, this fellow allow us to create a newable 
  * constructor that can be easily "subclassed". Instances of this constructor may use a 
- * special "_super" method to overload members of the "superclass" prototype. 
- * @todo Evaluate static stuff first so that proto can declare vals as static props 
- * @todo Support lazy declaration via "namespace" objects
+ * special `_super` method to overload members of the "superclass" prototype. 
  */
-gui.Exemplar = {
+gui.Exemplar = { // @todo Evaluate static stuff first so that proto can declare vals as static props 
 
 	/**
-	 * Create magic constructor. Use static method "extend" on constructor to subclass further.
+	 * Create magic constructor. Use static method `extend` on the constructor to subclass further.
 	 * @param {object} proto Base prototype
 	 * @param {object} expando Prototype expandos
 	 * @param {object} recurring Constructor and subconstructor expandos
@@ -1207,8 +1233,6 @@ gui.Exemplar = {
 		return gui.Exemplar._extend ( this, args.expando, args.recurring, args.statics, args.name );
 	},
 	
-	// UTILITIES ....................................................
-
 	/**
 	 * Apply action to immediate subclasses of given class.
 	 * @param {function} C constructor
@@ -1248,6 +1272,7 @@ gui.Exemplar = {
 	/**
 	 * Assign method or property to prototype, checking for naming collision.
 	 * @todo http://www.nczonline.net/blog/2012/12/11/are-your-mixins-ecmascript-5-compatible
+	 * @todo Rename this method
 	 * @param {String} name
 	 * @param {object} value
 	 * @param @optional {boolean} override Disable collision detection
@@ -1266,7 +1291,7 @@ gui.Exemplar = {
 		}
 	},
 	
-	// PRIVATES .....................................................
+	// Private .....................................................
 
 	/**
 	 * Breakdown arguments for base exemplar only (has one extra argument).
@@ -1441,7 +1466,7 @@ gui.Interface = {
 gui.Combinator = {
 
 	/**
-	 * Hello.
+	 * Decorate before.
 	 * @param {function} decoration
 	 * @returns {function}
 	 */
@@ -1455,7 +1480,7 @@ gui.Combinator = {
 	},
 
 	/**
-	 * Hello.
+	 * Decorate after.
 	 * @param {function} decoration
 	 * @returns {function}
 	 */
@@ -1470,7 +1495,7 @@ gui.Combinator = {
 	},
 
 	/**
-	 * Hello.
+	 * Decorate around.
 	 * @param {function} decoration
 	 * @returns {function}
 	 */
@@ -1490,7 +1515,7 @@ gui.Combinator = {
 	},
 
 	/**
-	 * Added support for an "otherwise" function as the second argument.
+	 * Decorate provided.
 	 * @param {function} condition
 	 */
 	provided : function ( condition ){
@@ -1506,7 +1531,7 @@ gui.Combinator = {
 	},
 
 
-	// PRIVATES ..........................................................
+	// Private ..........................................................
 
 	_slice : [].slice
 };
@@ -1667,7 +1692,7 @@ gui.Super = function Super ( constructor ) {
 gui.Super.prototype = Object.create ( null );
 
 
-// STATICS .......................................................................
+// Static .......................................................................
 
 /**
  * Instance of an i.Exemplar subclass (now invoking _super).
@@ -1676,20 +1701,13 @@ gui.Super.prototype = Object.create ( null );
 gui.Super.subject = null;
 
 /**
- * EXPERIMENTAL.
- * @type {boolean}
- */
-gui.Super.sandbox = false;
-
-/**
  * Prepended to the result of calling 
  * toString() on a modified function.
  * @type {String}
  */
 gui.Super.disclaimer = "/**\n" +
-	"  * The runtime execution of this method \n" +
-	"  * has been overloaded by the framework. \n" +
-	"  * This is an approximation of the code. \n" +
+	"  * Method was overloaded by the framework. \n" +
+	"  * This is an approximation of the code :) \n" +
 	"  */\n";
 
 /**
@@ -1782,15 +1800,11 @@ gui.Super._function = function ( object, key, prop, superconstructor ) {
 	if ( !prop.value.__data__ ) { // @todo hmm...
 		prop.value = function () {
 			var sub = gui.Super.subject;
-			var was = gui.Super.sandbox;
 			gui.Super.subject = this;
-			gui.Super.sandbox = ( was === false && this.sandboxed === true );
 			this._super = superconstructor.__super__;
 			var result = object [ key ].apply ( this, arguments );
 			gui.Super.subject = sub;
-			gui.Super.sandbox = was;
 			return result;
-			// return ( gui.Super.sandbox ? gui.SandBox.censor ( result, key ) : result );
 		};
 	}
 	return prop;
@@ -1812,12 +1826,6 @@ gui.Super._property = function ( key, o, constructor ) {
 			d = Object.getOwnPropertyDescriptor ( p, key );
 			if ( d ) {
 				o [ what ] = d [ what ];
-				/*
-				o [ what ] = function () {
-					alert ( "@todo sandbox" );
-					return d [ what ].call ( this );
-				};
-				*/
 			}
 		}
 	});
@@ -1836,14 +1844,14 @@ gui.Super._property = function ( key, o, constructor ) {
 
 /**
  * # gui.Type
- * Type checking studio. All checks are string based, not to cause 
- * confusion when checking the types of objects in other windows.
+ * Type checking studio. All checks are string based not to cause 
+ * confusion when checking the types of objects in another window.
  */
 gui.Type = {
 
 	/**
-	 * Get (better) type of argument. Note that response may differ between user agents.
-	 * http://javascriptweblog.wordpress.com/2011/08/08/fixing-the-javascript-typeof-operator
+	 * Get type of argument. Note that response may differ between user agents.
+	 * @see  http://javascriptweblog.wordpress.com/2011/08/08/fixing-the-javascript-typeof-operator
 	 * @param {object} o
 	 * @returns {String}
 	 */
@@ -1940,7 +1948,7 @@ gui.Type = {
 		return list;
 	},
 
-	// PRIVATES ...........................................................
+	// Private ...........................................................
 
 	/**
 	 * Match "Array" in "[object Array]" and so on.
@@ -1962,8 +1970,7 @@ gui.Type = {
 		"null",
 		"arguments"
 	].forEach ( function ( type ) {
-		// @todo would type[0] === type.charAt(0) in our browser stack?
-		this [ "is" + type.charAt ( 0 ).toUpperCase () + type.slice ( 1 )] = function is ( o ) {
+		this [ "is" + type [ 0 ].toUpperCase () + type.slice ( 1 )] = function is ( o ) {
 			return this.of ( o ) === type; 
 		};
 	}, this );
@@ -1972,13 +1979,13 @@ gui.Type = {
 
 /**
  * #gui.Position
- * Something that has 2D position.
+ * Something that has position.
  * @param {number} x
  * @param {number} y
  */
 gui.Position = function ( x, y ) {
-	this.x = x ? x : 0;
-	this.y = y ? y : 0;
+	this.x = x || 0;
+	this.y = y || 0;
 };
 
 gui.Position.prototype = {
@@ -2013,7 +2020,7 @@ gui.Position.prototype = {
 };
 
 
-// STATICS .............................................................
+// Static .............................................................
 
 /**
  * Compare two positions.
@@ -2033,8 +2040,8 @@ gui.Position.isEqual = function ( p1, p2 ) {
  * @param {number} h
  */
 gui.Dimension = function ( w, h ) {
-	this.w = w ? w : 0;
-	this.h = h ? h : 0;
+	this.w = w || 0;
+	this.h = h || 0;
 };
 
 gui.Dimension.prototype = {
@@ -2061,7 +2068,7 @@ gui.Dimension.prototype = {
 };
 
 
-// STATICS ........................................................
+// Static .........................................................
 
 /**
  * Compare two dimensions.
@@ -2075,18 +2082,18 @@ gui.Dimension.isEqual = function ( dim1, dim2 ) {
 
 
 /**
- * #gui.Geometry.
- * Something that has 2D position and width and height.
+ * #gui.Geometry
+ * Something that has position and width and height.
  * @param {number} x
  * @param {number} y
  * @param {number} w
  * @param {number} h
  */
 gui.Geometry = function ( x, y, w, h ) {
-	this.x = x ? x : 0;
-	this.y = y ? y : 0;
-	this.w = w ? w : 0;
-	this.h = h ? h : 0;
+	this.x = x || 0;
+	this.y = y || 0;
+	this.w = w || 0;
+	this.h = h || 0;
 };
 
 gui.Geometry.prototype = {
@@ -2133,7 +2140,7 @@ gui.Geometry.prototype = {
 };
 
 
-// STATICS .............................................................
+// Static .............................................................
 
 /**
  * Compare two geometries.
@@ -2142,7 +2149,12 @@ gui.Geometry.prototype = {
  * @returns {boolean}
  */
 gui.Geometry.isEqual = function ( geo1, geo2 ) {
-	return ( geo1.x === geo2.x ) && ( geo1.y === geo2.y ) && ( geo1.w === geo2.w ) && ( geo1.h === geo2.h );
+	return ( 
+		( geo1.x === geo2.x ) && 
+		( geo1.y === geo2.y ) && 
+		( geo1.w === geo2.w ) && 
+		( geo1.h === geo2.h )
+	);
 };
 
 /**
@@ -2166,7 +2178,7 @@ gui.Geometry.hitTest = function ( geo1, geo2 ) {
 
  /**
  * # gui.URL
- * Split() the #fragment identifier once and for all.
+ * Resolve an URL string relative to a document.
  * @param {Document} doc
  * @param {String} href
  */
@@ -2237,7 +2249,7 @@ gui.Then.prototype = {
   },
 
 
-  // PRIVATES .................................................
+  // Private .................................................
 
   /**
    * Callback to execute when transition is done.
@@ -2257,11 +2269,9 @@ gui.Then.prototype = {
 
 /**
  * # gui.HTMLParser
- * Parse HTML string to DOM node(s) in given document context.
+ * Parse HTML string to DOM node(s) in given document context. 
  * Adapted from https://github.com/petermichaux/arbutus
- * @todo High level awareness of HTMLparser elements. Plugin 
- *       ui.SpiritDOM and ui.Spirit.parse should know about 
- *       added historic HTML chrome and strip when inserted.
+ * @todo High level awareness of HTMLparser elements. Plugin ui.SpiritDOM and ui.Spirit.parse should know about added historic HTML chrome and strip when inserted.
  * @param {Document} doc
  * @todo: make this whole thing static
  */
@@ -2282,7 +2292,7 @@ gui.HTMLParser.prototype = {
 	_document : null,
 
 	/**
-	 * Parse HTML to DOM node(s). Note that this returns an Array.
+	 * Parse HTML to DOM node(s). Note that this always returns an array.
 	 * @param {String} html
 	 * @param @optional {Element} element
 	 * @returns {Array<Node>}
@@ -2457,7 +2467,7 @@ gui.FileLoader = gui.Exemplar.create ( "gui.FileLoader", Object.prototype, {
 	},
 	
 	
-	// PRIVATES ........................................................
+	// Private ........................................................
 
 	/**
 	 * Cached is shared between all instances of gui.FileLoader.
@@ -2507,7 +2517,7 @@ gui.FileLoader = gui.Exemplar.create ( "gui.FileLoader", Object.prototype, {
 	},
 	
 
-	// SECRETS .........................................................
+	// Secret .........................................................
 
 	/**
 	 * Secret constructor.
@@ -2524,9 +2534,7 @@ gui.FileLoader = gui.Exemplar.create ( "gui.FileLoader", Object.prototype, {
 	}
 
 	
-}, {}, { 
-
-	// STATICS ....................................................
+}, {}, { // Static ....................................................
 
 	/**
 	 * Cache previously retrieved files, mapping URL to file text.
@@ -2591,9 +2599,10 @@ gui.BlobLoader = {
 		}
 	},
 
-	// PRIVATES .............................
+	// Private .............................
 
 	/**
+	 * Weirdo URL object.
 	 * @type {URL}
 	 */
 	_URL : ( window.URL || window.webkitURL )
@@ -2652,7 +2661,7 @@ gui.EventSummary.prototype = {
 	},
 
 
-	// PRIVATES ..............................................
+	// Private ..............................................
 
 	/**
 	 * Breakdown event argument into more manegable properties 
@@ -2776,7 +2785,7 @@ gui.Crawler.prototype = {
 	},
 
 
-	// PRIVATES .................................................................
+	// Private .................................................................
 
 	/**
 	 * Iterate descending.
@@ -2861,7 +2870,7 @@ gui.Crawler.prototype = {
 };
 
 
-// STATICS ..............................................................
+// Static ..............................................................
 
 gui.Crawler.ASCENDING = "ascending";
 gui.Crawler.DESCENDING = "descending";
@@ -2936,7 +2945,7 @@ gui.KeyMaster = {
 	},
 
 
-	// PRIVATES .............................................................................
+	// Private .............................................................................
 
 	/**
 	 * Tracking generated keys to prevent doubles.
@@ -3065,7 +3074,7 @@ gui.Request.prototype = {
 	del : function () {},
 	
 	
-	// PRIVATES ...................................................................................
+	// Private ...................................................................................
 
 	/**
 	 * @type {boolean}
@@ -3146,10 +3155,8 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	spiritkey : null,
 	
 	/**
-	 * Matches the property "signature" of the {gui.Spiritual} 
-	 * instance in local window context (the gui object). This 
-	 * will come in handy when Spiritual is running in iframes.
-	 * @todo rename "guikey"?
+	 * Matches the property `signature` of the local `gui` object.
+	 * @todo rename this property
 	 * @type {String}
 	 */
 	signature : null,
@@ -3158,22 +3165,22 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	 * Identification.
 	 * @returns {String}
 	 */
-	toString : function toString () {		
+	toString : function () {		
 		return "[object gui.Spirit]";
 	},
 	
 	
 	// Lifecycle ..............................................................
 
-	/**	
+	/**
 	 * You can safely overload or overwrite methods in the lifecycle section, 
-	 * but you should leave it to the {gui.Guide} to invoke them. Also, do make 
-	 * sure to always call this._super.themethod () unless you really mean it.
+	 * but you should always leave it to the {gui.Guide} to invoke them. Also, do make 
+	 * sure to always call `this._super.method()` unless you really mean it.
 	 */
 	
 	/**
-	 * Invoked when spirit is newed up. Spirit element may  
-	 * not be positioned in the document DOM at this point. 
+	 * `onconstruct` gets called when the spirit is newed up. Spirit 
+	 * element may not be positioned in the document DOM at this point. 
 	 */
 	onconstruct : function () {
 		this.__plugin__ ();
@@ -3182,7 +3189,9 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	},
 	
 	/**
-	 * @todo Comments go here.
+	 * `onconfigure` gets callend immediately after construction. This 
+	 * instructs the spirit to parse configuration attributes in markup. 
+	 * @todo Explain this
 	 */
 	onconfigure : function () {
 		this.config.configure ();
@@ -3190,8 +3199,8 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	},
 	
 	/**
-	 * Spirit first encounted as a node in the page DOM. This is only called once 
-	 * in the lifecycle of a spirit (unlike attach, see below).
+	 * `onenter` gets called when the spirit element is first encounted in the page DOM. 
+	 * This is only called once in the lifecycle of a spirit (unlike `attach`, see below).
 	 */
 	onenter : function () {
 		this.window.gui.inside ( this );
@@ -3199,40 +3208,40 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	},
 	
 	/**
-	 * Invoked 
-	 * * whenever spirit element is attached to the DOM tree
-	 * * when the element is in the DOM on page load and the spirit is first discovered by the framework
-	 * @todo Check if spirit matchesselector gui.CLASS_INVISIBLE + " *"
+	 * `onattach` gets called whenever
+	 * 
+	 * - the spirit element is attached to the DOM
+	 * - the element is already in DOM when the page loads and the spirit gets injected by the framework
 	 */
-	onattach : function () {
+	onattach : function () { // @todo Check if spirit matchesselector gui.CLASS_INVISIBLE + " *"
 		this.window.gui.inside ( this );
 		this.life.goattach ();
 	},
 	
 	/**
-	 * Invoked (only once) when all descendant spirits are attached and ready. 
-	 * From a DOM tree perspective, this fires in reverse order, innermost first. 
+	 * `onready` gets called (only once) when all descendant spirits are attached and 
+	 * ready. From a DOM tree perspective, this fires in reverse order, innermost first. 
 	 */
 	onready : function () {
 		this.life.goready ();
 	},
 
 	/**
-	 * Hello!
+	 * `onvisible` has some explaining to do.
 	 */
 	onvisible : function () {
 		this.life.govisible ();
 	},
 
 	/**
-	 * Hello.
+	 * `oninvisible` has some explaining to do.
 	 */
 	oninvisible : function () {
 		this.life.goinvisible ();
 	},
 
 	/**
-	 * Invoked whenever spirit element is detached from the DOM tree. 
+	 * `ondetach` gets callend whenever the spirit element is detached from the DOM tree. 
 	 */
 	ondetach : function () {
 		this.window.gui.outside ( this );
@@ -3240,10 +3249,10 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	},
 	
 	/**
-	 * Invoked when spirit is detached and not re-attached in the same thread. 
-	 * This triggers destruction *unless* you return false. In this case, make sure 
-	 * to manually dispose the spirit later (using method `dispose`).  
-	 * @returns {boolean} Optionally return false to manage your own destruction
+	 * `onexit` gets called when spirit is detached and not re-attached in the same 
+	 * execution stack. This triggers destruction unless you return `false`. In this 
+	 * case, make sure to manually dispose the spirit later (using method `dispose`).  
+	 * @returns {udenfined|boolean} False to stay alive
 	 */
 	onexit : function () {
 		this.life.goexit (); // do not call _super.onexit if you return false
@@ -3267,7 +3276,7 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	// Handlers .....................................................................
 
 	/**	
-	 * Handle crawler.
+	 * Handle crawler (tell me more)
 	 * @param {gui.Crawler} crawler
 	 * @returns {number}
 	 */
@@ -3276,16 +3285,17 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	},
 	
 	/**
-	 * Handle lifecycle event.
+	 * Handle life (tell me more)
 	 * @param {gui.SpiritLife} life
 	 */
 	onlife : function ( life ) {},
 	
 	
-	// Specials .....................................................................
+	// (Heading) ........................................................................
 	
 	/**
-	 * Hello.
+	 * Mark spirit visible. This triggers a call to `onvisible()` 
+	 * on this and all descendant spirits.
 	 * @returns {gui.Spirit}
 	 */
 	visible : function () {
@@ -3293,7 +3303,8 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	},
 
 	/**
-	 * Hello.
+	 * Mark spirit visible. This triggers a call to `oninvisible()` 
+	 * on this and all descendant spirits.
 	 * @returns {gui.Spirit}
 	 */
 	invisible : function () {
@@ -3313,7 +3324,7 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	},
 	
 	
-	// Secrets ....................................................................
+	// Secret ....................................................................
 	
 	/**
 	 * Secret constructor.
@@ -3324,7 +3335,7 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	 * Experimental.
 	 * @type {[type]}
 	 */
-	__lazies__ : null,
+	__lazyplugins__ : null,
 
 	/**
 	 * Instantiate plugins.
@@ -3333,7 +3344,7 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 		// core plugins first
 		this.life = new gui.SpiritLifeTracker ( this );
 		this.config = new gui.SpiritConfig ( this );
-		this.__lazies__ = Object.create ( null );
+		this.__lazyplugins__ = Object.create ( null );
 		// bonus plugins second
 		var prefixes = [], plugins = this.constructor.__plugins__;
 		gui.Object.each ( plugins, function ( prefix, Plugin ) {
@@ -3343,7 +3354,7 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 					break;
 				default :
 					if ( Plugin.lazy ) {
-						gui.SpiritPlugin.later ( Plugin, prefix, this, this.__lazies__ );
+						gui.SpiritPlugin.later ( Plugin, prefix, this, this.__lazyplugins__ );
 					} else {
 						this [ prefix ] = new Plugin ( this );
 					}
@@ -3355,7 +3366,7 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 		this.life.onconstruct ();
 		this.config.onconstruct ();
 		prefixes.forEach ( function ( prefix ) {
-			if ( this.__lazies__ [ prefix ]) {
+			if ( this.__lazyplugins__ [ prefix ]) {
 				// lazy plugins constructed when addressed
 			} else {
 				this [ prefix ].onconstruct ();
@@ -3390,7 +3401,7 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	 * @param @optional {boolean} unloading If true, destruct immediately
 	 */
 	__destruct__ : function ( unloading ) {
-		var map = this.__lazies__;
+		var map = this.__lazyplugins__;
 		gui.Object.each ( map, function ( prefix ) {
 			if ( map [ prefix ] === true ) {
 				delete this [ prefix ]; // otherwise next iterator will instantiate the lazy plugin...
@@ -3409,11 +3420,9 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 					break;
 			}
 		}, this );
-		// dispose life plugin last...
-		this.life.__destruct__ ();
-		// schedule cremation?
+		this.life.__destruct__ (); // dispose life plugin last
 		if ( unloading ) {
-			this.__null__ ();
+			this.__null__ (); // now!
 		} else {
 			var that = this;
 			var tick = gui.TICK_SPIRIT_NULL;
@@ -3448,9 +3457,7 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	}
 
 
-	// Recurring statics ..............................................................
-
-}, {
+}, { // Recurring static ...............................................................
 
 	/**
 	 * Mapping plugin constructor to prefix.
@@ -3547,12 +3554,13 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	 */
 	plugin : function ( prefix, plugin, override ) {
 		var plugins = this.__plugins__;
-		if ( !this.prototype.hasOwnProperty ( prefix ) || this.prototype.prefix === null || override ) {
+		var proto = this.prototype;
+		if ( !proto.hasOwnProperty ( prefix ) || proto.prefix === null || override ) {
 			if ( !plugins [ prefix ] || override ) {
 				plugins [ prefix ] = plugin;
-				this.prototype.prefix = null;
-				gui.Exemplar.children ( this, function ( sub ) {
-					sub.plugin ( prefix, plugin, override );
+				proto.prefix = null;
+				gui.Exemplar.children ( this, function ( child ) {
+					child.plugin ( prefix, plugin, override ); // recurses to descendants
 				});
 			}
 		} else {
@@ -3580,10 +3588,7 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	}
 	*/
 	
-
-	// Statics ........................................................................ 
-
-}, {
+}, { // Static ....................................................................
 
 	/**
 	 * Hello.
@@ -3701,7 +3706,7 @@ gui.SpiritPlugin = gui.Exemplar.create ( "gui.SpiritPlugin", Object.prototype, {
 	},
 	
 	
-	// Secrets ...........................................................
+	// Secret ...........................................................
 
 	/**
 	 * Secret constructor. Can we identify the 
@@ -3726,13 +3731,11 @@ gui.SpiritPlugin = gui.Exemplar.create ( "gui.SpiritPlugin", Object.prototype, {
 	}
 	
 
-}, { 
-
-	// RECURRING STATICS ........................................
+}, { // Recurring static ........................................
 
 	/**
-	 * By default constructed only when needed. 
-	 * @type {Boolean}
+	 * Construct only when requested?
+	 * @type {boolean}
 	 */
 	lazy : true,
 
@@ -3746,9 +3749,7 @@ gui.SpiritPlugin = gui.Exemplar.create ( "gui.SpiritPlugin", Object.prototype, {
 	}
 
 
-}, { 
-
-	// STATICS ..................................................
+}, { // Static ..................................................
 
 	/**
 	 * Lazy initialization stuff.
@@ -3764,9 +3765,6 @@ gui.SpiritPlugin = gui.Exemplar.create ( "gui.SpiritPlugin", Object.prototype, {
 			configurable : true,
 			get : function () {
 				if ( map [ prefix ] === true ) {
-					if ( prefix === "tween" ) {
-						throw new Error ( "WHY?" );
-					}
 					map [ prefix ] = new Plugin ( spirit );
 					map [ prefix ].onconstruct ();
 				}
@@ -3857,7 +3855,7 @@ gui.SpiritTracker = gui.SpiritPlugin.extend ( "gui.SpiritTracker", {
 	},
 	
 	
-	// PRIVATE .....................................................
+	// Private .....................................................
 
 	/**
 	 * Can add type of given checks?
@@ -4009,7 +4007,7 @@ gui.SpiritLife.prototype = {
 };
 
 
- // STATICS .....................................
+ // Static .....................................
 
  /**
  * Important milestones in the life of a spirit.
@@ -4304,7 +4302,7 @@ gui.SpiritConfig = gui.SpiritPlugin.extend ( "gui.SpiritConfig", {
 	},
 
 
-	// PRIVATE .................................................................
+	// Private .................................................................
 
 	/**
 	 * Lookup mapping for attribute name.
@@ -4368,11 +4366,10 @@ gui.Action.prototype = {
 	data : null,
 
 	/**
-	 * Is travelling up or down the DOM?
-	 * Matches "ascending" or "descending".
+	 * Is travelling up or down? Matches "ascending" or "descending".
 	 * @type {String}
 	 */
-	derection : null,
+	direction : null,
 
 	/**
 	 * Traverse iframe boundaries?
@@ -4427,10 +4424,12 @@ gui.Action.prototype = {
 	}
 };
 
+
+// Static .........................................................................
+
 /**
- * Dispatch SpiritAction ascending. The dispatching 
- * spirit will not onaction() its own action.
- * @todo support custom gui.Action as only param.
+ * Dispatch action. The dispatching spirit will not `onaction()` its own action.
+ * @todo support custom `gui.Action` as an argument
  * @todo common exemplar for action, broadcast etc?
  * @param {gui.Spirit} target
  * @param {String} type
@@ -4447,7 +4446,7 @@ gui.Action.dispatch = function dispatch ( target, type, data, direction, global 
 		handleSpirit : function ( spirit ) {
 			var directive = gui.Crawler.CONTINUE;
 			if ( spirit.action.contains ( type )) {
-				spirit.action.handle ( action );
+				spirit.action.handleAction ( action );
 				if ( action.isConsumed ) {
 					directive = gui.Crawler.STOP;
 					action.consumer = spirit;
@@ -4539,9 +4538,6 @@ gui.ActionTracker = gui.SpiritTracker.extend ( "gui.ActionTracker", {
 		});
 	},
 
-
-	// DISPATCH ...................................................
-
 	/**
 	 * Dispatch type(s) ascending by default.
 	 * @alias {gui.ActionTracker#ascend}
@@ -4622,11 +4618,12 @@ gui.ActionTracker = gui.SpiritTracker.extend ( "gui.ActionTracker", {
 	},
 
 	/**
-	 * Handle action. The dispatching spirit will not see it's own actions
+	 * Handle action. If it matches listeners, the action will be 
+	 * delegated to the spirit. Called by `gui.Action` crawler.
 	 * @see {gui.Action#dispatch}
 	 * @param {gui.Action} action
 	 */
-	handle : function ( action ) {
+	handleAction : function ( action ) {
 		var list = this._xxx [ action.type ];
 		if ( list ) {
 			list.forEach ( function ( checks ) {
@@ -4640,7 +4637,7 @@ gui.ActionTracker = gui.SpiritTracker.extend ( "gui.ActionTracker", {
 	},
 
 
-	// PRIVATE ....................................................
+	// Private ....................................................
 
 	/**
 	 * Global mode?
@@ -4790,17 +4787,17 @@ gui.SpiritAtt = gui.SpiritPlugin.extend ( "gui.SpiritAtt", {
 	},
 
 
-	// SECRETS .........................................
+	// Secret .................................................
 
 	/**
-	 * Disable attribute updates.
+	 * Attribute updates disabled?
 	 * @type {boolean}
 	 */
 	__suspended__ : false,
 
 	/**
-	 * Suspend attribute updates for the duration of 
-	 * the action (kind of framework internal stuff).
+	 * Suspend attribute updates for the duration of the action.
+	 * @todo Figure out why and if we need this stuff
 	 * @param {function} action
 	 * @retruns {object}
 	 */
@@ -4816,8 +4813,9 @@ gui.SpiritAtt = gui.SpiritPlugin.extend ( "gui.SpiritAtt", {
 
 /**
  * # gui.SpiritBox
- * Spirit box object.
+ * Spirit box object. Note that all these are properties and not methods. 
  * @extends {gui.SpiritPlugin}
+ * @todo Support globalX, globalY, screenX, screenY
  */
 gui.SpiritBox = gui.SpiritPlugin.extend ( "gui.SpiritBox", {
 	
@@ -4827,20 +4825,15 @@ gui.SpiritBox = gui.SpiritPlugin.extend ( "gui.SpiritBox", {
 	localY  : 0, // Y relative to positioned ancestor
 	pageX   : 0, // X relative to the full page (includes scrolling)
 	pageY   : 0, // Y telative to the full page (includes scrolling)	  
-	clientX : 0, // X relative to the viewport (excludes scroll offset)
-	clientY : 0, // Y relative to the viewport (excludes scroll offset)
-	globalX : 0, // TODO
-	globalY : 0, // TODO,
-	screenX : 0, // TODO,
-	screenY : 0  // TODO
-	
+	clientX : 0, // X relative to the viewport (excludes scrolling)
+	clientY : 0  // Y relative to the viewport (excludes scrolling)
 });
 
 Object.defineProperties ( gui.SpiritBox.prototype, {
 
 	/**
-	 * Get width.
-	 * @returns {number}
+	 * Width.
+	 * @type {number}
 	 */
 	width : {
 		get : function () {
@@ -4849,8 +4842,8 @@ Object.defineProperties ( gui.SpiritBox.prototype, {
 	},
 
 	/**
-	 * Get height.
-	 * @returns {number}
+	 * Height.
+	 * @type {number}
 	 */
 	height : {
 		get : function () {
@@ -4859,8 +4852,8 @@ Object.defineProperties ( gui.SpiritBox.prototype, {
 	},
 
 	/**
-	 * Get offsetParent left.
-	 * @returns {number}
+	 * X relative to positioned ancestor.
+	 * @type {number}
 	 */
 	localX : {
 		get : function () {
@@ -4869,8 +4862,8 @@ Object.defineProperties ( gui.SpiritBox.prototype, {
 	},
 
 	/**
-	 * Get offsetParent top.
-	 * @returns {number}
+	 * Y relative to positioned ancestor.
+	 * @type {number}
 	 */
 	localY : {
 		get : function () {
@@ -4879,7 +4872,9 @@ Object.defineProperties ( gui.SpiritBox.prototype, {
 	},
 
 	/**
-	 * @returns {number}
+	 * X relative to the full page (includes scrolling).
+	 * @todo IMPORTANT scrollroot must be local to context
+	 * @type {number}
 	 */
 	pageX : {
 		get : function () {
@@ -4888,39 +4883,19 @@ Object.defineProperties ( gui.SpiritBox.prototype, {
 	},
 
 	/**
-	 * @returns {number}
+	 * Y relative to the full page (includes scrolling).
+	 * @todo IMPORTANT scrollroot must be local to context
+	 * @type {number}
 	 */
 	pageY : {
 		get : function () {
-			
 			return this.clientY + gui.Client.scrollRoot.scrollTop;
 		}
 	},
 
 	/**
-	 * TODO
-	 * @returns {number}
-	 */
-	globalX : {
-		get : function () {
-			console.warn ( "@todo gui.SpiritBox.globalX" );
-			return null;
-		}
-	},
-
-	/**
-	 * TODO
-	 * @returns {number}
-	 */
-	globalY : {
-		get : function () {
-			console.warn ( "@todo gui.SpiritBox.globalY" );
-			return null;
-		}
-	},
-
-	/**
-	 * @returns {number}
+	 * X relative to the viewport (excludes scrolling).
+	 * @type {number}
 	 */
 	clientX : {
 		get : function () {
@@ -4929,7 +4904,8 @@ Object.defineProperties ( gui.SpiritBox.prototype, {
 	},
 
 	/**
-	 * @returns {number}
+	 * Y relative to the viewport (excludes scrolling).
+	 * @type {number}
 	 */
 	clientY : {
 		get : function () {
@@ -4991,7 +4967,7 @@ gui.Broadcast.prototype = {
 };
 
 
-// STATICS .........................................................
+// Static .........................................................
 
 /**
  * Tracking global handlers (mapping broadcast types to list of handlers).
@@ -5257,7 +5233,7 @@ gui.BroadcastTracker = gui.SpiritTracker.extend ( "gui.BroadcastTracker", {
 		});
 	},
 
-	// PRIVATES ...................................................................
+	// Private ...................................................................
 
 	/**
 	 * Global mode?
@@ -5431,7 +5407,7 @@ gui.SpiritCSS = gui.SpiritPlugin.extend ( "gui.SpiritCSS", {
 	
 }, {}, {
 
-	 // Statics ......................................................................
+	 // Static ......................................................................
 
 	 /**
 	 * classList.add
@@ -5442,7 +5418,7 @@ gui.SpiritCSS = gui.SpiritPlugin.extend ( "gui.SpiritCSS", {
 		if ( name.indexOf ( " " ) >-1 ) {
 			name = name.split ( " " );
 		}
-		if ( Array.isArray ( name )) {
+		if ( gui.Type.isArray ( name )) {
 			name.forEach ( function ( n ) {
 				this.add ( element, n );
 			}, this );
@@ -5469,7 +5445,7 @@ gui.SpiritCSS = gui.SpiritPlugin.extend ( "gui.SpiritCSS", {
 		if ( name.indexOf ( " " ) >-1 ) {
 			name = name.split ( " " );
 		}
-		if ( Array.isArray ( name )) {
+		if ( gui.Type.isArray ( name )) {
 			name.forEach ( function ( n ) {
 				this.remove ( element, n );
 			}, this );
@@ -5794,7 +5770,7 @@ gui.SpiritDOM = gui.SpiritPlugin.extend ( "gui.SpiritDOM", {
 	},
  
 	/**
-	 * Get spirit element tagname; or magically create element of given tagname.
+	 * Get spirit element tagname or create an element of given tagname.
 	 * @param {String} name If present, create an element
 	 * @param @optional {String} namespace (TODO)
 	 */
@@ -5878,9 +5854,6 @@ gui.SpiritDOM = gui.SpiritPlugin.extend ( "gui.SpiritDOM", {
 	clone : function () {
 		return this.spirit.element.cloneNode ( true );
 	},
-	
-	
-	// Visibility ...................................................................
 
 	/**
 	 * Show spirit element, recursively informing descendants.
@@ -5898,10 +5871,10 @@ gui.SpiritDOM = gui.SpiritPlugin.extend ( "gui.SpiritDOM", {
 		this.spirit.invisible ();
 	},	
 	
-	// PRIVATES .....................................................................
+	// Private .....................................................................
 
 	/**
-	 * @todo Explain custom "this" keyword in selector.
+	 * @todo Explain custom `this` keyword in selector.
 	 * @param {String} selector
 	 * @returns {String}
 	 */
@@ -5910,7 +5883,7 @@ gui.SpiritDOM = gui.SpiritPlugin.extend ( "gui.SpiritDOM", {
 	}
 	
 	
-}, {}, { // STATICS ...............................................................
+}, {}, { // Static ...............................................................
 
 	/**
 	 * Match custom "this" keyword in CSS selector. We use this to start 
@@ -6063,10 +6036,8 @@ gui.SpiritDOM = gui.SpiritPlugin.extend ( "gui.SpiritDOM", {
 });
 
 
-// GENERATED METHODS ........................................................................
-
 /**
- * CSS query methods accept a CSS selector and an optional spirit constructor 
+ * Generate CSS query methods accept a CSS selector and an optional spirit constructor 
  * as arguments. They return a spirit, an element or an array of either.
  */
 gui.Object.each ({
@@ -6078,7 +6049,7 @@ gui.Object.each ({
 	 * performs slower than betting on <code>this.dom.q ( "tagname" ).spirit</code>
 	 * @param {String} selector
 	 * @param @optional {function} type Spirit constructor (eg. gui.Spirit)
-	 * @returns {object} Element or gui.Spirit
+	 * @returns {Element|gui.Spirit}
 	 */
 	q : function ( selector, type ) {	
 		var result = null;
@@ -6096,7 +6067,7 @@ gui.Object.each ({
 	 * arguments returns instead all associated spirits to match the given type.
 	 * @param {String} selector
 	 * @param @optional {function} type Spirit constructor
-	 * @returns {Array<object>} List of Element or gui.Spirit
+	 * @returns {Array<Element|gui.Spirit>}
 	 */
 	qall : function ( selector, type ) {
 		selector = this._qualify ( selector );
@@ -6107,7 +6078,7 @@ gui.Object.each ({
 	 * Same as q, but scoped from the document root. Use wisely.
 	 * @param {String} selector
 	 * @param @optional {function} type Spirit constructor
-	 * @returns {object} Element or gui.Spirit
+	 * returns {Element|gui.Spirit}
 	 */
 	qdoc : function ( selector, type ) {
 		var root = this.spirit.document.documentElement;
@@ -6118,7 +6089,7 @@ gui.Object.each ({
 	 * Same as qall, but scoped from the document root. Use wisely.
 	 * @param {String} selector
 	 * @param @optional {function} type Spirit constructor
-	 * @returns {Array<object>} List of Element or gui.Spirit
+	 * @returns {Array<Element|gui.Spirit>}
 	 */
 	qdocall : function ( selector, type ) {
 		var root = this.spirit.document.documentElement;
@@ -6177,7 +6148,7 @@ gui.Object.each ({
 
 	/**
 	 * Previous element or previous spirit of given type.
-	 * @param @optional {function} type
+	 * @param @optional {function} type Spirit constructor
 	 * @returns {Element|gui.Spirit}
 	 */
 	previous : function ( type ) {
@@ -6199,8 +6170,8 @@ gui.Object.each ({
 	},
 
 	/**
-	 * Hello.
-	 * @param {function} type
+	 * First element or first spirit of type.
+	 * @param @optional {function} type Spirit constructor
 	 * @returns {Element|gui.Spirit}
 	 */
 	first : function ( type ) {
@@ -6222,8 +6193,8 @@ gui.Object.each ({
 	},
 
 	/**
-	 * Hello.
-	 * @param {function} type
+	 * Last element or last spirit of type.
+	 * @param @optional {function} type Spirit constructor
 	 * @returns {Element|gui.Spirit}
 	 */
 	last : function ( type ) {
@@ -6245,8 +6216,8 @@ gui.Object.each ({
 	},
 
 	/**
-	 * Hello.
-	 * @param {function} type
+	 * Parent parent or parent spirit of type.
+	 * @param @optional {function} type Spirit constructor
 	 * @returns {Element|gui.Spirit}
 	 */
 	parent : function ( type ) {
@@ -6263,8 +6234,8 @@ gui.Object.each ({
 	},
 
 	/**
-	 * Hello.
-	 * @param {function} type
+	 * Child element or child spirit of type.
+	 * @param @optional {function} type Spirit constructor
 	 * @returns {Element|gui.Spirit}
 	 */
 	child : function ( type ) {
@@ -6286,8 +6257,9 @@ gui.Object.each ({
 	},
 
 	/**
+	 * Children elements or children spirits of type.
 	 * @todo just use this.element.children :)
-	 * @param {function} type
+	 * @param @optional {function} type Spirit constructor
 	 * @returns {Array<Element|gui.Spirit>}
 	 */
 	children : function ( type ) {
@@ -6311,8 +6283,8 @@ gui.Object.each ({
 	},
 
 	/**
-	 * First ancestor of given type.
-	 * @param {function} type
+	 * First ancestor element (parent!) or first ancestor spirit of type.
+	 * @param @optional {function} type Spirit constructor
 	 * @returns {Element|gui.Spirit}
 	 */
 	ancestor : function ( type ) {
@@ -6332,8 +6304,8 @@ gui.Object.each ({
 	},
 
 	/**
-	 * All ancestors of given type.
-	 * @param {function} type
+	 * First ancestor elements or ancestor spirits of type.
+	 * @param @optional {function} type Spirit constructor
 	 * @returns {Array<Element|gui.Spirit>}
 	 */
 	ancestors : function ( type ) {
@@ -6358,8 +6330,8 @@ gui.Object.each ({
 	},
 
 	/**
-	 * First descendant of given type.
-	 * @param {function} type
+	 * First descendant element (first child!) first descendant spirit of type.
+	 * @param @optional {function} type Spirit constructor
 	 * @returns {Element|gui.Spirit}
 	 */
 	descendant : function ( type ) {
@@ -6381,8 +6353,8 @@ gui.Object.each ({
 	},
 
 	/**
-	 * Descendants of given type.
-	 * @param {function} type
+	 * All descendant elements or all descendant spirits of type.
+	 * @param @optional {function} type Spirit constructor
 	 * @returns {Array<Element|gui.Spirit>}
 	 */
 	descendants : function ( type ) {
@@ -6420,6 +6392,7 @@ gui.Object.each ({
 		}
 	});
 });
+
 
 /**
  * DOM insertion methods accept one argument: one spirit OR one element OR an array of either or both. 
@@ -6480,12 +6453,11 @@ gui.Object.each ({
 	 * Removing this spirit from it's parent container. Note that this will 
 	 * schedule destruction of the spirit unless it gets reinserted somewhere. 
 	 * Also note that this method is called on the spirit, not on the parent.
-	 * @returns {gui.Spirit}
+	 * @returns {object} Returns the argument
 	 */
 	remove : function () {
 		var parent = this.spirit.element.parentNode;
 		parent.removeChild ( this.spirit.element );
-		return this;
 	},
 
 	/**
@@ -6501,10 +6473,11 @@ gui.Object.each ({
 
 	/**
 	 * Adding methods to gui.SpiritDOM.prototype. These methods come highly overloaded.
-	 * 1) convert input to array of one or more elements
-	 * 2) confirm array of elements
-	 * 3) invoke the method
-	 * 4) return the input
+	 * 
+	 * 1. Convert input to array of one or more elements
+	 * 2. Confirm array of elements
+	 * 3. Invoke the method
+	 * 4. Return the input
 	 * @param {String} name
 	 * @param {function} method
 	 */
@@ -6616,9 +6589,9 @@ gui.EventTracker = gui.SpiritTracker.extend ( "gui.EventTracker", {
 
 /**
  * # gui.IEventHandler
- * Interface EventHandler. This matches DOM interface EventListener. 
- * If possible, we would like to forward events to method onevent().
- * http://www.w3.org/TR/DOM-Level-3-Events/#interface-EventListener
+ * Interface EventHandler. This is a real DOM interface, it's used for native event 
+ * handling. We usually choose to forward the event to the spirits `onevent` method.
+ * @see http://www.w3.org/TR/DOM-Level-3-Events/#interface-EventListener
  */
 gui.IEventHandler = {
 
@@ -6631,8 +6604,7 @@ gui.IEventHandler = {
 	},
 
 	/**
-	 * @static
-	 * Handle event. This is likely to forward the event to onevent()
+	 * Handle event.
 	 * @param {Event} e
 	 */
 	handleEvent : function ( e ) {}
@@ -6641,8 +6613,9 @@ gui.IEventHandler = {
 
 /**
  * # gui.Tick
- * Use a SpiritTick for timed events. 
- * @todo global versus local ticks
+ * Ticks are used for timed events. 
+ * @todo Global versus local ticks
+ * @todo Tick.push
  * @param {Spirit} target
  * @param {String} type
  * @param {object} data
@@ -6669,7 +6642,7 @@ gui.Tick.prototype = {
 };
 
 
-// STATICS .........................................................................
+// Static .........................................................................
 
 /**
  * Identification.
@@ -6691,9 +6664,6 @@ gui.Tick._global = {
  * Hej.
  */
 gui.Tick._local = Object.create ( null );
-
-
-// LOCAL ....................................................................
 
 /**
  * Add handler for tick.
@@ -6783,9 +6753,6 @@ gui.Tick.dispatch = function ( type, time, sig ) {
 	return this._dispatch ( type, time, sig );
 };
 
-
-// GLOBAL ...................................................................
-
 /**
  * Add handler for tick.
  * @param {object} type String or array of strings
@@ -6830,7 +6797,7 @@ gui.Tick.dispatchGlobal = function ( type, time ) {
 };
 
 
-// PRIVATE .........................................
+// Private static .....................................................
 
 /**
  * Hello.
@@ -7014,7 +6981,7 @@ gui.TickTracker = gui.SpiritTracker.extend ( "gui.TickTracker", {
 	},
 	
 	
-	// PRIVATES .............................................................................
+	// Private .............................................................................
 
 	/**
 	 * Global mode?
@@ -7147,7 +7114,7 @@ gui.Tween.prototype = {
 	done : false
 };
 
-// STATICS .............................................
+// Static .............................................
 
 /** 
  * Coordinate a global (cross-frame) animation sequence.
@@ -7303,7 +7270,7 @@ gui.TweenTracker = gui.SpiritTracker.extend ( "gui.TweenTracker", {
 		}
 	},
 
-	// PRIVATES ...................................................................
+	// Private ...................................................................
 
 	/**
 	 * Global mode?
@@ -7478,13 +7445,8 @@ gui.TransitionPlugin = gui.SpiritPlugin.extend ( "gui.TransitionPlugin", {
 		return then;
 	},
 
-	// Privates ..............................................................................
 
-	/**
-	 * ???
-	 * @type {String}
-	 */
-	_when : null,
+	// Private ..............................................................................
 
 	/**
 	 * Default transition duration time milliseconds.
@@ -7602,11 +7564,12 @@ gui.Transition.prototype = {
 
 /**
  * # gui.AttentionPlugin
- * Keyboard TAB manager (to be exported out of Spiritual core).
+ * Work in progress keyboard TAB manager.
  * @extends {gui.SpiritTracker}
- * @todo nested attention traps (conflicts with missing focusin in FF?)
- * @todo empty queue when user moves escapes (all) attention traps?
- * @todo more life cycle hookins (hide, show, detach, exit)
+ * @todo Get this out of here
+ * @todo Nested attention traps (conflicts with missing focusin in FF?)
+ * @todo Empty queue when user moves escapes (all) attention traps?
+ * @todo More life cycle hookins (hide, show, detach, exit)
  */
 gui.AttentionPlugin = gui.SpiritPlugin.extend ( "gui.AttentionPlugin", {
 
@@ -7702,7 +7665,7 @@ gui.AttentionPlugin = gui.SpiritPlugin.extend ( "gui.AttentionPlugin", {
 	},
 
 
-	// PRIVATES ........................................................................
+	// Private ........................................................................
 
 	/**
 	 * Trapping attention?
@@ -7893,7 +7856,7 @@ gui.AttentionPlugin = gui.SpiritPlugin.extend ( "gui.AttentionPlugin", {
 	}
 
 
-}, { // STATICS ........................................................................
+}, { // Static ........................................................................
 
 	/**
 	 * @type {Array<String>}
@@ -8186,6 +8149,7 @@ gui.Client = ( new function Client () {
 	 * Time in milliseconds after window.onload before we can reliably measure 
 	 * document height. We could in theory discriminate between browsers here, 
 	 * but we won't. WebKit sucks more at this and Safari on iOS is dead to me.
+	 * @see https://code.google.com/p/chromium/issues/detail?id=35980
 	 * @todo Now Firefox started to suck really bad. What to do?
 	 * @type {number}
 	 */
@@ -8480,7 +8444,7 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 	},
 	
 	
-	// PRIVATES ...................................................................
+	// Private ...................................................................
 
 	/**
 	 * Flipped on window.onload
@@ -8607,7 +8571,7 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 	
 }, {}, { 
 
-	// STATICS .............................................................
+	// Static .............................................................
 
 	/**
 	 * Timeout in milliseconds before we decide 
@@ -8712,7 +8676,7 @@ gui.WindowSpirit = gui.Spirit.infuse ( "gui.WindowSpirit", {
 	},
 
 	
-	// PRIVATES ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+	// Private ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
 	/**
 	 * Spirit of the iframe.
@@ -8775,7 +8739,7 @@ gui.WindowSpirit = gui.Spirit.infuse ( "gui.WindowSpirit", {
 	}
 
 
-}, { // STATICS ..........................................................
+}, { // Static ..........................................................
 
 	/**
 	 * Summon spirit.
@@ -8866,7 +8830,7 @@ gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
 
 }, { 
 
-	// STATIC ................................................................
+	// Static ................................................................
 
 	/**
 	 * The stuff going on here has to do with a future project 
@@ -9234,7 +9198,7 @@ gui.CoverSpirit = gui.Spirit.infuse ( "gui.CoverSpirit", {
 
 }, { 
 
-	// STATICS ............................................................
+	// Static ............................................................
 
 	/**
 	 * Summon spirit.
@@ -9283,7 +9247,7 @@ gui.module ( "jquery", {
 	},
 
 
-	// PRIVATE .............................................................
+	// Private .............................................................
 
 	/**
 	 * Injecting Spiritual awareness into 
@@ -9667,16 +9631,17 @@ gui.DOMChanger = {
 	/**
 	 * Declare "spirit" as a fundamental property of things 
 	 * and extend native DOM methods in given window scope.
+	 * @todo WeakMap<Element,gui.Spirit> in supporting agents
 	 * @param {Window} win
 	 */
-	descend : function ( win ) {
+	change : function ( win ) {
 		var element = win.Element.prototype;
 		if ( gui.Type.isDefined ( element.spirit )) {
 			throw new Error ( "Spiritual loaded twice?" );
 		} else {
-			// @todo WeakMap<Element,gui.Spirit> in supporting agents
-			element.spirit = null; // defineProperty fails in iOS 5.0
+			element.spirit = null; // defineProperty fails in iOS5
 			switch ( win.gui.mode ) {
+				case gui.MODE_MANAGED :
 				case gui.MODE_NATIVE :
 				case gui.MODE_OPTIMIZE : 
 					this.upgrade ( win, gui.DOMCombos.getem ());
@@ -9689,7 +9654,7 @@ gui.DOMChanger = {
 	},
 
 	/**
-	 * Upgrade DOM methods in window.
+	 * Upgrade DOM methods in window. 
 	 * @param {Window} win
 	 * @param {Map<String,function>} combos
 	 */
@@ -9698,7 +9663,7 @@ gui.DOMChanger = {
 	},
 
 
-	// PRIVATES ........................................................................
+	// Private ........................................................................
 
 	/**
 	 * JQuery mode: Confirm loaded JQuery 
@@ -9947,8 +9912,8 @@ gui.DOMChanger = {
 
 /**
  * # gui.DOMCombos
- * We need a text here.
- * @todo Standard dom exceptions for missing arguments and so on.
+ * This is where it gets interesting.
+ * @todo Standard DOM exceptions for missing arguments and so on.
  * @todo insertAdjecantHTML
  * @todo DOM4 methods
  */
@@ -9962,7 +9927,7 @@ gui.DOMCombos = {
 		return this._creation || ( this._creation = this._create ());
 	},
 
-	// PRIVATE .......................................................................
+	// Private .......................................................................
 	
 	/**
 	 * Cache combinations for reuse when next requested.
@@ -9973,7 +9938,8 @@ gui.DOMCombos = {
 	/**
 	 * Building combinations when first requested. Note that property setters such as 
 	 * innerHTML and textContent are skipped for WebKit where the stuff only works because 
-	 * properties have been re-implemented using methods in all WebKit based browsers.
+	 * properties have been re-implemented using methods in all WebKit based browsers. 
+	 * @see {gui.DOMPatcher}
 	 */
 	_create : function () {
 
@@ -10103,7 +10069,15 @@ gui.DOMCombos = {
 		});
 
 		/**
-		 * sugar
+		 * Pretend nothing happened when running in "managed" mode.
+		 * @todo Simply mirror this prop with an internal boolean
+		 */
+		var ifenabled = combo.provided ( function () {
+			return this.ownerDocument.defaultView.gui.mode !== gui.MODE_MANAGED;
+		});
+
+		/**
+		 * Sugar for combo readability.
 		 * @param {function} action
 		 * @returns {function}
 		 */
@@ -10115,61 +10089,80 @@ gui.DOMCombos = {
 		 * Here we go.
 		 */
 		return {
+
 			appendChild : function ( base ) {
 				return (
-					ifembedded ( attachafter ( patchafter ( suspending ( base ))), 
+					ifenabled ( 
+						ifembedded ( attachafter ( patchafter ( suspending ( base ))), 
+						otherwise ( base )),
 					otherwise ( base ))
 				);
 			},
 			removeChild : function ( base ) {
 				return (
-					ifembedded ( detachbefore ( suspending ( base )),
+					ifenabled ( 
+						ifembedded ( detachbefore ( suspending ( base )),
+						otherwise ( base )),
 					otherwise ( base ))
 				);
 			},
 			insertBefore : function ( base ) {
 				return (
-					ifembedded ( attachafter ( patchafter ( suspending ( base ))), 
+					ifenabled ( 
+						ifembedded ( attachafter ( patchafter ( suspending ( base ))), 
+						otherwise ( base )),
 					otherwise ( base ))
 				);
 			},
 			replaceChild : function ( base ) {
 				return (
-					ifembedded ( detacholdbefore ( attachnewafter ( patchafter ( suspending ( base )))), 
+					ifenabled ( 
+						ifembedded ( detacholdbefore ( attachnewafter ( patchafter ( suspending ( base )))), 
+						otherwise ( base )),
 					otherwise ( base ))
 				);
 			},
 			setAttribute : function ( base ) {
 				return ( 
-					ifembedded ( 
-						ifspirit ( setattafter ( base ), 
+					ifenabled ( 
+						ifembedded ( 
+							ifspirit ( setattafter ( base ), 
+							otherwise ( base )),
 						otherwise ( base )),
 					otherwise ( base ))
 				);
 			},
 			removeAttribute : function ( base ) {
 				return ( 
-					ifembedded ( 
-						ifspirit ( delattafter ( base ),
+					ifenabled ( 
+						ifembedded ( 
+							ifspirit ( delattafter ( base ),
+							otherwise ( base )),
 						otherwise ( base )),
 					otherwise ( base ))
 				);
 			},
 			innerHTML : function ( base ) {
 				return (
-					ifembedded ( detachsubbefore ( attachsubafter ( suspending ( base ))),
+					ifenabled ( 
+						ifembedded ( detachsubbefore ( attachsubafter ( suspending ( base ))),
+						otherwise ( base )),
 					otherwise ( base ))
 				);
 			},
 			outerHTML : function ( base ) {
 				return (
-					ifembedded ( detachthisbefore ( attachparentafter ( suspending ( base ))),
+					ifenabled ( 
+						ifembedded ( detachthisbefore ( attachparentafter ( suspending ( base ))),
+						otherwise ( base )),
 					otherwise ( base ))
 				);
 			},
 			textContent : function ( base ) {
 				return (
-					ifembedded ( detachsubbefore ( suspending ( base )),
+					ifenabled ( 
+						ifembedded ( detachsubbefore ( suspending ( base )),
+						otherwise ( base )),
 					otherwise ( base ))
 				);
 			}
@@ -10186,8 +10179,8 @@ gui.DOMCombos = {
 gui.DOMPatcher = {
 
 	/**
-	 * Can patch property descriptors of elements in given window? 
-	 * Safari on iOS throws an epic failure exception in your face.
+	 * Can patch property descriptors of elements in given 
+	 * window? Safari on iOS throws an epic failure exception.
 	 * @param {Window} win
 	 * @returns {boolean}
 	 */
@@ -10223,7 +10216,7 @@ gui.DOMPatcher = {
 	},
 
 
-	// PRIVATES .........................................................
+	// Private .........................................................
 
 	/**
 	 * Property descriptor for innerHTML.
@@ -10367,7 +10360,7 @@ gui.Observer = {
 	},
 
 
-	// PRIVATES ..............................................................
+	// Private ..............................................................
 
 	/**
 	 * Is suspended? Minimize what overhead there might 
@@ -10489,8 +10482,8 @@ gui.Guide = {
 	},
 
 	/**
-	 * Elaborate setup to spiritualize document 
-	 * after async evaluation of gui-stylesheets.
+	 * Elaborate setup to spiritualize document after async 
+	 * evaluation of gui-stylesheets (future project).
 	 * @see {gui.StyleSheetSpirit}
 	 * @param {gui.Broadcast} b
 	 */
@@ -10525,9 +10518,8 @@ gui.Guide = {
 	/**
 	 * Construct spirits for element and descendants, 
 	 * then attach all spirits in document order.
-	 * @todo JUMP DETACHED SPIRIT IF MATCHING ID!
+	 * @todo Jump detached spirit if matching id (!)
 	 * @param {Element} elm
-	 * @param {boolean} skip Eval descendants only
 	 */
 	attach : function ( elm ) {
 		this._attach ( elm, false, false );
@@ -10552,7 +10544,6 @@ gui.Guide = {
 	/**
 	 * Detach spirits from element and descendants.
 	 * @param {Element} elm
-	 * @param @optional {boolean} skip Eval descendants only 
 	 */
 	detach : function ( elm ) {
 		this._detach ( elm, false, false );
@@ -10577,7 +10568,7 @@ gui.Guide = {
 	/**
 	 * Detach spirits from element and descendants.
 	 * @param {Node} node
-	 * @param @optional {boolean} skip Eval descendants only 
+	 * @param @optional {boolean} unloading Trigger synchronous destruction of spirit on unload.
 	 */
 	dispose : function ( node, unloading ) {
 		this._collect ( node, false, gui.CRAWLER_DISPOSE ).forEach ( function ( spirit ) {
@@ -10594,6 +10585,7 @@ gui.Guide = {
 	 * @returns {Spirit}
 	 */
 	animate : function ( element, C ) {
+
 		var spirit = new C ();
 		spirit.element = element;
 		spirit.document = element.ownerDocument;
@@ -10624,7 +10616,7 @@ gui.Guide = {
 	},
 	
 	
-	 // PRIVATES .....................................................................
+	 // Private .....................................................................
 
 	 /**
 	 * Tracking which gui.StyleSheetSpirit goes into what window.
@@ -10686,50 +10678,40 @@ gui.Guide = {
 	},
 
 	/**
-	 * Step 1. Great name...
+	 * Step 1. Great name.
 	 * @param {Document} doc
 	 */
 	_step1 : function ( doc ) {
+
 		var win = doc.defaultView;
 		var sig = win.gui.signature;
+
 		this._metatags ( win ); // configure runtime
 		win.gui.go (); // channel spirits
 		this._stylesheets ( win ); // more spirits?
-		// resolving spiritual stylesheets? 
-		// If not, skip directly to _step2.
+		
+		// resolving spiritual stylesheets? If not, skip directly to _step2.
 		if ( !this._windows [ sig ]) {
 			this._step2 ( doc );
 		}
 	},
 
 	/**
-	 * Attach all spirits and proclaim document 
-	 * spiritualized (isolated for async invoke).
+	 * Attach all spirits and proclaim document spiritualized (isolated for async invoke).
 	 * @param {Document} doc
 	 */
 	_step2 : function ( doc ) {
+
 		var win = doc.defaultView;
 		var sig = win.gui.signature;
-		// In development mode, we setup a mutation observer 
-		// to monitor the document for unhandled DOM updates. 
-		if ( win.gui.debug ){
-			if ( win.gui.mode === gui.MODE_JQUERY ) {
-				setImmediate ( function () {  // @todo somehow not conflict with http://stackoverflow.com/questions/11406515/domnodeinserted-behaves-weird-when-performing-dom-manipulation-on-body
-					gui.Observer.observe ( win ); // @idea move all of _step2 to next stack?
-				});
-			} else {
-				gui.Observer.observe ( win );
-			}
-		}
-		if ( gui.Client.isWebKit ) {
-			if ( win.gui.mode === gui.MODE_NATIVE ) {
-				gui.DOMPatcher.patch ( doc.documentElement );
-			}
-		}
+
 		// broadcast before and after spirits attach
-		gui.broadcast ( gui.BROADCAST_WILL_SPIRITUALIZE, sig );
-		this.attach ( doc.documentElement );
-		gui.broadcast ( gui.BROADCAST_DID_SPIRITUALIZE, sig );
+		this.attachOne ( doc.documentElement );
+		if ( win.gui.mode !== gui.MODE_MANAGED ) {
+			gui.broadcast ( gui.BROADCAST_WILL_SPIRITUALIZE, sig );
+			this.attachSub ( doc.documentElement );
+			gui.broadcast ( gui.BROADCAST_DID_SPIRITUALIZE, sig );
+		}
 	},
 
 	/**
@@ -10797,11 +10779,16 @@ gui.Guide = {
 	 * @param {boolean} one Skip the subtree?
 	 */
 	_attach : function ( node, skip, one ) {
+		var hack = node.ownerDocument.title === "Modes";
+
 		if ( this._handles ( node )) {
 			var attach = [];
 			var readys = [];
+			//var count = 0;
+			//console.time ( "Crawling DOM" )
 			new gui.Crawler ( gui.CRAWLER_ATTACH ).descend ( node, {
 				handleElement : function ( elm ) {
+					//count ++;
 					if ( !skip || elm !== node ) {
 						var spirit = elm.spirit;
 						if ( !spirit ) {
@@ -10816,6 +10803,9 @@ gui.Guide = {
 					return one ? gui.Crawler.STOP : gui.Crawler.CONTINUE;
 				}
 			});
+			//console.timeEnd ( "Crawling DOM" );
+			//console.log ( "Evaluated " + count + " elements ");
+			//console.time ( "Attaching " + attach.length + " spirits" );
 			attach.forEach ( function ( spirit ) {
 				if ( !spirit.life.configured ) {
 					spirit.onconfigure ();
@@ -10840,6 +10830,7 @@ gui.Guide = {
 			readys.reverse ().forEach ( function ( spirit ) {
 				spirit.onready ();
 			}, this );
+			//console.timeEnd ( "Attaching " + attach.length + " spirits" );
 		}
 	},
 
@@ -10867,6 +10858,7 @@ gui.Guide = {
 	 * @returns {Spirit} or null
 	 */
 	_evaluate : function ( element ) {
+		var hack = element.ownerDocument.title === "Modes";
 		if ( !element.spirit ) {
 			var doc = element.ownerDocument;
 			var win = doc.defaultView;

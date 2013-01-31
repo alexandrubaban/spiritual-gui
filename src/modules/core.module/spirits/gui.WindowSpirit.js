@@ -93,7 +93,7 @@ gui.WindowSpirit = gui.Spirit.infuse ( "gui.WindowSpirit", {
 	},
 
 	
-	// PRIVATES ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+	// Private ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
 	/**
 	 * Spirit of the iframe.
@@ -156,7 +156,7 @@ gui.WindowSpirit = gui.Spirit.infuse ( "gui.WindowSpirit", {
 	}
 
 
-}, { // STATICS ..........................................................
+}, { // Static ..........................................................
 
 	/**
 	 * Summon spirit.

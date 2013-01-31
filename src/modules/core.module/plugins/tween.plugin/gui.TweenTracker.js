@@ -109,7 +109,7 @@ gui.TweenTracker = gui.SpiritTracker.extend ( "gui.TweenTracker", {
 		}
 	},
 
-	// PRIVATES ...................................................................
+	// Private ...................................................................
 
 	/**
 	 * Global mode?

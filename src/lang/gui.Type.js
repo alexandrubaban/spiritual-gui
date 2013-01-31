@@ -1,13 +1,13 @@
 /**
  * # gui.Type
- * Type checking studio. All checks are string based, not to cause 
- * confusion when checking the types of objects in other windows.
+ * Type checking studio. All checks are string based not to cause 
+ * confusion when checking the types of objects in another window.
  */
 gui.Type = {
 
 	/**
-	 * Get (better) type of argument. Note that response may differ between user agents.
-	 * http://javascriptweblog.wordpress.com/2011/08/08/fixing-the-javascript-typeof-operator
+	 * Get type of argument. Note that response may differ between user agents.
+	 * @see  http://javascriptweblog.wordpress.com/2011/08/08/fixing-the-javascript-typeof-operator
 	 * @param {object} o
 	 * @returns {String}
 	 */
@@ -104,7 +104,7 @@ gui.Type = {
 		return list;
 	},
 
-	// PRIVATES ...........................................................
+	// Private ...........................................................
 
 	/**
 	 * Match "Array" in "[object Array]" and so on.

@@ -1,6 +1,6 @@
  /**
  * # gui.URL
- * Split() the #fragment identifier once and for all.
+ * Resolve an URL string relative to a document.
  * @param {Document} doc
  * @param {String} href
  */

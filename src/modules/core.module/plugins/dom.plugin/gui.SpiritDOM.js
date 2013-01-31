@@ -108,9 +108,6 @@ gui.SpiritDOM = gui.SpiritPlugin.extend ( "gui.SpiritDOM", {
 	clone : function () {
 		return this.spirit.element.cloneNode ( true );
 	},
-	
-	
-	// Visibility ...................................................................
 
 	/**
 	 * Show spirit element, recursively informing descendants.
@@ -128,10 +125,10 @@ gui.SpiritDOM = gui.SpiritPlugin.extend ( "gui.SpiritDOM", {
 		this.spirit.invisible ();
 	},	
 	
-	// PRIVATES .....................................................................
+	// Private .....................................................................
 
 	/**
-	 * @todo Explain custom "this" keyword in selector.
+	 * @todo Explain custom `this` keyword in selector.
 	 * @param {String} selector
 	 * @returns {String}
 	 */
@@ -140,7 +137,7 @@ gui.SpiritDOM = gui.SpiritPlugin.extend ( "gui.SpiritDOM", {
 	}
 	
 	
-}, {}, { // STATICS ...............................................................
+}, {}, { // Static ...............................................................
 
 	/**
 	 * Match custom "this" keyword in CSS selector. We use this to start 
@@ -293,10 +290,8 @@ gui.SpiritDOM = gui.SpiritPlugin.extend ( "gui.SpiritDOM", {
 });
 
 
-// GENERATED METHODS ........................................................................
-
 /**
- * CSS query methods accept a CSS selector and an optional spirit constructor 
+ * Generate CSS query methods accept a CSS selector and an optional spirit constructor 
  * as arguments. They return a spirit, an element or an array of either.
  */
 gui.Object.each ({
@@ -308,7 +303,7 @@ gui.Object.each ({
 	 * performs slower than betting on <code>this.dom.q ( "tagname" ).spirit</code>
 	 * @param {String} selector
 	 * @param @optional {function} type Spirit constructor (eg. gui.Spirit)
-	 * @returns {object} Element or gui.Spirit
+	 * @returns {Element|gui.Spirit}
 	 */
 	q : function ( selector, type ) {	
 		var result = null;
@@ -326,7 +321,7 @@ gui.Object.each ({
 	 * arguments returns instead all associated spirits to match the given type.
 	 * @param {String} selector
 	 * @param @optional {function} type Spirit constructor
-	 * @returns {Array<object>} List of Element or gui.Spirit
+	 * @returns {Array<Element|gui.Spirit>}
 	 */
 	qall : function ( selector, type ) {
 		selector = this._qualify ( selector );
@@ -337,7 +332,7 @@ gui.Object.each ({
 	 * Same as q, but scoped from the document root. Use wisely.
 	 * @param {String} selector
 	 * @param @optional {function} type Spirit constructor
-	 * @returns {object} Element or gui.Spirit
+	 * returns {Element|gui.Spirit}
 	 */
 	qdoc : function ( selector, type ) {
 		var root = this.spirit.document.documentElement;
@@ -348,7 +343,7 @@ gui.Object.each ({
 	 * Same as qall, but scoped from the document root. Use wisely.
 	 * @param {String} selector
 	 * @param @optional {function} type Spirit constructor
-	 * @returns {Array<object>} List of Element or gui.Spirit
+	 * @returns {Array<Element|gui.Spirit>}
 	 */
 	qdocall : function ( selector, type ) {
 		var root = this.spirit.document.documentElement;
@@ -407,7 +402,7 @@ gui.Object.each ({
 
 	/**
 	 * Previous element or previous spirit of given type.
-	 * @param @optional {function} type
+	 * @param @optional {function} type Spirit constructor
 	 * @returns {Element|gui.Spirit}
 	 */
 	previous : function ( type ) {
@@ -429,8 +424,8 @@ gui.Object.each ({
 	},
 
 	/**
-	 * Hello.
-	 * @param {function} type
+	 * First element or first spirit of type.
+	 * @param @optional {function} type Spirit constructor
 	 * @returns {Element|gui.Spirit}
 	 */
 	first : function ( type ) {
@@ -452,8 +447,8 @@ gui.Object.each ({
 	},
 
 	/**
-	 * Hello.
-	 * @param {function} type
+	 * Last element or last spirit of type.
+	 * @param @optional {function} type Spirit constructor
 	 * @returns {Element|gui.Spirit}
 	 */
 	last : function ( type ) {
@@ -475,8 +470,8 @@ gui.Object.each ({
 	},
 
 	/**
-	 * Hello.
-	 * @param {function} type
+	 * Parent parent or parent spirit of type.
+	 * @param @optional {function} type Spirit constructor
 	 * @returns {Element|gui.Spirit}
 	 */
 	parent : function ( type ) {
@@ -493,8 +488,8 @@ gui.Object.each ({
 	},
 
 	/**
-	 * Hello.
-	 * @param {function} type
+	 * Child element or child spirit of type.
+	 * @param @optional {function} type Spirit constructor
 	 * @returns {Element|gui.Spirit}
 	 */
 	child : function ( type ) {
@@ -516,8 +511,9 @@ gui.Object.each ({
 	},
 
 	/**
+	 * Children elements or children spirits of type.
 	 * @todo just use this.element.children :)
-	 * @param {function} type
+	 * @param @optional {function} type Spirit constructor
 	 * @returns {Array<Element|gui.Spirit>}
 	 */
 	children : function ( type ) {
@@ -541,8 +537,8 @@ gui.Object.each ({
 	},
 
 	/**
-	 * First ancestor of given type.
-	 * @param {function} type
+	 * First ancestor element (parent!) or first ancestor spirit of type.
+	 * @param @optional {function} type Spirit constructor
 	 * @returns {Element|gui.Spirit}
 	 */
 	ancestor : function ( type ) {
@@ -562,8 +558,8 @@ gui.Object.each ({
 	},
 
 	/**
-	 * All ancestors of given type.
-	 * @param {function} type
+	 * First ancestor elements or ancestor spirits of type.
+	 * @param @optional {function} type Spirit constructor
 	 * @returns {Array<Element|gui.Spirit>}
 	 */
 	ancestors : function ( type ) {
@@ -588,8 +584,8 @@ gui.Object.each ({
 	},
 
 	/**
-	 * First descendant of given type.
-	 * @param {function} type
+	 * First descendant element (first child!) first descendant spirit of type.
+	 * @param @optional {function} type Spirit constructor
 	 * @returns {Element|gui.Spirit}
 	 */
 	descendant : function ( type ) {
@@ -611,8 +607,8 @@ gui.Object.each ({
 	},
 
 	/**
-	 * Descendants of given type.
-	 * @param {function} type
+	 * All descendant elements or all descendant spirits of type.
+	 * @param @optional {function} type Spirit constructor
 	 * @returns {Array<Element|gui.Spirit>}
 	 */
 	descendants : function ( type ) {
@@ -650,6 +646,7 @@ gui.Object.each ({
 		}
 	});
 });
+
 
 /**
  * DOM insertion methods accept one argument: one spirit OR one element OR an array of either or both. 
@@ -710,12 +707,11 @@ gui.Object.each ({
 	 * Removing this spirit from it's parent container. Note that this will 
 	 * schedule destruction of the spirit unless it gets reinserted somewhere. 
 	 * Also note that this method is called on the spirit, not on the parent.
-	 * @returns {gui.Spirit}
+	 * @returns {object} Returns the argument
 	 */
 	remove : function () {
 		var parent = this.spirit.element.parentNode;
 		parent.removeChild ( this.spirit.element );
-		return this;
 	},
 
 	/**
@@ -731,10 +727,11 @@ gui.Object.each ({
 
 	/**
 	 * Adding methods to gui.SpiritDOM.prototype. These methods come highly overloaded.
-	 * 1) convert input to array of one or more elements
-	 * 2) confirm array of elements
-	 * 3) invoke the method
-	 * 4) return the input
+	 * 
+	 * 1. Convert input to array of one or more elements
+	 * 2. Confirm array of elements
+	 * 3. Invoke the method
+	 * 4. Return the input
 	 * @param {String} name
 	 * @param {function} method
 	 */

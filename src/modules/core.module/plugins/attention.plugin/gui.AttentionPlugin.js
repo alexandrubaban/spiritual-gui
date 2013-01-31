@@ -1,10 +1,11 @@
 /**
  * # gui.AttentionPlugin
- * Keyboard TAB manager (to be exported out of Spiritual core).
+ * Work in progress keyboard TAB manager.
  * @extends {gui.SpiritTracker}
- * @todo nested attention traps (conflicts with missing focusin in FF?)
- * @todo empty queue when user moves escapes (all) attention traps?
- * @todo more life cycle hookins (hide, show, detach, exit)
+ * @todo Get this out of here
+ * @todo Nested attention traps (conflicts with missing focusin in FF?)
+ * @todo Empty queue when user moves escapes (all) attention traps?
+ * @todo More life cycle hookins (hide, show, detach, exit)
  */
 gui.AttentionPlugin = gui.SpiritPlugin.extend ( "gui.AttentionPlugin", {
 
@@ -100,7 +101,7 @@ gui.AttentionPlugin = gui.SpiritPlugin.extend ( "gui.AttentionPlugin", {
 	},
 
 
-	// PRIVATES ........................................................................
+	// Private ........................................................................
 
 	/**
 	 * Trapping attention?
@@ -291,7 +292,7 @@ gui.AttentionPlugin = gui.SpiritPlugin.extend ( "gui.AttentionPlugin", {
 	}
 
 
-}, { // STATICS ........................................................................
+}, { // Static ........................................................................
 
 	/**
 	 * @type {Array<String>}

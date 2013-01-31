@@ -77,9 +77,6 @@ gui.ActionTracker = gui.SpiritTracker.extend ( "gui.ActionTracker", {
 		});
 	},
 
-
-	// DISPATCH ...................................................
-
 	/**
 	 * Dispatch type(s) ascending by default.
 	 * @alias {gui.ActionTracker#ascend}
@@ -160,11 +157,12 @@ gui.ActionTracker = gui.SpiritTracker.extend ( "gui.ActionTracker", {
 	},
 
 	/**
-	 * Handle action. The dispatching spirit will not see it's own actions
+	 * Handle action. If it matches listeners, the action will be 
+	 * delegated to the spirit. Called by `gui.Action` crawler.
 	 * @see {gui.Action#dispatch}
 	 * @param {gui.Action} action
 	 */
-	handle : function ( action ) {
+	handleAction : function ( action ) {
 		var list = this._xxx [ action.type ];
 		if ( list ) {
 			list.forEach ( function ( checks ) {
@@ -178,7 +176,7 @@ gui.ActionTracker = gui.SpiritTracker.extend ( "gui.ActionTracker", {
 	},
 
 
-	// PRIVATE ....................................................
+	// Private ....................................................
 
 	/**
 	 * Global mode?

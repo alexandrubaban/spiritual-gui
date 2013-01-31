@@ -11,7 +11,7 @@ gui.Super = function Super ( constructor ) {
 gui.Super.prototype = Object.create ( null );
 
 
-// STATICS .......................................................................
+// Static .......................................................................
 
 /**
  * Instance of an i.Exemplar subclass (now invoking _super).

@@ -150,7 +150,7 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	// Handlers .....................................................................
 
 	/**	
-	 * Handle crawler.
+	 * Handle crawler (tell me more)
 	 * @param {gui.Crawler} crawler
 	 * @returns {number}
 	 */
@@ -159,16 +159,17 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	},
 	
 	/**
-	 * Handle lifecycle event.
+	 * Handle life (tell me more)
 	 * @param {gui.SpiritLife} life
 	 */
 	onlife : function ( life ) {},
 	
 	
-	// Specials .....................................................................
+	// (Heading) ........................................................................
 	
 	/**
-	 * Hello.
+	 * Mark spirit visible. This triggers a call to `onvisible()` 
+	 * on this and all descendant spirits.
 	 * @returns {gui.Spirit}
 	 */
 	visible : function () {
@@ -176,7 +177,8 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	},
 
 	/**
-	 * Hello.
+	 * Mark spirit visible. This triggers a call to `oninvisible()` 
+	 * on this and all descendant spirits.
 	 * @returns {gui.Spirit}
 	 */
 	invisible : function () {
@@ -196,7 +198,7 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	},
 	
 	
-	// Secrets ....................................................................
+	// Secret ....................................................................
 	
 	/**
 	 * Secret constructor.
@@ -207,7 +209,7 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	 * Experimental.
 	 * @type {[type]}
 	 */
-	__lazies__ : null,
+	__lazyplugins__ : null,
 
 	/**
 	 * Instantiate plugins.
@@ -216,7 +218,7 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 		// core plugins first
 		this.life = new gui.SpiritLifeTracker ( this );
 		this.config = new gui.SpiritConfig ( this );
-		this.__lazies__ = Object.create ( null );
+		this.__lazyplugins__ = Object.create ( null );
 		// bonus plugins second
 		var prefixes = [], plugins = this.constructor.__plugins__;
 		gui.Object.each ( plugins, function ( prefix, Plugin ) {
@@ -226,7 +228,7 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 					break;
 				default :
 					if ( Plugin.lazy ) {
-						gui.SpiritPlugin.later ( Plugin, prefix, this, this.__lazies__ );
+						gui.SpiritPlugin.later ( Plugin, prefix, this, this.__lazyplugins__ );
 					} else {
 						this [ prefix ] = new Plugin ( this );
 					}
@@ -238,7 +240,7 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 		this.life.onconstruct ();
 		this.config.onconstruct ();
 		prefixes.forEach ( function ( prefix ) {
-			if ( this.__lazies__ [ prefix ]) {
+			if ( this.__lazyplugins__ [ prefix ]) {
 				// lazy plugins constructed when addressed
 			} else {
 				this [ prefix ].onconstruct ();
@@ -273,7 +275,7 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	 * @param @optional {boolean} unloading If true, destruct immediately
 	 */
 	__destruct__ : function ( unloading ) {
-		var map = this.__lazies__;
+		var map = this.__lazyplugins__;
 		gui.Object.each ( map, function ( prefix ) {
 			if ( map [ prefix ] === true ) {
 				delete this [ prefix ]; // otherwise next iterator will instantiate the lazy plugin...
@@ -292,11 +294,9 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 					break;
 			}
 		}, this );
-		// dispose life plugin last...
-		this.life.__destruct__ ();
-		// schedule cremation?
+		this.life.__destruct__ (); // dispose life plugin last
 		if ( unloading ) {
-			this.__null__ ();
+			this.__null__ (); // now!
 		} else {
 			var that = this;
 			var tick = gui.TICK_SPIRIT_NULL;
@@ -331,9 +331,7 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	}
 
 
-	// Recurring statics ..............................................................
-
-}, {
+}, { // Recurring static ...............................................................
 
 	/**
 	 * Mapping plugin constructor to prefix.
@@ -464,10 +462,7 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	}
 	*/
 	
-
-	// Statics ........................................................................ 
-
-}, {
+}, { // Static ....................................................................
 
 	/**
 	 * Hello.

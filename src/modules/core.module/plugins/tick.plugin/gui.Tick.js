@@ -1,7 +1,8 @@
 /**
  * # gui.Tick
- * Use a SpiritTick for timed events. 
- * @todo global versus local ticks
+ * Ticks are used for timed events. 
+ * @todo Global versus local ticks
+ * @todo Tick.push
  * @param {Spirit} target
  * @param {String} type
  * @param {object} data
@@ -28,7 +29,7 @@ gui.Tick.prototype = {
 };
 
 
-// STATICS .........................................................................
+// Static .........................................................................
 
 /**
  * Identification.
@@ -50,9 +51,6 @@ gui.Tick._global = {
  * Hej.
  */
 gui.Tick._local = Object.create ( null );
-
-
-// LOCAL ....................................................................
 
 /**
  * Add handler for tick.
@@ -142,9 +140,6 @@ gui.Tick.dispatch = function ( type, time, sig ) {
 	return this._dispatch ( type, time, sig );
 };
 
-
-// GLOBAL ...................................................................
-
 /**
  * Add handler for tick.
  * @param {object} type String or array of strings
@@ -189,7 +184,7 @@ gui.Tick.dispatchGlobal = function ( type, time ) {
 };
 
 
-// PRIVATE .........................................
+// Private static .....................................................
 
 /**
  * Hello.

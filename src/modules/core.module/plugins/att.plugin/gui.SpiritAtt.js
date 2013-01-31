@@ -85,17 +85,17 @@ gui.SpiritAtt = gui.SpiritPlugin.extend ( "gui.SpiritAtt", {
 	},
 
 
-	// SECRETS .........................................
+	// Secret .................................................
 
 	/**
-	 * Disable attribute updates.
+	 * Attribute updates disabled?
 	 * @type {boolean}
 	 */
 	__suspended__ : false,
 
 	/**
-	 * Suspend attribute updates for the duration of 
-	 * the action (kind of framework internal stuff).
+	 * Suspend attribute updates for the duration of the action.
+	 * @todo Figure out why and if we need this stuff
 	 * @param {function} action
 	 * @retruns {object}
 	 */

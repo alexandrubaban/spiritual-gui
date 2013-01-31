@@ -70,7 +70,7 @@ gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
 
 }, { 
 
-	// STATIC ................................................................
+	// Static ................................................................
 
 	/**
 	 * The stuff going on here has to do with a future project 

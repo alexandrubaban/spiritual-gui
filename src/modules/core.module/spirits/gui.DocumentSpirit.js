@@ -184,7 +184,7 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 	},
 	
 	
-	// PRIVATES ...................................................................
+	// Private ...................................................................
 
 	/**
 	 * Flipped on window.onload
@@ -311,7 +311,7 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 	
 }, {}, { 
 
-	// STATICS .............................................................
+	// Static .............................................................
 
 	/**
 	 * Timeout in milliseconds before we decide 

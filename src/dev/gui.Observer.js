@@ -83,7 +83,7 @@ gui.Observer = {
 	},
 
 
-	// PRIVATES ..............................................................
+	// Private ..............................................................
 
 	/**
 	 * Is suspended? Minimize what overhead there might 

@@ -179,7 +179,7 @@ gui.Guide = {
 	},
 	
 	
-	 // PRIVATES .....................................................................
+	 // Private .....................................................................
 
 	 /**
 	 * Tracking which gui.StyleSheetSpirit goes into what window.
@@ -250,9 +250,7 @@ gui.Guide = {
 		var sig = win.gui.signature;
 
 		this._metatags ( win ); // configure runtime
-
-		win.gui.go (); // hello
-
+		win.gui.go (); // channel spirits
 		this._stylesheets ( win ); // more spirits?
 		
 		// resolving spiritual stylesheets? If not, skip directly to _step2.

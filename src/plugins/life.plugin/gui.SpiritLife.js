@@ -32,7 +32,7 @@ gui.SpiritLife.prototype = {
 };
 
 
- // STATICS .....................................
+ // Static .....................................
 
  /**
  * Important milestones in the life of a spirit.

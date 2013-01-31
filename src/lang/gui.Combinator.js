@@ -7,7 +7,7 @@
 gui.Combinator = {
 
 	/**
-	 * Hello.
+	 * Decorate before.
 	 * @param {function} decoration
 	 * @returns {function}
 	 */
@@ -21,7 +21,7 @@ gui.Combinator = {
 	},
 
 	/**
-	 * Hello.
+	 * Decorate after.
 	 * @param {function} decoration
 	 * @returns {function}
 	 */
@@ -36,7 +36,7 @@ gui.Combinator = {
 	},
 
 	/**
-	 * Hello.
+	 * Decorate around.
 	 * @param {function} decoration
 	 * @returns {function}
 	 */
@@ -56,7 +56,7 @@ gui.Combinator = {
 	},
 
 	/**
-	 * Added support for an "otherwise" function as the second argument.
+	 * Decorate provided.
 	 * @param {function} condition
 	 */
 	provided : function ( condition ){
@@ -72,7 +72,7 @@ gui.Combinator = {
 	},
 
 
-	// PRIVATES ..........................................................
+	// Private ..........................................................
 
 	_slice : [].slice
 };

@@ -42,7 +42,7 @@ gui.FileLoader = gui.Exemplar.create ( "gui.FileLoader", Object.prototype, {
 	},
 	
 	
-	// PRIVATES ........................................................
+	// Private ........................................................
 
 	/**
 	 * Cached is shared between all instances of gui.FileLoader.
@@ -92,7 +92,7 @@ gui.FileLoader = gui.Exemplar.create ( "gui.FileLoader", Object.prototype, {
 	},
 	
 
-	// SECRETS .........................................................
+	// Secret .........................................................
 
 	/**
 	 * Secret constructor.
@@ -109,9 +109,7 @@ gui.FileLoader = gui.Exemplar.create ( "gui.FileLoader", Object.prototype, {
 	}
 
 	
-}, {}, { 
-
-	// STATICS ....................................................
+}, {}, { // Static ....................................................
 
 	/**
 	 * Cache previously retrieved files, mapping URL to file text.

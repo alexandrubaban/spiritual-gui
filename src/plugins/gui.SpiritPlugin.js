@@ -41,7 +41,7 @@ gui.SpiritPlugin = gui.Exemplar.create ( "gui.SpiritPlugin", Object.prototype, {
 	},
 	
 	
-	// Secrets ...........................................................
+	// Secret ...........................................................
 
 	/**
 	 * Secret constructor. Can we identify the 
@@ -66,13 +66,11 @@ gui.SpiritPlugin = gui.Exemplar.create ( "gui.SpiritPlugin", Object.prototype, {
 	}
 	
 
-}, { 
-
-	// RECURRING STATICS ........................................
+}, { // Recurring static ........................................
 
 	/**
-	 * By default constructed only when needed. 
-	 * @type {Boolean}
+	 * Construct only when requested?
+	 * @type {boolean}
 	 */
 	lazy : true,
 
@@ -86,9 +84,7 @@ gui.SpiritPlugin = gui.Exemplar.create ( "gui.SpiritPlugin", Object.prototype, {
 	}
 
 
-}, { 
-
-	// STATICS ..................................................
+}, { // Static ..................................................
 
 	/**
 	 * Lazy initialization stuff.

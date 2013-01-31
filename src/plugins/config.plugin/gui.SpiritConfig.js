@@ -65,7 +65,7 @@ gui.SpiritConfig = gui.SpiritPlugin.extend ( "gui.SpiritConfig", {
 	},
 
 
-	// PRIVATE .................................................................
+	// Private .................................................................
 
 	/**
 	 * Lookup mapping for attribute name.
