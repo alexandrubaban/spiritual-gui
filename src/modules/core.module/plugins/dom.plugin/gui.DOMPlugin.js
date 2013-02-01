@@ -641,8 +641,10 @@ gui.Object.each ({
 		if ( !gui.Type.isDefined ( type ) || gui.Type.isFunction ( type )) {
 			return method.apply ( this, arguments );
 		} else {
-			type = gui.Type.of ( type );
-			throw new TypeError ( "Unknown spirit for query: " + name + "(" + type + ")" );
+			throw new TypeError ( 
+				"Unknown spirit for query: " + name + 
+				"(" + gui.Type.of ( type ) + ")" 
+			);
 		}
 	});
 });

@@ -56,7 +56,7 @@ gui.Combinator = {
 	},
 
 	/**
-	 * Decorate provided.
+	 * Decorate provided. Note that we added support for an otherwise otherwise.
 	 * @param {function} condition
 	 */
 	provided : function ( condition ){
