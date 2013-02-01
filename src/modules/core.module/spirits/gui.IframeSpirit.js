@@ -38,9 +38,7 @@ gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
 	}
 	
 	
-}, { 
-
-	// RECURRING  ...........................................................
+}, { // Recurring static ......................................................
 
 	/**
 	 * Summon spirit.
@@ -68,9 +66,7 @@ gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
 	}
 
 
-}, { 
-
-	// Static ................................................................
+}, { // Static ................................................................
 
 	/**
 	 * The stuff going on here has to do with a future project 
