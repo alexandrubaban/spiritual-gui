@@ -165,7 +165,7 @@ gui.WindowSpirit = gui.Spirit.infuse ( "gui.WindowSpirit", {
 	 */
 	summon : function ( doc, src ) {
 		var div = doc.createElement ( "div" );
-		var spirit = this.animate ( div );
+		var spirit = this.possess ( div );
 		if ( src ) {
 			spirit.src ( src );
 		}

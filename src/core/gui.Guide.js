@@ -147,7 +147,7 @@ gui.Guide = {
 	 * @param {function} C spirit constructor
 	 * @returns {Spirit}
 	 */
-	animate : function ( element, C ) {
+	possess : function ( element, C ) {
 
 		var spirit = new C ();
 		spirit.element = element;
@@ -427,7 +427,7 @@ gui.Guide = {
 			var win = doc.defaultView;
 			var hit = win.gui.evaluate ( element );
 			if ( hit ) {
-				this.animate ( element, hit );
+				this.possess ( element, hit );
 			}
 		}
 		return element.spirit;

@@ -331,15 +331,9 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 
 
 }, { // Recurring static ...............................................................
-
-	/**
-	 * Mapping plugin constructor to prefix.
-	 * @type {Map<String,function>}
-	 */
-	__plugins__ : Object.create ( null ),
 	
 	/**
-	 * Portal this spirit to descendant iframes?
+	 * Portal spirit via the `gui.portal` method?
 	 * @see {ui#portal}  
 	 * @type {boolean}
 	 */
@@ -400,22 +394,21 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	},
 
 	/**
-	 * Associate DOM element to Spirit instance.
-	 * @param {Element} element
-	 * @returns {Spirit}
-	 */
-	animate : function ( element ) {
-		return gui.Guide.animate ( element, this );
-	},
-
-	/**
-	 * Create DOM element and associate Spirit instance.
+	 * First create DOM element, then associate Spirit instance.
 	 * @param @optional {Document} doc
 	 * @returns {gui.Spirit}
 	 */
 	summon : function ( doc ) {
-		doc = doc ? doc : document;
-		return this.animate ( doc.createElement ( "div" ));
+		return this.possess (( doc || document ).createElement ( "div" ));
+	},
+
+	/**
+	 * Associate DOM element to Spirit instance.
+	 * @param {Element} element
+	 * @returns {Spirit}
+	 */
+	possess : function ( element ) {
+		return gui.Guide.possess ( element, this );
 	},
 	
 	/**
@@ -439,7 +432,13 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 		} else {
 			console.error ( "Plugin naming crash in " + this + ": " + prefix );
 		}
-	}
+	},
+
+	/**
+	 * Mapping plugin constructor to prefix.
+	 * @type {Map<String,function>}
+	 */
+	__plugins__ : Object.create ( null )
 
 	/*
 	 * @todo move to Spiritual EDB
@@ -457,7 +456,7 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 			return i > 0;
 		});
 		var html = func.apply ( {}, args );
-		return this.animate ( this.parse ( doc, html ));
+		return this.possess ( this.parse ( doc, html ));
 	}
 	*/
 	

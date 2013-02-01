@@ -137,6 +137,6 @@ gui.StyleSheetSpirit = gui.Spirit.infuse ( "gui.StyleSheetSpirit", {
 		link.className = "gui-styles";
 		link.rel = "stylesheet";
 		link.href = href ? href : "";
-		return this.animate ( link );
+		return this.possess ( link );
 	}
 });

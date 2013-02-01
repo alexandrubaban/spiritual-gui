@@ -79,7 +79,7 @@ gui.CoverSpirit = gui.Spirit.infuse ( "gui.CoverSpirit", {
 	 * @returns {gui.CoverSpirit}
 	 */
 	summon : function ( doc ) {
-		var spirit = this.animate ( doc.createElement ( "div" ));
+		var spirit = this.possess ( doc.createElement ( "div" ));
 		spirit.css.add ( "gui-cover" );
 		return spirit;
 	}

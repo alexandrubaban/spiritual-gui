@@ -60,7 +60,7 @@ gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
 		} else {
 			iframe.src = gui.IframeSpirit.SRC_DEFAULT;
 		}
-		var spirit = this.animate ( iframe );
+		var spirit = this.possess ( iframe );
 		spirit.signature = sig;
 		return spirit;
 	}
