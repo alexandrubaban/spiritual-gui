@@ -341,16 +341,11 @@ gui.Guide = {
 	 * @param {boolean} one Skip the subtree?
 	 */
 	_spiritualize : function ( node, skip, one ) {
-		var hack = node.ownerDocument.title === "Modes";
-
 		if ( this._handles ( node )) {
 			var attach = [];
 			var readys = [];
-			//var count = 0;
-			//console.time ( "Crawling DOM" )
 			new gui.Crawler ( gui.CRAWLER_ATTACH ).descend ( node, {
 				handleElement : function ( elm ) {
-					//count ++;
 					if ( !skip || elm !== node ) {
 						var spirit = elm.spirit;
 						if ( !spirit ) {
@@ -365,9 +360,6 @@ gui.Guide = {
 					return one ? gui.Crawler.STOP : gui.Crawler.CONTINUE;
 				}
 			});
-			//console.timeEnd ( "Crawling DOM" );
-			//console.log ( "Evaluated " + count + " elements ");
-			//console.time ( "Attaching " + attach.length + " spirits" );
 			attach.forEach ( function ( spirit ) {
 				if ( !spirit.life.configured ) {
 					spirit.onconfigure ();
@@ -392,7 +384,6 @@ gui.Guide = {
 			readys.reverse ().forEach ( function ( spirit ) {
 				spirit.onready ();
 			}, this );
-			//console.timeEnd ( "Attaching " + attach.length + " spirits" );
 		}
 	},
 
@@ -420,7 +411,6 @@ gui.Guide = {
 	 * @returns {Spirit} or null
 	 */
 	_evaluate : function ( element ) {
-		var hack = element.ownerDocument.title === "Modes";
 		if ( !element.spirit ) {
 			var doc = element.ownerDocument;
 			var win = doc.defaultView;
