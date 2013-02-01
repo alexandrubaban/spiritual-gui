@@ -79,57 +79,57 @@ gui.Guide = {
 	},
 
 	/**
-	 * Construct spirits for element and descendants, 
-	 * then attach all spirits in document order.
+	 * Possess element and descendants.
 	 * @todo Jump detached spirit if matching id (!)
 	 * @param {Element} elm
 	 */
-	attach : function ( elm ) {
-		this._attach ( elm, false, false );
+	spiritualize : function ( elm ) {
+		this._spiritualize ( elm, false, false );
 	},
 
 	/**
-	 * Construct spirits for descendants.
+	 * Possess descendants.
 	 * @param {Element} elm
 	 */
-	attachSub : function ( elm ) {
-		this._attach ( elm, true, false );
+	spiritualizeSub : function ( elm ) {
+		this._spiritualize ( elm, true, false );
 	},
 
 	/**
-	 * Attach one spirit non-crawling.
+	 * Possess one element non-crawling.
 	 * @param {Element} elm
 	 */
-	attachOne : function ( elm ) {
-		this._attach ( elm, false, true );
+	spiritualizeOne : function ( elm ) {
+		this._spiritualize ( elm, false, true );
 	},
 
 	/**
-	 * Detach spirits from element and descendants.
+	 * Dispell spirits from element and descendants.
 	 * @param {Element} elm
 	 */
-	detach : function ( elm ) {
-		this._detach ( elm, false, false );
+	materialize : function ( elm ) {
+		this._materialize ( elm, false, false );
 	},
 
 	/**
-	 * Detach spirits for descendants.
+	 * Dispell spirits for descendants.
 	 * @param {Element} elm
 	 */
-	detachSub : function ( elm ) {
-		this._detach ( elm, true, false );
+	materializeSub : function ( elm ) {
+		this._materialize ( elm, true, false );
 	},
 
 	/**
-	 * Detach one spirit non-crawling.
+	 * Dispell one spirit non-crawling.
 	 * @param {Element} elm
 	 */
-	detachOne : function ( elm ) {
-		this._detach ( elm, false, true );
+	materializeOne : function ( elm ) {
+		this._materialize ( elm, false, true );
 	},
 
 	/**
-	 * Detach spirits from element and descendants.
+	 * Dispell spirits from element and descendants.
+	 * TODO: rename "dispell" or "excorsize"...
 	 * @param {Node} node
 	 * @param @optional {boolean} unloading Trigger synchronous destruction of spirit on unload.
 	 */
@@ -148,7 +148,6 @@ gui.Guide = {
 	 * @returns {Spirit}
 	 */
 	possess : function ( element, C ) {
-
 		var spirit = new C ();
 		spirit.element = element;
 		spirit.document = element.ownerDocument;
@@ -269,10 +268,10 @@ gui.Guide = {
 		var sig = win.gui.signature;
 
 		// broadcast before and after spirits attach
-		this.attachOne ( doc.documentElement );
+		this.spiritualizeOne ( doc.documentElement );
 		if ( win.gui.mode !== gui.MODE_MANAGED ) {
 			gui.broadcast ( gui.BROADCAST_WILL_SPIRITUALIZE, sig );
-			this.attachSub ( doc.documentElement );
+			this.spiritualizeSub ( doc.documentElement );
 			gui.broadcast ( gui.BROADCAST_DID_SPIRITUALIZE, sig );
 		}
 	},
@@ -341,7 +340,7 @@ gui.Guide = {
 	 * @param {boolean} skip Skip the element?
 	 * @param {boolean} one Skip the subtree?
 	 */
-	_attach : function ( node, skip, one ) {
+	_spiritualize : function ( node, skip, one ) {
 		var hack = node.ownerDocument.title === "Modes";
 
 		if ( this._handles ( node )) {
@@ -403,7 +402,7 @@ gui.Guide = {
 	 * @param {boolean} skip Skip the element?
 	 * @param {boolean} one Skip the subtree?
 	 */
-	_detach : function ( elm, skip, one ) {
+	_materialize : function ( elm, skip, one ) {
 		if ( this._handles ( elm )) {
 			this._collect ( elm, skip, gui.CRAWLER_DETACH ).forEach ( function detach ( spirit ) {
 				if ( spirit.life.attached && !spirit.life.destructed ) {

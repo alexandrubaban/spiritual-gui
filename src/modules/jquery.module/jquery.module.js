@@ -55,10 +55,10 @@ gui.module ( "jquery", {
 		/**
 		 * Attach spirits to collection.
 		 */
-		jq.fn.__attach = function () {
+		jq.fn.__spiritualize = function () {
 			return this.each ( function ( i, el ) {
 				if ( indom ( el )) {
-					guide.attach ( el );
+					guide.spiritualize ( el );
 				}
 			});
 		};
@@ -66,10 +66,10 @@ gui.module ( "jquery", {
 		/**
 		 * Attach spirits to collection subtree.
 		 */
-		jq.fn.__attachSub = function () {
+		jq.fn.__spiritualizeSub = function () {
 			return this.each ( function ( i, el ) {
 				if ( indom ( el )) {
-					guide.attachSub ( el );
+					guide.spiritualizeSub ( el );
 				}
 			});
 		};
@@ -77,10 +77,10 @@ gui.module ( "jquery", {
 		/**
 		 * Attach spirits to collection non-crawling.
 		 */
-		jq.fn.__attachOne = function () {
+		jq.fn.__spiritualizeOne = function () {
 			return this.each ( function ( i, el ) {
 				if ( indom ( el )) {
-					guide.attachOne ( el );
+					guide.spiritualizeOne ( el );
 				}
 			});
 		};
@@ -88,10 +88,10 @@ gui.module ( "jquery", {
 		/**
 		 * Detach spirits from collection.
 		 */
-		jq.fn.__detach = function ( skip ) {
+		jq.fn.__materialize = function ( skip ) {
 			return this.each ( function ( i, el ) {
 				if ( indom ( el )) {
-					guide.detach ( el );
+					guide.materialize ( el );
 				}
 			});
 		};
@@ -99,10 +99,10 @@ gui.module ( "jquery", {
 		/**
 		 * Detach spirits from collection subtree.
 		 */
-		jq.fn.__detachSub = function ( skip ) {
+		jq.fn.__materializeSub = function ( skip ) {
 			return this.each ( function ( i, el ) {
 				if ( indom ( el )) {
-					guide.detachSub ( el );
+					guide.materializeSub ( el );
 				}
 			});
 		};
@@ -110,10 +110,10 @@ gui.module ( "jquery", {
 		/**
 		 * Detach spirits from collection non-crawling.
 		 */
-		jq.fn.__detachOne = function () {
+		jq.fn.__materializeOne = function () {
 			return this.each ( function ( i, el ) {
 				if ( indom ( el )) {
-					guide.detachOne ( el );
+					guide.materializeOne ( el );
 				}
 			});
 		};
@@ -184,7 +184,7 @@ gui.module ( "jquery", {
 					res = suber ();
 				} else if ( name === "text" ) {
 					if ( set ) {
-						this.__detachSub ();
+						this.__materializeSub ();
 					}
 					res = suber ();
 				} else {
@@ -195,7 +195,7 @@ gui.module ( "jquery", {
 						case "append" :
 						case "prepend" :
 							res = suber ();
-							this.__attachSub (); // @todo optimize!!!
+							this.__spiritualizeSub (); // @todo optimize!!!
 							break;
 						case "after" :
 						case "before" :
@@ -203,7 +203,7 @@ gui.module ( "jquery", {
 							// Stuff becomes extra tricky since "this" can itself be a list.
 							( function () {
 								var is = name === "after";
-								var key = "isattached";
+								var key = "isspiritualized";
 								var olds = is ? this.nextAll () : this.prevAll ();
 								olds.data ( key, "true" ); // mark current siblings
 								res = suber ();
@@ -211,7 +211,7 @@ gui.module ( "jquery", {
 								news.each(function ( i, m ) {
 									m = jq ( m );
 									if ( !m.data ( key )) {
-										m.__attach (); // attach unmarked sibling
+										m.__spiritualize (); // spiritualize unmarked sibling
 										m.data ( key, "true" );
 									}
 								});
@@ -223,66 +223,66 @@ gui.module ( "jquery", {
 						case "appendTo" :
 							res = suber ();
 							arg().each ( function ( i, m ) {
-								jq ( m ).last ().__attach ();
+								jq ( m ).last ().__spiritualize ();
 							});
 							break;
 						case "prependTo" :
 							res = suber ();
 							arg().each ( function ( i, m ) {
-								jq ( m ).first ().__attach ();
+								jq ( m ).first ().__spiritualize ();
 							});
 							break;
 						case "insertAfter" :
 							res = suber ();
-							arg().next ().__attach ();
+							arg().next ().__spiritualize ();
 							break;
 						case "insertBefore" :
 							res = suber ();
-							arg().prev ().__attach ();
+							arg().prev ().__spiritualize ();
 							break;
 						case "detach" :
 						case "remove" :
-							this.__detach ();
+							this.__materialize ();
 							res = suber ();
 							break;
 						case "replaceAll" :
-							arg().__detach ();
+							arg().__materialize ();
 							res = suber ();
-							this.parent ().__attachSub (); // @todo optimize!
+							this.parent ().__spiritualizeSub (); // @todo optimize!
 							break;
 						case "replaceWith" :
-							this.__detach ();
+							this.__materialize ();
 							var p = this.parent ();
 							res = suber ();
-							p.__attachSub (); // @todo optimize!
+							p.__spiritualizeSub (); // @todo optimize!
 							break;
 						case "empty" :
-							this.__detachSub ();
+							this.__materializeSub ();
 							res = suber ();
 							break;
 						case "html" :
 							if ( set ) {
-								this.__detachSub ();
+								this.__materializeSub ();
 							}
 							res = suber ();
 							if ( set ) {
-								this.__attachSub ();
+								this.__spiritualizeSub ();
 							}
 							break;
 						case "unwrap" :
-							// note: detachment is skipped here!
-							this.parent ().__detachOne ();
+							// note: materializement is skipped here!
+							this.parent ().__materializeOne ();
 							res = suber ();
 							break;
 						case "wrap" :
 						case "wrapAll" :
-							// note: detachment is skipped here!
+							// note: materializement is skipped here!
 							res = suber ();
-							this.parent ().__attachOne ();
+							this.parent ().__spiritualizeOne ();
 							break;
 						case "wrapInner" :
 							res = suber ();
-							this.__attach ();
+							this.__spiritualize ();
 							break;
 					}
 					jq.__suspend = false;
@@ -293,7 +293,7 @@ gui.module ( "jquery", {
 	},
 	
 	/**
-	 * Overload Spiritual to attach/detach spirits on DOM mutation and to 
+	 * Overload Spiritual to spiritualize/materialize spirits on DOM mutation and to 
 	 * suspend mutation monitoring while DOM updating. This would normally 
 	 * be baked into native DOM methods appendChild, removeChild and so on.
 	 * @see {gui.DOMPlugin}
@@ -324,13 +324,13 @@ gui.module ( "jquery", {
 				var res, b = breakdown ( this.spirit );
 				if ( b.is$ ) {
 					if ( b.dom ){
-						gui.Guide.detachSub ( b.elm );
+						gui.Guide.materializeSub ( b.elm );
 					}
 					res = gui.Observer.suspend ( b.elm, function () {
 						return old.call ( this, arg );
 					}, this );
 					if ( b.dom && method === "html" ) {
-						gui.Guide.attachSub ( b.elm );
+						gui.Guide.spiritualizeSub ( b.elm );
 					}
 				} else {
 					res = old.call ( this, arg );
@@ -347,7 +347,7 @@ gui.module ( "jquery", {
 				var res, b = breakdown ( this.spirit );
 				if ( b.is$ ) {
 					if ( b.dom ) {
-						gui.Guide.detach ( b.elm );
+						gui.Guide.materialize ( b.elm );
 					}
 					res = gui.Observer.suspend ( b.elm, function () {
 						return old.call ( this, arg );
@@ -374,7 +374,7 @@ gui.module ( "jquery", {
 							return thing && thing instanceof gui.Spirit ? thing.element : thing;
 						});
 						els.forEach ( function ( el ) {
-							gui.Guide.attach ( el );
+							gui.Guide.spiritualize ( el );
 						});
 					}
 				} else {

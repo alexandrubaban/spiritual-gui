@@ -54,16 +54,16 @@ gui.DOMCombos = {
 		 * Attach node plus subtree.
 		 * @param {Node} node
 		 */
-		var attachafter = combo.after ( function ( node ) {
-			guide.attach ( node );
+		var spiritualizeafter = combo.after ( function ( node ) {
+			guide.spiritualize ( node );
 		});
 
 		/**
 		 * Detach node plus subtree.
 		 * @param {Node} node
 		 */
-		var detachbefore = combo.before ( function ( node ) {
-			guide.detach ( node );
+		var materializebefore = combo.before ( function ( node ) {
+			guide.materialize ( node );
 		});
 
 		/**
@@ -71,8 +71,8 @@ gui.DOMCombos = {
 		 * @param {Node} newnode
 		 * @param {Node} oldnode
 		 */
-		var attachnewafter = combo.after ( function ( newnode, oldnode ) {
-			guide.attach ( newnode );
+		var spiritualizenewafter = combo.after ( function ( newnode, oldnode ) {
+			guide.spiritualize ( newnode );
 		});
 
 		/**
@@ -80,8 +80,8 @@ gui.DOMCombos = {
 		 * @param {Node} newnode
 		 * @param {Node} oldnode
 		 */
-		var detacholdbefore = combo.before ( function ( newnode, oldnode ) {
-			guide.detach ( oldnode );
+		var materializeoldbefore = combo.before ( function ( newnode, oldnode ) {
+			guide.materialize ( oldnode );
 		});
 
 		/**
@@ -119,31 +119,31 @@ gui.DOMCombos = {
 		/**
 		 * Detach subtree of `this`.
 		 */
-		var detachsubbefore = combo.before ( function () {
-			guide.detachSub ( this );
+		var materializesubbefore = combo.before ( function () {
+			guide.materializeSub ( this );
 		});
 
 		/**
 		 * Attach subtree of `this`
 		 */
-		var attachsubafter = combo.after ( function () {
-			guide.attachSub ( this );
+		var spiritualizesubafter = combo.after ( function () {
+			guide.spiritualizeSub ( this );
 		});
 
 		/**
 		 * Detach `this`.
 		 */
 		var parent = null; // @todo unref this at some point
-		var detachthisbefore = combo.before ( function () {
+		var materializethisbefore = combo.before ( function () {
 			parent = this.parentNode;
-			guide.detach ( this );
+			guide.materialize ( this );
 		});
 
 		/**
 		 * Attach parent.
 		 */
-		var attachparentafter = combo.after ( function () {
-			guide.attach ( parent );
+		var spiritualizeparentafter = combo.after ( function () {
+			guide.spiritualize ( parent );
 		});
 
 		/**
@@ -181,7 +181,7 @@ gui.DOMCombos = {
 			appendChild : function ( base ) {
 				return (
 					ifenabled ( 
-						ifembedded ( attachafter ( patchafter ( suspending ( base ))), 
+						ifembedded ( spiritualizeafter ( patchafter ( suspending ( base ))), 
 						otherwise ( base )),
 					otherwise ( base ))
 				);
@@ -189,7 +189,7 @@ gui.DOMCombos = {
 			removeChild : function ( base ) {
 				return (
 					ifenabled ( 
-						ifembedded ( detachbefore ( suspending ( base )),
+						ifembedded ( materializebefore ( suspending ( base )),
 						otherwise ( base )),
 					otherwise ( base ))
 				);
@@ -197,7 +197,7 @@ gui.DOMCombos = {
 			insertBefore : function ( base ) {
 				return (
 					ifenabled ( 
-						ifembedded ( attachafter ( patchafter ( suspending ( base ))), 
+						ifembedded ( spiritualizeafter ( patchafter ( suspending ( base ))), 
 						otherwise ( base )),
 					otherwise ( base ))
 				);
@@ -205,7 +205,7 @@ gui.DOMCombos = {
 			replaceChild : function ( base ) {
 				return (
 					ifenabled ( 
-						ifembedded ( detacholdbefore ( attachnewafter ( patchafter ( suspending ( base )))), 
+						ifembedded ( materializeoldbefore ( spiritualizenewafter ( patchafter ( suspending ( base )))), 
 						otherwise ( base )),
 					otherwise ( base ))
 				);
@@ -233,7 +233,7 @@ gui.DOMCombos = {
 			innerHTML : function ( base ) {
 				return (
 					ifenabled ( 
-						ifembedded ( detachsubbefore ( attachsubafter ( suspending ( base ))),
+						ifembedded ( materializesubbefore ( spiritualizesubafter ( suspending ( base ))),
 						otherwise ( base )),
 					otherwise ( base ))
 				);
@@ -241,7 +241,7 @@ gui.DOMCombos = {
 			outerHTML : function ( base ) {
 				return (
 					ifenabled ( 
-						ifembedded ( detachthisbefore ( attachparentafter ( suspending ( base ))),
+						ifembedded ( materializethisbefore ( spiritualizeparentafter ( suspending ( base ))),
 						otherwise ( base )),
 					otherwise ( base ))
 				);
@@ -249,7 +249,7 @@ gui.DOMCombos = {
 			textContent : function ( base ) {
 				return (
 					ifenabled ( 
-						ifembedded ( detachsubbefore ( suspending ( base )),
+						ifembedded ( materializesubbefore ( suspending ( base )),
 						otherwise ( base )),
 					otherwise ( base ))
 				);

@@ -152,7 +152,7 @@ gui.DOMPlugin = gui.Plugin.extend ( "gui.DOMPlugin", {
 	 * Spiritual-aware innerHTML with special setup for WebKit.
 	 * Parse markup to node(s)
 	 * Detach spirits and remove old nodes
-	 * Append new nodes and attach spirits
+	 * Append new nodes and spiritualize spirits
 	 * @param {Element} element
 	 * @param @optional {String} markup
 	 */
@@ -163,7 +163,7 @@ gui.DOMPlugin = gui.Plugin.extend ( "gui.DOMPlugin", {
 				var nodes = new gui.HTMLParser ( 
 					element.ownerDocument 
 				).parse ( markup, element );
-				guide.detachSub ( element );
+				guide.materializeSub ( element );
 				guide.suspend ( function () {
 					gui.Observer.suspend ( element, function () {
 						while ( element.firstChild ) {
@@ -174,7 +174,7 @@ gui.DOMPlugin = gui.Plugin.extend ( "gui.DOMPlugin", {
 						});
 					});
 				});
-				guide.attachSub ( element );
+				guide.spiritualizeSub ( element );
 			}
 		} else {
 			// throw new TypeError ();
@@ -197,7 +197,7 @@ gui.DOMPlugin = gui.Plugin.extend ( "gui.DOMPlugin", {
 					element.ownerDocument 
 				).parse ( markup, element );
 				var parent = element.parentNode;
-				guide.detach ( element );
+				guide.materialize ( element );
 				guide.suspend ( function () {
 					gui.Observer.suspend ( parent, function () {
 						while ( nodes.length ) {
@@ -206,7 +206,7 @@ gui.DOMPlugin = gui.Plugin.extend ( "gui.DOMPlugin", {
 						parent.removeChild ( element );
 					});
 				});
-				guide.attachSub ( parent ); // @todo optimize
+				guide.spiritualizeSub ( parent ); // @todo optimize
 				res = element; // bad API design goes here...
 			}
 		} else {
