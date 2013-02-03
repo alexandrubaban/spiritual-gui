@@ -35,88 +35,26 @@ gui.module ( "jquery", {
 	// Private .............................................................
 
 	/**
-	 * Injecting Spiritual awareness into 
-	 * JQuery DOM manipulation methods.
+	 * Generating spirit management methods.
 	 * @param {jQuery} jq
 	 */
 	_expandos : function ( jq ) {
 		var guide = gui.Guide;
 		jq.__suspend = false;
-
-		/**
-		 * Element in page DOM?
-		 * @param {Element} el
-		 * @returns {boolean}
-		 */
-		function indom ( el ) {
-			return gui.DOMPlugin.embedded ( el );
-		}
-
-		/**
-		 * Attach spirits to collection.
-		 */
-		jq.fn.__spiritualize = function () {
-			return this.each ( function ( i, el ) {
-				if ( indom ( el )) {
-					guide.spiritualize ( el );
-				}
-			});
-		};
-
-		/**
-		 * Attach spirits to collection subtree.
-		 */
-		jq.fn.__spiritualizeSub = function () {
-			return this.each ( function ( i, el ) {
-				if ( indom ( el )) {
-					guide.spiritualizeSub ( el );
-				}
-			});
-		};
-
-		/**
-		 * Attach spirits to collection non-crawling.
-		 */
-		jq.fn.__spiritualizeOne = function () {
-			return this.each ( function ( i, el ) {
-				if ( indom ( el )) {
-					guide.spiritualizeOne ( el );
-				}
-			});
-		};
-
-		/**
-		 * Detach spirits from collection.
-		 */
-		jq.fn.__materialize = function ( skip ) {
-			return this.each ( function ( i, el ) {
-				if ( indom ( el )) {
-					guide.materialize ( el );
-				}
-			});
-		};
-
-		/**
-		 * Detach spirits from collection subtree.
-		 */
-		jq.fn.__materializeSub = function ( skip ) {
-			return this.each ( function ( i, el ) {
-				if ( indom ( el )) {
-					guide.materializeSub ( el );
-				}
-			});
-		};
-
-		/**
-		 * Detach spirits from collection non-crawling.
-		 */
-		jq.fn.__materializeOne = function () {
-			return this.each ( function ( i, el ) {
-				if ( indom ( el )) {
-					guide.materializeOne ( el );
-				}
-			});
-		};
+		[ 
+			"spiritualize", 
+			"spiritualizeSub", 
+			"spiritualizeOne",
+			"materialize", 
+			"materializeSub", 
+			"materializeOne" 
+		].forEach ( function ( method ) {
+			jq.fn [ "__" + method ] = function () {
+				return this.each ( function ( i, el ) {
+					gui.Guide [ method ] ( el );
+				});
+			};
+		});
 	},
 
 	/**
@@ -147,6 +85,7 @@ gui.module ( "jquery", {
 	 * @param {function} jq Constructor
 	 */
 	_overload : function ( jq ) {
+		var module = this;
 		var naive = Object.create ( null ); // mapping unmodified methods
 		[
 			"after", 
@@ -194,31 +133,11 @@ gui.module ( "jquery", {
 					switch ( name ) {
 						case "append" :
 						case "prepend" :
-							res = suber ();
-							this.__spiritualizeSub (); // @todo optimize!!!
+							res = module._append_prepend.call ( this, name === "append", suber, jq );
 							break;
 						case "after" :
 						case "before" :
-							// Can't use arguments here since JQuery inserts clones thereof.
-							// Stuff becomes extra tricky since "this" can itself be a list.
-							( function () {
-								var is = name === "after";
-								var key = "isspiritualized";
-								var olds = is ? this.nextAll () : this.prevAll ();
-								olds.data ( key, "true" ); // mark current siblings
-								res = suber ();
-								var news = is ? this.nextAll () : this.prevAll ();
-								news.each(function ( i, m ) {
-									m = jq ( m );
-									if ( !m.data ( key )) {
-										m.__spiritualize (); // spiritualize unmarked sibling
-										m.data ( key, "true" );
-									}
-								});
-								gui.Tick.next ( function () {
-									news.removeData ( key ); // cleanup all this
-								});
-							}).call ( this );
+							res = module._after_before.call ( this, name === "after", suber, jq );
 							break;
 						case "appendTo" :
 							res = suber ();
@@ -383,5 +302,61 @@ gui.module ( "jquery", {
 				return res;
 			};
 		});
+	},
+
+	/**
+	 * Optimizing JQuery append() and prepend().
+	 * @param {boolean} append
+	 * @param {function} suber
+	 */
+	_append_prepend : function ( append, suber ) {
+		var last = "lastElementChild";
+		var fist = "firstElementChild";
+		var next = "nextElementSibling";
+		var prev = "previousElementSibling";
+		var current = Array.map ( this, function ( elm ) {
+			return elm [ append ? last : fist ];
+		});
+		var old, res = suber ();
+		this.each ( function ( index, elm ) {
+			if (( old = current [ index ])) {
+				elm = old [ append ? next : prev ];
+			} else {
+				elm = elm.firstElementChild;
+			}
+			gui.Guide.spiritualize ( elm );	
+			elm = elm [ append ? next : prev ];
+		});
+		return res;
+	},
+
+	/**
+	 * Attempting Query after() and before(). Note that arguments to the methods 
+	 * are useless for this purpose becayse JQuery creates clones in the process.
+	 * @param {boolean} after
+	 * @param {function} suber
+	 * @param {jQuery} jq
+	 */
+	_after_before : function ( after, suber, jq ) {
+		var next = "nextElementSibling";
+		var prev = "previousElementSibling";
+		var sibling, siblings, current = [];
+		this.each ( function ( i, elm ) {
+			sibling = elm [ after ? next : prev ];
+			while ( sibling && current.indexOf ( sibling ) === -1 ) {
+				current.push ( sibling );
+				sibling = sibling [ after ? next : prev ]
+			}
+		});
+		var res = suber ();
+		this.each ( function ( i, elm ) {
+			sibling = elm [ after ? next : prev ];
+			while ( sibling && current.indexOf ( sibling ) === -1 ) {
+				gui.Guide.spiritualize ( sibling );
+				sibling = sibling [ after ? next : prev ];
+			}
+		});
+		return res;
 	}
+	
 });
