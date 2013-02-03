@@ -1,17 +1,18 @@
 /**
+ * # gui.DOMPlugin
  * DOM query and manipulation.
- * TODO: implement missing stuff
- * TODO: performance for all this
+ * @extends {gui.Plugin}
+ * @todo implement missing stuff
+ * @todo performance for all this
  */
-gui.SpiritDOM = gui.SpiritPlugin.extend ( "gui.SpiritDOM", {
-	
+gui.DOMPlugin = gui.Plugin.extend ( "gui.DOMPlugin", {
+
 	/**
 	 * Get or set element id.
 	 * @param @optional {String} id
 	 * @returns {object} String or gui.Spirit
 	 */
-	id : function ( id ) {
-		
+	id : function ( id ) {	
 		var res = this;
 		if ( id !== undefined ) {
 			this.spirit.element.id = id;
@@ -21,14 +22,13 @@ gui.SpiritDOM = gui.SpiritPlugin.extend ( "gui.SpiritDOM", {
 		}
 		return res;
 	},
-
-	/** 
-	 * Get spirit element tagname; or magically create element of given tagname.
+ 
+	/**
+	 * Get spirit element tagname or create an element of given tagname.
 	 * @param {String} name If present, create an element
 	 * @param @optional {String} namespace (TODO)
 	 */
 	tag : function ( name ) {
-
 		var res = null;
 		if ( name ) {
 			res = this.spirit.document.createElement ( name );
@@ -37,29 +37,27 @@ gui.SpiritDOM = gui.SpiritPlugin.extend ( "gui.SpiritDOM", {
 		}
 		return res;
 	},
-	
+
 	/**
 	 * Get or set element title (tooltip).
 	 * @param @optional {String} title
 	 * @returns {String}
 	 */
 	title : function ( title ) {
-		
 		var element = this.spirit.element;
 		if ( gui.Type.isDefined ( title )) {
 			element.title = title ? title : "";
 		}
 		return element.title;
 	},
-	
+
 	/**
 	 * Is positioned in page DOM? Otherwise plausible 
 	 * createElement or documentFragment scenario.
 	 * @returns {boolean}
 	 */
 	embedded : function () {
-
-		return gui.SpiritDOM.embedded ( this.spirit.element );
+		return gui.DOMPlugin.embedded ( this.spirit.element );
 	},
 
 	/**
@@ -69,36 +67,33 @@ gui.SpiritDOM = gui.SpiritPlugin.extend ( "gui.SpiritDOM", {
 	 * @returns {object} String or gui.Spirit (returns the spirit when setting)
 	 */
 	html : function ( html, position ) {
-		
 		var res = this.spirit, element = res.element;
 		if ( gui.Type.isString ( html )) {
 			if ( position ) {
-				element.insertAdjacentHTML ( position, html ); // TODO: spiritualize this :)
+				element.insertAdjacentHTML ( position, html ); // @todo spiritualize this :)
 			} else {
-				gui.SpiritDOM.html ( element, html );
+				gui.DOMPlugin.html ( element, html );
 			}			
 		} else {
 			res = element.innerHTML;
 		}
 		return res;
 	},
-	
+
 	/**
 	 * Empty spirit subtree.
 	 * @returns {gui.Spirit}
 	 */
 	empty : function () {
-		
 		return this.html ( "" );
 	},
-	
+
 	/**
 	 * Get or set element textContent.
 	 * @param @optional {String} text
 	 * @returns {object} String or gui.Spirit
 	 */
 	text : function ( text ) {
-		
 		var elm = this.spirit.element;
 		if ( gui.Type.isString ( text )) {
 			elm.textContent = text;
@@ -111,54 +106,40 @@ gui.SpiritDOM = gui.SpiritPlugin.extend ( "gui.SpiritDOM", {
 	 * @return {Element}
 	 */
 	clone : function () {
-
 		return this.spirit.element.cloneNode ( true );
 	},
-	
-	
-	// Visibility ...................................................................
-	
-	/**
-	 * TODO: keep this updated!
-	 * @type {boolean}
-	 */
-	apparent : true,
-	
+
 	/**
 	 * Show spirit element, recursively informing descendants.
 	 */
 	show : function () {
-		
 		this.spirit.css.remove("_gui-invisible");
 		this.spirit.visible ();
 	},
-	
+
 	/**
 	 * Hide spirit element, recursively informing descendants.
 	 */
 	hide : function () {
-		
 		this.spirit.css.add("_gui-invisible");
 		this.spirit.invisible ();
 	},	
 	
-	// PRIVATES .....................................................................
-	
+	// Private .....................................................................
+
 	/**
-	 * TODO: Explain custom "this" keyword in selector.
+	 * @todo Explain custom `this` keyword in selector.
 	 * @param {String} selector
 	 * @returns {String}
 	 */
 	_qualify : function ( selector ) {
-		
-		return gui.SpiritDOM._qualify ( selector, this.spirit.element );
+		return gui.DOMPlugin._qualify ( selector, this.spirit.element );
 	}
 	
 	
-}, {}, { // STATICS ...............................................................
+}, {}, { // Static ...............................................................
 
 	/**
-	 * @static
 	 * Match custom "this" keyword in CSS selector. We use this to start 
 	 * selector expressions with "this>*" to find immediate child, but 
 	 * maybe we should look into the spec for something instead. The goal 
@@ -166,29 +147,26 @@ gui.SpiritDOM = gui.SpiritPlugin.extend ( "gui.SpiritDOM", {
 	 * @type {RegExp}
 	 */
 	_thiskeyword : /^this|,this/g, // /^this\W|,this\W|^this$/g
-	
+
 	/**
-	 * Spiritual-aware innerHTML, special setup for WebKit.
+	 * Spiritual-aware innerHTML with special setup for WebKit.
+	 * Parse markup to node(s)
+	 * Detach spirits and remove old nodes
+	 * Append new nodes and spiritualize spirits
 	 * @param {Element} element
 	 * @param @optional {String} markup
 	 */
 	html : function ( element, markup ) {
-		
 		var guide = gui.Guide;
 		if ( element.nodeType === Node.ELEMENT_NODE ) {
 			if ( gui.Type.isString ( markup )) {
-
-				// parse markup to node(s)
 				var nodes = new gui.HTMLParser ( 
 					element.ownerDocument 
 				).parse ( markup, element );
-
-				// detach spirits and remove old nodes
-				// append new nodes and attach spirits
-				guide.detachSub ( element );
+				guide.materializeSub ( element );
 				guide.suspend ( function () {
 					gui.Observer.suspend ( element, function () {
-						while ( element.firstChild ) { // TODO: why hasChildNodes() fail in Aurora?
+						while ( element.firstChild ) {
 							element.removeChild ( element.firstChild );
 						}
 						nodes.forEach ( function ( node ) {
@@ -196,33 +174,30 @@ gui.SpiritDOM = gui.SpiritPlugin.extend ( "gui.SpiritDOM", {
 						});
 					});
 				});
-				guide.attachSub ( element );
+				guide.spiritualizeSub ( element );
 			}
 		} else {
 			// throw new TypeError ();
 		}
-		return element.innerHTML; // TODO: skip this step on setter
+		return element.innerHTML; // @todo skip this step on setter
 	},
 
 	/**
 	 * Spiritual-aware outerHTML, special setup for WebKit.
+	 * @todo can outerHTML carry multiple nodes???
 	 * @param {Element} element
 	 * @param @optional {String} markup
 	 */
 	outerHtml : function ( element, markup ) {
-
 		var res = element.outerHTML;
 		var guide = gui.Guide;
 		if ( element.nodeType ) {
 			if ( gui.Type.isString ( markup )) {
-
-				// parse markup to node(s) - TODO: can outerHTML carry multiple nodes?
 				var nodes = new gui.HTMLParser ( 
 					element.ownerDocument 
 				).parse ( markup, element );
-
 				var parent = element.parentNode;
-				guide.detach ( element );
+				guide.materialize ( element );
 				guide.suspend ( function () {
 					gui.Observer.suspend ( parent, function () {
 						while ( nodes.length ) {
@@ -231,23 +206,21 @@ gui.SpiritDOM = gui.SpiritPlugin.extend ( "gui.SpiritDOM", {
 						parent.removeChild ( element );
 					});
 				});
-				guide.attachSub ( parent ); // TODO: optimize
+				guide.spiritualizeSub ( parent ); // @todo optimize
 				res = element; // bad API design goes here...
 			}
 		} else {
 			throw new TypeError ();
 		}
-		return res; // TODO: skip this step on setter
+		return res; // @todo skip this step on setter
 	},
-	
+
 	/**
-	 * @static
 	 * Get ordinal position of element within container.
 	 * @param {Element} element
 	 * @returns {number}
 	 */
 	ordinal : function ( element ) {
-		
 		var result = 0; 
 		var node = element.parentNode.firstElementChild;
 		while ( node !== null ) {
@@ -263,19 +236,17 @@ gui.SpiritDOM = gui.SpiritPlugin.extend ( "gui.SpiritDOM", {
 
 	/**
 	 * Is node in found in page DOM? Otherwise probable createElement scenario.
-	 * TODO: comprehend https://developer.mozilla.org/en/JavaScript/Reference/Operators/Bitwise_Operators#Example:_Flags_and_bitmasks
+	 * @todo comprehend https://developer.mozilla.org/en/JavaScript/Reference/Operators/Bitwise_Operators#Example:_Flags_and_bitmasks
 	 * @param {Element} element
 	 * @returns {boolean}
 	 */
 	embedded : function ( node ) {
-
 		node = node instanceof gui.Spirit ? node.element : node;
 		var check = Node.DOCUMENT_POSITION_CONTAINS + Node.DOCUMENT_POSITION_PRECEDING;
 		return node.compareDocumentPosition ( node.ownerDocument ) === check;
 	},
 
 	/**
-	 * @static
 	 * Get list of all elements that matches a selector.
 	 * Optional type argument filters to spirits of type.
 	 * @param {Node} node
@@ -284,8 +255,7 @@ gui.SpiritDOM = gui.SpiritPlugin.extend ( "gui.SpiritDOM", {
 	 * @returns {Array<object>} List of Element or gui.Spirit
 	 */
 	qall : function ( node, selector, type ) {
-		
-		selector = gui.SpiritDOM._qualify ( selector, node );
+		selector = gui.DOMPlugin._qualify ( selector, node );
 		var result = gui.Type.list ( node.querySelectorAll ( selector ));
 		if ( type ) {
 			result = result.filter ( function ( el )  {
@@ -296,24 +266,22 @@ gui.SpiritDOM = gui.SpiritPlugin.extend ( "gui.SpiritDOM", {
 		}
 		return result;
 	},
-	
+
 	/**
-	 * @static
 	 * Replace proprietary "this" keyword in CSS selector with element nodename.
-	 * TODO: There was something about a "scope" or similar keyword in CSS4??? 
+	 * @todo There was something about a "scope" or similar keyword in CSS4??? 
 	 * @param {String} selector
 	 * @param {Node} node
 	 * @returns {String}
 	 */
 	_qualify : function ( selector, node ) {
-		
 		var result = selector.trim ();
 		switch ( node.nodeType ) {
 			case Node.ELEMENT_NODE :
-				result = selector.replace ( gui.SpiritDOM._thiskeyword, node.localName );
+				result = selector.replace ( gui.DOMPlugin._thiskeyword, node.localName );
 				break;
 			case Node.DOCUMENT_NODE :
-				// TODO: use ":root" for something?
+				// @todo use ":root" for something?
 				break;
 		}
 		return result;
@@ -322,10 +290,8 @@ gui.SpiritDOM = gui.SpiritPlugin.extend ( "gui.SpiritDOM", {
 });
 
 
-// GENERATED METHODS ........................................................................
-
-/*
- * CSS query methods accept a CSS selector and an optional spirit constructor 
+/**
+ * Generate CSS query methods accept a CSS selector and an optional spirit constructor 
  * as arguments. They return a spirit, an element or an array of either.
  */
 gui.Object.each ({
@@ -337,10 +303,9 @@ gui.Object.each ({
 	 * performs slower than betting on <code>this.dom.q ( "tagname" ).spirit</code>
 	 * @param {String} selector
 	 * @param @optional {function} type Spirit constructor (eg. gui.Spirit)
-	 * @returns {object} Element or gui.Spirit
+	 * @returns {Element|gui.Spirit}
 	 */
-	q : function ( selector, type ) {
-		
+	q : function ( selector, type ) {	
 		var result = null;
 		selector = this._qualify ( selector );
 		if ( type ) {
@@ -350,52 +315,48 @@ gui.Object.each ({
 		}
 		return result;
 	},
-	
+
 	/**
 	 * Get list of all descendant elements that matches a selector. Optional type  
 	 * arguments returns instead all associated spirits to match the given type.
 	 * @param {String} selector
 	 * @param @optional {function} type Spirit constructor
-	 * @returns {Array<object>} List of Element or gui.Spirit
+	 * @returns {Array<Element|gui.Spirit>}
 	 */
 	qall : function ( selector, type ) {
-		
 		selector = this._qualify ( selector );
-		return gui.SpiritDOM.qall ( this.spirit.element, selector, type );
+		return gui.DOMPlugin.qall ( this.spirit.element, selector, type );
 	},
-	
+
 	/**
 	 * Same as q, but scoped from the document root. Use wisely.
 	 * @param {String} selector
 	 * @param @optional {function} type Spirit constructor
-	 * @returns {object} Element or gui.Spirit
+	 * returns {Element|gui.Spirit}
 	 */
 	qdoc : function ( selector, type ) {
-		
 		var root = this.spirit.document.documentElement;
 		return root.spirit.dom.q.apply ( root.spirit.dom, arguments );
 	},
-	
+
 	/**
 	 * Same as qall, but scoped from the document root. Use wisely.
 	 * @param {String} selector
 	 * @param @optional {function} type Spirit constructor
-	 * returns {Array<object>} List of Element or gui.Spirit
+	 * @returns {Array<Element|gui.Spirit>}
 	 */
 	qdocall : function ( selector, type ) {
-		
 		var root = this.spirit.document.documentElement;
 		return root.spirit.dom.qall.apply ( root.spirit.dom, arguments );
 	}
-	
-	/*
-	 * Adding methods to gui.SpiritDOM.prototype
+
+	/**
+	 * Adding methods to gui.DOMPlugin.prototype
 	 * @param {String} name
 	 * @param {function} method
 	 */
-},  function addin ( name, method ) {
-	
-	gui.SpiritDOM.addin ( name, function () {
+}, function addin ( name, method ) {
+	gui.DOMPlugin.addin ( name, function () {
 		var selector = arguments [ 0 ], type = arguments [ 1 ];
 		if ( gui.Type.isString ( selector )) {
 			if ( arguments.length === 1 || gui.Type.isFunction ( type )) {
@@ -410,8 +371,7 @@ gui.Object.each ({
 	});
 });
 
-
-/*
+/**
  * DOM navigation methods accept an optional spirit constructor as 
  * argument. They return a spirit, an element or an array of either.
  */
@@ -420,10 +380,9 @@ gui.Object.each ({
 	/**
 	 * Next element or next spirit of given type.
 	 * @param @optional {function} type Spirit constructor
-	 * @returns {object} Element or gui.Spirit
+	 * @returns {Element|gui.Spirit}
 	 */
-	next : function ( type ) {
-		
+	next : function ( type ) {	
 		var result = null, 
 			spirit = null,
 			el = this.spirit.element;
@@ -440,14 +399,13 @@ gui.Object.each ({
 		}
 		return result;
 	},
-	
+
 	/**
 	 * Previous element or previous spirit of given type.
-	 * @param @optional {function} type
-	 * @returns {object} Element or gui.Spirit
+	 * @param @optional {function} type Spirit constructor
+	 * @returns {Element|gui.Spirit}
 	 */
 	previous : function ( type ) {
-		
 		var result = null,
 			spirit = null,
 			el = this.spirit.element;
@@ -464,14 +422,13 @@ gui.Object.each ({
 		}
 		return result;
 	},
-	
+
 	/**
-	 * Hello.
-	 * @param {function} type
-	 * @returns {object} Element or gui.Spirit
+	 * First element or first spirit of type.
+	 * @param @optional {function} type Spirit constructor
+	 * @returns {Element|gui.Spirit}
 	 */
 	first : function ( type ) {
-		
 		var result = null,
 			spirit = null,
 			el = this.spirit.element.firstElementChild;
@@ -488,14 +445,13 @@ gui.Object.each ({
 		}
 		return result;
 	},
-	
+
 	/**
-	 * Hello.
-	 * @param {function} type
-	 * @returns {object} Element or gui.Spirit
+	 * Last element or last spirit of type.
+	 * @param @optional {function} type Spirit constructor
+	 * @returns {Element|gui.Spirit}
 	 */
 	last : function ( type ) {
-		
 		var result = null,
 			spirit = null,
 			el = this.spirit.element.lastElementChild;
@@ -512,14 +468,13 @@ gui.Object.each ({
 		}
 		return result;
 	},
-	
+
 	/**
-	 * Hello.
-	 * @param {function} type
-	 * @returns {object} Element or gui.Spirit
+	 * Parent parent or parent spirit of type.
+	 * @param @optional {function} type Spirit constructor
+	 * @returns {Element|gui.Spirit}
 	 */
 	parent : function ( type ) {
-		
 		var result = this.spirit.element.parentNode;
 		if ( type ) {
 			var spirit = result.spirit;
@@ -531,14 +486,13 @@ gui.Object.each ({
 		}
 		return result;
 	},
-	
+
 	/**
-	 * Hello.
-	 * @param {function} type
-	 * @returns {object} Element or gui.Spirit
+	 * Child element or child spirit of type.
+	 * @param @optional {function} type Spirit constructor
+	 * @returns {Element|gui.Spirit}
 	 */
 	child : function ( type ) {
-		
 		var result = null,
 			spirit = null,
 			el = this.spirit.element.firstElementChild;
@@ -555,14 +509,14 @@ gui.Object.each ({
 		}
 		return result;
 	},
-	
+
 	/**
-	 * TODO: just use this.element.children :)
-	 * @param {function} type
-	 * @returns {Array<object>} Elements or gui.Spirits
+	 * Children elements or children spirits of type.
+	 * @todo just use this.element.children :)
+	 * @param @optional {function} type Spirit constructor
+	 * @returns {Array<Element|gui.Spirit>}
 	 */
 	children : function ( type ) {
-		
 		var result = [],
 			me = this.spirit.element,
 			el = me.firstElementChild;
@@ -581,14 +535,13 @@ gui.Object.each ({
 		}
 		return result;
 	},
-	
+
 	/**
-	 * First ancestor of given type.
-	 * @param {function} type
-	 * @returns {object} Element or gui.Spirit
+	 * First ancestor element (parent!) or first ancestor spirit of type.
+	 * @param @optional {function} type Spirit constructor
+	 * @returns {Element|gui.Spirit}
 	 */
 	ancestor : function ( type ) {
-		
 		var result = this.parent ();
 		if ( type ) {
 			result = null;
@@ -603,14 +556,13 @@ gui.Object.each ({
 		}
 		return result;
 	},
-	
+
 	/**
-	 * All ancestors of given type.
-	 * @param {function} type
-	 * @returns {Array<object>} Elements or gui.Spirits
+	 * First ancestor elements or ancestor spirits of type.
+	 * @param @optional {function} type Spirit constructor
+	 * @returns {Array<Element|gui.Spirit>}
 	 */
 	ancestors : function ( type ) {
-		
 		var result = [];
 		var crawler = new gui.Crawler ();
 		if ( type ) {	
@@ -630,14 +582,13 @@ gui.Object.each ({
 		}
 		return result;
 	},
-	
+
 	/**
-	 * First descendant of given type.
-	 * @param {function} type
-	 * @returns {object} Element or gui.Spirit
+	 * First descendant element (first child!) first descendant spirit of type.
+	 * @param @optional {function} type Spirit constructor
+	 * @returns {Element|gui.Spirit}
 	 */
 	descendant : function ( type ) {
-		
 		var result = this.child ();
 		var me = this.spirit.element;
 		if ( type ) {
@@ -654,14 +605,13 @@ gui.Object.each ({
 		}
 		return result;
 	},
-	
+
 	/**
-	 * Descendants of given type.
-	 * @param {function} type
-	 * @returns {Array<object>} Elements or gui.Spirits
+	 * All descendant elements or all descendant spirits of type.
+	 * @param @optional {function} type Spirit constructor
+	 * @returns {Array<Element|gui.Spirit>}
 	 */
 	descendants : function ( type ) {
-		
 		var result = [];
 		var me = this.spirit.element;
 		new gui.Crawler ().descend ( me, {
@@ -680,29 +630,30 @@ gui.Object.each ({
 		});
 		return result;
 	}
-	
-	/*
-	 * Adding methods to gui.SpiritDOM.prototype
+
+	/**
+	 * Adding methods to gui.DOMPlugin.prototype
 	 * @param {String} name
 	 * @param {function} method
 	 */
 },  function addin ( name, method ) {
-	
-	gui.SpiritDOM.addin ( name, function ( type ) {
+	gui.DOMPlugin.addin ( name, function ( type ) {
 		if ( !gui.Type.isDefined ( type ) || gui.Type.isFunction ( type )) {
 			return method.apply ( this, arguments );
 		} else {
-			type = gui.Type.of ( type );
-			throw new TypeError ( "Unknown spirit for query: " + name + "(" + type + ")" );
+			throw new TypeError ( 
+				"Unknown spirit for query: " + name + 
+				"(" + gui.Type.of ( type ) + ")" 
+			);
 		}
 	});
 });
 
 
-/*
+/**
  * DOM insertion methods accept one argument: one spirit OR one element OR an array of either or both. 
  * The input argument is returned as given. This allows for the following one-liner to be constructed: 
- * this.something = this.dom.append ( gui.SomeThingSpirit.summon ( this.document )); // imagine 15 more
+ * this.something = this.dom.append ( gui.SomeThingSpirit.summon ( this.document ));  * imagine 15 more
  */
 gui.Object.each ({
 
@@ -712,46 +663,42 @@ gui.Object.each ({
 	 * @returns {object} Returns the argument
 	 */
 	append : function ( things ) {
-		
 		var els = things, element = this.spirit.element;
 		els.forEach ( function ( el ) {
 			element.appendChild ( el );
 		});
 	},
-	
+
 	/**
 	 * Prepend spirit OR element OR array of either.
 	 * @param {object} things Complicated argument
 	 * @returns {object} Returns the argument
 	 */
 	prepend : function ( things ) {
-		
 		var els = things, element = this.spirit.element, first = element.firstChild;
 		els.reverse ().forEach ( function ( el ) {
 			element.insertBefore ( el, first );
 		});
 	},
-	
+
 	/**
 	 * Insert spirit OR element OR array of either before this spirit.
 	 * @param {object} things Complicated argument
 	 * @returns {object} Returns the argument
 	 */
 	before : function ( things ) {
-		
 		var els = things, target = this.spirit.element, parent = target.parentNode;
 		els.reverse ().forEach ( function ( el ) {
 			parent.insertBefore ( el, target );
 		});
 	},
-	
+
 	/**
 	 * Insert spirit OR element OR array of either after this spirit.
 	 * @param {object} things Complicated argument
 	 * @returns {object} Returns the argument
 	 */
 	after : function ( things ) {
-		
 		var els = things, target = this.spirit.element, parent = target.parentNode;
 		els.forEach ( function ( el ) {
 			parent.insertBefore ( el, target.nextSibling );
@@ -762,13 +709,11 @@ gui.Object.each ({
 	 * Removing this spirit from it's parent container. Note that this will 
 	 * schedule destruction of the spirit unless it gets reinserted somewhere. 
 	 * Also note that this method is called on the spirit, not on the parent.
-	 * @returns {gui.Spirit}
+	 * @returns {object} Returns the argument
 	 */
 	remove : function () {
-		
 		var parent = this.spirit.element.parentNode;
 		parent.removeChild ( this.spirit.element );
-		return this;
 	},
 
 	/**
@@ -778,24 +723,22 @@ gui.Object.each ({
 	 * @returns {object} Returns the argument
 	 */
 	replace : function ( things ) {
-
 		this.after ( things );
 		this.remove ();
 	}
-	
-	/*
-	 * Adding methods to gui.SpiritDOM.prototype. These methods come highly overloaded.
-	 * 1) convert input to array of one or more elements
-	 * 2) confirm array of elements
-	 * 3) invoke the method
-	 * 4) return the input
+
+	/**
+	 * Adding methods to gui.DOMPlugin.prototype. These methods come highly overloaded.
+	 * 
+	 * 1. Convert input to array of one or more elements
+	 * 2. Confirm array of elements
+	 * 3. Invoke the method
+	 * 4. Return the input
 	 * @param {String} name
 	 * @param {function} method
 	 */
-
 }, function addin ( name, method ) {
-	
-	gui.SpiritDOM.addin ( name, function ( things ) {
+	gui.DOMPlugin.addin ( name, function ( things ) {
 		var elms = Array.map ( gui.Type.list ( things ), function ( thing ) {
 			return thing && thing instanceof gui.Spirit ? thing.element : thing;
 		});

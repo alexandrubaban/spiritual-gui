@@ -1,25 +1,44 @@
-var gui = { // namespace object
+/**
+ * # gui
+ * Top namespace object for everything Spiritual. On startup, the global variable `gui` gets 
+ * redefined to an instance of {gui.Spiritual}. All these constants get copied in the process.
+ */
+var gui = {
 
 	/**
 	 * Spiritual version. Hardcoded for now.
-	 * TODO: Deprecate or generate buildtime.
+	 * @todo Deprecate or generate buildtime.
 	 * @type {String}
 	 */
 	version : "0.0.4",
 
 	/**
-	 * Spirit management mode. 
-	 * native: Overloading native DOM methods and setters.
-	 * jquery: Overloading JQuery DOM manipulation methods.
-	 * optimize: use native if supported, fallback on jquery.
+	 * Native mode: Overloading native DOM methods.
+	 * @type {String}
 	 */
 	MODE_NATIVE : "native",
+
+	/**
+	 * jquery mode: Overloading JQuery DOM methods.
+	 * @type {String}
+	 */
 	MODE_JQUERY : "jquery",
+
+	/**
+	 * Optimized mode: try native and fallback on jquery.
+	 * @type {String}
+	 */
 	MODE_OPTIMIZE : "optimize",
 
-	/*
+	/**
+	 * Managed mode.
+	 * @type {String}
+	 */
+	MODE_MANAGED : "managed",
+
+	/**
 	 * Global broadcasts
-	 * TODO : harmonize some naming with action types
+	 * @todo harmonize some naming with action types
 	 */
 	BROADCAST_KICKSTART : "gui-broadcast-kickstart",
 	BROADCAST_DOMCONTENT : "gui-broadcast-document-domcontentloaded",
@@ -40,9 +59,8 @@ var gui = { // namespace object
 	BROADCAST_CHANNELS_LOADED : "gui-broadcast-channels-loaded",
 	BROADCAST_TWEEN : "gui-broadcast-tween",
 
-	/*
+	/** 
 	 * Plugin broadcast types
-	 * TODO : assign these via module system at some point
 	 */
 	BROADCAST_ORIENTATIONCHANGE : "gui-broadcast-orientationchange",
 	BROADCAST_TOUCHSTART : "gui-broadcast-touchstart",
@@ -63,7 +81,7 @@ var gui = { // namespace object
 	BROADCAST_ATTENTION_OFF : "gui-broadcast-attention-off",
 	BROADCAST_ATTENTION_GO : "gui-broadcast-attention-go",
 
-	/*
+	/** 
 	 * Global actions
 	 */
 	ACTION_DOCUMENT_CONSTRUCT : "gui-action-document-construct",
@@ -73,19 +91,36 @@ var gui = { // namespace object
 	ACTION_DOCUMENT_FIT : "gui-action-document-fit",
 	ACTION_DOCUMENT_DONE : "gui-action-document-done",
 
-	/*
+	/**
 	 * Local actions.
 	 */
 	ACTION_WINDOW_LOADING : "gui-action-window-loading",
 	ACTION_WINDOW_LOADED : "gui-action-window-loaded",
 
-	/*
-	 * Questionable types (future)
+	/**
+	 * Lifecycle types.
 	 */
-	ACTION_DRAG_START : "gui-action-drag-start",
-	ACTION_COMMAND : "gui-action-command",
-	
-	/*
+	LIFE_CONSTRUCT : "gui-life-construct",
+	LIFE_CONFIGURE : "gui-life-configure",
+	LIFE_ENTER : "gui-life-enter",
+	LIFE_ATTACH : "gui-life-attach",
+	LIFE_READY : "gui-life-ready",
+	LIFE_SHOW : "gui-life-show",
+	LIFE_HIDE : "gui-life-hide",
+	LIFE_DETACH : "gui-life-detach",
+	LIFE_EXIT	: "gui-life-exit",
+	LIFE_DESTRUCT : "life-destruct",
+
+	/**
+	 * Tick types (timed events)
+	 */
+	TICK_DESTRUCT_DETACHED : "gui-tick-destruct-detached",
+	TICK_SCRIPT_UPDATE : "gui-tick-spiritscript-update", // @todo move this to EDB
+	TICK_COLLECT_INPUT : "gui-tick-collect-input",
+	TICK_SPIRIT_NULL : "gui-tick-spirit-null",
+	TICK_FIT : "gui-tick-fit",
+
+	/**
 	 * Crawler types
 	 */
 	CRAWLER_ATTACH : "gui-crawler-attach",
@@ -95,29 +130,15 @@ var gui = { // namespace object
 	CRAWLER_VISIBLE : "gui-crawler-visible",
 	CRAWLER_INVISIBLE : "gui-crawler-invisible",
 
-	
-	//CRAWLER_APPEARANCE : "gui-crawler-appearance",
-
-	/*
-	 * Tick types (timed events)
-	 */
-	TICK_DESTRUCT_DETACHED : "gui-tick-destruct-detached",
-	TICK_SCRIPT_UPDATE : "gui-tick-spiritscript-update", // TODO: move to EDB
-	TICK_COLLECT_INPUT : "gui-tick-collect-input",
-	TICK_SPIRIT_NULL : "gui-tick-spirit-null",
-	TICK_FIT : "gui-tick-fit",
-
-	/**
-	 * CSS classnames. Underscore indicates 
-	 * that the classname are managed by JS.
+	/** 
+	 * CSS classnames. Underscore indicates that the classname are managed by JS.
 	 */
 	CLASS_INVISIBLE : "_gui-invisible",
 	CLASS_HIDDEN : "_gui-hidden",
 
-	/*
+	/**
 	 * Device orientation.
-	 * TODO : Get this out of here
-	 * TODO: gui.Observerice or something
+	 * @todo Get this out of here, create gui.Device or something
 	 */
 	orientation : 0,
 	ORIENTATION_PORTRAIT : 0,

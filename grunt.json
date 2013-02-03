@@ -1,5 +1,5 @@
 [
-	"src/boot/gui.js",
+	"src/gui.js",
 	"src/boot/gui.SpiritualAid.js",
 	"src/boot/gui.Spiritual.js",
 
@@ -27,36 +27,36 @@
 	"src/utils/gui.Request.js",
 
 	"src/core/gui.Spirit.js",
+	"src/core/gui.Plugin.js",
+	"src/core/gui.Tracker.js",
 
-	"src/plugins/gui.SpiritPlugin.js",
-	"src/plugins/gui.SpiritTracker.js",
-	"src/plugins/life.plugin/gui.SpiritLife.js",
-	"src/plugins/life.plugin/gui.SpiritLifeTracker.js",
-	"src/plugins/config.plugin/gui.SpiritConfig.js",
+	"src/modules/core.module/plugins/life.plugin/gui.Life.js",
+	"src/modules/core.module/plugins/life.plugin/gui.LifePlugin.js",
+	"src/modules/core.module/plugins/config.plugin/gui.ConfigPlugin.js",
 
 	"src/modules/core.module/plugins/action.plugin/gui.Action.js",
-	"src/modules/core.module/plugins/action.plugin/gui.ActionTracker.js",
+	"src/modules/core.module/plugins/action.plugin/gui.ActionPlugin.js",
 	"src/modules/core.module/plugins/action.plugin/gui.IActionHandler.js",
-	"src/modules/core.module/plugins/att.plugin/gui.SpiritAtt.js",
-	"src/modules/core.module/plugins/box.plugin/gui.SpiritBox.js",
+	"src/modules/core.module/plugins/att.plugin/gui.AttPlugin.js",
+	"src/modules/core.module/plugins/box.plugin/gui.BoxPlugin.js",
 	"src/modules/core.module/plugins/broadcast.plugin/gui.Broadcast.js",
-	"src/modules/core.module/plugins/broadcast.plugin/gui.BroadcastTracker.js",
+	"src/modules/core.module/plugins/broadcast.plugin/gui.BroadcastPlugin.js",
 	"src/modules/core.module/plugins/broadcast.plugin/gui.IBrodcastHandler.js",
-	"src/modules/core.module/plugins/css.plugin/gui.SpiritCSS.js",
-	"src/modules/core.module/plugins/dom.plugin/gui.SpiritDOM.js",
-	"src/modules/core.module/plugins/event.plugin/gui.EventTracker.js",
+	"src/modules/core.module/plugins/css.plugin/gui.CSSPlugin.js",
+	"src/modules/core.module/plugins/dom.plugin/gui.DOMPlugin.js",
+	"src/modules/core.module/plugins/event.plugin/gui.EventPlugin.js",
 	"src/modules/core.module/plugins/event.plugin/gui.IEventHandler.js",
 	"src/modules/core.module/plugins/tick.plugin/gui.Tick.js",
-	"src/modules/core.module/plugins/tick.plugin/gui.TickTracker.js",
+	"src/modules/core.module/plugins/tick.plugin/gui.TickPlugin.js",
 	"src/modules/core.module/plugins/tick.plugin/gui.ITickHandler.js",
 	"src/modules/core.module/plugins/tween.plugin/gui.Tween.js",
-	"src/modules/core.module/plugins/tween.plugin/gui.TweenTracker.js",
+	"src/modules/core.module/plugins/tween.plugin/gui.TweenPlugin.js",
 	"src/modules/core.module/plugins/transition.plugin/gui.TransitionPlugin.js",
 	"src/modules/core.module/plugins/transition.plugin/gui.Transition.js",
 	"src/modules/core.module/plugins/attention.plugin/gui.AttentionPlugin.js",
 	"src/modules/core.module/core.module.js",
 
-	"src/core/gui.Client.js",
+	"src/utils/gui.Client.js",
 	
 	"src/modules/core.module/spirits/gui.DocumentSpirit.js",
 	"src/modules/core.module/spirits/gui.WindowSpirit.js",
@@ -67,10 +67,10 @@
 
 	"src/modules/jquery.module/jquery.module.js",
 
-	"src/core/gui.UPGRADE.js",
-	"src/core/gui.WEBKIT.js",
+	"src/dom/gui.DOMChanger.js",
+	"src/dom/gui.DOMCombos.js",
+	"src/dom/gui.DOMPatcher.js",
 
-	"src/core/gui.Observer.js",
-	"src/core/gui.World.js",
+	"src/dev/gui.Observer.js",
 	"src/core/gui.Guide.js"
 ]

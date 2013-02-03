@@ -1,25 +1,25 @@
 /**
- * An instance of gui.Spiritual may be referenced as "gui" inside all windows.
- * @param {Window} win Potentially a web worker global scope.
+ * # gui.Spiritual
+ * An instance of this thing may be referenced as `gui` inside all windows. 
+ * @param {Window} win Window or Worker scope
  */
 gui.Spiritual = function Spiritual ( win ) {
-	
 	this._construct ( win );
 };
 
 gui.Spiritual.prototype = {
-	
+
 	/**
 	 * The constructor gui.Spiritual does not exist after first instance gets declared, 
-	 * but we may keep something newable allocated by referencing the constructor here.  
+	 * but we may keep something newable allocated by referencing it around here.
 	 * @type {function}
 	 */
 	constructor: gui.Spiritual,
-	
+
 	/**
-	 * Uniquely identifies this instance of gui.Spiritual. All 
-	 * local instances of gui.Spirit gets stamped with a copy.
-	 * TODO: rename "guikey"?
+	 * Uniquely identifies this instance of `gui.Spiritual` 
+	 * knowing that other instances may exist in iframes.
+	 * @todo rename guikey or windowkey or contextkey
 	 * @type {String}
 	 */
 	signature : null,
@@ -31,36 +31,59 @@ gui.Spiritual.prototype = {
 	context : null,
 
 	/**
-	 * Spirit management mode. Mathces native|jquery|optimize. 
-	 * Note that this will deprecate as soon as iOS supports 
-	 * a mechanism for grabbing the native innerHTML setter.
+	 * Spirit management mode. Matches one of 
+	 * 
+	 * - native
+	 * - jquery
+	 * - optimize.
+	 * - managed
+	 *  
+	 * @note This will deprecate as soon as iOS supports a mechanism for grabbing the native innerHTML setter.
 	 * @type {String}
 	 */
 	mode : "optimize", // recommended setting for iOS support
 
 	/**
-	 * Development mode?
+	 * Development mode? Enable this to log more console messages or something.
 	 * @type {boolean}
 	 */
 	debug : false,
-		
+
 	/**
 	 * Identification.
 	 * @returns {String}
 	 */
 	toString : function () {
-		
-		return "[ns gui]";
+		return "[namespace gui]";
 	},
 
 	/**
-	 * Channel spirits on startup.
+	 * Channel spirits on startup. 
+	 * Called by the {gui.Guide}
 	 * @see {gui.Guide}
 	 */
 	go : function () {
-		
-		this._ready = true;
-		gui.World.descend ( this.context );
+		this._gone = true;
+		if ( this.debug ) {
+			switch ( this.mode ) {
+				case gui.MODE_JQUERY :
+					gui.Tick.next ( function () {  // @todo somehow not conflict with http://stackoverflow.com/questions/11406515/domnodeinserted-behaves-weird-when-performing-dom-manipulation-on-body
+						gui.Observer.observe ( this.context ); // @idea move all of _step2 to next stack?
+					}, this );
+					break;
+				default :
+					gui.Observer.observe ( this.context );
+					break;
+			}
+		}
+		switch ( this.mode ) {
+			case gui.MODE_NATIVE :
+			case gui.MODE_JQUERY :
+			case gui.MODE_OPTIMIZE :
+			case gui.MODE_MANAGED :
+				gui.DOMChanger.change ( this.context );
+				break;
+		}
 		gui.Tick.add ( gui.TICK_DESTRUCT_DETACHED, this, this.signature );
 		if ( this._configs !== null ) {
 			this._configs.forEach ( function ( config ) {
@@ -68,25 +91,24 @@ gui.Spiritual.prototype = {
 			}, this );
 		}
 	},
-	
+
 	/**
-	 * Get spirit for argument (argument expected to be a spiritkey for now).
-	 * TODO: fuzzy argument resolver to accept DOM elements and ID strings.
+	 * Get spirit for argument (argument expected to be a `spiritkey` for now).
+	 * @todo fuzzy resolver to accept elements and queryselectors
 	 * @param {object} arg
 	 * @returns {gui.Spirit}
 	 */
 	get : function ( arg ) {
-		
 		var spirit = null;
 		var inside = this._spirits.inside;
 		var outside = this._spirits.outside;
-
 		switch ( gui.Type.of ( arg )) {
 			case "string" :
 				if ( gui.KeyMaster.isKey ( arg )) {
 					spirit = inside [ arg ] || outside [ arg ] || null;
 				} else {
-					/* lookup spirit by element id */
+					var element = this._document.querySelector ( arg );
+					spirit = element ? element.spirit : null;
 				}
 				break;
 			case "TODO" :
@@ -94,27 +116,24 @@ gui.Spiritual.prototype = {
 		}
 		return spirit;
 	},
-	
+
 	/**
 	 * Register module.
 	 * @param {String} name
 	 * @param {object} module
 	 */
 	module : function ( name, module ) {
-		
 		if ( !gui.Type.isString ( name )) {
-			throw new TypeError ( "Module name is now required :)" );
+			throw new Error ( "Module requires a name" );
 		}
-
-		var base = this.context.gui.Spirit; // modules extend gui.Spirit, use init() to extend subclass
-		
-		// addins (TODO: "decorators")
+		// modules extend gui.Spirit, use init() to extend subclass
+		var base = this.context.gui.Spirit;
+		// addins (@todo all sorts of "decorators" instead)
 		if ( gui.Type.isObject ( module.addins )) {
 			gui.Object.each ( module.addins, function ( name, value ) {
 				base.addin ( name, value );
 			}, this );
 		}
-		
 		// plugins
 		if ( gui.Type.isObject ( module.plugins )) {
 			gui.Object.each ( module.plugins, function ( prefix, plugin ) {
@@ -125,7 +144,6 @@ gui.Spiritual.prototype = {
 				}
 			}, this );
 		}
-		
 		// channels
 		if ( gui.Type.isArray ( module.channels )) {
 			module.channels.forEach ( function ( channel ) {
@@ -134,33 +152,27 @@ gui.Spiritual.prototype = {
 				this.channel ( query, klass );
 			}, this );
 		}
-
 		this._modulelife ( module, this.context );
 		this._modules [ name ] = module;
 	},
 
 	/**
-	 * Has module? In a multi frame setup, modules may be 
-	 * loaded only for the local instance of gui.Spiritual.
-	 * @param {String} name
+	 * Has module registered?
+	 * @param {String} name Module name
 	 * @returns {boolean}
 	 */
 	hasModule : function ( name ) {
-
 		return gui.Type.isDefined ( this._modules [ name ]);
 	},
-	
+
 	/**
-	 * Channel spirits to CSS selectors in this window 
-	 * and windows that import us via the portal method.
+	 * Channel spirits to CSS selectors.
 	 * @param {String} select CSS selector
-	 * @param {object} klass Spirit constructor (as object or string)
+	 * @param {object|String} klass Constructor or name
 	 */
 	channel : function ( select, klass ) {
-		
 		var spirit = null;
-		
-		if ( this._ready ) {
+		if ( this._gone ) {
 			if ( typeof klass === "string" ) {
 				spirit = gui.Object.lookup ( klass, this.context );
 			} else {
@@ -172,7 +184,6 @@ gui.Spiritual.prototype = {
 				throw "Unknown Spirit for selector: " + select;
 			}
 		} else { // wait for method ready to invoke.
-			
 			if ( !this._configs ) {
 				this._configs = [];
 			}
@@ -182,34 +193,26 @@ gui.Spiritual.prototype = {
 			});
 		}
 	},
-	
+
 	/**
-	 * Transfer Spirit world to a parallel window in three easy steps.
-	 * 1) Extend Element.prototype in window
-	 * 2) Declare local ui object in window
-	 * 3) Declare spirit world objects, pointing back to this window
+	 * Portal Spiritual to a parallel window in three easy steps.
+	 * 
+	 * 1. Create a local instance of `gui.Spiritual` (this class) and assign it to the global variable `gui` in remote window.
+	 * 2. For all members of local `gui`, stamp a reference onto remote `gui`. In remote window, the variable `gui.Spirit` now points to a class declared in this window.
+	 * 3. Setup {gui.Guide} to attach remote spirits when the document loads.
+	 *
+	 * Members of the `gui` namespace can be setup not to portal by setting the static boolean `portals=false` on the constructor.
 	 * @param {Window} sub An external window.
 	 */
 	portal : function ( sub ) {
-		
 		if ( sub !== this.context ) {
-			
-			/*
-			 * Create remote gui object then 
-			 * portal gui namespaces and members.
-			 */
+			// create remote gui object then portal gui namespaces and members.
 			var subgui = sub.gui = new ( this.constructor )( sub );
-			//var indexes = this._index ( this, subgui, this._channels ); // "gui" now via namespace()
 			var indexes = [];
-
-			/*
-			 * Portal custom namespaces and members.
-			 */
+			// portal custom namespaces and members.
 			subgui._spaces = this._spaces.slice ();
 			this._spaces.forEach ( function ( ns ) {
-
-				// declare (nested) namespace in external context
-				// TODO: gui.Object.assert utility method for this
+				 // declare (nested) namespace in external context @todo use gui.Object.assert
 				var external = sub, internal = this.context;
 				ns.split ( "." ).forEach ( function ( part ) {
 				  if ( !gui.Type.isDefined ( external [ part ])) {
@@ -218,9 +221,7 @@ gui.Spiritual.prototype = {
 				  external = external [ part ];
 				  internal = internal [ part ];
 			  });
-
-			  // channel spirits from this namespace 
-			  // preserving local channeling order
+			  // channel spirits from this namespace preserving local channeling order
 				this._index ( 
 					internal, 
 					external, 
@@ -229,45 +230,28 @@ gui.Spiritual.prototype = {
 					indexes.push ( i );	
 				});
 			}, this );
-
-			/*
-			this._modules.forEach ( function ( module ) {
-				this._modulelife ( module, subgui.context );
-				subgui._modules.push ( module );
-			}, this );
-			*/
-		
-			/*
-			 * Portal modules to initialize the sub context.
-			 * TODO: portal only the relevant init method?
-			 */
+			// Portal modules to initialize the sub context
+			// @todo portal only the relevant init method?
 			gui.Object.each ( this._modules, function ( name, module ) {
 				this._modulelife ( module, subgui.context );
 				subgui._modules [ name ] = module;
 			}, this );
-			
-			/*
-			 * Sort channels
-			 */
+			// Sort channels
 			indexes.sort ( function ( a, b ) {
 				return a - b; 
 			 }).forEach ( function ( i ) {
 				 subgui._channels.push ( this._channels [ i ]); 
 			}, this );
-			
-			/*
-			 * Here we go
-			 */
+			// Here we go
 			gui.Guide.observe ( sub );
 		}
 	},
 
 	/**
-	 * Kickstart Spiritual manuallay. Use this if you lazyload (module-require) 
-	 * Spiritual after the document.DOMContentLoaded and window.onload events fire.
+	 * Kickstart Spiritual manuallay. Use this if you somehow 
+	 * load Spiritual after DOMContentLoaded event has fired.
 	 */
 	kickstart : function () {
-		
 		switch ( document.readyState ) {
 			case "interactive" :
 			case "complete" :
@@ -275,15 +259,14 @@ gui.Spiritual.prototype = {
 				break;
 		}
 	},
-	
+
 	/**
 	 * Members of given namespace will be migrated 
 	 * to descendant iframes via the portal method.
 	 * @param {String} ns
 	 */
-	namespace : function ( ns ) {
-		
-		if ( gui.Type.isString ( ns )) { // TODO: must it be a string?
+	namespace : function ( ns ) {	
+		if ( gui.Type.isString ( ns )) { // @todo must it be a string?
 			this._spaces.push ( ns );
 		} else {
 			throw new TypeError ( "Expected a string: gui.namespace" );
@@ -295,27 +278,23 @@ gui.Spiritual.prototype = {
 	 * @return {Array<String>}
 	 */
 	namespaces : function () {
-
 		return this._spaces.slice ();
 	},
-	
+
 	/**
-	 * Get Spirit implementation for DOM element.
-	 * Spirit may be local to containing window.
-	 * 1) Test for element "gui" attribute
-	 * 2) Test if element matches selectors 
+	 * Get Spirit constructor for element.
+	 * 
+	 * 1. Test for element `gui` attribute
+	 * 2. Test if element matches selectors 
 	 * @param {Element} element
 	 * @returns {function} Spirit constructor
 	 */
 	evaluate : function ( element ) {
-		
 		var res = null;
 		if ( element.nodeType === Node.ELEMENT_NODE ) {
-			
 			var doc = element.ownerDocument;
 			var win = doc.defaultView;
-			var att = element.getAttribute ( "gui" ); // TODO: "data-gui"
-
+			var att = element.getAttribute ( "gui" ); // @todo "data-gui"
 			// test for "gui" attribute in markup. "[" accounts for {gui.Spirit#__debug__}
 			if ( gui.Type.isString ( att ) && !att.startsWith ( "[" )) {
 				if ( att !== "" ) { // no spirit for empty string
@@ -333,7 +312,7 @@ gui.Spiritual.prototype = {
 				win.gui._channels.every ( function ( def ) {
 					var select = def [ 0 ];
 					var spirit = def [ 1 ];
-					if ( gui.SpiritCSS.matches ( element, select )) {
+					if ( gui.CSSPlugin.matches ( element, select )) {
 						res = spirit;
 					}
 					return res === null;
@@ -342,40 +321,39 @@ gui.Spiritual.prototype = {
 		}
 		return res;
 	},
-	
+
 	/**
-	 * Broadcast event details globally. Use this if you stopPropagate   
-	 * an event for personal reasons and don't want to keep it a secret.
+	 * TODO: Must be renamed to broadcastGlobal! Broadcast event details globally. 
+	 * Use this if you stopPropagate an event for personal reasons and don't want 
+	 * to keep it a secret (also, update this description).
 	 * @param {String} message gui.BROADCAST_MOUSECLICK or similar
 	 * @param @optional {object} arg This could well be a MouseEvent
 	 */
 	broadcast : function ( message, arg ) {
-		
 		if ( gui.Type.of ( arg ).endsWith ( "event" )) {
 			arg = new gui.EventSummary ( arg );
 		}
 		gui.Broadcast.dispatchGlobal ( this, message, arg );
 	},
-	
+
 	/**
 	 * Log channels to console.
-	 * TODO: deprecate this (create gui.Developer).
+	 * @todo deprecate this (create gui.Developer).
 	 */
 	debugchannels : function () {
-		
 		var out = this._document.location.toString ();
 		this._channels.forEach ( function ( channel ) {
 			out += "\n" + channel [ 0 ] + " : " + channel [ 1 ];
 		});
 		console.debug ( out + "\n\n" );
 	},
-	
+
 	/**
-	 * Terminate spirit management.
+	 * Stop tracking the spirit. Called 
+	 * by the spirit when it destructs.
 	 * @param {gui.Spirit} spirit
 	 */
 	destruct : function ( spirit ) {
-
 		var all = this._spirits;
 		var key = spirit.spiritkey;
 		delete all.inside [ key ];
@@ -383,15 +361,14 @@ gui.Spiritual.prototype = {
 	},
 	
 	
-	// INTERNALS .....................................................................................................
-	
+	// Internal .................................................................
+
 	/**
 	 * Register spirit in document (framework internal method).
-	 * TODO: move? rename? 
+	 * @todo move? rename? 
 	 * @param {gui.Spirit} spirit
 	 */
 	inside : function ( spirit ) {
-		
 		var all = this._spirits;
 		var key = spirit.spiritkey;
 		if ( !all.inside [ key ]) {
@@ -401,14 +378,13 @@ gui.Spiritual.prototype = {
 			all.inside [ key ] = spirit;
 		}
 	},
-	
+
 	/**
-	 * Register spirit outside document (scheduled for destruction).
-	 * TODO: move? rename?
+	 * Register spirit outside document (now scheduled for destruction).
+	 * @todo move? rename?
 	 * @param {gui.Spirit} spirit
 	 */
 	outside : function ( spirit ) {
-		
 		var all = this._spirits;
 		var key = spirit.spiritkey;
 		if ( !all.outside [ key ]) {
@@ -419,14 +395,13 @@ gui.Spiritual.prototype = {
 			gui.Tick.dispatch ( gui.TICK_DESTRUCT_DETACHED, 0, this.signature );
 		}
 	},
-	
+
 	/**
 	 * Handle tick.
 	 * @param {gui.Tick} tick
 	 */
 	ontick : function ( tick ) {
-
-		// TODO: do we want to loose track of potential non-exited spirit?
+		// @todo do we want to loose track of potential non-exited spirit?
 		if ( tick.type === gui.TICK_DESTRUCT_DETACHED ) {
 			gui.Object.each ( this._spirits.outside, function ( key, spirit ) {
 				if ( spirit.onexit () !== false ) { // spirit may prevent destruction
@@ -438,36 +413,36 @@ gui.Spiritual.prototype = {
 	},
 
 	/**
-	 * Invoked by the gui.Guide on window.unload (synchronized as final event).
-	 * TODO: naming clash with method "destruct"
-	 * TODO: Think of more stuff to cleanup here...
+	 * Invoked by the {gui.Guide} on window.unload (synchronized as final event).
+	 * @todo figure out of any of this manual garbage dumping works.
+	 * @todo naming clash with method "destruct"
+	 * @todo Think of more stuff to cleanup here...
 	 */
 	nameDestructAlreadyUsed : function () {
-
 		gui.Tick.remove ( gui.TICK_DESTRUCT_DETACHED, this, this.signature );
-
-		/*
-		 * TODO: figure out of any of this manual garbage dumping works.
-		 */
-		delete this._spiritualaid;
-		delete this.context;
-		delete this._document;
-		delete this._channels;
-		delete this._inlines;
-		delete this._spaces;
-		delete this._modules;
-		delete this._spirits;
+		[ 
+			"_spiritualaid", 
+			"context", 
+			"_document", 
+			"_channels", 
+			"_inlines",
+			"_spaces", 
+			"_modules", 
+			"_spirits" 
+		].forEach ( function ( thing ) {
+			delete this [ thing ];
+		}, this );
 	},
 	
-	
-	// PRIVATES ......................................................................................................
-	
+
+	// Private .................................................................
+
 	/**
 	 * Document context.
 	 * @type {Document}
 	 */
 	_document : null,
-	
+
 	/**
 	 * Lisitng CSS selectors associated to Spirit constructors. 
 	 * Order is important: First spirit to match selector is it. 
@@ -475,40 +450,43 @@ gui.Spiritual.prototype = {
 	 * @type {Array<Array<String,function>>}
 	 */
 	_channels : null,
-	
+
 	/**
 	 * Cache Spirits resolved by lookup of "gui" attribute.
 	 * @type {Map<String,function>}
 	 */
 	_inlines : null,
-	
+
 	/**
-	 * Hm...
+	 * Spaceous.
 	 */
 	_spaces : null,
-	
+
 	/**
+	 * Flipped to `true` after `go()`
 	 * @type {boolean}
 	 */
-	_ready : false,
-	
+	_gone : false,
+
 	/**
+	 * Comment back.
 	 * @type {Array<object>}
 	 */
 	_configs : null,
 
 	/**
+	 * Yet another comment.
 	 * @type {Map<String,object>}
 	 */
 	_modules : null,
-	
+
 	/**
 	 * Tracking spirits by spiritkey (detached spirits are subject to destruction).
 	 * @type {Map<String,Map<String,gui.Spirit>>}
 	 */
 	_spirits : null,
-
-	/** 
+ 
+	/**
 	 * The constructor gui.SpiritualAid does not exist after first instance gets declared, 
 	 * but we may keep something newable allocated by referencing the constructor here.
 	 * @type {gui.SpiritualAid}
@@ -520,13 +498,10 @@ gui.Spiritual.prototype = {
 	 * @param {Window} win
 	 */
 	_construct : function ( win ) {
-		
 		// patching features
-		this._spiritualaid.polyfill ( win );
-		
+		this._spiritualaid.polyfill ( win );		
 		// generate signature
 		this.signature = "sig" + String ( Math.random ()).split ( "." )[ 1 ];
-		
 		// basic setup
 		this.context = win;
 		this._document = win.document;
@@ -548,10 +523,8 @@ gui.Spiritual.prototype = {
 	 * @returns {Array<number>}
 	 */
 	_index : function ( internal, external, channels ) {
-		
 		var indexes = [];
-
-		function index ( def ) { // isolated from loop to pass JsHint...
+		function index ( def ) {
 			switch ( def ) {
 				case "signature" :
 				case "context" :
@@ -571,7 +544,6 @@ gui.Spiritual.prototype = {
 					break;
 			}
 		}
-
 		for ( var def in internal ) {
 			if ( !this.constructor.prototype.hasOwnProperty ( def )) {
 				if ( !def.startsWith ( "_" )) {
@@ -579,21 +551,18 @@ gui.Spiritual.prototype = {
 				}
 			}
 		}
-
 		return indexes;
 	},
-	
+
 	/**
 	 * @param {object} module
 	 * @param {Window} context
 	 */
 	_modulelife : function ( module, context ) {
-
 		// invoke init now?
 		if ( gui.Type.isFunction ( module.init )) {
 			module.init ( context );
 		}
-
 		// invoke ready before document is spiritualized?
 		if ( gui.Type.isFunction ( module.ready )) {
 			gui.Broadcast.addGlobal (
@@ -613,14 +582,14 @@ gui.Spiritual.prototype = {
 	}
 };
 
-/*
- * TODO: comment required
+/** 
+ * @todo comment required to explain this stunt
  */
 Object.keys ( gui ).forEach ( function ( key ) {
 	gui.Spiritual.prototype [ key ] = gui [ key ];
 });
 
-/*
- * TODO: comment even more required
+/**
+ * @todo comment even more required!
  */
 gui = new gui.Spiritual ( window );

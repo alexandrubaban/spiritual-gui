@@ -1,13 +1,12 @@
 /**
- * Parse HTML string to DOM node(s) in given document context.
+ * # gui.HTMLParser
+ * Parse HTML string to DOM node(s) in given document context. 
  * Adapted from https://github.com/petermichaux/arbutus
- * TODO: High level awareness of HTMLparser elements. Plugin 
- *       ui.SpiritDOM and ui.Spirit.parse should know about 
- *       added historic HTML chrome and strip when inserted.
+ * @todo High level awareness of HTMLparser elements. Plugin ui.SpiritDOM and ui.Spirit.parse should know about added historic HTML chrome and strip when inserted.
  * @param {Document} doc
+ * @todo: make this whole thing static
  */
-gui.HTMLParser = function HTMLParser ( doc ){
-
+gui.HTMLParser = function HTMLParser ( doc ) {
 	if ( doc && doc.nodeType ) {
 		this._document = doc;
 	} else {
@@ -24,40 +23,28 @@ gui.HTMLParser.prototype = {
 	_document : null,
 
 	/**
-	 * Parse HTML to DOM node(s). Note that this returns an Array.
+	 * Parse HTML to DOM node(s). Note that this always returns an array.
 	 * @param {String} html
 	 * @param @optional {Element} element
 	 * @returns {Array<Node>}
 	 */
 	parse : function ( html, element ) {
-
 		var match, fix, temp, frag, path,
 			fixes = gui.HTMLParser._fixes,
 			comments = gui.HTMLParser._comments,
 			firsttag = gui.HTMLParser._firsttag,
 			doc = this._document;
-
-		/*
-		 * HTML needs wrapping in obscure 
-		 * structure for historic reasons?
-		 */
+		// HTML needs wrapping in obscure structure for historic reasons?
 		html = html.trim ().replace ( comments, "" );
 		if (( match = html.match ( firsttag ))) {
 			if (( fix = fixes.get ( match [ 1 ]))) {
 				html = fix.replace ( "${html}", html );
 			}
 		}
-
-		/*
-		 * Parse HTML to DOM nodes.
-		 */
+		// Parse HTML to DOM nodes.
 		temp = doc.createElement ( "div" );
 		temp.innerHTML = html;
-
-		/**
-		 * Extract elements from obscure 
-		 * structure for historic reasons?
-		 */
+		// Extract elements from obscure structure for historic reasons?
 		var nodes = temp.childNodes;
 		if ( fix && element ) {
 			var name = element.localName;
@@ -72,7 +59,6 @@ gui.HTMLParser.prototype = {
 				}	
 			}
 		}
-
 		// convert from nodelist to array of nodes
 		return Array.map ( nodes, function ( node ) {
 			return node;
@@ -82,14 +68,12 @@ gui.HTMLParser.prototype = {
 
 /**
  * Match comments.
- * @private @static.
  * @type {RegExp}
  */
 gui.HTMLParser._comments = /<!--[\s\S]*?-->/g;
 
 /**
  * Match first tag.
- * @private @static.
  * @type {RegExp}
  */
 gui.HTMLParser._firsttag = /^<([a-z]+)/i;
@@ -98,14 +82,13 @@ gui.HTMLParser._firsttag = /^<([a-z]+)/i;
  * Mapping tag names to miminum viable tag structure.
  * Considerable foresight has decided that text/html 
  * must forever remain backwards compatible with IE5.
- * @private @static
  * @type {Map<String,String>}
  */
 gui.HTMLParser._fixes = new Map ();
 
 /**
  * Populate fixes.
- * TODO: "without the option in the next line, the parsed option will always be selected."
+ * @todo "without the option in the next line, the parsed option will always be selected."
  */
 ( function () {
 	gui.Object.each ({

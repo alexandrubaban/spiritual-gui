@@ -1,56 +1,58 @@
 /**
- * Use a SpiritTick for timed events. 
- * TODO: global versus local ticks
+ * # gui.Tick
+ * Ticks are used for timed events. 
+ * @todo Global versus local ticks
+ * @todo Tick.push
  * @param {Spirit} target
  * @param {String} type
  * @param {object} data
  */
 gui.Tick = function ( type ) {
-	
 	this.type = type;
 };
 
 gui.Tick.prototype = {
-	
+
 	/**
+	 * Tick type.
 	 * @type {String}
 	 */
 	type : null,
-	
+
 	/**
 	 * Identification.
 	 * @returns {String}
 	 */
 	toString : function () {
-		
 		return "[object gui.Tick]";
 	}
 };
 
 
-// STATICS .........................................................................
+// Static .........................................................................
 
 /**
  * Identification.
  * @returns {String}
  */
 gui.Tick.toString = function () {
-	
 	return "[function gui.Tick]";
 };
 
+/**
+ * Hello.
+ */
 gui.Tick._global = {
 	types : Object.create ( null ),
 	handlers : Object.create ( null )
 };
 
+/**
+ * Hej.
+ */
 gui.Tick._local = Object.create ( null );
 
-
-// LOCAL ....................................................................
-
 /**
- * @static
  * Add handler for tick.
  * @param {object} type String or array of strings
  * @param {object} handler
@@ -58,100 +60,73 @@ gui.Tick._local = Object.create ( null );
  * @returns {function}
  */
 gui.Tick.add = function ( type, handler, sig ) {
-	
 	if ( !sig ) {
 		console.error ( "SIG REQUIRED for tick of type: " + type );
 	}
-
 	if ( gui.Arguments.validate ( arguments, "string|array", "object|function", "string" )) {
 		return this._add ( type, handler, false, sig );
 	}
 };
 
 /**
- * @static
  * Add auto-removing handler for tick.
  * @param {object} type String or array of strings
  * @param {object} handler
  * @returns {function}
  */
 gui.Tick.one = function ( type, handler, sig ) {
-
 	if ( !sig ) {
 		console.error ( "SIG REQUIRED for tick of type: " + type );
 	}
-	
 	if ( gui.Arguments.validate ( arguments, "string|array", "object|function", "string" )) {
 		return this._add ( type, handler, true, sig );
 	}
 };
 
 /**
- * Quickfix!
+ * Schedule action for next available execution stack.
  * @param {function} action
  * @param @optional {object} thisp
  */
 gui.Tick.next = function ( action, thisp ) {
-
 	setImmediate ( function () {
 		action.call ( thisp );
 	});
 };
 
 /**
- * @static
  * Remove handler for tick.
  * @param {object} type String or array of strings
  * @param {object} handler
  * @returns {function}
  */
 gui.Tick.remove = function ( type, handler, sig ) {
-	
 	if ( !sig ) {
 		console.error ( "SIG REQUIRED for tick of type: " + type );
 	}
-
 	return this._remove ( type, handler, sig );
 };
 
 /**
- * @static
  * Start repeated tick of given type.
  * @param {String} type Tick type
  * @param {number} time Time in milliseconds
  * @returns {function}
  */
 gui.Tick.start = function ( type, time ) {
-	
-	console.error ( "TODO:gui.Tick.start" );
-	return;
-
-	/* TODO: something like this...
-	if ( time && !this._global.types [ type ]) {
-		this._global.types [ type ] = setInterval ( function () {
-			gui.Tick.dispatch ( type );
-		}, time );
-	}
-	return this;
-	*/
+	console.error ( "@todo gui.Tick.start" );
 };
 
 /**
- * @static
  * Stop repeated tick of specified type.
  * @param {String} type Tick type
  * @returns {function}
  */
 gui.Tick.stop = function ( type ) {
-	
-	// TODO
-
-	console.error ( "TODO: gui.Tick#stop" );
-	return this;
+	console.error ( "@todo gui.Tick#stop" );
 };
 
 /**
- * @static
  * Dispatch tick now or in specified time. Omit time to 
  * dispatch now. Zero resolves to next available thread.
  * @param {String} type
@@ -159,57 +134,45 @@ gui.Tick.stop = function ( type ) {
  * @returns {gui.Tick}
  */
 gui.Tick.dispatch = function ( type, time, sig ) {
-	
 	if ( !sig ) {
 		console.error ( "SIG REQUIRED for tick of type: " + type );
 	}
-	
 	return this._dispatch ( type, time, sig );
 };
 
-
-// GLOBAL ...................................................................
-
 /**
- * @static
  * Add handler for tick.
  * @param {object} type String or array of strings
  * @param {object} handler
  * @returns {function}
  */
 gui.Tick.addGlobal = function ( type, handler ) {
-
 	if ( gui.Arguments.validate ( arguments, "string|array", "object|function" )) {
 		return this._add ( type, handler, false, null );
 	}
 };
 
 /**
- * @static
  * Add self-removing handler for tick.
  * @param {object} type String or array of strings
  * @param {object} handler
  * @returns {function}
  */
 gui.Tick.oneGlobal = function ( type, handler ) {
-	
 	return this.add ( type, handler, true, null );
 };
 
 /**
- * @static
  * Remove handler for tick.
  * @param {object} type String or array of strings
  * @param {object} handler
  * @returns {function}
  */
 gui.Tick.removeGlobal = function ( type, handler ) {
-	
 	return this._remove ( type, handler, null );
 };
 
 /**
- * @static
  * Dispatch tick now or in specified time. Omit time to 
  * dispatch now. Zero resolves to next available thread.
  * @param {String} type
@@ -217,15 +180,17 @@ gui.Tick.removeGlobal = function ( type, handler ) {
  * @returns {gui.Tick}
  */
 gui.Tick.dispatchGlobal = function ( type, time ) {
-	
 	return this._dispatch ( type, time, null );
 };
 
 
-// PRIVATE .........................................
+// Private static .....................................................
 
+/**
+ * Hello.
+ * @todo
+ */
 gui.Tick._add = function ( type, handler, one, sig ) {
-
 	if ( gui.Type.isArray ( type )) {
 		type.forEach ( function ( t ) {
 			this._add ( t, handler, one, sig );
@@ -255,47 +220,11 @@ gui.Tick._add = function ( type, handler, one, sig ) {
 	return this;
 };
 
-/*
-gui.Tick._add = function ( type, handler, one, sig ) {
-
-	if ( gui.Type.isArray ( type )) {
-		type.forEach ( function ( t ) {
-			this.add ( t, handler, one, sig );
-		}, this );
-	} else {
-		var list, index;
-		
-		
-		if ( sig ) {
-
-
-
-			var local = this._local [ sig ];
-			if ( !local ) {
-				local = this._local [ sig ] = Object.create ( null );
-			}
-			list = local.handlers [ type ];
-		} else {
-			list = this._global.handlers [ type ];
-			if ( !list ) {
-				list = this._global.handlers [ type ] = [];
-			}
-		}
-		index = list.indexOf ( handler );
-		if ( index < 0 ) {
-			index = list.push ( handler ) - 1;
-		}
-		if ( one ) {
-			list._one = list._one || {};
-			list._one [ index ] = true;
-		}
-	}
-	return this;
-};
-*/
-
+/**
+ * Hello.
+ * @todo
+ */
 gui.Tick._remove = function ( type, handler, sig ) {
-
 	if ( gui.Type.isArray ( type )) {
 		type.forEach ( function ( t ) {
 			this.remove ( t, handler, sig );
@@ -313,23 +242,37 @@ gui.Tick._remove = function ( type, handler, sig ) {
 	return this;
 };
 
+/**
+ * Hofmeister remix.
+ * @todo refactor to default to zero somehow...
+ */
 gui.Tick._dispatch = function ( type, time, sig ) {
-
 	var map = sig ? this._local [ sig ] : this._global;
 	var types = map.types;
-
 	var tick = new gui.Tick ( type );
-
 	if ( !gui.Type.isDefined ( time )) {	
 		var list = map.handlers [ type ];
 		if ( list ) {
-			list.slice ().forEach ( function ( handler, i ) {
-				handler.ontick ( tick );
+			var i = 0, toBeRemoved = [];
+			while ( i < list.length ) {
+				try {
+					list [ i ].ontick ( tick );
+				} catch ( exception ) {
+					// @todo figure out how destructed spirits should behave while we loop (see below)
+					if ( exception.message !== gui.Spirit.DENIAL ) {
+						throw new Error ( exception.message );
+					}
+				}
 				if ( list._one && list._one [ i ]) {
 					delete list._one [ i ];
-					list.remove ( i );
+					// do not remove untill after we are through the list (will screw up the index+length)
+					toBeRemoved.push ( i );
 				}
-			}, this );
+				i++;
+			}
+			toBeRemoved.forEach ( function ( index ) {
+				list.remove ( index );
+			});
 		}
 	} else if ( !types [ type ]) {
 		var that = this, id = null;

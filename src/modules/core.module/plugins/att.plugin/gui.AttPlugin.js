@@ -1,8 +1,9 @@
 /**
- * Methods to read and write DOM attributes on spirit element
- * @param {Spirit} spirit
+ * # gui.AttPlugin
+ * Methods to read and write DOM attributes.
+ * @extends {gui.Tracker}
  */
-gui.SpiritAtt = gui.SpiritPlugin.extend ( "gui.SpiritAtt", {
+gui.AttPlugin = gui.Plugin.extend ( "gui.AttPlugin", {
 
 	/**
 	 * Get single element attribute cast to an inferred type.
@@ -10,12 +11,11 @@ gui.SpiritAtt = gui.SpiritPlugin.extend ( "gui.SpiritAtt", {
 	 * @returns {object} String, boolean or number
 	 */
 	get : function ( name ) {
-		
 		return gui.Type.cast ( 
 			this.spirit.element.getAttribute ( name )
 		);
 	},
-	
+
 	/**
 	 * Set single element attribute (use null to remove).
 	 * @param {String} name
@@ -23,7 +23,6 @@ gui.SpiritAtt = gui.SpiritPlugin.extend ( "gui.SpiritAtt", {
 	 * @returns {Spirit}
 	 */
 	set : function ( name, value ) {
-		
 		if ( value === null ) {
 			this.del ( name );
 		} else if ( !this.__suspended__ ) {
@@ -38,16 +37,14 @@ gui.SpiritAtt = gui.SpiritPlugin.extend ( "gui.SpiritAtt", {
 	 * @returns {boolean}
 	 */
 	has : function ( name ) {
-	
 		return this.spirit.element.getAttribute ( name ) !== null;
 	},
-	
+
 	/**
 	 * Remove element attribute.
 	 * @param {String} att
 	 */
 	del : function ( name ) {
-		
 		if ( !this.__suspended__ ) {
 			this.spirit.element.removeAttribute ( name );
 		}
@@ -58,7 +55,6 @@ gui.SpiritAtt = gui.SpiritPlugin.extend ( "gui.SpiritAtt", {
 	 * @returns {Array<Attr>}
 	 */
 	all : function () {
-
 		return Array.map ( this.spirit.element.attributes, function ( att ) {
 			return att;
 		});
@@ -70,7 +66,6 @@ gui.SpiritAtt = gui.SpiritPlugin.extend ( "gui.SpiritAtt", {
 	 * @returns {Map<String,String>} 
 	 */
 	getup : function () {
-
 		var map = Object.create ( null );
 		this.all ().forEach ( function ( att ) {
 			map [ att.name ] = gui.Type.cast ( att.value );
@@ -81,27 +76,26 @@ gui.SpiritAtt = gui.SpiritPlugin.extend ( "gui.SpiritAtt", {
 	/**
 	 * Invoke multiple attributes update via hashmap 
 	 * argument. Use null value to remove an attribute.
-	 * @param {Map<String,String>} 
+	 * @param {Map<String,String>}
 	 */
 	setup : function ( map ) {
-		
 		gui.Object.each ( map, function ( name, value ) {
 			this.set ( name, value );
 		}, this );
 	},
 
 
-	// SECRETS .........................................
+	// Secret .................................................
 
 	/**
-	 * Disable attribute updates.
+	 * Attribute updates disabled?
 	 * @type {boolean}
 	 */
 	__suspended__ : false,
 
 	/**
-	 * Suspend attribute updates for the duration of 
-	 * the action (kind of framework internal stuff).
+	 * Suspend attribute updates for the duration of the action.
+	 * @todo Figure out why and if we need this stuff
 	 * @param {function} action
 	 * @retruns {object}
 	 */

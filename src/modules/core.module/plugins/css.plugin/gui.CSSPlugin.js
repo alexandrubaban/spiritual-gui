@@ -1,59 +1,55 @@
 /**
+ * # gui.CSSPlugin
  * Spirit styling studio.
- * @param {gui.Spirit} spirit
+ * @extends {gui.Plugin}
  */
-gui.SpiritCSS = gui.SpiritPlugin.extend ( "gui.SpiritCSS", {
+gui.CSSPlugin = gui.Plugin.extend ( "gui.CSSPlugin", {
 	
 	/**
 	 * Set single element.style.
 	 * @param {String} prop
 	 * @param {String} val
-	 * @returns {gui.Spirit}
+	 * @returns {gui.CSSPlugin}
 	 */
 	set : function ( prop, val ) {
-		
-		gui.SpiritCSS.set ( this.spirit.element, prop, val );
-		return this.spirit;
+		gui.CSSPlugin.set ( this.spirit.element, prop, val );
+		return this;
 	},
-	
+
 	/**
 	 * Get single element.style; see also compute method.
 	 * @param {String} prop
 	 * @returns {String}
 	 */
 	get : function ( prop ) {
-		
-		return gui.SpiritCSS.get ( this.spirit.element, prop );
+		return gui.CSSPlugin.get ( this.spirit.element, prop );
 	},
-	
+
 	/**
 	 * Compute runtime style.
 	 * @param {String} prop
 	 * @returns {String}
 	 */
 	compute : function ( prop ) {
-		
-		return gui.SpiritCSS.compute ( this.spirit.element, prop );
+		return gui.CSSPlugin.compute ( this.spirit.element, prop );
 	},
-	
+
 	/**
 	 * Set multiple styles via key value map.
 	 * @param {Map<String,String>} map
-	 * @returns {gui.Spirit}
+	 * @returns {gui.CSSPlugin}
 	 */
 	style : function ( map ) {
-		
-		gui.SpiritCSS.style ( this.spirit.element, map );
-		return this.spirit;
+		gui.CSSPlugin.style ( this.spirit.element, map );
+		return this;
 	},
-	 
+
 	/**
 	 * Get or set (full) className.
 	 * @param @optional {String} name
 	 * @returns {object} gui.Spirit or String
 	 */
 	name : function ( name ) {
-		
 		var result = this.spirit.element.className;
 		if ( name !== undefined ) {
 			this.spirit.element.className = name;
@@ -61,48 +57,44 @@ gui.SpiritCSS = gui.SpiritPlugin.extend ( "gui.SpiritCSS", {
 		}
 		return result;
 	},
-	
+
 	/**
 	 * classList.add
 	 * @param {String} name
-	 * @returns {gui.Spirit}
+	 * @returns {gui.CSSPlugin}
 	 */
 	add : function ( name ) {
-		
-		gui.SpiritCSS.add ( this.spirit.element, name );
-		return this.spirit;
+		gui.CSSPlugin.add ( this.spirit.element, name );
+		return this;
 	},
-	
+
 	/**
 	 * classList.remove
 	 * @param {String} name
-	 * @returns {gui.Spirit}
+	 * @returns {gui.CSSPlugin}
 	 */
 	remove : function ( name ) {
-		
-		gui.SpiritCSS.remove ( this.spirit.element, name );
-		return this.spirit;
+		gui.CSSPlugin.remove ( this.spirit.element, name );
+		return this;
 	},
-	
+
 	/**
 	 * classList.toggle
 	 * @param {String} name
-	 * @returns {gui.Spirit}
+	 * @returns {gui.CSSPlugin}
 	 */
 	toggle : function ( name ) {
-		
-		gui.SpiritCSS.toggle ( this.spirit.element, name );
-		return this.spirit;
+		gui.CSSPlugin.toggle ( this.spirit.element, name );
+		return this;
 	},
-	
+
 	/**
 	 * classList.contains
 	 * @param {String} name
 	 * @returns {boolean}
 	 */
 	contains : function ( name ) {
-		
-		return gui.SpiritCSS.contains ( this.spirit.element, name );
+		return gui.CSSPlugin.contains ( this.spirit.element, name );
 	}, 
 
 	/**
@@ -111,40 +103,24 @@ gui.SpiritCSS = gui.SpiritPlugin.extend ( "gui.SpiritCSS", {
 	 * @returns {boolean}
 	 */
 	matches : function ( selector ) {
-
-		return gui.SpiritCSS.matches ( this.spirit.element, selector );
+		return gui.CSSPlugin.matches ( this.spirit.element, selector );
 	}
 	
 	
-}, {}, { // STATICS .............................................................
+}, {}, {
 
-	/**
-	 * @static
-	 * Non-matching vendors removed after first run. First entry 
-	 * gets to stay since it represents the unprefixed property.
-	 * @type {Array<String>}
-	 */
-	_vendors : [ "", "-webkit-", "-moz-", "-ms-", "-o-" ],
+	 // Static ......................................................................
 
-	/**
-	 * @static
-	 * _supports Element.classList?
-	 * @type {boolean}
-	 */
-	_supports : document.documentElement.classList !== undefined,
-
-	/**
-	 * @static
+	 /**
 	 * classList.add
 	 * @param {Element} element
 	 * @param {String} names
 	 */
 	add : function ( element, name ) {
-		
 		if ( name.indexOf ( " " ) >-1 ) {
 			name = name.split ( " " );
 		}
-		if ( Array.isArray ( name )) {
+		if ( gui.Type.isArray ( name )) {
 			name.forEach ( function ( n ) {
 				this.add ( element, n );
 			}, this );
@@ -162,18 +138,16 @@ gui.SpiritCSS = gui.SpiritPlugin.extend ( "gui.SpiritCSS", {
 	},
 
 	/**
-	 * @static
 	 * classList.remove
 	 * @param {Element} element
 	 * @param {String} name
-	 * @returns {gui.SpiritCSS}
+	 * @returns {gui.CSSPlugin}
 	 */
 	remove : function ( element, name ) {
-		
 		if ( name.indexOf ( " " ) >-1 ) {
 			name = name.split ( " " );
 		}
-		if ( Array.isArray ( name )) {
+		if ( gui.Type.isArray ( name )) {
 			name.forEach ( function ( n ) {
 				this.remove ( element, n );
 			}, this );
@@ -192,14 +166,12 @@ gui.SpiritCSS = gui.SpiritPlugin.extend ( "gui.SpiritCSS", {
 	},
 
 	/**
-	 * @static
 	 * classList.toggle
 	 * @param {Element} element
 	 * @param {String} name
-	 * @returns {gui.SpiritCSS}
+	 * @returns {gui.CSSPlugin}
 	 */
 	toggle : function ( element, name ) {
-		
 		if ( this._supports ) {
 			element.classList.toggle ( name );
 		} else {
@@ -212,37 +184,33 @@ gui.SpiritCSS = gui.SpiritPlugin.extend ( "gui.SpiritCSS", {
 	},
 
 	/**
-	 * @static
 	 * classList.contains
 	 * @param {Element} element
 	 * @param {String} name
 	 * @returns {boolean}
 	 */
 	contains : function ( element, name ) {
-		
 		var result = false;
 		if ( this._supports ) {
 			result = element.classList.contains ( name );
 		} else {
-			result = element.className.indexOf ( name ) >-1;
+			var classnames = element.className.split ( " " );
+			result = classnames.indexOf ( name ) >-1;
 		}
 		return result;
 	},
 
-	/**
-	 * @static
+	 /**
 	 * Set single element.style property (use style() for multiple)
+	 * @todo also automate shorthands such as "10px 20px 10px 20px"
 	 * @param {Element}
 	 * @param {String} prop
-	 * @returns {gui.SpiritCSS}
+	 * @returns {gui.CSSPlugin}
 	 */
 	set : function ( element, prop, value ) {
-
-		// TODO: also automate shorthands such as "10px 20px 10px 20px"
 		if ( gui.Type.isNumber ( value )) {
 			value = ( this._shorthands [ prop ] || "@" ).replace ( "@", value );
 		}
-
 		value = String ( value );
 		switch ( prop ) {
 			case "float": 
@@ -256,31 +224,27 @@ gui.SpiritCSS = gui.SpiritPlugin.extend ( "gui.SpiritCSS", {
 		element.style [ prop ] = value;
 		return this;
 	},
-	
-	/**
-	 * @static
-	 * TODO: Get element.style property; if this has been set. 
+
+	 /**
+	 * @todo Get element.style property; if this has been set. 
 	 * Not to be confused with compute() for computedStyle!!!
 	 * @param {Element}
 	 * @param {String} prop
 	 * @returns {String}
 	 */
 	get : function ( element, prop ) {
-
 		return this._normval ( element.style [
 			this._normprop ( element, prop )
 		]);
 	},
 
 	/**
-	 * @static
 	 * Set multiple element.style properties.
 	 * @param {object} thing Spirit or element.
 	 * @param {Map<String,String>} styles
 	 * @returns {object} Spirit or element
 	 */
 	style : function ( thing, styles ) {
-		
 		var element = thing instanceof gui.Spirit ? thing.element : thing;
 		gui.Object.each ( styles, function ( prop, value ) {
 			this.set ( element, prop, value );
@@ -289,14 +253,12 @@ gui.SpiritCSS = gui.SpiritPlugin.extend ( "gui.SpiritCSS", {
 	},
 
 	/**
-	 * @static
 	 * Compute runtime style.
 	 * @param {object} thing Spirit or element.
 	 * @param {String} prop
 	 * @returns {String}
 	 */
 	compute : function ( thing, prop ) {
-		
 		var element = thing instanceof gui.Spirit ? thing.element : thing;
 		var doc = element.ownerDocument, win = doc.defaultView;
 		prop = this._standardcase ( this._normprop ( element, prop ));
@@ -310,45 +272,54 @@ gui.SpiritCSS = gui.SpiritPlugin.extend ( "gui.SpiritCSS", {
 	 * @returns {boolean}
 	 */
 	matches : function ( node, selector ) {
-		
 		return node [ this._matchmethod ]( selector );
 	},
 
+
+	// Private statics ...................................................................... 
+
+	 /**
+	 * Non-matching vendors removed after first run. First entry 
+	 * gets to stay since it represents the unprefixed property.
+	 * @type {Array<String>}
+	 */
+	_vendors : [ "", "-webkit-", "-moz-", "-ms-", "-o-" ],
+
 	/**
-	 * @static
+	 * _supports Element.classList?
+	 * @type {boolean}
+	 */
+	_supports : document.documentElement.classList !== undefined,
+
+	/**
 	 * CamelCase string.
 	 * @param {String} string
 	 * @returns {String}
 	 */
 	_camelcase : function ( string ) {
-		
 		return string.replace ( /-([a-z])/ig, function ( all, letter ) {
 			return letter.toUpperCase();
 		});
 	},
 
 	/**
-	 * @static
 	 * standard-css-notate CamelCased string.
 	 * @param {String} string
 	 * @returns {String}
 	 */
 	_standardcase : function ( string ) {
-		
 		return string.replace ( /[A-Z]/g, function ( all, letter ) {
 			return "-" + string.charAt ( letter ).toLowerCase ();
 		});
 	},	
 
 	/**
-	 * @static 
 	 * Setter shorthands will autosuffix properties that require units 
-	 * in support of the syntax: this.css.width = 300; // no method()
-	 * TODO: add tons of things to this list
+	 * in support of the syntax: this.css.width = 300;  * no method()
+	 * @todo add tons of things to this list
 	 * @type {Map<String,String>
 	 */
 	_shorthands : {
-			 
 		top : "@px",
 		right : "@px",
 		bottom : "@px",
@@ -368,13 +339,12 @@ gui.SpiritCSS = gui.SpiritPlugin.extend ( "gui.SpiritCSS", {
 		visibility : "@"
 	},
 
-	/*
+	/**
 	 * Normalize declaration value.
 	 * @param {String} value
 	 * @returns {value}
 	 */
 	_normval : function ( element, value ) {
-		
 		var vendors = this._vendors;
 		if ( value && value.contains ( "-beta-" )) {
 			var parts = [];
@@ -400,14 +370,13 @@ gui.SpiritCSS = gui.SpiritPlugin.extend ( "gui.SpiritCSS", {
 		return value;
 	},
 
-	/*
+	/**
 	 * Normalize declaration property.
 	 * @param {Element} element
 	 * @param {String} prop
 	 * @returns {String}
 	 */
 	_normprop : function ( element, prop, xxx ) {
-		
 		var vendors = this._vendors, fixt = prop;
 		if ( true ) {
 			if ( prop.startsWith ( "-beta-" )) {
@@ -415,7 +384,7 @@ gui.SpiritCSS = gui.SpiritPlugin.extend ( "gui.SpiritCSS", {
 					var test = this._camelcase ( prop.replace ( "-beta-", vendor ));
 					if ( element.style [ test ] !== undefined ) {
 						if ( vendors.length > 2 ) {
-							this._vendors = [ "", vendor ]; // TODO: at startup
+							this._vendors = [ "", vendor ]; // @todo at startup
 						}
 						fixt = test;
 						return false;
@@ -431,10 +400,9 @@ gui.SpiritCSS = gui.SpiritPlugin.extend ( "gui.SpiritCSS", {
 
 	/**
 	 * Lookup vendors "matchesSelector" method.
-	 * @type {String}
-	 */ 
+	 * @type {String} 
+	 */
 	_matchmethod : ( function () {
-
 		var match = null, root = document.documentElement;
 		[ 
 			"mozMatchesSelector", 
@@ -453,13 +421,12 @@ gui.SpiritCSS = gui.SpiritPlugin.extend ( "gui.SpiritCSS", {
 	
 });
 
-/*
+/**
  * Generate shorthand getters/setters for top|left|width|height etc.
  */
 ( function shorthands () {
-	
 	function getset ( prop ) {
-		Object.defineProperty ( gui.SpiritCSS.prototype, prop, {
+		Object.defineProperty ( gui.CSSPlugin.prototype, prop, {
 			enumerable : true,
 			configurable : true,
 			get : function get () {
@@ -470,12 +437,10 @@ gui.SpiritCSS = gui.SpiritPlugin.extend ( "gui.SpiritCSS", {
 			}
 		});
 	}
-
-	var shorts = gui.SpiritCSS._shorthands;
+	var shorts = gui.CSSPlugin._shorthands;
 	for ( var prop in shorts ) {
 		if ( shorts.hasOwnProperty ( prop )) {
 			getset ( prop );
 		}
 	}
-	
 })();

@@ -1,7 +1,10 @@
 /**
- * Spirit box object (performant now: http://code.google.com/p/v8/issues/detail?id=1239)
+ * # gui.BoxPlugin
+ * Spirit box object. Note that these are all properties, not methods. 
+ * @extends {gui.Plugin}
+ * @todo Support globalX, globalY, screenX, screenY
  */
-gui.SpiritBox = gui.SpiritPlugin.extend ( "gui.SpiritBox", {
+gui.BoxPlugin = gui.Plugin.extend ( "gui.BoxPlugin", {
 	
 	width   : 0, // width
 	height  : 0, // height
@@ -9,109 +12,87 @@ gui.SpiritBox = gui.SpiritPlugin.extend ( "gui.SpiritBox", {
 	localY  : 0, // Y relative to positioned ancestor
 	pageX   : 0, // X relative to the full page (includes scrolling)
 	pageY   : 0, // Y telative to the full page (includes scrolling)	  
-	clientX : 0, // X relative to the viewport (excludes scroll offset)
-	clientY : 0, // Y relative to the viewport (excludes scroll offset)
-	globalX : 0, // TODO
-	globalY : 0, // TODO,
-	screenX : 0, // TODO,
-	screenY : 0  // TODO
-	
+	clientX : 0, // X relative to the viewport (excludes scrolling)
+	clientY : 0  // Y relative to the viewport (excludes scrolling)
 });
 
-Object.defineProperties ( gui.SpiritBox.prototype, {
-	
+Object.defineProperties ( gui.BoxPlugin.prototype, {
+
 	/**
-	 * Get width.
-	 * @returns {number}
+	 * Width.
+	 * @type {number}
 	 */
 	width : {
 		get : function () {
 			return this.spirit.element.offsetWidth;
 		}
 	},
-	
+
 	/**
-	 * Get height.
-	 * @returns {number}
+	 * Height.
+	 * @type {number}
 	 */
 	height : {
 		get : function () {
 			return this.spirit.element.offsetHeight;
 		}
 	},
-	
+
 	/**
-	 * Get offsetParent left.
-	 * @returns {number}
+	 * X relative to positioned ancestor.
+	 * @type {number}
 	 */
 	localX : {
 		get : function () {
 			return this.spirit.element.offsetLeft;
 		}
 	},
-	
+
 	/**
-	 * Get offsetParent top.
-	 * @returns {number}
+	 * Y relative to positioned ancestor.
+	 * @type {number}
 	 */
 	localY : {
 		get : function () {
 			return this.spirit.element.offsetTop;
 		}
 	},
-	
+
 	/**
-	 * @returns {number}
+	 * X relative to the full page (includes scrolling).
+	 * @todo IMPORTANT scrollroot must be local to context
+	 * @type {number}
 	 */
 	pageX : {
 		get : function () {
 			return this.clientX + gui.Client.scrollRoot.scrollLeft;
 		}
 	},
-	
+
 	/**
-	 * @returns {number}
+	 * Y relative to the full page (includes scrolling).
+	 * @todo IMPORTANT scrollroot must be local to context
+	 * @type {number}
 	 */
 	pageY : {
 		get : function () {
-			
 			return this.clientY + gui.Client.scrollRoot.scrollTop;
 		}
 	},
-	
+
 	/**
-	 * TODO
-	 * @returns {number}
-	 */
-	globalX : {
-		get : function () {
-			console.warn ( "TODO: gui.SpiritBox.globalX" );
-			return null;
-		}
-	},
-	
-	/**
-	 * TODO
-	 * @returns {number}
-	 */
-	globalY : {
-		get : function () {
-			console.warn ( "TODO: gui.SpiritBox.globalY" );
-			return null;
-		}
-	},
-	
-	/**
-	 * @returns {number}
+	 * X relative to the viewport (excludes scrolling).
+	 * @type {number}
 	 */
 	clientX : {
 		get : function () {
 			return this.spirit.element.getBoundingClientRect ().left;
 		}
 	},
-	
+
 	/**
-	 * @returns {number}
+	 * Y relative to the viewport (excludes scrolling).
+	 * @type {number}
 	 */
 	clientY : {
 		get : function () {

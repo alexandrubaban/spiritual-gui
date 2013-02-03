@@ -1,10 +1,10 @@
-/**
- * Split() the #fragment identifier once and for all.
+ /**
+ * # gui.URL
+ * Resolve an URL string relative to a document.
  * @param {Document} doc
  * @param {String} href
  */
 gui.URL = function ( doc, href ) {
-	
 	var link = doc.createElement ( "a" ); link.href = href;
 	Object.keys ( gui.URL.prototype ).forEach ( function ( key ) {
 		if ( gui.Type.isString ( link [ key ])) {
@@ -26,10 +26,6 @@ gui.URL.prototype = {
 	port : null, // 80
 	protocol : null, // http:
 	search : null, // ?q=devmo
-	
-	// CUSTOM ..........................................................
-	
 	id : null,	// test
-	// url : null, // http://www.example.com:80/search?q=devmo
-	external : false // external to the *document*, not the server host
+	external : false // external relative to//document*, not the server host
 };
