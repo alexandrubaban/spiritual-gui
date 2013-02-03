@@ -4,16 +4,16 @@
  * @extends {gui.Plugin}
  */
 gui.CSSPlugin = gui.Plugin.extend ( "gui.CSSPlugin", {
-
+	
 	/**
 	 * Set single element.style.
 	 * @param {String} prop
 	 * @param {String} val
-	 * @returns {gui.Spirit}
+	 * @returns {gui.CSSPlugin}
 	 */
 	set : function ( prop, val ) {
 		gui.CSSPlugin.set ( this.spirit.element, prop, val );
-		return this.spirit;
+		return this;
 	},
 
 	/**
@@ -37,11 +37,11 @@ gui.CSSPlugin = gui.Plugin.extend ( "gui.CSSPlugin", {
 	/**
 	 * Set multiple styles via key value map.
 	 * @param {Map<String,String>} map
-	 * @returns {gui.Spirit}
+	 * @returns {gui.CSSPlugin}
 	 */
 	style : function ( map ) {
 		gui.CSSPlugin.style ( this.spirit.element, map );
-		return this.spirit;
+		return this;
 	},
 
 	/**
@@ -61,31 +61,31 @@ gui.CSSPlugin = gui.Plugin.extend ( "gui.CSSPlugin", {
 	/**
 	 * classList.add
 	 * @param {String} name
-	 * @returns {gui.Spirit}
+	 * @returns {gui.CSSPlugin}
 	 */
 	add : function ( name ) {
 		gui.CSSPlugin.add ( this.spirit.element, name );
-		return this.spirit;
+		return this;
 	},
 
 	/**
 	 * classList.remove
 	 * @param {String} name
-	 * @returns {gui.Spirit}
+	 * @returns {gui.CSSPlugin}
 	 */
 	remove : function ( name ) {
 		gui.CSSPlugin.remove ( this.spirit.element, name );
-		return this.spirit;
+		return this;
 	},
 
 	/**
 	 * classList.toggle
 	 * @param {String} name
-	 * @returns {gui.Spirit}
+	 * @returns {gui.CSSPlugin}
 	 */
 	toggle : function ( name ) {
 		gui.CSSPlugin.toggle ( this.spirit.element, name );
-		return this.spirit;
+		return this;
 	},
 
 	/**
