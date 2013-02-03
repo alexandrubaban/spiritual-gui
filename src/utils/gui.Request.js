@@ -3,10 +3,11 @@
  * Simplistic XMLHttpRequest wrapper. 
  * Work in progress, lot's to do here.
  * @param @optional {String} url
+ * @param @optional {Document} doc Resolve URL relative tó this document (portal mode)
  */
-gui.Request = function ( url ) {
+gui.Request = function ( url, doc ) {
 	if ( url ) {
-		this.url ( url );
+		this.url ( url, doc );
 	}
 };
 
@@ -15,9 +16,10 @@ gui.Request.prototype = {
 	/**
 	 * Set request address.
 	 * @param {String} url
+	 * @param @optional {Document} doc Resolve URL relative tó this document
 	 */
-	url : function ( url ) {
-		this._url = url;
+	url : function ( url, doc ) {
+		this._url = doc ? new gui.URL ( doc, url ).href : url;
 		return this;
 	},
 
