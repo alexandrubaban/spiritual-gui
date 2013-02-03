@@ -134,17 +134,17 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	},
 	
 	/**
-	 * Invoked when spirit gets disposed. Code your last wishes.
-	 * Should only be called by the framework, use `dispose()`.
+	 * Invoked when spirit gets disposed. Code your last wishes. Should only be 
+	 * called by the framework, please use `dispose()` to terminate the spirit.
 	 * @see {gui.Spirit#dispose}
-	 * @param {boolean} unloading
+	 * @param {boolean} now Triggers immediate destruction when true
 	 * @returns {boolean}
 	 */
-	ondestruct : function ( unloading ) {
+	ondestruct : function ( now ) {
 		this.window.gui.destruct ( this );
 		this.life.godestruct ();
 		this.__debug__ ( false );
-		this.__destruct__ ( unloading );
+		this.__destruct__ ( now );
 	},
 	
 	// Handlers .....................................................................
@@ -270,10 +270,11 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	},
 	
 	/**
-	 * Total destruction.
-	 * @param @optional {boolean} unloading If true, destruct immediately
+	 * Total destruction. We have hotfixed conflicts upon destruction by moving the property nulling 
+	 * to a new execution stack, but the consequences should be thought throught at some point.
+	 * @param @optional {boolean} now Destruct immediately (for example when the window unloads)
 	 */
-	__destruct__ : function ( unloading ) {
+	__destruct__ : function ( now ) {
 		var map = this.__lazyplugins__;
 		gui.Object.each ( map, function ( prefix ) {
 			if ( map [ prefix ] === true ) {
@@ -287,15 +288,15 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 				case "object" :
 					if ( thing instanceof gui.Plugin ) {
 						if ( thing !== this.life ) {
-							thing.__destruct__ ( unloading );
+							thing.__destruct__ ( now );
 						}
 					}
 					break;
 			}
 		}, this );
 		this.life.__destruct__ (); // dispose life plugin last
-		if ( unloading ) {
-			this.__null__ (); // now!
+		if ( now ) {
+			this.__null__ ();
 		} else {
 			var that = this;
 			var tick = gui.TICK_SPIRIT_NULL;
@@ -314,8 +315,7 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	},
 	
 	/**
-	 * Null all props. We have hotfixed conflicts upon disposal by moving this to a new 
-	 * execution stack, but the consequences should be thought throught at some point.
+	 * Null all props.
 	 */
 	__null__ : function () {
 		var element = this.element;
@@ -367,34 +367,7 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	},
 
 	/**
-	 * Subclassing a spirit allows you to also subclass it's plugins 
-	 * using the same declarative syntax. To avoid potential frustration, 
-	 * we throw on the `extend` method which doesn't offfer this feature.
-	 */
-	extend : function () {
-		throw new Error ( 
-			'Spirits must use the "infuse" method and not "extend".\n' +
-			'This method extends both the spirit and it\'s plugins.'
-		);
-	},
-	
-	/**
-	 * Parse HTML string to DOM element in given document context.
-	 * @todo parent element awareness when inserted in document :)
-	 * @param {Document} doc
-	 * @param {String} html
-	 * @returns {Element}
-	 */
-	parse : function ( doc, html ) {
-		if ( doc.nodeType === Node.DOCUMENT_NODE ) {
-			return new gui.HTMLParser ( doc ).parse ( html )[ 0 ]; // @todo parseOne?
-		} else {
-			throw new TypeError ( this + ".parse() expects a Document" );
-		}
-	},
-
-	/**
-	 * First create DOM element, then associate Spirit instance.
+	 * Create DOM element and associate Spirit instance.
 	 * @param @optional {Document} doc
 	 * @returns {gui.Spirit}
 	 */
@@ -409,6 +382,34 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	 */
 	possess : function ( element ) {
 		return gui.Guide.possess ( element, this );
+	},
+
+	/**
+	 * Subclassing a spirit allows you to also subclass it's plugins 
+	 * using the same declarative syntax. To avoid potential frustration, 
+	 * we throw on the `extend` method which doesn't offfer this feature.
+	 */
+	extend : function () {
+		throw new Error ( 
+			'Spirits must use the "infuse" method and not "extend".\n' +
+			'This method extends both the spirit and it\'s plugins.'
+		);
+	},
+	
+	/**
+	 * Parse HTML string to DOM element in given document context. 
+	 * @todo This should be either powerful or removed from core.
+	 * @todo parent element awareness when inserted in document :)
+	 * @param {Document} doc
+	 * @param {String} html
+	 * @returns {Element}
+	 */
+	parse : function ( doc, html ) {
+		if ( doc.nodeType === Node.DOCUMENT_NODE ) {
+			return new gui.HTMLParser ( doc ).parse ( html )[ 0 ]; // @todo parseOne?
+		} else {
+			throw new TypeError ( this + ".parse() expects a Document" );
+		}
 	},
 	
 	/**

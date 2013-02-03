@@ -170,6 +170,7 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 	},
 
 	/**
+	 * TODO: rename to "seamless" or "fitiframe" ?
 	 * Dispatch fitness info. Please invoke this method whenever 
 	 * height changes: Parent iframes will resize to fit content.
 	 */

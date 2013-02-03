@@ -128,20 +128,6 @@ gui.Guide = {
 	},
 
 	/**
-	 * Dispell spirits from element and descendants.
-	 * TODO: rename "dispell" or "excorsize"...
-	 * @param {Node} node
-	 * @param @optional {boolean} unloading Trigger synchronous destruction of spirit on unload.
-	 */
-	dispose : function ( node, unloading ) {
-		this._collect ( node, false, gui.CRAWLER_DISPOSE ).forEach ( function ( spirit ) {
-			if ( !spirit.life.destructed ) {
-				spirit.ondestruct ( unloading );
-			}
-		}, this );
-	},
-
-	/**
 	 * Associate DOM element to Spirit instance.
 	 * @param {Element} element
 	 * @param {function} C spirit constructor
@@ -162,6 +148,18 @@ gui.Guide = {
 			throw "Constructed twice: " + spirit.toString ();
 		}
 		return spirit;
+	},
+
+	/**
+	 * Dispell spirits from element and descendants. This destructs the spirit (immediately).
+	 * @param {Element} element
+	 */
+	exorcise : function ( element ) {
+		this._collect ( element, false, gui.CRAWLER_DISPOSE ).forEach ( function ( spirit ) {
+			if ( !spirit.life.destructed ) {
+				spirit.ondestruct ( true );
+			}
+		}, this );
 	},
 
 	/**
@@ -193,7 +191,7 @@ gui.Guide = {
 	_suspended : false,
 
 	/**
-	 * Continue with attachment/detachment of given node?
+	 * Continue with spiritualize/materialize of given node?
 	 * @returns {boolean}
 	 */
 	_handles : function ( node ) {
@@ -204,7 +202,7 @@ gui.Guide = {
 	},
 
 	/**
-	 * Fires on document.DOMContentLoaded.
+	 * Fires on document.DOMContentLoaded
 	 * @todo gui.Observer crashes with JQuery when both do stuff on DOMContentLoaded
 	 * @see http://stackoverflow.com/questions/11406515/domnodeinserted-behaves-weird-when-performing-dom-manipulation-on-body
 	 * @param {gui.EventSummary} sum
@@ -235,7 +233,7 @@ gui.Guide = {
 			sum.documentspirit.onunload ();
 		}
 		gui.broadcast ( gui.BROADCAST_UNLOAD, sum );
-		this.dispose ( sum.document.documentElement, true );
+		this.exorcise ( sum.document );
 		sum.window.gui.nameDestructAlreadyUsed ();
 	},
 
@@ -306,7 +304,7 @@ gui.Guide = {
 		var xpr = ".gui-styles";
 		var css = doc.querySelectorAll ( xpr );
 		Array.forEach ( css, function ( elm ) {
-			this.attachOne ( elm );
+			this.spiritualizeOne ( elm );
 		}, this );
 	},
 
@@ -341,6 +339,7 @@ gui.Guide = {
 	 * @param {boolean} one Skip the subtree?
 	 */
 	_spiritualize : function ( node, skip, one ) {
+		node = node.nodeType === Node.DOCUMENT_NODE ? node.documentElement : node;
 		if ( this._handles ( node )) {
 			var attach = [];
 			var readys = [];
@@ -389,13 +388,14 @@ gui.Guide = {
 
 	/**
 	 * Detach spirits from element and subtree.
-	 * @param {Element} elm
+	 * @param {Node} node
 	 * @param {boolean} skip Skip the element?
 	 * @param {boolean} one Skip the subtree?
 	 */
-	_materialize : function ( elm, skip, one ) {
-		if ( this._handles ( elm )) {
-			this._collect ( elm, skip, gui.CRAWLER_DETACH ).forEach ( function detach ( spirit ) {
+	_materialize : function ( node, skip, one ) {
+		node = node.nodeType === Node.DOCUMENT_NODE ? node.documentElement : node;
+		if ( this._handles ( node )) {
+			this._collect ( node, skip, gui.CRAWLER_DETACH ).forEach ( function ( spirit ) {
 				if ( spirit.life.attached && !spirit.life.destructed ) {
 					spirit.ondetach ();
 				}

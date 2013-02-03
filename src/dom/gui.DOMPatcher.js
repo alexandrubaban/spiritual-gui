@@ -1,6 +1,8 @@
 /**
  * # gui.DOMPatcher
- * Patching bad WebKit support for DOM getters and setters.
+ * Patching bad WebKit support for overloading DOM getters and setters, 
+ * specifically innerHTML, outerHTML and textContent.This operation is 
+ * very time consuming, so let's pray for the related bug to fix soon.
  * @see http://code.google.com/p/chromium/issues/detail?id=13175
  */
 gui.DOMPatcher = {

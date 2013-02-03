@@ -38,15 +38,15 @@ gui.DOMCombos = {
 		 * Is `this` embedded in document?
 		 * @returns {boolean}
 		 */
-		var ifembedded = combo.provided ( function () {
+		var ifEmbedded = combo.provided ( function () {
 			return gui.DOMPlugin.embedded ( this );
 		});
 
 		/**
-		 * Has spirit associated?
+		 * Element has spirit?
 		 * @returns {boolean}
 		 */
-		var ifspirit = combo.provided ( function () {
+		var ifSpirit = combo.provided ( function () {
 			return !gui.Type.isNull ( this.spirit );
 		});
 
@@ -54,7 +54,7 @@ gui.DOMCombos = {
 		 * Attach node plus subtree.
 		 * @param {Node} node
 		 */
-		var spiritualizeafter = combo.after ( function ( node ) {
+		var spiritualizeAfter = combo.after ( function ( node ) {
 			guide.spiritualize ( node );
 		});
 
@@ -62,7 +62,7 @@ gui.DOMCombos = {
 		 * Detach node plus subtree.
 		 * @param {Node} node
 		 */
-		var materializebefore = combo.before ( function ( node ) {
+		var materializeBefore = combo.before ( function ( node ) {
 			guide.materialize ( node );
 		});
 
@@ -71,7 +71,7 @@ gui.DOMCombos = {
 		 * @param {Node} newnode
 		 * @param {Node} oldnode
 		 */
-		var spiritualizenewafter = combo.after ( function ( newnode, oldnode ) {
+		var spiritualizeNewAfter = combo.after ( function ( newnode, oldnode ) {
 			guide.spiritualize ( newnode );
 		});
 
@@ -80,7 +80,7 @@ gui.DOMCombos = {
 		 * @param {Node} newnode
 		 * @param {Node} oldnode
 		 */
-		var materializeoldbefore = combo.before ( function ( newnode, oldnode ) {
+		var materializeOldBefore = combo.before ( function ( newnode, oldnode ) {
 			guide.materialize ( oldnode );
 		});
 
@@ -89,7 +89,7 @@ gui.DOMCombos = {
 		 * @param {String} att
 		 * @param {String} val
 		 */
-		var setattafter = combo.after ( function ( att, val ) {
+		var setAttAfter = combo.after ( function ( att, val ) {
 			this.spirit.att.__suspend__ ( function () {
 				this.set ( att, val );
 			});
@@ -100,7 +100,7 @@ gui.DOMCombos = {
 		 * @todo use the post combo?
 		 * @param {String} att
 		 */
-		var delattafter = combo.after ( function ( att ) {
+		var delAttAfter = combo.after ( function ( att ) {
 			this.spirit.att.__suspend__ ( function () {
 				this.del ( att );
 			});
@@ -119,14 +119,14 @@ gui.DOMCombos = {
 		/**
 		 * Detach subtree of `this`.
 		 */
-		var materializesubbefore = combo.before ( function () {
+		var materializeSubBefore = combo.before ( function () {
 			guide.materializeSub ( this );
 		});
 
 		/**
 		 * Attach subtree of `this`
 		 */
-		var spiritualizesubafter = combo.after ( function () {
+		var spiritualizeSubAfter = combo.after ( function () {
 			guide.spiritualizeSub ( this );
 		});
 
@@ -134,7 +134,7 @@ gui.DOMCombos = {
 		 * Detach `this`.
 		 */
 		var parent = null; // @todo unref this at some point
-		var materializethisbefore = combo.before ( function () {
+		var materializeThisBefore = combo.before ( function () {
 			parent = this.parentNode;
 			guide.materialize ( this );
 		});
@@ -142,15 +142,16 @@ gui.DOMCombos = {
 		/**
 		 * Attach parent.
 		 */
-		var spiritualizeparentafter = combo.after ( function () {
+		var spiritualizeParentAfter = combo.after ( function () {
 			guide.spiritualize ( parent );
 		});
 
 		/**
 		 * Webkit-patch property descriptors for node and subtree.
+		 * @see {gui.DOMPatcher}
 		 * @param {Node} node
 		 */
-		var patchafter = combo.after ( function ( node ) {
+		var patchAfter = combo.after ( function ( node ) {
 			if ( gui.Client.isWebKit ) {
 				gui.DOMPatcher.patch ( node );
 			}
@@ -160,7 +161,7 @@ gui.DOMCombos = {
 		 * Pretend nothing happened when running in "managed" mode.
 		 * @todo Simply mirror this prop with an internal boolean
 		 */
-		var ifenabled = combo.provided ( function () {
+		var ifEnabled = combo.provided ( function () {
 			return this.ownerDocument.defaultView.gui.mode !== gui.MODE_MANAGED;
 		});
 
@@ -180,41 +181,41 @@ gui.DOMCombos = {
 
 			appendChild : function ( base ) {
 				return (
-					ifenabled ( 
-						ifembedded ( spiritualizeafter ( patchafter ( suspending ( base ))), 
+					ifEnabled ( 
+						ifEmbedded ( spiritualizeAfter ( patchAfter ( suspending ( base ))), 
 						otherwise ( base )),
 					otherwise ( base ))
 				);
 			},
 			removeChild : function ( base ) {
 				return (
-					ifenabled ( 
-						ifembedded ( materializebefore ( suspending ( base )),
+					ifEnabled ( 
+						ifEmbedded ( materializeBefore ( suspending ( base )),
 						otherwise ( base )),
 					otherwise ( base ))
 				);
 			},
 			insertBefore : function ( base ) {
 				return (
-					ifenabled ( 
-						ifembedded ( spiritualizeafter ( patchafter ( suspending ( base ))), 
+					ifEnabled ( 
+						ifEmbedded ( spiritualizeAfter ( patchAfter ( suspending ( base ))), 
 						otherwise ( base )),
 					otherwise ( base ))
 				);
 			},
 			replaceChild : function ( base ) {
 				return (
-					ifenabled ( 
-						ifembedded ( materializeoldbefore ( spiritualizenewafter ( patchafter ( suspending ( base )))), 
+					ifEnabled ( 
+						ifEmbedded ( materializeOldBefore ( spiritualizeNewAfter ( patchAfter ( suspending ( base )))), 
 						otherwise ( base )),
 					otherwise ( base ))
 				);
 			},
 			setAttribute : function ( base ) {
 				return ( 
-					ifenabled ( 
-						ifembedded ( 
-							ifspirit ( setattafter ( base ), 
+					ifEnabled ( 
+						ifEmbedded ( 
+							ifSpirit ( setAttAfter ( base ), 
 							otherwise ( base )),
 						otherwise ( base )),
 					otherwise ( base ))
@@ -222,9 +223,9 @@ gui.DOMCombos = {
 			},
 			removeAttribute : function ( base ) {
 				return ( 
-					ifenabled ( 
-						ifembedded ( 
-							ifspirit ( delattafter ( base ),
+					ifEnabled ( 
+						ifEmbedded ( 
+							ifSpirit ( delAttAfter ( base ),
 							otherwise ( base )),
 						otherwise ( base )),
 					otherwise ( base ))
@@ -232,24 +233,24 @@ gui.DOMCombos = {
 			},
 			innerHTML : function ( base ) {
 				return (
-					ifenabled ( 
-						ifembedded ( materializesubbefore ( spiritualizesubafter ( suspending ( base ))),
+					ifEnabled ( 
+						ifEmbedded ( materializeSubBefore ( spiritualizeSubAfter ( suspending ( base ))),
 						otherwise ( base )),
 					otherwise ( base ))
 				);
 			},
 			outerHTML : function ( base ) {
 				return (
-					ifenabled ( 
-						ifembedded ( materializethisbefore ( spiritualizeparentafter ( suspending ( base ))),
+					ifEnabled ( 
+						ifEmbedded ( materializeThisBefore ( spiritualizeParentAfter ( suspending ( base ))),
 						otherwise ( base )),
 					otherwise ( base ))
 				);
 			},
 			textContent : function ( base ) {
 				return (
-					ifenabled ( 
-						ifembedded ( materializesubbefore ( suspending ( base )),
+					ifEnabled ( 
+						ifEmbedded ( materializeSubBefore ( suspending ( base )),
 						otherwise ( base )),
 					otherwise ( base ))
 				);
