@@ -1,7 +1,8 @@
 /**
- * Do what Spiritual does by overloading JQuery instead of native DOM methods.
- * TODO: (Angular special) handle function replaceWith, "a special jqLite.replaceWith, which can replace items which have no parents"
- * TODO: Henrik says "$(iframe.contentDocument).remove() før man skifter URL eller fjerner iframen" (jQuery.cache og jQuery.fragments)
+ * # Module "jquery"
+ * Do what Spiritual does by overloading JQuery methods instead of native DOM methods.
+ * @todo (Angular special) handle function replaceWith, "a special jqLite.replaceWith, which can replace items which have no parents"
+ * @todo Henrik says "$(iframe.contentDocument).remove() før man skifter URL eller fjerner iframen" (jQuery.cache og jQuery.fragments)
  */
 gui.module ( "jquery", {
 
@@ -10,7 +11,6 @@ gui.module ( "jquery", {
 	 * @param {Window} context
 	 */
 	init : function ( context ) {
-		
 		if ( context === top ) {
 			this._spiritualdom ();
 		}
@@ -21,7 +21,6 @@ gui.module ( "jquery", {
 	 * @param {Window} context
 	 */
 	ready : function ( context ) {
-
 		var root = context.document.documentElement;
 		if ( context.gui.mode === gui.MODE_JQUERY ) {
 			var jq = context.jQuery;
@@ -33,92 +32,29 @@ gui.module ( "jquery", {
 	},
 
 
-	// PRIVATE .............................................................
+	// Private .............................................................
 
 	/**
-	 * Injecting Spiritual awareness into 
-	 * JQuery DOM manipulation methods.
+	 * Generating spirit management methods.
 	 * @param {jQuery} jq
 	 */
 	_expandos : function ( jq ) {
-
 		var guide = gui.Guide;
 		jq.__suspend = false;
-
-		/*
-		 * Element in page DOM?
-		 * @param {Element} el
-		 * @returns {boolean}
-		 */
-		function indom ( el ) {
-			return gui.SpiritDOM.embedded ( el );
-		}
-
-		/*
-		 * Attach spirits to collection.
-		 */
-		jq.fn.__attach = function () {
-			return this.each ( function ( i, el ) {
-				if ( indom ( el )) {
-					guide.attach ( el );
-				}
-			});
-		};
-
-		/*
-		 * Attach spirits to collection subtree.
-		 */
-		jq.fn.__attachSub = function () {
-			return this.each ( function ( i, el ) {
-				if ( indom ( el )) {
-					guide.attachSub ( el );
-				}
-			});
-		};
-
-		/*
-		 * Attach spirits to collection non-crawling.
-		 */
-		jq.fn.__attachOne = function () {
-			return this.each ( function ( i, el ) {
-				if ( indom ( el )) {
-					guide.attachOne ( el );
-				}
-			});
-		};
-
-		/*
-		 * Detach spirits from collection.
-		 */
-		jq.fn.__detach = function ( skip ) {
-			return this.each ( function ( i, el ) {
-				if ( indom ( el )) {
-					guide.detach ( el );
-				}
-			});
-		};
-
-		/*
-		 * Detach spirits from collection subtree.
-		 */
-		jq.fn.__detachSub = function ( skip ) {
-			return this.each ( function ( i, el ) {
-				if ( indom ( el )) {
-					guide.detachSub ( el );
-				}
-			});
-		};
-
-		/*
-		 * Detach spirits from collection non-crawling.
-		 */
-		jq.fn.__detachOne = function () {
-			return this.each ( function ( i, el ) {
-				if ( indom ( el )) {
-					guide.detachOne ( el );
-				}
-			});
-		};
+		[ 
+			"spiritualize", 
+			"spiritualizeSub", 
+			"spiritualizeOne",
+			"materialize", 
+			"materializeSub", 
+			"materializeOne" 
+		].forEach ( function ( method ) {
+			jq.fn [ "__" + method ] = function () {
+				return this.each ( function ( i, el ) {
+					gui.Guide [ method ] ( el );
+				});
+			};
+		});
 	},
 
 	/**
@@ -127,10 +63,8 @@ gui.module ( "jquery", {
 	 * @param {function} jq JQuery constructor
 	 */
 	_instance : function ( jq ) {
-
 		var Init = jq.fn.init;
 		var home = jq.__rootnode.ownerDocument.defaultView;
-
 		if ( home.gui.debug ) {
 			jq.fn.init = function ( selector, context, rootjQuery ){
 				var inst = new Init ( selector, context, rootjQuery );
@@ -147,13 +81,12 @@ gui.module ( "jquery", {
 
 	/**
 	 * Overloading DOM manipulation methods.
-	 * TODO: attr and removeAttr must be hooked into gui.SpiritAtt setup...
+	 * @todo attr and removeAttr must be hooked into gui.AttPlugin setup...
 	 * @param {function} jq Constructor
 	 */
 	_overload : function ( jq ) {
-		
+		var module = this;
 		var naive = Object.create ( null ); // mapping unmodified methods
-
 		[
 			"after", 
 			"append", 
@@ -174,28 +107,23 @@ gui.module ( "jquery", {
 			"wrap", 
 			"wrapAll", 
 			"wrapInner"
-
 		].forEach ( function ( name ) {
-
 			naive [ name ] = jq.fn [ name ];
 			jq.fn [ name ] = function () {
-
 				var res;
 				var that = this;
 				var args = arguments;
 				var set = arguments.length > 0;
-
 				function suber () {
 					return gui.Observer.suspend ( jq.__rootnode, function () {
 						return naive [ name ].apply ( that, args );
 					}, that );
 				}
-
 				if ( jq.__suspend ) {
 					res = suber ();
 				} else if ( name === "text" ) {
 					if ( set ) {
-						this.__detachSub ();
+						this.__materializeSub ();
 					}
 					res = suber ();
 				} else {
@@ -205,95 +133,70 @@ gui.module ( "jquery", {
 					switch ( name ) {
 						case "append" :
 						case "prepend" :
-							res = suber ();
-							this.__attachSub (); // TODO: optimize!!!
+							res = module._append_prepend.call ( this, name === "append", suber, jq );
 							break;
 						case "after" :
 						case "before" :
-							// Can't use arguments here since JQuery inserts clones thereof.
-							// Stuff becomes extra tricky since "this" can itself be a list.
-							( function () {
-								var is = name === "after";
-								var key = "isattached";
-								var olds = is ? this.nextAll () : this.prevAll ();
-								olds.data ( key, "true" ); // mark current siblings
-								res = suber ();
-								var news = is ? this.nextAll () : this.prevAll ();
-								news.each(function ( i, m ) {
-									m = jq ( m );
-									if ( !m.data ( key )) {
-										m.__attach (); // attach unmarked sibling
-										m.data ( key, "true" );
-									}
-								});
-								gui.Tick.next ( function () {
-									news.removeData ( key ); // cleanup all this
-								});
-							}).call ( this );
+							res = module._after_before.call ( this, name === "after", suber, jq );
 							break;
 						case "appendTo" :
 							res = suber ();
 							arg().each ( function ( i, m ) {
-								jq ( m ).last ().__attach ();
+								jq ( m ).last ().__spiritualize ();
 							});
 							break;
 						case "prependTo" :
 							res = suber ();
 							arg().each ( function ( i, m ) {
-								jq ( m ).first ().__attach ();
+								jq ( m ).first ().__spiritualize ();
 							});
 							break;
 						case "insertAfter" :
 							res = suber ();
-							arg().next ().__attach ();
+							arg().next ().__spiritualize ();
 							break;
 						case "insertBefore" :
 							res = suber ();
-							arg().prev ().__attach ();
+							arg().prev ().__spiritualize ();
 							break;
 						case "detach" :
 						case "remove" :
-							this.__detach ();
+							this.__materialize ();
 							res = suber ();
 							break;
-						case "replaceAll" :
-							arg().__detach ();
-							res = suber ();
-							this.parent ().__attachSub (); // TODO: optimize!
+						case "replaceAll" :	
+							res = module._replaceall_replacewith ( this, arg (), suber );
 							break;
 						case "replaceWith" :
-							this.__detach ();
-							var p = this.parent ();
-							res = suber ();
-							p.__attachSub (); // TODO: optimize!
+							res = module._replaceall_replacewith ( arg (), this, suber );
 							break;
 						case "empty" :
-							this.__detachSub ();
+							this.__materializeSub ();
 							res = suber ();
 							break;
 						case "html" :
 							if ( set ) {
-								this.__detachSub ();
+								this.__materializeSub ();
 							}
 							res = suber ();
 							if ( set ) {
-								this.__attachSub ();
+								this.__spiritualizeSub ();
 							}
 							break;
 						case "unwrap" :
-							// note: detachment is skipped here!
-							this.parent ().__detachOne ();
+							// note: materializement is skipped here!
+							this.parent ().__materializeOne ();
 							res = suber ();
 							break;
 						case "wrap" :
 						case "wrapAll" :
-							// note: detachment is skipped here!
+							// note: materializement is skipped here!
 							res = suber ();
-							this.parent ().__attachOne ();
+							this.parent ().__spiritualizeOne ();
 							break;
 						case "wrapInner" :
 							res = suber ();
-							this.__attach ();
+							this.__spiritualize ();
 							break;
 					}
 					jq.__suspend = false;
@@ -302,38 +205,19 @@ gui.module ( "jquery", {
 			};
 		});
 	},
-
-		/*
-		this.nextAll ().data ( key, "true" );
-		res = suber ();
-		var all = this.nextAll();
-		all.each(function ( i, m ) {
-			m = jq ( m );
-			if ( !m.data ( key )) {
-				m.data ( key, "true" );
-				m.__attach ();
-			};
-		});
-
-		gui.Tick.next ( function () {
-			all.removeData ( key );
-		});
-		*/
-
+	
 	/**
-	 * Overload Spiritual to attach/detach spirits on DOM mutation and to 
+	 * Overload Spiritual to spiritualize/materialize spirits on DOM mutation and to 
 	 * suspend mutation monitoring while DOM updating. This would normally 
 	 * be baked into native DOM methods appendChild, removeChild and so on.
-	 * @see {gui.SpiritDOM}
+	 * @see {gui.DOMPlugin}
 	 */
 	_spiritualdom : function () {
 
-		// overloading prototype of this guy
-		var plugin = gui.SpiritDOM.prototype;
+		// overloading this fellow
+		var plugin = gui.DOMPlugin.prototype;
 
 		/*
-		 * Desperate attempt to preserve readability
-		 * in messy method overloads presented below.
 		 * @param {gui.Spirit} spirit
 		 * @returns {object}
 		 */
@@ -345,38 +229,39 @@ gui.module ( "jquery", {
 			var is$ = win.gui.mode === gui.MODE_JQUERY;
 			return { elm : elm, doc : doc, win : win, dom : dom, is$ : is$ };
 		}
-
-		// manage invoker subtree
+		/**
+		 * Manage invoker subtree.
+		 */
 		[ "html", "empty", "text" ].forEach ( function ( method ) {
 			var old = plugin [ method ];
 			plugin [ method ] = function ( arg ) {
 				var res, b = breakdown ( this.spirit );
 				if ( b.is$ ) {
 					if ( b.dom ){
-						gui.Guide.detachSub ( b.elm );
+						gui.Guide.materializeSub ( b.elm );
 					}
 					res = gui.Observer.suspend ( b.elm, function () {
 						return old.call ( this, arg );
 					}, this );
 					if ( b.dom && method === "html" ) {
-						gui.Guide.attachSub ( b.elm );
+						gui.Guide.spiritualizeSub ( b.elm );
 					}
 				} else {
 					res = old.call ( this, arg );
 				}
 				return res;
 			};
-
 		});
-
-		// manage invoker itself		
+		/**
+		 * Manage invoker itself.
+		 */
 		[ "remove" ].forEach ( function ( method ) {
 			var old = plugin [ method ];
 			plugin [ method ] = function ( arg ) {
 				var res, b = breakdown ( this.spirit );
 				if ( b.is$ ) {
 					if ( b.dom ) {
-						gui.Guide.detach ( b.elm );
+						gui.Guide.materialize ( b.elm );
 					}
 					res = gui.Observer.suspend ( b.elm, function () {
 						return old.call ( this, arg );
@@ -387,8 +272,9 @@ gui.module ( "jquery", {
 				return res;
 			};
 		});
-
-		// manage targeted element(s)
+		/**
+		 * Manage targeted element(s)
+		 */
 		[ "append", "prepend", "before", "after" ].forEach ( function ( method ) {
 			var old = plugin [ method ];
 			plugin [ method ] = function ( things ) {
@@ -402,7 +288,7 @@ gui.module ( "jquery", {
 							return thing && thing instanceof gui.Spirit ? thing.element : thing;
 						});
 						els.forEach ( function ( el ) {
-							gui.Guide.attach ( el );
+							gui.Guide.spiritualize ( el );
 						});
 					}
 				} else {
@@ -411,6 +297,92 @@ gui.module ( "jquery", {
 				return res;
 			};
 		});
-	}
+	},
 
+	/**
+	 * JQuery append() and prepend().
+	 * @param {boolean} append
+	 * @param {function} suber
+	 */
+	_append_prepend : function ( append, suber ) {
+		var last = "lastElementChild";
+		var fist = "firstElementChild";
+		var next = "nextElementSibling";
+		var prev = "previousElementSibling";
+		var current = Array.map ( this, function ( elm ) {
+			return elm [ append ? last : fist ];
+		});
+		var old, res = suber ();
+		this.each ( function ( index, elm ) {
+			if (( old = current [ index ])) {
+				elm = old [ append ? next : prev ];
+			} else {
+				elm = elm.firstElementChild;
+			}
+			gui.Guide.spiritualize ( elm );	
+			elm = elm [ append ? next : prev ];
+		});
+		return res;
+	},
+
+	/**
+	 * JQuery after() and before(). We can't reliably use the arguments 
+	 * here becayse JQuery will switch them to clones in the process.
+	 * @param {boolean} after
+	 * @param {function} suber
+	 * @param {jQuery} jq
+	 */
+	_after_before : function ( after, suber, jq ) {
+		var next = "nextElementSibling";
+		var prev = "previousElementSibling";
+		var current = [];
+		this.each ( function ( i, elm ) {
+			while ( elm && current.indexOf ( elm ) === -1 ) {
+				current.push ( elm );
+				elm = elm [ after ? next : prev ];
+			}
+		});
+		var res = suber ();
+		var sibling, siblings;
+		this.each ( function ( i, elm ) {
+			sibling = elm [ after ? next : prev ];
+			while ( sibling && current.indexOf ( sibling ) === -1 ) {
+				gui.Guide.spiritualize ( sibling );
+				sibling = sibling [ after ? next : prev ];
+			}
+		});
+		return res;
+	},
+
+	/**
+	 * JQuery replaceAll() and replaceWith().
+	 * @param {$} source
+	 * @param {$} target
+	 * @param {function} suber
+	 */
+	_replaceall_replacewith : function ( source, target, suber ) {
+		var parent, parents = [], current = [];
+		target.each ( function ( i, elm ) {
+			gui.Guide.materialize ( elm );
+			parent = elm.parentNode
+			if ( parents.indexOf ( parent ) === -1 ) {
+				parents.push ( parent );
+				current = current.concat ( Array.map ( parent.children, function ( child ) {
+					return child;
+				}));
+			}
+		});
+		var res = suber ();
+		parents.forEach ( function ( parent ) {
+			if ( parent ) {
+				Array.forEach ( parent.children, function ( elm ) {
+					if ( current.indexOf ( elm ) === -1 ) {
+						gui.Guide.spiritualize ( elm );
+					}
+				});
+			}		
+		});
+		return res;
+	}
+	
 });

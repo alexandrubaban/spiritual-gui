@@ -1,12 +1,15 @@
-	/**
- * Patching bad WebKit support for DOM getters and setters.
+/**
+ * # gui.DOMPatcher
+ * Patching bad WebKit support for overloading DOM getters and setters, 
+ * specifically innerHTML, outerHTML and textContent.This operation is 
+ * very time consuming, so let's pray for the related bug to fix soon.
  * @see http://code.google.com/p/chromium/issues/detail?id=13175
  */
-gui.WEBKIT = { // TODO: name this thing
+gui.DOMPatcher = {
 
 	/**
-	 * Can patch property descriptors of elements in given window? 
-	 * Safari on iOS throws an epic failure exception in your face.
+	 * Can patch property descriptors of elements in given 
+	 * window? Safari on iOS throws an epic failure exception.
 	 * @param {Window} win
 	 * @returns {boolean}
 	 */
@@ -24,7 +27,7 @@ gui.WEBKIT = { // TODO: name this thing
 	 * Patch node plus nextsiblings and descendants recursively.
 	 */
 	patch : function ( node ) {
-		if ( gui.World.innerhtml.local ) {
+		if ( gui.DOMChanger.innerhtml.local ) {
 			new gui.Crawler ( "crawler-webkit-patch" ).descend ( node, this );
 		} else {
 			throw new Error ( "Somehow JQuery mode should have handled this :(" );
@@ -42,19 +45,18 @@ gui.WEBKIT = { // TODO: name this thing
 	},
 
 
-	// PRIVATES .........................................................
+	// Private .........................................................
 
 	/**
 	 * Property descriptor for innerHTML.
 	 * @type {Object}
 	 */
-	_innerHTML : {
-		
+	_innerHTML : {	
 		get : function () {
 			return new gui.DOMSerializer ().subserialize ( this );
 		},
 		set : function ( html ) {
-			gui.SpiritDOM.html ( this, html );
+			gui.DOMPlugin.html ( this, html );
 		}
 	},
 
@@ -63,12 +65,11 @@ gui.WEBKIT = { // TODO: name this thing
 	 * @type {Object}
 	 */
 	_outerHTML : {
-		
 		get : function () {
 			return new gui.DOMSerializer ().serialize ( this );
 		},
 		set : function ( html ) {
-			gui.SpiritDOM.outerHtml ( this, html );
+			gui.DOMPlugin.outerHtml ( this, html );
 		}
 	},
 
@@ -77,7 +78,6 @@ gui.WEBKIT = { // TODO: name this thing
 	 * @type {Object}
 	 */
 	_textContent : {
-		
 		get : function () {
 			var node = this, res = "";
 			for ( node = node.firstChild; node; node = node.nextSibling ) {
@@ -93,7 +93,7 @@ gui.WEBKIT = { // TODO: name this thing
 			return res;
 		},
 		set : function ( html ) {
-			gui.SpiritDOM.html ( this, html.
+			gui.DOMPlugin.html ( this, html.
 				replace ( /&/g, "&amp;" ).
 				replace ( /</g, "&lt;" ).
 				replace ( />/g, "&gt;" ).

@@ -52,7 +52,8 @@ module.exports = function(grunt) {
 				onecase: true,
 				scripturl: true,
 				laxbreak: true,
-				supernew: true
+				supernew: true,
+				regexdash: true
 			},
 			globals: {
 				gui: true,

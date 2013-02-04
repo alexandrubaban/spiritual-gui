@@ -1,6 +1,7 @@
 /**
+ * # gui.DOMSerializer
  * Serialize DOM element to XHTML string.
- * TODO: work on the HTML without XML...
+ * @todo work on the HTML without XML...
  */
 gui.DOMSerializer = function DOMSerializer () {};
 	
@@ -12,7 +13,6 @@ gui.DOMSerializer.prototype = {
 	 * @returns {String}
 	 */
 	serialize : function ( element ) {
-
 		var context = element.ownerDocument.defaultView;
 		var serializer = new context.XMLSerializer ();
 		return serializer.serializeToString ( element );
@@ -26,7 +26,6 @@ gui.DOMSerializer.prototype = {
 	 * @returns {String}
 	 */
 	subserialize : function ( element ) {
-
 		var html = this.serialize ( element );
 		if ( html.contains ( "</" )) {
 			html = html.slice ( 

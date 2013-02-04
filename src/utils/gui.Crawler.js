@@ -1,29 +1,29 @@
 /**
+ * # gui.Crawler
  * Crawling the DOM ascending or descending.
- * TODO: method descendSub to skip start element (and something similar for ascend)
+ * @todo method <code>descendSub</code> to skip start element (and something similar for ascend)
  * @param @optional {String} type
  */
 gui.Crawler = function ( type ) {
-	
 	this.type = type || null;
 	return this;
 };
 
 gui.Crawler.prototype = {
-		
+
 	/**
 	 * Recursion directives.
-	 * TODO: skip children, skip element etc
+	 * @todo skip children, skip element etc
 	 */
 	CONTINUE: 0,
 	STOP : 1,
-	
+
 	/**
-	 * Identifies crawler. TODO: spirit support for this!
+	 * Identifies crawler. @todo spirit support for this!
 	 * @type {String}
 	 */
 	type : null,
-	
+
 	/**
 	 * Direction "ascending" or "descending".
 	 * @type {String}
@@ -34,19 +34,16 @@ gui.Crawler.prototype = {
 	 * @type {Boolean}
 	 */
 	global : false,
-	
+
 	/**
 	 * Crawl DOM ascending.
-	 * TODO: ascendGlobal
-	 * TODO: Transcend into parent frame.
-	 * @param {object} start Spirit or Element
+	 * @todo ascendGlobal should do the global
+	 * @param {Element|gui.Spirit} start
 	 * @param {object} handler
 	 */
 	ascend : function ( start, handler ) {
-		
 		this.direction = gui.Crawler.ASCENDING;
 		var elm = start instanceof gui.Spirit ? start.element : start;
-		
 		do {
 			if ( elm.nodeType === Node.DOCUMENT_NODE ) {
 				if ( this.global ) {
@@ -55,7 +52,7 @@ gui.Crawler.prototype = {
 						try {
 							var assignment = elm.ownerDocument;
 						} catch ( accessDeniedException ) {
-							console.warn ( "TODO: Ascend cross domain" );
+							console.warn ( "@todo Ascend cross domain" );
 							elm = null;
 						}
 					}
@@ -78,31 +75,30 @@ gui.Crawler.prototype = {
 			}
 		} while ( elm );
 	},
-	
+
 	/**
 	 * Crawl DOM descending.
-	 * TODO: descendGlobal
-	 * TODO: Transcend into iframes.
+	 * @todo descendGlobal
+	 * @todo Transcend into iframes.
 	 * @param {object} start Spirit or Element
 	 * @param {object} handler
 	 */
 	descend : function ( start, handler ) {
-		
 		this.direction = gui.Crawler.DESCENDING;
 		var elm = start instanceof gui.Spirit ? start.element : start;
 		if ( elm.nodeType === Node.DOCUMENT_NODE ) {
 			elm = elm.documentElement;
 		} else if ( elm.localName === "iframe" ) {
 			if ( this.global ) {
-				console.log ( "TODO: descend into iframes" );
+				console.log ( "@todo descend into iframes" );
 			}
 		}
 		this._descend ( elm, handler, true );
 	},
 
 
-	// PRIVATES .................................................................
-	
+	// Private .................................................................
+
 	/**
 	 * Iterate descending.
 	 * @param {Element} elm
@@ -110,7 +106,6 @@ gui.Crawler.prototype = {
 	 * @param {boolean} start
 	 */
 	_descend : function ( elm, handler, start ) {
-		
 		var directive = this._handleElement ( elm, handler );
 		switch ( directive ) {
 			case 0 :
@@ -121,7 +116,7 @@ gui.Crawler.prototype = {
 						try {
 							var assignment = elm.contentDocument;
 						} catch ( accessDeniedException ) {
-							console.warn ( "TODO: Descend cross domain" );
+							console.warn ( "@todo Descend cross domain" );
 						}
 						var root = elm.contentDocument.documentElement;
 						if ( root && root.spirit ) { // otherwise just created or no Spiritual
@@ -138,7 +133,7 @@ gui.Crawler.prototype = {
 				break;
 		}
 	},
-	
+
 	/**
 	 * Handle element. Invoked by both ascending and descending crawler.
 	 * @param {Element} element
@@ -146,10 +141,8 @@ gui.Crawler.prototype = {
 	 * @returns {number} directive
 	 */
 	_handleElement : function ( element, handler ) {
-		
 		var directive = gui.Crawler.CONTINUE;
 		var spirit = element.spirit;
-		
 		if ( spirit ) {
 			directive = spirit.oncrawler ( this );
 		}
@@ -176,7 +169,7 @@ gui.Crawler.prototype = {
 		}
 		return directive;
 	},
-	
+
 	/**
 	 * Handle Spirit.
 	 * @param {Spirit} spirit
@@ -184,20 +177,19 @@ gui.Crawler.prototype = {
 	 * @returns {number}
 	 */
 	_handleSpirit : function ( spirit, handler ) {
-		
 		return handler.handleSpirit ( spirit );
 	}
 };
 
 
-// STATICS ..............................................................
+// Static ..............................................................
 
 gui.Crawler.ASCENDING = "ascending";
 gui.Crawler.DESCENDING = "descending";
 
 /**
  * Bitmask setup supposed to be going on here.
- * TODO: SKIP_CHILDREN and TELEPORT_ELSEWEHERE stuff.
+ * @todo SKIP_CHILDREN and TELEPORT_ELSEWEHERE stuff.
  */
 gui.Crawler.CONTINUE = 0;
 gui.Crawler.STOP = 1;

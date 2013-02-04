@@ -1,29 +1,29 @@
-/**
+ /**
+ * # gui.ActionPlugin
  * Tracking actions.
- * @extends {gui.SpiritTracker}
+ * @extends {gui.Tracker}
  */
-gui.ActionTracker = gui.SpiritTracker.extend ( "gui.ActionTracker", {
+gui.ActionPlugin = gui.Tracker.extend ( "gui.ActionPlugin", {
 
 	/**
 	 * Free slot for spirit to define any single type of action to dispatch. 
 	 * @type {String}
 	 */
 	type : null,
-	
+
 	/**
 	 * Free slot for spirit to define any single type of data to dispatch.
 	 * @type {Object}
 	 */
 	data : null,
-	
+
 	/**
 	 * Add one or more action handlers.
 	 * @param {array|string} arg
 	 * @param @optional {object|function} handler
-	 * @returns {gui.ActionTracker}
+	 * @returns {gui.ActionPlugin}
 	 */
 	add : function ( arg, handler ) {
-		
 		if ( gui.Arguments.validate ( arguments, "array|string", "(object|function)" )) {
 			handler = handler ? handler : this.spirit;
 			if ( gui.Interface.validate ( gui.IActionHandler, handler )) {
@@ -34,15 +34,14 @@ gui.ActionTracker = gui.SpiritTracker.extend ( "gui.ActionTracker", {
 		}
 		return this;
 	},
-		
+
 	/**
 	 * Remove one or more action handlers.
 	 * @param {object} arg
 	 * @param @optional {object} handler
-	 * @returns {gui.ActionTracker}
+	 * @returns {gui.ActionPlugin}
 	 */
 	remove : function ( arg, handler ) {
-		
 		if ( gui.Arguments.validate ( arguments, "array|string", "(object|function)" )) {
 			handler = handler ? handler : this.spirit;
 			if ( gui.Interface.validate ( gui.IActionHandler, handler )) {
@@ -58,10 +57,9 @@ gui.ActionTracker = gui.SpiritTracker.extend ( "gui.ActionTracker", {
 	 * Add global action handler(s).
 	 * @param {object} arg
 	 * @param @optional {object} handler
-	 * @returns {gui.ActionTracker}
+	 * @returns {gui.ActionPlugin}
 	 */
 	addGlobal : function ( arg, handler ) {
-
 		return this._globalize ( function () {
 			return this.add ( arg, handler );
 		});
@@ -71,28 +69,23 @@ gui.ActionTracker = gui.SpiritTracker.extend ( "gui.ActionTracker", {
 	 * Remove global action handler(s).
 	 * @param {object} arg
 	 * @param @optional {object} handler
-	 * @returns {gui.ActionTracker}
+	 * @returns {gui.ActionPlugin}
 	 */
 	removeGlobal : function ( arg, handler ) {
-
 		return this._globalize ( function () {
 			return this.remove ( arg, handler );
 		});
 	},
 
-
-	// DISPATCH ...................................................
-	
 	/**
 	 * Dispatch type(s) ascending by default.
-	 * @alias {gui.ActionTracker#ascend}
+	 * @alias {gui.ActionPlugin#ascend}
 	 * @param {String} type
 	 * @param @optional {object} data
 	 * @param @optional {String} direction "ascend" or "descend"
 	 * @returns {gui.Action}
 	 */
 	dispatch : function ( type, data, direction ) {
-		
 		if ( gui.Arguments.validate ( arguments, "string", "(*)", "(string)" )) {
 			return gui.Action.dispatch ( 
 				this.spirit, 
@@ -106,25 +99,23 @@ gui.ActionTracker = gui.SpiritTracker.extend ( "gui.ActionTracker", {
 
 	/**
 	 * Dispatch type(s) ascending.
-	 * @alias {gui.ActionTracker#dispatch}
+	 * @alias {gui.ActionPlugin#dispatch}
 	 * @param {object} arg
 	 * @param @optional {object} data
 	 * @returns {gui.Action}
 	 */
 	ascend : function ( arg, data ) {
-
 		return this.dispatch ( arg, data, "ascend" );
 	},
 
 	/**
 	 * Dispatch type(s) descending.
-	 * @alias {gui.ActionTracker#dispatch}
+	 * @alias {gui.ActionPlugin#dispatch}
 	 * @param {object} arg
 	 * @param @optional {object} data
 	 * @returns {gui.Action}
 	 */
 	descend : function ( arg, data ) {
-
 		return this.dispatch ( arg, data, "descend" );
 	},
 
@@ -136,7 +127,6 @@ gui.ActionTracker = gui.SpiritTracker.extend ( "gui.ActionTracker", {
 	 * @returns {gui.Action}
 	 */
 	dispatchGlobal : function ( arg, data ) {
-
 		return this._globalize ( function () {
 			return this.dispatch ( arg, data );
 		});
@@ -149,7 +139,6 @@ gui.ActionTracker = gui.SpiritTracker.extend ( "gui.ActionTracker", {
 	 * @returns {gui.Action}
 	 */
 	ascendGlobal : function ( arg, data ) {
-
 		return this._globalize ( function () {
 			return this.ascend ( arg, data );
 		});
@@ -162,19 +151,18 @@ gui.ActionTracker = gui.SpiritTracker.extend ( "gui.ActionTracker", {
 	 * @returns {gui.Action}
 	 */
 	descendGlobal : function ( arg, data ) {
-
 		return this._globalize ( function () {
 			return this.descend ( arg, data );
 		});
 	},
-	
+
 	/**
-	 * Handle action. The dispatching spirit will not see it's own actions
+	 * Handle action. If it matches listeners, the action will be 
+	 * delegated to the spirit. Called by `gui.Action` crawler.
 	 * @see {gui.Action#dispatch}
 	 * @param {gui.Action} action
 	 */
-	handle : function ( action ) {
-		
+	handleAction : function ( action ) {
 		var list = this._xxx [ action.type ];
 		if ( list ) {
 			list.forEach ( function ( checks ) {
@@ -188,7 +176,7 @@ gui.ActionTracker = gui.SpiritTracker.extend ( "gui.ActionTracker", {
 	},
 
 
-	// PRIVATE ....................................................
+	// Private ....................................................
 
 	/**
 	 * Global mode?
@@ -202,7 +190,6 @@ gui.ActionTracker = gui.SpiritTracker.extend ( "gui.ActionTracker", {
 	 * @returns {object}
 	 */
 	_globalize : function ( operation ) {
-
 		this._global = true;
 		var res = operation.call ( this );
 		this._global = false;
@@ -211,13 +198,12 @@ gui.ActionTracker = gui.SpiritTracker.extend ( "gui.ActionTracker", {
 
 	/**
 	 * Remove delegated handlers. 
-	 * TODO: verify that this works
-	 * @overwrites {gui.SpiritTracker#_cleanup}
+	 * @todo verify that this works
+	 * @overwrites {gui.Tracker#_cleanup}
 	 * @param {String} type
 	 * @param {Array<object>} checks
 	 */
 	_cleanup : function ( type, checks ) {
-
 		if ( this._removechecks ( type, checks )) {
 			var handler = checks [ 0 ], global = checks [ 1 ];
 			if ( global ) {

@@ -1,8 +1,9 @@
-/**
+/** 
+ * # gui.DOMChanger
  * Spiritualizing documents by overloading DOM methods.
  */
-gui.World = {
-	
+gui.DOMChanger = {
+
 	/**
 	 * True when in JQuery mode. This will be removed when 
 	 * iOS supports a mechanism for intercepting innerHTML. 
@@ -11,42 +12,35 @@ gui.World = {
 	jquery : false,
 
 	/**
-	 * Tracking success with overloading the innerHTML setter.
+	 * Tracking success with overloading innerHTML setter in the current browser.
+	 * * Firefox, Opera and Explorer does this on an Element.prototype level
+	 * * Webkit does this on all *instances* of Element @see {gui.Guide#attach}
+	 * * Safari on iOS fails completely on must fallback to use "jquery" module
 	 * @type {Map<String,boolean>}
 	 */
 	innerhtml : {
-		global : false, // Firefox, Opera and Explorer does this on an Element.prototype level
-		local : false, // Webkit does this on all *instances* of Element @see {gui.Guide#attach}
-		missing : false // Safari on iOS fails completely on must fallback to use JQuery module
+		global : false,
+		local : false, 
+		missing : false 
 	},
-	
+
 	/**
 	 * Declare "spirit" as a fundamental property of things 
 	 * and extend native DOM methods in given window scope.
+	 * @todo WeakMap<Element,gui.Spirit> in supporting agents
 	 * @param {Window} win
 	 */
-	descend : function descend ( win ) {
-
-		/*
-		var ms = "";
-		gui.Object.methods(win.DocumentFragment.prototype).forEach(function(m){
-			ms += m + "\n";
-		});
-		alert(ms);
-		*/
-
+	change : function ( win ) {
 		var element = win.Element.prototype;
 		if ( gui.Type.isDefined ( element.spirit )) {
 			throw new Error ( "Spiritual loaded twice?" );
-		} else {		
-			/*
-			 * TODO: WeakMap<Element,gui.Spirit> in supporting agents
-			 */
-			element.spirit = null; // defineProperty fails in iOS 5.0
+		} else {
+			element.spirit = null; // defineProperty fails in iOS5
 			switch ( win.gui.mode ) {
+				case gui.MODE_MANAGED :
 				case gui.MODE_NATIVE :
-				case gui.MODE_OPTIMIZE :
-					this.upgrade ( win, gui.UPGRADE );
+				case gui.MODE_OPTIMIZE : 
+					this.upgrade ( win, gui.DOMCombos.getem ());
 					break;
 				case gui.MODE_JQUERY :
 					this._jquery ( win );
@@ -56,17 +50,17 @@ gui.World = {
 	},
 
 	/**
-	 * Upgrade DOM in window.
+	 * Upgrade DOM methods in window. 
 	 * @param {Window} win
-	 * @param {function} upgrade
+	 * @param {Map<String,function>} combos
 	 */
-	upgrade : function ( win, upgrade ) {
-		this._change ( win, upgrade ());
+	upgrade : function ( win, combos ) {
+		this._change ( win, combos );
 	},
 
 
-	// PRIVATES ........................................................................
-	
+	// Private ........................................................................
+
 	/**
 	 * JQuery mode: Confirm loaded JQuery 
 	 * and the "jquery" Spiritual module.
@@ -74,7 +68,6 @@ gui.World = {
 	 * @returns {boolan}
 	 */
 	_jquery : function ( win ) {
-
 		var ok = false;
 		if (!( ok = gui.Type.isDefined ( win.jQuery ))) {
 			throw new Error ( "Spiritual runs in JQuery mode: Expected JQuery to be loaded first" );
@@ -90,16 +83,16 @@ gui.World = {
 	 * intercept DOM updates. Firefox ignores extending of 
 	 * Element.prototype, we must step down the prototype chain.
 	 * @see https://bugzilla.mozilla.org/show_bug.cgi?id=618379
-	 * TODO: Add to the bug a comment about Object.prototype
-	 * TODO: Extend DocumentFragment
-	 * TODO: Extend insertAdjecantHTML
-	 * TODO: Support SVG elements (in XHTML)
+	 * @todo Add to the bug a comment about Object.prototype
+	 * @todo Extend DocumentFragment
+	 * @todo Extend insertAdjecantHTML
+	 * @todo Support SVG elements (in XHTML)
 	 * @param {Window} win
+	 * @param {Map<String,function} combos
 	 */
-	_change : function _change ( win, upgrade ) {
-		
+	_change : function _change ( win, combos ) {
 		var did = [], doc = win.document;
-		if ( !this._canchange ( win.Element.prototype, win, upgrade )) {
+		if ( !this._canchange ( win.Element.prototype, win, combos )) {
 			if ( !win.HTMLElement || !this._canchange ( win.HTMLElement.prototype, win )) {
 				this._tags ().forEach ( function ( tag ) {
 					var e = doc.createElement ( tag );
@@ -107,7 +100,7 @@ gui.World = {
 					// alert ( p ); this call throws a BAD_CONVERT_JS
 					if ( p !== win.Object.prototype ) { // excluding object and embed tags
 						if ( did.indexOf ( p ) === -1 ) {
-							this._dochange ( p, win, upgrade );
+							this._dochange ( p, win, combos );
 							did.push ( p ); // some elements share the same prototype
 						}
 					}
@@ -123,7 +116,6 @@ gui.World = {
 	 * @returns {Array<String>}
 	 */
 	_tags : function tags () {
-
 		return ( "a abbr address area article aside audio b base bdi bdo blockquote " +
 			"body br button canvas caption cite code col colgroup command datalist dd del " +
 			"details device dfn div dl dt em fieldset figcaption figure footer form " +
@@ -138,10 +130,10 @@ gui.World = {
 	 * Can extend given prototype object? If so, do it now.
 	 * @param {object} proto
 	 * @param {Window} win
+	 * @param {Map<String,function} combos
 	 * @returns {boolean} Success
 	 */
-	_canchange : function _canchange ( proto, win, upgrade ) {
-		
+	_canchange : function _canchange ( proto, win, combos ) {
 		// attempt overwrite
 		var result = false;
 		var test = "it appears to work";
@@ -149,52 +141,45 @@ gui.World = {
 		proto.hasChildNodes = function () {
 			return test;
 		};
-
 		// test overwrite and reset back
 		var root = win.document.documentElement;
 		if ( root.hasChildNodes () === test) {
 			proto.hasChildNodes = cache;
-			this._dochange ( proto, win, upgrade );
+			this._dochange ( proto, win, combos );
 			result = true;
 		}
-
 		return result;
 	},
-	
+
 	/**
 	 * Overloading prototype methods and properties. If we cannot get an angle on innerHTML, 
 	 * we switch to JQuery mode. This is currently known to happen in Safari on iOS 5.1
-	 * TODO: inserAdjecantHTML
+	 * @todo Firefox creates 50-something unique functions here
+	 * @todo Test success runtime (not rely on user agent string).
+	 * @todo inserAdjecantHTML
 	 * @param {object} proto
 	 * @param {Window} win
+	 * @param {Map<String,function} combos
 	 */
-	_dochange : function _dochange ( proto, win, upgrade ) {
-
-		/*
-		 * (old notes) Overloading properties (innerHTML).
-		 * TODO: Flag for gui.ready-something to onenter() in correct order.
-		 * TODO: Firefox creates 50-something unique functions here
-		 * TODO: Test success runtime (not rely on user agent string).
-		 */
-
+	_dochange : function _dochange ( proto, win, combos ) {
 		switch ( gui.Client.agent ) {
 			case "explorer" : // http://msdn.microsoft.com/en-us/library/dd229916(v=vs.85).aspx
 				this.innerhtml.global = true;
 				break;
 			case "gecko" :
-			case "opera" : // TODO: Object.defineProperty supported?
+			case "opera" : // @todo Object.defineProperty supported?
 				this.innerhtml.global = true;
 				break;
 			case "webkit" :
-				if ( gui.WEBKIT.canpatch ( win )) {
+				if ( gui.DOMPatcher.canpatch ( win )) {
 					this.innerhtml.local = true;
+					gui.DOMPatcher.patch ( win.document );
 				} else {
 					this.innerhtml.local = false;
 					this.innerhtml.missing = true;
 				}
 				break;
 		}
-
 		var title = win.document.title;
 		switch ( win.gui.mode ) {
 			case gui.MODE_NATIVE :
@@ -219,14 +204,11 @@ gui.World = {
 				}
 				break;
 		}
-		
-		/*
-		 * Overloading methods? Only in native mode.
-		 * TODO: insertAdjecantHTML
-		 */
+		// Overloading methods? Only in native mode.
+		// @todo insertAdjecantHTML
 		if ( win.gui.mode === gui.MODE_NATIVE ) {
 			var root = win.document.documentElement;
-			gui.Object.each ( upgrade, function ( name, combo ) {
+			gui.Object.each ( combos, function ( name, combo ) {
 				this._docombo ( proto, name, combo, root );
 			}, this );
 		}
@@ -240,7 +222,6 @@ gui.World = {
 	 * @param {Element} root
 	 */
 	_docombo : function ( proto, name, combo, root ) {
-
 		if ( this._ismethod ( name )) {
 			this._domethod ( proto, name, combo );
 		} else {
@@ -264,7 +245,6 @@ gui.World = {
 	 * @returns {boolean}
 	 */
 	_ismethod : function ( name ) {
-
 		var is = false;
 		switch ( name ) {
 			case "appendChild" : 
@@ -293,7 +273,7 @@ gui.World = {
 	},
 
 	/**
-	 * Overload property setter for Internet Explorer.
+	 * Overload property setter for IE.
 	 * @param {object} proto
 	 * @param {String} name
 	 * @param {function} combo

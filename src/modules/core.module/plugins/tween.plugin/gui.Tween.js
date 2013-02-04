@@ -1,9 +1,10 @@
 /**
+ * # gui.Tween
+ * Tweening away.
  * @param {String} type
  * @param @optional {object} data
  */
 gui.Tween = function ( type, data ) {
-
 	this.type = type;
 	this.data = data;
 };
@@ -35,39 +36,20 @@ gui.Tween.prototype = {
 	done : false
 };
 
-// STATICS .............................
-
-/*
-gui.Tween.add = function () {
-	throw new Error ( "TODO" );
-};
-
-gui.Tween.remove = function () {
-	throw new Error ( "TODO" );
-};
-
-gui.Tween.addGlobal = function ( type, handler ) {
-
-};
-
-gui.Tween.removeGlobal = function ( type, handler ) {
-
-};
-*/
+// Static .............................................
 
 /** 
- * Coordinate a global (cross frame) animation sequence.
+ * Coordinate a global (cross-frame) animation sequence.
+ * @todo Coordinate this more or less cross-domain.
  * @param {ui.Animation} animation
  * @returns {gui.Tween} but why?
  */
 gui.Tween.dispatchGlobal = function ( type, data ){
-
 	var that = this;
 	var start = new Date ().getTime ();
 	var tween = new gui.Tween ( type, data );
 	var duration = data ? ( data.duration || 200 ) : 200;
 	var timing = data ? ( data.timing || "none" ) : "none";
-	
 	function step () {
 		var time = new Date ().getTime ();
 		var value = 1, progress = time - start;
@@ -77,7 +59,7 @@ gui.Tween.dispatchGlobal = function ( type, data ){
 				value = value * 90 * Math.PI / 180;
 				switch ( timing ) {
 					case "ease-in" :
-						value = 1-Math.cos ( value );
+						value = 1 - Math.cos ( value );
 						break;
 					case "ease-out" :
 						value = Math.sin ( value );
@@ -92,9 +74,8 @@ gui.Tween.dispatchGlobal = function ( type, data ){
 			tween.value = value;
 			requestAnimationFrame ( step );
 		}
-		gui.Broadcast.dispatchGlobal ( null,gui.BROADCAST_TWEEN,tween );
+		gui.Broadcast.dispatchGlobal ( null, gui.BROADCAST_TWEEN, tween );
 	}
-
 	step ( start );
 	return tween;
 };

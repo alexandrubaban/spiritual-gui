@@ -1,19 +1,19 @@
-/**
+/** 
+ * # gui.TickPlugin
  * Tracking timed events.
- * TODO: Global timed events.
- * @extends {gui.SpiritTracker}
+ * @todo Global timed events.
+ * @extends {gui.Tracker}
  */
-gui.TickTracker = gui.SpiritTracker.extend ( "gui.TickTracker", {
-	
+gui.TickPlugin = gui.Tracker.extend ( "gui.TickPlugin", {
+
 	/**
 	 * Add one or more tick handlers.
 	 * @param {object} arg
 	 * @param @optional {object} handler
 	 * @param @optional {boolean} one Remove handler after on tick of this type?
-	 * @returns {gui.TickTracker}
+	 * @returns {gui.TickPlugin}
 	 */
 	add : function ( arg, handler, one ) {
-		
 		handler = handler ? handler : this.spirit;
 		if ( gui.Interface.validate ( gui.ITickHandler, handler )) {
 			this._breakdown ( arg ).forEach ( function ( type ) {
@@ -24,16 +24,15 @@ gui.TickTracker = gui.SpiritTracker.extend ( "gui.TickTracker", {
 		}
 		return this;
 	},
-	
+
 	/**
 	 * Add handler for single tick of given type(s).
-	 * TODO: This on ALL trackers :)
+	 * @todo This on ALL trackers :)
 	 * @param {object} arg
 	 * @param @optional {object} handler
-	 * @returns {gui.TickTracker}
+	 * @returns {gui.TickPlugin}
 	 */
 	one : function ( arg, handler ) {
-		
 		return this.add ( arg, handler, true );
 	},
 
@@ -42,18 +41,16 @@ gui.TickTracker = gui.SpiritTracker.extend ( "gui.TickTracker", {
 	 * @param {function} action 
 	 */
 	next : function ( action ) {
-
 		gui.Tick.next ( action, this.spirit );
 	},
-		
+
 	/**
 	 * Remove one or more tick handlers.
 	 * @param {object} arg
 	 * @param @optional {object} handler implements ActionListener interface, defaults to spirit
-	 * @returns {gui.TickTracker}
+	 * @returns {gui.TickPlugin}
 	 */
 	remove : function ( arg, handler ) {
-		
 		handler = handler ? handler : this.spirit;
 		if ( gui.Interface.validate ( gui.ITickHandler, handler )) {
 			this._breakdown ( arg ).forEach ( function ( type ) {
@@ -64,7 +61,7 @@ gui.TickTracker = gui.SpiritTracker.extend ( "gui.TickTracker", {
 		}
 		return this;
 	},
-	
+
 	/**
 	 * Dispatch tick after given time.
 	 * @param {String} type
@@ -72,13 +69,12 @@ gui.TickTracker = gui.SpiritTracker.extend ( "gui.TickTracker", {
 	 * @returns {gui.Tick}
 	 */
 	dispatch : function ( type, time ) {
-		
 		return this._dispatch ( type, time || 0 );
 	},
 	
 	
-	// PRIVATES ..................	...........................................................
-	
+	// Private .............................................................................
+
 	/**
 	 * Global mode?
 	 * @type {boolean}
@@ -89,7 +85,6 @@ gui.TickTracker = gui.SpiritTracker.extend ( "gui.TickTracker", {
 	 * Add handler.
 	 */
 	_add : function ( type, handler, one ) {
-
 		var sig = this.spirit.signature;
 		if ( one ) {
 			if ( this._global ) {
@@ -110,7 +105,6 @@ gui.TickTracker = gui.SpiritTracker.extend ( "gui.TickTracker", {
 	 * Remove handler.
 	 */
 	_remove : function ( type, handler ) {
-
 		var sig = this.spirit.signature;
 		if ( this._global ) {
 			gui.Tick.removeGlobal ( type, handler );
@@ -123,7 +117,6 @@ gui.TickTracker = gui.SpiritTracker.extend ( "gui.TickTracker", {
 	 * Dispatch.
 	 */
 	_dispatch : function ( type, time ) {
-
 		var tick, sig = this.spirit.signature;
 		if ( this._global ) {
 			tick = gui.Tick.dispatchGlobal ( type, time );
@@ -135,12 +128,11 @@ gui.TickTracker = gui.SpiritTracker.extend ( "gui.TickTracker", {
 
 	/**
 	 * Remove delegated handlers. 
-	 * @overloads {gui.SpiritTracker#_cleanup}
+	 * @overloads {gui.Tracker#_cleanup}
 	 * @param {String} type
 	 * @param {Array<object>} checks
 	 */
 	_cleanup : function ( type, checks ) {
-		
 		var handler = checks [ 0 ];
 		var bglobal = checks [ 1 ];
 		if ( this._remove ( type, [ handler ])) {

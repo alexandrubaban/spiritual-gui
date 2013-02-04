@@ -1,88 +1,83 @@
 /**
- * CSS transitioning things.
- * TODO: Just add the transitonend listener on construct?
+ * # gui.TransitionPlugin
+ * Experimental CSS transitioning plugin. Work in progress.
+ * @extends {gui.Plugin}
+ * @todo Just add the transitonend listener on construct?
  */
-gui.TransitionPlugin = gui.SpiritPlugin.extend ( "gui.TransitionPlugin", {
-	
+gui.TransitionPlugin = gui.Plugin.extend ( "gui.TransitionPlugin", {
+
 	/**
 	 * Handle event.
 	 * @type {TransitionEvent} e
 	 */
 	onevent : function ( e ) {
-		
 		if ( e.type === this._endevent && e.target === this.spirit.element ) {
 			this._transitionend ( e );
 		}
 	},
-	
+
 	/**
 	 * Set transition properties.
 	 * @param {String} props White-space separated list of CSS properties.
 	 * @returns {gui.TransitionPlugin}
 	 */
 	property : function ( props ) {
-		
 		if ( props ) {
 			this.spirit.css.set ( "-beta-transition-property", props );
 		}
 		return this._init ();
 	},
-	
+
 	/**
 	 * Set transition duration.
 	 * @param {object} time CSS-string or milliseconds as number.
 	 * @returns {gui.TransitionPlugin}
 	 */
 	duration : function ( time ) {
-		
 		if ( time ) {
 			time = gui.Type.isNumber ( time ) ? this._convert ( time ) : time;
 			this.spirit.css.set ( "-beta-transition-duration", time );
 		}
 		return this._init ();
 	},
-	
+
 	/**
 	 * Set transition timing function.
 	 * @param {String} timing Bezier or keyword
 	 * @returns {gui.TransitionPlugin}
 	 */
 	timing : function ( timing ) {
-		
 		if ( timing ) {
 			this.spirit.css.set ( "-beta-transition-timing-function", timing );
 		}
 		return this._init ();
 	},
-	
+
 	/**
 	 * Ease in.
 	 * @returns {gui.TransitionPlugin}
 	 */
 	easeIn : function () {
-		
 		return this.timing ( "ease-in" );
 	},
-	
+
 	/**
 	 * Ease out.
 	 * @returns {gui.TransitionPlugin}
 	 */
 	easeOut : function () {
-		
 		return this.timing ( "ease-out" );
 	},
-	
+
 	/**
 	 * Ease in and out.
 	 * @returns {gui.TransitionPlugin}
 	 */
 	easeInOut : function () {
-		
 		return this.timing ( "ease-in-out" );
 	},
 	
-	/**r
+	/**
 	 * Cubic-bezier.
 	 * @param {number} n1
 	 * @param {number} n2
@@ -91,19 +86,17 @@ gui.TransitionPlugin = gui.SpiritPlugin.extend ( "gui.TransitionPlugin", {
 	 * @returns {gui.TransitionPlugin}
 	 */
 	cubicBezier : function ( n1, n2, n3, n4 ) {
-		
 		return this.timing ( "cubic-bezier(" + n1 + "," + n2 + "," + n3 + "," + n4 + ")" );
 	},
-	
+
 	/**
 	 * Suspend transitions.
 	 * @returns {gui.TransitionPlugin}
 	 */
 	none : function () {
-		
 		return this.property ( "none" );
 	},
-	
+
 	/**
 	 * Configure transition and run one or CSS updates. Any key in the config 
 	 * argument that matches a method name in this plugin will be invoked with 
@@ -112,8 +105,6 @@ gui.TransitionPlugin = gui.SpiritPlugin.extend ( "gui.TransitionPlugin", {
 	 * @returns {object}
 	 */
 	run : function ( config ) {
-
-		// filter CSS props and call methods
 		var css = Object.create ( null ); this._count = 0;
 		gui.Object.each ( config, function ( key, value ) {
 			if ( gui.Type.isFunction ( this [ key ])) {
@@ -122,14 +113,10 @@ gui.TransitionPlugin = gui.SpiritPlugin.extend ( "gui.TransitionPlugin", {
 				css [ key ] = value;
 			}
 		}, this );
-
 		var now = this.spirit.css.compute ( "-beta-transition-property" ) === "none";
 		var then = this._then = new gui.Then ();
-
-		/*
-		 * Firefox needs a break before setting the styles.
-		 * http://stackoverflow.com/questions/6700137/css-3-transitions-with-opacity-chrome-and-firefox
-		 */
+		// Firefox needs a break before setting the styles.
+		// http://stackoverflow.com/questions/6700137/css-3-transitions-with-opacity-chrome-and-firefox
 		var that = this, spirit = this.spirit;
 		if (( this._count = Object.keys ( css ).length )) {
 			setImmediate ( function () {
@@ -141,25 +128,19 @@ gui.TransitionPlugin = gui.SpiritPlugin.extend ( "gui.TransitionPlugin", {
 				}
 			});
 		}
-
 		return then;
 	},
 
-	// Privates ..............................................................................
-	
-	/**
-	 * ???
-	 * @type {String}
-	 */
-	_when : null,
+
+	// Private ..............................................................................
 
 	/**
 	 * Default transition duration time milliseconds.
-	 * TODO: actually default this
+	 * @todo actually default this
 	 * @type {number}
 	 */
 	_default: 1000,
-	
+
 	/**
 	 * Browsers's take on transitionend event name.
 	 * @type {String}
@@ -174,13 +155,13 @@ gui.TransitionPlugin = gui.SpiritPlugin.extend ( "gui.TransitionPlugin", {
 
 	/**
 	 * Monitor transitions using vendor-prefixed event name.
-	 * TODO: Firefox is down
-	 * TODO: this.duration ( this._default )
-	 * TODO: this on static, not per instance
+	 * @todo confirm VendorTransitionEnd on documentElement
+	 * @todo Firefox is down
+	 * @todo this.duration ( this._default )
+	 * @todo this on static, not per instance
 	 * @returns {gui.TransitionPlugin}
 	 */
 	_init : function () {
-		
 		if ( this._endevent === null ) {
 			var names = {
 				"webkit" : "webkitTransitionEnd",
@@ -188,11 +169,9 @@ gui.TransitionPlugin = gui.SpiritPlugin.extend ( "gui.TransitionPlugin", {
 				"gecko" : "transitionend", // "MozTransitionEnd" or what?
 				"opera" : "oTransitionEnd"
 			};
-			// TODO: confirm VendorTransitionEnd on documentElement
 			this._endevent = names [ gui.Client.agent ] || "transitionend";
 			this.spirit.event.add ( this._endevent, this.spirit.element, this );
 		}
-		
 		return this;
 	},
 
@@ -201,7 +180,6 @@ gui.TransitionPlugin = gui.SpiritPlugin.extend ( "gui.TransitionPlugin", {
 	 * @param {TransitionEvent} e
 	 */
 	_transitionend : function ( e ) {
-
 		var t = new gui.Transition ( e.propertyName, e.elapsedTime );
 		this._ontransition ( t );
 		this.spirit.ontransition ( t );
@@ -212,7 +190,6 @@ gui.TransitionPlugin = gui.SpiritPlugin.extend ( "gui.TransitionPlugin", {
 	 * @param  {gui.Transition} t
 	 */
 	_ontransition : function ( t ) {
-
 		if ( -- this._count === 0 ) {
 			this._now ();
 		}
@@ -222,7 +199,6 @@ gui.TransitionPlugin = gui.SpiritPlugin.extend ( "gui.TransitionPlugin", {
 	 * Now what.
 	 */
 	_now : function () {
-
 		var then = this._then;
 		if ( then ) {
 			then.now ( null ); // don't wait for transitionend
@@ -235,7 +211,6 @@ gui.TransitionPlugin = gui.SpiritPlugin.extend ( "gui.TransitionPlugin", {
 	 * @returns {String} Duration as string
 	 */
 	_convert : function ( ms ) {
-		
 		ms = ms ? ms : this._default;
 		return ms / 1000 + "s";
 	}

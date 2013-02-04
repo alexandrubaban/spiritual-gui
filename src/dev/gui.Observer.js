@@ -1,17 +1,18 @@
 /**
- * Monitors a document for unsolicitated 
- * DOM changes while in development mode.
+ * # gui.Observer
+ * Monitors a document for unsolicitated DOM changes in development mode.
  */
 gui.Observer = {
 
 	/**
-	 * Enable monitoring? DISABLED FOR NOW
+	 * Enable monitoring? Disabled due to WebKit bug.
+	 * @see https://code.google.com/p/chromium/issues/detail?id=160985
 	 * @type {boolean}
 	 */
 	observes : false, // gui.Client.hasMutations,
 
 	/**
-	 * Throw exception on mutations not intercepted by the framework.
+	 * Throw exception on mutations not intercepted by the framework?
 	 * @type {boolean}
 	 */
 	fails : false,
@@ -21,11 +22,9 @@ gui.Observer = {
 	 * @param {Window} win
 	 */
 	observe : function ( win ) {
-
 		var sig = win.gui.signature;
 		var doc = win.document;
 		var obs = this._observers [ sig ];
-
 		if ( this.observes && win.gui.debug ) {
 			if ( !gui.Type.isDefined ( obs )) {
 				var Observer = this._mutationobserver ();
@@ -48,7 +47,6 @@ gui.Observer = {
 	 * @returns {object} if action was defined, we might return something
 	 */
 	suspend : function ( node, action, thisp ) {
-
 		var res;
 		if ( node.nodeType ) {
 			if ( this.observes ) {
@@ -73,7 +71,6 @@ gui.Observer = {
 	 * @param {Node} node
 	 */
 	resume : function ( node ) {
-
 		if ( node.nodeType ) {
 			if ( this.observes ) {
 				if ( -- this._suspend === 0 ) {
@@ -86,12 +83,12 @@ gui.Observer = {
 	},
 
 
-	// PRIVATES ..............................................................
-	
+	// Private ..............................................................
+
 	/**
 	 * Is suspended? Minimize what overhead there might 
 	 * be on connecting and disconnecting the observer.
-	 * TODO: do we need to track this for each window?
+	 * @todo do we need to track this for each window?
 	 * @type {number}
 	 */
 	_suspend : 0,
@@ -107,7 +104,6 @@ gui.Observer = {
 	 * @returns {function} MutationObserver
 	 */
 	_mutationobserver : function () {
-
 		return window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;
 	},
 
@@ -117,7 +113,6 @@ gui.Observer = {
 	 * @param {boolean} connect
 	 */
 	_connect : function ( node, connect ) {
-
 		var doc = node.ownerDocument || node;
 		var win = doc.defaultView;
 		var sig = win.gui.signature;
@@ -139,7 +134,6 @@ gui.Observer = {
 	 * @param {MutationRecord} mutation
 	 */
 	_handleMutation : function ( mutation ) {
-		
 		var action = false;
 		Array.forEach ( mutation.removedNodes, function ( node ) {
 			if ( node.nodeType === Node.ELEMENT_NODE ) {

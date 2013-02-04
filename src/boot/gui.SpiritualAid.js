@@ -1,58 +1,55 @@
 /**
- * Upgrading client features.
+ * # gui.SpiritualAid
+ * Polyfilling missing features from ES5 and selected features from ES6. 
+ * Some of these are implemented weakly and should be used with caution 
+ * (See Map, Set and WeakMap).
  */
 gui.SpiritualAid = {
-	
+
 	/**
-	 * Patch potential missing features from ES5 and selected features from ES6.
+	 * Polyfill window or Web Worker context.
 	 * @param {Window} win
 	 * @param @optional {boolean} worker
 	 */
 	polyfill : function ( win, worker ) {
-		
 		"use strict";
-		
 		this._strings	( win );
 		this._arrays	( win );
 		this._functions	( win );
 		this._globals	( win );
 		this._extras	( win );
-		
 		if ( !worker ) {
-			//this._element ( win );
 			this._effects ( win );
 		}
 	},
 	
 	
-	// PRIVATES ...............................................................
-		
+	// Private ...............................................................
+
 	/**
-	 * @param {object} what
-	 * @param {object} whit
+	 * Extend one object with another.
+	 * @param {object} what Native prototype
+	 * @param {object} whit Extension methods
 	 */
 	_extend : function ( what, whit ) {
-		
 		Object.keys ( whit ).forEach ( function ( key ) {
 			var def = whit [ key ];				
 			if ( what [ key ] === undefined ) {
 				if ( def.get && def.set ) {
-					// TODO: look at element.dataset polyfill (iOS?)
+					 // @todo look at element.dataset polyfill (iOS?)
 				} else {
 					what [ key ] = def;
 				}
 			}
 		});
 	},
-	
+
 	/**
-	 * Patching String.prototype
+	 * Patching `String.prototype`
 	 * @param {Window} win
 	 */
 	_strings : function ( win ) {
-		
 		this._extend ( win.String.prototype, {
-			
 			trim : function () {
 				return this.replace ( /^\s*/, "" ).replace ( /\s*$/, "" );
 			},
@@ -75,20 +72,19 @@ gui.SpiritualAid = {
 			}
 		});
 	},
-	
+
 	/**
-	 * Patching Array versus Array.prototype
+	 * Patching arrays. Note that `Array.prototype.remove` is not part of standard.
+	 * @see http://ejohn.org/blog/javascript-array-remove/#comment-296114
 	 * @param {Window} win
 	 */
 	_arrays : function ( win ) {
-		
-		this._extend ( win.Array.prototype, { // non-standard, see http://ejohn.org/blog/javascript-array-remove/#comment-296114
+		this._extend ( win.Array.prototype, {
 			remove : function remove ( from, to ) {
 				this.splice ( from, !to || 1 + to - from + ( ! ( to < 0 ^ from >= 0 ) && ( to < 0 || -1 ) * this.length ));
 				return this.length;
 			}
 		});
-		
 		this._extend ( win.Array, {
 			every : function every ( array, fun, thisp ) {
 				var res = true, len = array.length >>> 0;
@@ -128,15 +124,13 @@ gui.SpiritualAid = {
 			}
 		});
 	},
-	
+
 	/**
-	 * Patching Function.prototype
+	 * Patching `Function.prototype`
 	 * @param {Window} win
 	 */
 	_functions : function ( win ) {
-		
 		this._extend ( win.Function.prototype, {
-		
 			bind : function bind ( oThis ) {
 				if ( typeof this !== "function" ) {
 					throw new win.TypeError ( "Function bind not callable" );
@@ -151,30 +145,27 @@ gui.SpiritualAid = {
 							aArgs.concat ( fSlice.call ( arguments ))
 						);
 					};
-					
 				Fnop.prototype = this.prototype;
 				fBound.prototype = new Fnop();
 					return fBound;
 			}
 		});
 	},
-	
+
 	/**
-	 * Global objects Map and Set patched for *performance*, should only be used with primitive keys. 
-	 * Need more? Include this before Spiritual loads: http://github.com/paulmillr/es6-shim
+	 * ES6 `Map` and `Set` are polyfilled as simple sugar and should only be used with primitive keys. 
+	 * @todo investigate support for Object.getPrototypeOf(win)
+	 * @todo credit whatever source we grabbed WeakMap from (?)
 	 * @param {Window} win
 	 */
 	_globals : function ( win ) {
-		
-		this._extend ( win, { // TODO: investigate support for Object.getPrototypeOf ( win )
-			
+		this._extend ( win, {
 			console : {
 				log : function () {},
 				debug : function () {},
 				warn : function () {},
 				error : function () {}
-			},
-			
+			},			
 			Map : ( function () {			
 				function Map () {
 					this._map = Object.create ( null );
@@ -199,9 +190,7 @@ gui.SpiritualAid = {
 				};
 				return Map;
 			})(),
-			
 			Set : ( function () {
-				
 				function Set () {
 					this._map = Object.create ( null );
 				}
@@ -222,13 +211,9 @@ gui.SpiritualAid = {
 				};
 				return Set;
 			})(),
-			
-			WeakMap : ( function () { // TODO: clean this up
-				
+			WeakMap : ( function () { // @todo clean this up
 				function WeakMap () {
-
 						var keys = [], values = [];
-
 						function del(key) {
 							if (has(key)) {
 								keys.splice(i, 1);
@@ -236,16 +221,13 @@ gui.SpiritualAid = {
 							}
 							return -1 < i;
 						}
-
 						function get(key, d3fault) {
 							return has(key) ? values[i] : d3fault;
 						}
-
 						function has(key) {
 							i = indexOf.call(keys, key);
 							return -1 < i;
 						}
-
 						function set(key, value) {
 							if ( has(key)) {
 								values[i] = value;
@@ -253,7 +235,6 @@ gui.SpiritualAid = {
 								values[keys.push(key) - 1] = value;
 							}
 						}
-
 						return create(WeakMapPrototype, {
 							isNative : {value : false},
 							"delete": {value: del},
@@ -262,60 +243,26 @@ gui.SpiritualAid = {
 							has: {value: has},
 							set: {value: set}
 						});
-
 					}
-
 					function WeakMapInstance () {}
-
-					var Object = win.Object, WeakMapPrototype = WeakMap.prototype,
-						create = Object.create, indexOf = [].indexOf, i;
-
+					var Object = win.Object, 
+						WeakMapPrototype = WeakMap.prototype,
+						create = Object.create, 
+						indexOf = [].indexOf, i;
 					// used to follow FF behavior where WeakMap.prototype is a WeakMap itself
 					WeakMap.prototype = WeakMapInstance.prototype = WeakMapPrototype = new WeakMap();
 					return WeakMap;
-				
 			})()
-
 		});
 	},
-	
-	/*
-	_element : function ( win ) {
-		
-		function camelcase ( string ) {
-			return string.replace ( /-([a-z])/ig, function ( all, letter ) {
-				return letter.toUpperCase();
-			});
-		}
-		
 
-		this._extend ( win.Element.prototype, {
-			dataset : {
-				get : function () {
-					var set = Object.create ( null );
-					Array.forEach ( this.attributes, function ( att ) {
-						if ( att.name.startsWith ( "data-" )) {
-							// alert ( att );
-						}
-					});
-					return set;
-				},
-				set : function ( val ) {
-					
-				}
-			}
-		});
-	},
-	*/
-	
 	/**
 	 * Patching cheap DHTML effects with super-simplistic polyfills.
+	 * @todo cancelAnimationFrame
 	 * @param [Window} win
 	 */
 	_effects : function ( win ) {
-		
 		this._extend ( win, {
-			
 			requestAnimationFrame : ( function () {
 				var func = 
 					win.requestAnimationFrame	|| 
@@ -327,8 +274,8 @@ gui.SpiritualAid = {
 						var lastTime = 0;
 						return function(callback, element) {
 							var currTime = new Date().getTime();
-							var timeToCall = Math.max(0, 16 - (currTime - lastTime));
-							var id = window.setTimeout(function() { callback(currTime + timeToCall); }, 
+							var timeToCall = Math.max ( 0, 16 - (currTime - lastTime));
+							var id = window.setTimeout ( function () { callback ( currTime + timeToCall ); }, 
 								timeToCall);
 							lastTime = currTime + timeToCall;
 							return id;
@@ -336,16 +283,6 @@ gui.SpiritualAid = {
 					}());
 					return func;
 			})(),
-
-			/*
-			 * TODO: cancelAnimationFrame!
-			 *
-			if (!window.cancelAnimationFrame)
-				window.cancelAnimationFrame = function(id) {
-				clearTimeout(id);
-			};
-			*/
-			
 			setImmediate : ( function () {
 				var list = [], handle = 1;
 				var name = "spiritual:emulated:setimmediate";
@@ -364,33 +301,27 @@ gui.SpiritualAid = {
 		});
 	},
 	
+	/**
+	 * Alias methods plus IE and Safari mobile patches.
+	 * @param {Window} win
+	 */
 	_extras : function ( win ) {
-		
-		// alias delete for Map
 		this._extend ( win.Map.prototype, {
 			del : function del ( key ) {
 				return this [ "delete" ]( key );
 			}
 		});
-		
-		// alias delete for Set
 		this._extend ( win.Set.prototype, {
 			del : function del ( key ) {
 				return this [ "delete" ]( key );
 			}
 		});
-		
-		// console.debug bad in ie
 		this._extend ( win.console, {
 			debug : win.console.log
 		});
-		
-		// ie doesn't have this
 		this._extend ( XMLHttpRequest.prototype, {
 			overrideMimeType : function () {}
 		});
-		
-		// Safari on iPad has no constants to reflect request state
 		this._extend ( win.XMLHttpRequest, {
 			UNSENT : 0,
 			OPENED : 1,

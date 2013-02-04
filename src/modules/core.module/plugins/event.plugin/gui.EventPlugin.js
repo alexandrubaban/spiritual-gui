@@ -1,14 +1,15 @@
 /**
+ * # gui.EventPlugin
  * Tracking DOM events.
- * TODO: Corresponding static class for non-plugin use. 
- * @extends {gui.SpiritTracker}
+ * @todo Static interface for general consumption.
+ * @extends {gui.Tracker}
  */
-gui.EventTracker = gui.SpiritTracker.extend ( "gui.EventTracker", {
-   
+gui.EventPlugin = gui.Tracker.extend ( "gui.EventPlugin", {
+
 	/**
 	 * Add one or more DOM event handlers.
-	 * TODO: Don't assume spirit handler
-	 * TODO: reverse handler and capture args
+	 * @todo Don't assume spirit handler
+	 * @todo reverse handler and capture args
 	 * @param {object} arg String, array or whitespace-separated-string
 	 * @param @optional {object} target Node, Window or XmlHttpRequest. Defaults to spirit element
 	 * @param @optional {object} handler implements EventListener interface, defaults to spirit
@@ -16,7 +17,6 @@ gui.EventTracker = gui.SpiritTracker.extend ( "gui.EventTracker", {
 	 * @returns {gui.Spirit}
 	 */
 	add : function ( arg, target, handler, capture ) {
-		
 		target = target ? target : this.spirit.element;
 		handler = handler ? handler : this.spirit;
 		capture = capture ? capture : false;
@@ -33,7 +33,7 @@ gui.EventTracker = gui.SpiritTracker.extend ( "gui.EventTracker", {
 		}
 		return this;
 	},
-		
+
 	/**
 	 * Add one or more DOM event handlers.
 	 * @param {object} arg String, array or whitespace-separated-string
@@ -42,7 +42,6 @@ gui.EventTracker = gui.SpiritTracker.extend ( "gui.EventTracker", {
 	 * @param @optional {boolean} capture Defaults to false
 	 */
 	remove : function ( arg, target, handler, capture ) {
-		
 		target = target ? target : this.spirit.element;
 		handler = handler ? handler : this.spirit;
 		capture = capture ? capture : false;
@@ -59,7 +58,7 @@ gui.EventTracker = gui.SpiritTracker.extend ( "gui.EventTracker", {
 		}
 		return this;
 	},
-	
+
 	/**
 	 * Toggle one or more DOM event handlers.
 	 * @param {object} arg String, array or whitespace-separated-string
@@ -68,7 +67,6 @@ gui.EventTracker = gui.SpiritTracker.extend ( "gui.EventTracker", {
 	 * @param @optional {boolean} capture Defaults to false
 	 */
 	toggle : function ( arg, target, handler, capture ) {
-		
 		target = target ? target : this.spirit.element;
 		handler = handler ? handler : this.spirit;
 		capture = capture ? capture : false;

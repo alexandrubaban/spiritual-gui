@@ -1,13 +1,12 @@
 /**
- * Questionable browser identity and feature detection.
- * Note that Chrome on iOS identifies itself as Safari 
- * (it basically is, so that shouldn't cause concern).
+ * # gui.Client
+ * Questionable browser identity and feature detection. Note that Chrome on iOS 
+ * identifies itself as Safari (it basically is, so that shouldn't cause concern).
+ * @todo Load earlier by not using gui.Broadcast?
+ * @todo Lazycompute properties when requested.
  */
-gui.Client = new function Client () {
-   
-	/*
-	 * Expecting a lot from the user agent string... 
-	 */
+gui.Client = ( new function Client () {
+
 	var agent = navigator.userAgent.toLowerCase ();
 	var root = document.documentElement;
 
@@ -19,11 +18,10 @@ gui.Client = new function Client () {
 	this.isGecko = !this.isWebKit && !this.isOpera && agent.contains ( "gecko" );
 
 	/**
-	 * "agent" is one of: "webkit" "firefox" "opera" "explorer"
+	 * Agent is one of "webkit" "firefox" "opera" "explorer"
 	 * @type {String}
 	 */
 	this.agent = ( function () {
-		
 		var agent = "explorer";
 		if ( this.isWebKit ) {
 			agent = "webkit";
@@ -33,32 +31,29 @@ gui.Client = new function Client () {
 			agent = "opera";
 		}
 		return agent;
-		
 	}).call ( this );
-	
+
 	/**
-	 * "system" is one of: "linux" "osx" "ios" "windows" "windowsmobile" "haiku"
+	 * System is one of "linux" "osx" "ios" "windows" "windowsmobile" "haiku"
 	 */
 	this.system = ( function () {
-		
 		var os = null;
 		[ "window mobile", "windows", "ipad", "iphone", "haiku", "os x", "linux" ].every ( function ( test ) {
 			if ( agent.contains ( test )) {
 				if ( test.match ( /ipad|iphone/ )) {
 					os = "ios";
 				} else {
-					os = test.replace ( / /g, "" ); // no spaces
+					os = test.replace ( / /g, "" );  // no spaces
 				}
 			}
 			return os === null;
 		});
 		return os;
-		
 	})();
-	
+
 	/**
 	 * Has touch support? Note that desktop Chrome has this.
-	 * TODO: Investigate this in desktop IE10.
+	 * @todo Investigate this in desktop IE10.
 	 * @type {boolean}
 	 */
 	this.hasTouch = ( window.ontouchstart !== undefined || this.isChrome );
@@ -68,19 +63,17 @@ gui.Client = new function Client () {
 	 * @type {boolean}
 	 */
 	this.hasBlob = ( window.Blob && ( window.URL || window.webkitURL ));
-	
+
 	/**
 	 * Is mobile device? Not to be confused with this.hasTouch
-	 * TODO: gui.Observerice entity?
+	 * @todo gui.Observerice entity?
 	 * @type {boolean}
 	 */
 	this.isMobile = ( function () {
-		
 		var shortlist = [ "android", "webos", "iphone", "ipad", "ipod", "blackberry", "windows phone" ];
 		return !shortlist.every ( function ( system ) {
 			return !agent.contains ( system );
 		});
-		
 	})();
 
 	/**
@@ -88,7 +81,6 @@ gui.Client = new function Client () {
 	 * @type {boolean}
 	 */
 	this.hasTransitions = ( function () {
-		
 		return ![ 
 			"transition", 
 			"WebkitTransition", 
@@ -105,7 +97,6 @@ gui.Client = new function Client () {
 	 * @type {boolean}
 	 */
 	this.has3D = ( function () {
-		
 		return ![ 
 			"perspective", 
 			"WebkitPerspective", 
@@ -120,9 +111,8 @@ gui.Client = new function Client () {
 	/**
 	 * Supports requestAnimationFrame somewhat natively?
    * @type {boolean}
-	 */
+   */
 	this.hasAnimationFrame = ( function () {
-
 		var win = window;
 		if ( 
 			win.requestAnimationFrame	|| 
@@ -135,7 +125,6 @@ gui.Client = new function Client () {
 		} else {
 			return false;
 		}
-
 	})();
 
 	/**
@@ -143,25 +132,20 @@ gui.Client = new function Client () {
 	 * @type {boolean}
 	 */
 	this.hasMutations = ( function () {
-		
 		return ![ "", "WebKit", "Moz", "O", "Ms" ].every ( function ( vendor ) {
 			return !gui.Type.isDefined ( window [ vendor + "MutationObserver" ]);
 		});
-		
 	})();
-	
+
 	/**
 	 * Time in milliseconds after window.onload before we can reliably measure 
 	 * document height. We could in theory discriminate between browsers here, 
 	 * but we won't. WebKit sucks more at this and Safari on iOS is dead to me.
-	 * TODO: Now Firefox started to suck really bad. How can we fix this mess?
-	 * TODO: Where to move this?
+	 * @see https://code.google.com/p/chromium/issues/detail?id=35980
+	 * @todo Now Firefox started to suck really bad. What to do?
 	 * @type {number}
 	 */
 	this.STABLETIME = 200;
-	
-
-	// TODO: Compute these only when reqeusted (via object.defineproperties)
 	
 	/**
 	 * Browsers disagree on the primary scrolling element.
@@ -183,86 +167,84 @@ gui.Client = new function Client () {
 	 * @type {boolean}
 	 */
 	this.hasPositionFixed = false;
-	
+
 	/**
-	 * TODO: MOVE THIS STUFF ELSEWHERE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	 * Before we start any spirits:
+	 * - What is the scroll root?
+	 * - Supports position fixed?
 	 * @param {gui.Broadcast} b
 	 */
 	this.onbroadcast = function ( b ) {
-		
-		if ( b.data.document === document ) {
-			
-			/*
-			 * What is the scroll root?
-			 * Supports position fixed?
-			 */
-			var win = window,
-			doc = document,
-			html = doc.documentElement,
-			body = doc.body,
-			root = null;
-			
-			// make sure window is scrollable
-			var temp = body.appendChild ( 
-				gui.SpiritCSS.style ( doc.createElement ( "div" ), {
-					position : "absolute",
-					height : "10px",
-					width: "10px",
-					top : "100%"
-				})
-			);
-			
-			// what element will get scrolled?
-			win.scrollBy ( 0, 10 );
-			root = body.scrollTop ? body : html;
-			this.scrollRoot = root;
-			
-			// supports position fixed?
-			gui.SpiritCSS.style ( temp, {
-				position : "fixed",
-				top : "10px"
-			});
-			
-			// restore scroll when finished
-			var has = temp.getBoundingClientRect ().top === 10;
-			this.hasPositionFixed = has;
-			body.removeChild ( temp );
-			win.scrollBy ( 0, -10 );
-			
-			// compute scrollbar size
-			var inner = gui.SpiritCSS.style ( document.createElement ( "p" ), {
-				width : "100%",
-				height : "200px"
-			});
-			
-			var outer = gui.SpiritCSS.style ( document.createElement ( "div" ), {
-				position : "absolute",
-				top : "0",
-				left : "0",
-				visibility : "hidden",
-				width : "200px",
-				height : "150px",
-				overflow : "hidden"
-			});
-			
-			outer.appendChild ( inner );
-			html.appendChild ( outer );
-			var w1 = inner.offsetWidth;
-			outer.style.overflow = "scroll";
-			var w2 = inner.offsetWidth;
-			if ( w1 === w2 ) {
-				w2 = outer.clientWidth;
-			}
-			html.removeChild ( outer );
-			this.scrollBarSize = w1 - w2;
+		var type = gui.BROADCAST_WILL_SPIRITUALIZE;
+		if ( b.type === type && b.target === gui ) {
+			gui.Broadcast.removeGlobal ( type, this );
+			extras.call ( this );
 		}
 	};
-};
 
-/*
- * Determine properties on startup.
- * TODO: Compute all properties only when requested (via object.defineproperties).
+	/**
+	 * @todo Probably move this out of here?
+	 */
+	function extras () {
+		var win = window,
+		doc = document,
+		html = doc.documentElement,
+		body = doc.body,
+		root = null;
+		// make sure window is scrollable
+		var temp = body.appendChild ( 
+			gui.CSSPlugin.style ( doc.createElement ( "div" ), {
+				position : "absolute",
+				height : "10px",
+				width: "10px",
+				top : "100%"
+			})
+		);
+		// what element will get scrolled?
+		win.scrollBy ( 0, 10 );
+		root = body.scrollTop ? body : html;
+		this.scrollRoot = root;
+		// supports position fixed?
+		gui.CSSPlugin.style ( temp, {
+			position : "fixed",
+			top : "10px"
+		});
+		// restore scroll when finished
+		var has = temp.getBoundingClientRect ().top === 10;
+		this.hasPositionFixed = has;
+		body.removeChild ( temp );
+		win.scrollBy ( 0, -10 );
+		// compute scrollbar size
+		var inner = gui.CSSPlugin.style ( document.createElement ( "p" ), {
+			width : "100%",
+			height : "200px"
+		});
+		var outer = gui.CSSPlugin.style ( document.createElement ( "div" ), {
+			position : "absolute",
+			top : "0",
+			left : "0",
+			visibility : "hidden",
+			width : "200px",
+			height : "150px",
+			overflow : "hidden"
+		});
+		outer.appendChild ( inner );
+		html.appendChild ( outer );
+		var w1 = inner.offsetWidth;
+		outer.style.overflow = "scroll";
+		var w2 = inner.offsetWidth;
+		if ( w1 === w2 ) {
+			w2 = outer.clientWidth;
+		}
+		html.removeChild ( outer );
+		this.scrollBarSize = w1 - w2;
+	}
+
+});
+
+/**
+ * Hm.
  */
-( function initSpiritClient () {
-	gui.Broadcast.addGlobal ( gui.BROADCAST_DOMCONTENT, gui.Client );
+( function waitfordom () {
+	gui.Broadcast.addGlobal ( gui.BROADCAST_WILL_SPIRITUALIZE, gui.Client );
 })();
