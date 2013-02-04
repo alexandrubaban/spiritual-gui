@@ -3612,6 +3612,12 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	__construct__ : function () {},
 
 	/**
+	 * Experimental.
+	 * @type {[type]}
+	 */
+	__lazies__ : null,
+
+	/**
 	 * Instantiate plugins.
 	 */
 	__plugin__ : function () {
@@ -3619,6 +3625,7 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 		// core plugins first
 		this.life = new gui.SpiritLifeTracker ( this );
 		this.config = new gui.SpiritConfig ( this );
+		this.__lazies__ = Object.create ( null );
 		
 		// bonus plugins second
 		var prefixes = [], plugins = this.constructor.__plugins__;
@@ -3628,17 +3635,25 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 				case gui.SpiritConfig :
 					break;
 				default :
-					this [ prefix ] = new Plugin ( this );
+					if ( Plugin.lazy ) {
+						gui.SpiritPlugin.later ( Plugin, prefix, this, this.__lazies__ );
+					} else {
+						this [ prefix ] = new Plugin ( this );
+					}
 					prefixes.push ( prefix );
 					break;
 			}
 		}, this );
 		
-		// construction
+		// sequenced construction
 		this.life.onconstruct ();
 		this.config.onconstruct ();
 		prefixes.forEach ( function ( prefix ) {
-			this [ prefix ].onconstruct ();
+			if ( this.__lazies__ [ prefix ]) {
+				// lazy constructed later
+			} else {
+				this [ prefix ].onconstruct ();
+			}
 		}, this );
 	},
 
@@ -3673,7 +3688,14 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	 */
 	__destruct__ : function ( unloading ) {
 
-		// dispose plugins; plugins should not invoke external stuff during this phase
+		var map = this.__lazies__;
+		gui.Object.each ( map, function ( prefix ) {
+			if ( map [ prefix ] === true ) {
+				delete this [ prefix ]; // otherwise next iterator will instantiate the lazy plugin...
+			}
+		}, this );
+
+		// dispose plugins (plugins should not invoke external stuff during this phase)
 		gui.Object.each ( this, function ( prop ) {
 			var thing = this [ prop ];
 			switch ( gui.Type.of ( thing )) {
@@ -3796,6 +3818,7 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	 */
 	tag : function ( doc, tag ) {
 
+		console.warn ( "Deprecated" ); // = spirit.lazies || Object.create ( null );
 		return doc.createElement ( tag );
 	},
 
@@ -3807,6 +3830,7 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	 */
 	att : function ( elm, att, val ) {
 
+		console.warn ( "Deprecated" );
 		elm.setAttribute ( att, String ( val ));
 		return elm;
 	},
@@ -3818,6 +3842,7 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	 */
 	text : function ( elm, txt ) {
 
+		console.warn ( "Deprecated" );
 		elm.textContent = txt;
 	},
 
@@ -3998,7 +4023,7 @@ gui.SpiritPlugin = gui.Exemplar.create ( "gui.SpiritPlugin", Object.prototype, {
 	 * @type {Global} Typically identical to this.spirit.window
 	 */
 	context : null,
-	
+
 	/**
 	 * Construct
 	 */
@@ -4047,7 +4072,14 @@ gui.SpiritPlugin = gui.Exemplar.create ( "gui.SpiritPlugin", Object.prototype, {
 		}
 	}
 	
-}, { // recurring static fields ..................................
+
+}, { // RECURRING STATICS ........................................
+
+	/**
+	 * By default constructed only when needed. 
+	 * @type {Boolean}
+	 */
+	lazy : true,
 
 	/**
 	 * Plugins don't infuse.
@@ -4058,6 +4090,41 @@ gui.SpiritPlugin = gui.Exemplar.create ( "gui.SpiritPlugin", Object.prototype, {
 			'Plugins must use the "extend" method and not "infuse".'
 		);
 	}
+
+
+}, { // STATICS ..................................................
+
+	/**
+	 * [experimental]
+	 * @param {gui.SpiritPlugin} Plugin
+	 * @param {String} prefix
+	 * @param {gui.Spirit} spirit
+	 */
+	later : function ( Plugin, prefix, spirit, map ) {
+
+		map [ prefix ] = true;
+
+		Object.defineProperty ( spirit, prefix, {
+			enumerable : true,
+			configurable : true,
+			get : function () {
+				if ( map [ prefix ] === true ) {
+					if ( prefix === "tween" ) {
+						throw new Error ( "WHY?" );
+					}
+					map [ prefix ] = new Plugin ( spirit );
+					map [ prefix ].onconstruct ();
+				}
+				return map [ prefix ];
+			},
+			set : function ( x ) {
+				map [ prefix ] = x; // or what?
+			}
+		});
+	
+		// spirit [ prefix ] = new Plugin ( spirit );
+	}
+
 });
 
 
@@ -7507,7 +7574,6 @@ gui.Tick._dispatch = function ( type, time, sig ) {
 				if ( list._one && list._one [ i ]) {
 					delete list._one [ i ];
 					list.remove ( i );
-					//list.remove ( handler )
 				}
 			}, this );
 		}
@@ -7600,12 +7666,12 @@ gui.TickTracker = gui.SpiritTracker.extend ( "gui.TickTracker", {
 	/**
 	 * Dispatch tick after given time.
 	 * @param {String} type
-	 * @param {number} time In milliseconds
+	 * @param {number} time Milliseconds (zero is setImmediate)
 	 * @returns {gui.Tick}
 	 */
 	dispatch : function ( type, time ) {
 		
-		return this._dispatch ( type, time );
+		return this._dispatch ( type, time || 0 );
 	},
 	
 	
@@ -7615,7 +7681,7 @@ gui.TickTracker = gui.SpiritTracker.extend ( "gui.TickTracker", {
 	 * Global mode?
 	 * @type {boolean}
 	 */
-	_global : true,
+	_global : false,
 
 	/**
 	 * Add handler.
@@ -7658,9 +7724,9 @@ gui.TickTracker = gui.SpiritTracker.extend ( "gui.TickTracker", {
 
 		var tick, sig = this.spirit.signature;
 		if ( this._global ) {
-			tick = gui.Tick.dispatch ( type, time, sig );
-		} else {
 			tick = gui.Tick.dispatchGlobal ( type, time );
+		} else {
+			tick = gui.Tick.dispatch ( type, time, sig );
 		}
 		return tick;
 	},
@@ -10506,7 +10572,7 @@ gui.UPGRADE = function () { // TODO: name this thing
 	});
 
 	// spirit-aware removeattribute
-	var delattafter = combo.after ( function ( att ) { // TODO: use the post combo
+	var delattafter = combo.after ( function ( att ) { // TODO: use the post combinator
 		this.spirit.att.__suspend__ ( function () {
 			this.del ( att );
 		});
@@ -10556,7 +10622,7 @@ gui.UPGRADE = function () { // TODO: name this thing
 
 	// PUBLIC ......................................................................
 
-	return { // TODO: standard dom exceptions for missing arguments and so on.
+	return { // TODO: standard DOM exceptions for missing arguments and so on.
 
 		appendChild : function ( base ) {
 			return (

@@ -45,7 +45,7 @@ gui.UPGRADE = function () { // TODO: name this thing
 	});
 
 	// spirit-aware removeattribute
-	var delattafter = combo.after ( function ( att ) { // TODO: use the post combo
+	var delattafter = combo.after ( function ( att ) { // TODO: use the post combinator
 		this.spirit.att.__suspend__ ( function () {
 			this.del ( att );
 		});
@@ -95,7 +95,7 @@ gui.UPGRADE = function () { // TODO: name this thing
 
 	// PUBLIC ......................................................................
 
-	return { // TODO: standard dom exceptions for missing arguments and so on.
+	return { // TODO: standard DOM exceptions for missing arguments and so on.
 
 		appendChild : function ( base ) {
 			return (
