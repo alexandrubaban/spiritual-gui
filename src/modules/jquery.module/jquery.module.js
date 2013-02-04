@@ -164,16 +164,11 @@ gui.module ( "jquery", {
 							this.__materialize ();
 							res = suber ();
 							break;
-						case "replaceAll" :
-							arg().__materialize ();
-							res = suber ();
-							this.parent ().__spiritualizeSub (); // @todo optimize!
+						case "replaceAll" :	
+							res = module._replaceall_replacewith ( this, arg (), suber );
 							break;
 						case "replaceWith" :
-							this.__materialize ();
-							var p = this.parent ();
-							res = suber ();
-							p.__spiritualizeSub (); // @todo optimize!
+							res = module._replaceall_replacewith ( arg (), this, suber );
 							break;
 						case "empty" :
 							this.__materializeSub ();
@@ -305,7 +300,7 @@ gui.module ( "jquery", {
 	},
 
 	/**
-	 * Optimizing JQuery append() and prepend().
+	 * JQuery append() and prepend().
 	 * @param {boolean} append
 	 * @param {function} suber
 	 */
@@ -331,8 +326,8 @@ gui.module ( "jquery", {
 	},
 
 	/**
-	 * Attempting Query after() and before(). Note that arguments to the methods 
-	 * are useless for this purpose becayse JQuery creates clones in the process.
+	 * JQuery after() and before(). We can't reliably use the arguments 
+	 * here becayse JQuery will switch them to clones in the process.
 	 * @param {boolean} after
 	 * @param {function} suber
 	 * @param {jQuery} jq
@@ -340,21 +335,52 @@ gui.module ( "jquery", {
 	_after_before : function ( after, suber, jq ) {
 		var next = "nextElementSibling";
 		var prev = "previousElementSibling";
-		var sibling, siblings, current = [];
+		var current = [];
 		this.each ( function ( i, elm ) {
-			sibling = elm [ after ? next : prev ];
-			while ( sibling && current.indexOf ( sibling ) === -1 ) {
-				current.push ( sibling );
-				sibling = sibling [ after ? next : prev ]
+			while ( elm && current.indexOf ( elm ) === -1 ) {
+				current.push ( elm );
+				elm = elm [ after ? next : prev ];
 			}
 		});
 		var res = suber ();
+		var sibling, siblings;
 		this.each ( function ( i, elm ) {
 			sibling = elm [ after ? next : prev ];
 			while ( sibling && current.indexOf ( sibling ) === -1 ) {
 				gui.Guide.spiritualize ( sibling );
 				sibling = sibling [ after ? next : prev ];
 			}
+		});
+		return res;
+	},
+
+	/**
+	 * JQuery replaceAll() and replaceWith().
+	 * @param {$} source
+	 * @param {$} target
+	 * @param {function} suber
+	 */
+	_replaceall_replacewith : function ( source, target, suber ) {
+		var parent, parents = [], current = [];
+		target.each ( function ( i, elm ) {
+			gui.Guide.materialize ( elm );
+			parent = elm.parentNode
+			if ( parents.indexOf ( parent ) === -1 ) {
+				parents.push ( parent );
+				current = current.concat ( Array.map ( parent.children, function ( child ) {
+					return child;
+				}));
+			}
+		});
+		var res = suber ();
+		parents.forEach ( function ( parent ) {
+			if ( parent ) {
+				Array.forEach ( parent.children, function ( elm ) {
+					if ( current.indexOf ( elm ) === -1 ) {
+						gui.Guide.spiritualize ( elm );
+					}
+				});
+			}		
 		});
 		return res;
 	}
