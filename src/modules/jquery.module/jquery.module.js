@@ -318,9 +318,11 @@ gui.module ( "jquery", {
 				elm = old [ append ? next : prev ];
 			} else {
 				elm = elm.firstElementChild;
+			}	
+			while ( elm ) {
+				gui.Guide.spiritualize ( elm );	
+				elm = elm [ append ? next : prev ];
 			}
-			gui.Guide.spiritualize ( elm );	
-			elm = elm [ append ? next : prev ];
 		});
 		return res;
 	},
@@ -364,7 +366,7 @@ gui.module ( "jquery", {
 		var parent, parents = [], current = [];
 		target.each ( function ( i, elm ) {
 			gui.Guide.materialize ( elm );
-			parent = elm.parentNode
+			parent = elm.parentNode;
 			if ( parents.indexOf ( parent ) === -1 ) {
 				parents.push ( parent );
 				current = current.concat ( Array.map ( parent.children, function ( child ) {
