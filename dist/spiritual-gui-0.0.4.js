@@ -1529,7 +1529,7 @@ gui.Combinator = {
 	},
 
 	/**
-	 * Decorate provided.
+	 * Decorate provided. Note that we added support for an otherwise otherwise.
 	 * @param {function} condition
 	 */
 	provided : function ( condition ){
@@ -2974,10 +2974,11 @@ gui.KeyMaster = {
  * Simplistic XMLHttpRequest wrapper. 
  * Work in progress, lot's to do here.
  * @param @optional {String} url
+ * @param @optional {Document} doc Resolve URL relative tó this document (portal mode)
  */
-gui.Request = function ( url ) {
+gui.Request = function ( url, doc ) {
 	if ( url ) {
-		this.url ( url );
+		this.url ( url, doc );
 	}
 };
 
@@ -2986,9 +2987,10 @@ gui.Request.prototype = {
 	/**
 	 * Set request address.
 	 * @param {String} url
+	 * @param @optional {Document} doc Resolve URL relative tó this document
 	 */
-	url : function ( url ) {
-		this._url = url;
+	url : function ( url, doc ) {
+		this._url = doc ? new gui.URL ( doc, url ).href : url;
 		return this;
 	},
 
@@ -3274,17 +3276,17 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	},
 	
 	/**
-	 * Invoked when spirit gets disposed. Code your last wishes.
-	 * Should only be called by the framework, use `dispose()`.
+	 * Invoked when spirit gets disposed. Code your last wishes. Should only be 
+	 * called by the framework, please use `dispose()` to terminate the spirit.
 	 * @see {gui.Spirit#dispose}
-	 * @param {boolean} unloading
+	 * @param {boolean} now Triggers immediate destruction when true
 	 * @returns {boolean}
 	 */
-	ondestruct : function ( unloading ) {
+	ondestruct : function ( now ) {
 		this.window.gui.destruct ( this );
 		this.life.godestruct ();
 		this.__debug__ ( false );
-		this.__destruct__ ( unloading );
+		this.__destruct__ ( now );
 	},
 	
 	// Handlers .....................................................................
@@ -3346,24 +3348,6 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	__construct__ : function () {},
 
 	/**
-<<<<<<< HEAD
-	 * Experimental.
-	 * @type {[type]}
-	 */
-	__lazies__ : null,
-
-	/**
-	 * Instantiate plugins.
-	 */
-	__plugin__ : function () {
-		
-		// core plugins first
-		this.life = new gui.SpiritLifeTracker ( this );
-		this.config = new gui.SpiritConfig ( this );
-		this.__lazies__ = Object.create ( null );
-		
-		// bonus plugins second
-=======
 	 * Mapping lazy plugins to prefixes.
 	 * @type {Map<String,gui.Plugin>}
 	 */
@@ -3380,7 +3364,6 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 		this.life = new gui.LifePlugin ( this );
 		this.config = new gui.ConfigPlugin ( this );
 		this.__lazyplugins__ = Object.create ( null );
->>>>>>> efab0f2008acf471ea920a5ad6aaec92ced92fad
 		var prefixes = [], plugins = this.constructor.__plugins__;
 		gui.Object.each ( plugins, function ( prefix, Plugin ) {
 			switch ( Plugin ) {
@@ -3389,11 +3372,7 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 					break;
 				default :
 					if ( Plugin.lazy ) {
-<<<<<<< HEAD
-						gui.SpiritPlugin.later ( Plugin, prefix, this, this.__lazies__ );
-=======
 						gui.Plugin.later ( Plugin, prefix, this, this.__lazyplugins__ );
->>>>>>> efab0f2008acf471ea920a5ad6aaec92ced92fad
 					} else {
 						this [ prefix ] = new Plugin ( this );
 					}
@@ -3401,21 +3380,10 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 					break;
 			}
 		}, this );
-<<<<<<< HEAD
-		
-		// sequenced construction
-		this.life.onconstruct ();
-		this.config.onconstruct ();
-		prefixes.forEach ( function ( prefix ) {
-			if ( this.__lazies__ [ prefix ]) {
-				// lazy constructed later
-			} else {
-=======
 		this.life.onconstruct ();
 		this.config.onconstruct ();
 		prefixes.forEach ( function ( prefix ) {
 			if ( !this.__lazyplugins__ [ prefix ]) {
->>>>>>> efab0f2008acf471ea920a5ad6aaec92ced92fad
 				this [ prefix ].onconstruct ();
 			}
 		}, this );
@@ -3444,25 +3412,17 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	},
 	
 	/**
-	 * Total destruction.
-	 * @param @optional {boolean} unloading If true, destruct immediately
+	 * Total destruction. We have hotfixed conflicts upon destruction by moving the property nulling 
+	 * to a new execution stack, but the consequences should be thought throught at some point.
+	 * @param @optional {boolean} now Destruct immediately (for example when the window unloads)
 	 */
-	__destruct__ : function ( unloading ) {
-<<<<<<< HEAD
-
-		var map = this.__lazies__;
-=======
+	__destruct__ : function ( now ) {
 		var map = this.__lazyplugins__;
->>>>>>> efab0f2008acf471ea920a5ad6aaec92ced92fad
 		gui.Object.each ( map, function ( prefix ) {
 			if ( map [ prefix ] === true ) {
 				delete this [ prefix ]; // otherwise next iterator will instantiate the lazy plugin...
 			}
 		}, this );
-<<<<<<< HEAD
-
-=======
->>>>>>> efab0f2008acf471ea920a5ad6aaec92ced92fad
 		// dispose plugins (plugins should not invoke external stuff during this phase)
 		gui.Object.each ( this, function ( prop ) {
 			var thing = this [ prop ];
@@ -3470,15 +3430,15 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 				case "object" :
 					if ( thing instanceof gui.Plugin ) {
 						if ( thing !== this.life ) {
-							thing.__destruct__ ( unloading );
+							thing.__destruct__ ( now );
 						}
 					}
 					break;
 			}
 		}, this );
 		this.life.__destruct__ (); // dispose life plugin last
-		if ( unloading ) {
-			this.__null__ (); // now!
+		if ( now ) {
+			this.__null__ ();
 		} else {
 			var that = this;
 			var tick = gui.TICK_SPIRIT_NULL;
@@ -3497,8 +3457,7 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	},
 	
 	/**
-	 * Null all props. We have hotfixed conflicts upon disposal by moving this to a new 
-	 * execution stack, but the consequences should be thought throught at some point.
+	 * Null all props.
 	 */
 	__null__ : function () {
 		var element = this.element;
@@ -3514,15 +3473,9 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 
 
 }, { // Recurring static ...............................................................
-
-	/**
-	 * Mapping plugin constructor to prefix.
-	 * @type {Map<String,function>}
-	 */
-	__plugins__ : Object.create ( null ),
 	
 	/**
-	 * Portal this spirit to descendant iframes?
+	 * Portal spirit via the `gui.portal` method?
 	 * @see {ui#portal}  
 	 * @type {boolean}
 	 */
@@ -3556,6 +3509,24 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	},
 
 	/**
+	 * Create DOM element and associate Spirit instance.
+	 * @param @optional {Document} doc
+	 * @returns {gui.Spirit}
+	 */
+	summon : function ( doc ) {
+		return this.possess (( doc || document ).createElement ( "div" ));
+	},
+
+	/**
+	 * Associate DOM element to Spirit instance.
+	 * @param {Element} element
+	 * @returns {Spirit}
+	 */
+	possess : function ( element ) {
+		return gui.Guide.possess ( element, this );
+	},
+
+	/**
 	 * Subclassing a spirit allows you to also subclass it's plugins 
 	 * using the same declarative syntax. To avoid potential frustration, 
 	 * we throw on the `extend` method which doesn't offfer this feature.
@@ -3566,49 +3537,10 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 			'This method extends both the spirit and it\'s plugins.'
 		);
 	},
-<<<<<<< HEAD
-
-	/**
-	 * Create element (this will likely be removed).
-	 * @param {Document} doc
-	 * @param {String} tag
-	 */
-	tag : function ( doc, tag ) {
-
-		console.warn ( "Deprecated" ); // = spirit.lazies || Object.create ( null );
-		return doc.createElement ( tag );
-	},
-
-	/**
-	 * Set attribute (this will likely be removed).
-	 * @param {Element} elm
-	 * @param {String} att
-	 * @param {String} val
-	 */
-	att : function ( elm, att, val ) {
-
-		console.warn ( "Deprecated" );
-		elm.setAttribute ( att, String ( val ));
-		return elm;
-	},
 	
 	/**
-	 * Set element text (this will likely be removed).
-	 * @param {Element} elm
-	 * @param {String} txt
-	 */
-	text : function ( elm, txt ) {
-
-		console.warn ( "Deprecated" );
-		elm.textContent = txt;
-	},
-
-	/**
-=======
-	
-	/**
->>>>>>> efab0f2008acf471ea920a5ad6aaec92ced92fad
-	 * Parse HTML string to DOM element in given document context.
+	 * Parse HTML string to DOM element in given document context. 
+	 * @todo This should be either powerful or removed from core.
 	 * @todo parent element awareness when inserted in document :)
 	 * @param {Document} doc
 	 * @param {String} html
@@ -3620,25 +3552,6 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 		} else {
 			throw new TypeError ( this + ".parse() expects a Document" );
 		}
-	},
-
-	/**
-	 * Associate DOM element to Spirit instance.
-	 * @param {Element} element
-	 * @returns {Spirit}
-	 */
-	animate : function ( element ) {
-		return gui.Guide.animate ( element, this );
-	},
-
-	/**
-	 * Create DOM element and associate Spirit instance.
-	 * @param @optional {Document} doc
-	 * @returns {gui.Spirit}
-	 */
-	summon : function ( doc ) {
-		doc = doc ? doc : document;
-		return this.animate ( doc.createElement ( "div" ));
 	},
 	
 	/**
@@ -3662,7 +3575,13 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 		} else {
 			console.error ( "Plugin naming crash in " + this + ": " + prefix );
 		}
-	}
+	},
+
+	/**
+	 * Mapping plugin constructor to prefix.
+	 * @type {Map<String,function>}
+	 */
+	__plugins__ : Object.create ( null )
 
 	/*
 	 * @todo move to Spiritual EDB
@@ -3680,7 +3599,7 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 			return i > 0;
 		});
 		var html = func.apply ( {}, args );
-		return this.animate ( this.parse ( doc, html ));
+		return this.possess ( this.parse ( doc, html ));
 	}
 	*/
 	
@@ -3827,19 +3746,11 @@ gui.Plugin = gui.Exemplar.create ( "gui.Plugin", Object.prototype, {
 	}
 	
 
-<<<<<<< HEAD
-}, { // RECURRING STATICS ........................................
-
-	/**
-	 * By default constructed only when needed. 
-	 * @type {Boolean}
-=======
 }, { // Recurring static ........................................
 
 	/**
 	 * Construct only when requested?
 	 * @type {boolean}
->>>>>>> efab0f2008acf471ea920a5ad6aaec92ced92fad
 	 */
 	lazy : true,
 
@@ -3851,45 +3762,6 @@ gui.Plugin = gui.Exemplar.create ( "gui.Plugin", Object.prototype, {
 			'Plugins must use the "extend" method and not "infuse".'
 		);
 	}
-<<<<<<< HEAD
-
-
-}, { // STATICS ..................................................
-
-	/**
-	 * [experimental]
-	 * @param {gui.SpiritPlugin} Plugin
-	 * @param {String} prefix
-	 * @param {gui.Spirit} spirit
-	 */
-	later : function ( Plugin, prefix, spirit, map ) {
-
-		map [ prefix ] = true;
-
-		Object.defineProperty ( spirit, prefix, {
-			enumerable : true,
-			configurable : true,
-			get : function () {
-				if ( map [ prefix ] === true ) {
-					if ( prefix === "tween" ) {
-						throw new Error ( "WHY?" );
-					}
-					map [ prefix ] = new Plugin ( spirit );
-					map [ prefix ].onconstruct ();
-				}
-				return map [ prefix ];
-			},
-			set : function ( x ) {
-				map [ prefix ] = x; // or what?
-			}
-		});
-	
-		// spirit [ prefix ] = new Plugin ( spirit );
-	}
-
-});
-=======
->>>>>>> efab0f2008acf471ea920a5ad6aaec92ced92fad
 
 
 }, { // Static ..................................................
@@ -5427,16 +5299,16 @@ gui.IBroadcastHandler = {
  * @extends {gui.Plugin}
  */
 gui.CSSPlugin = gui.Plugin.extend ( "gui.CSSPlugin", {
-
+	
 	/**
 	 * Set single element.style.
 	 * @param {String} prop
 	 * @param {String} val
-	 * @returns {gui.Spirit}
+	 * @returns {gui.CSSPlugin}
 	 */
 	set : function ( prop, val ) {
 		gui.CSSPlugin.set ( this.spirit.element, prop, val );
-		return this.spirit;
+		return this;
 	},
 
 	/**
@@ -5460,11 +5332,11 @@ gui.CSSPlugin = gui.Plugin.extend ( "gui.CSSPlugin", {
 	/**
 	 * Set multiple styles via key value map.
 	 * @param {Map<String,String>} map
-	 * @returns {gui.Spirit}
+	 * @returns {gui.CSSPlugin}
 	 */
 	style : function ( map ) {
 		gui.CSSPlugin.style ( this.spirit.element, map );
-		return this.spirit;
+		return this;
 	},
 
 	/**
@@ -5484,31 +5356,31 @@ gui.CSSPlugin = gui.Plugin.extend ( "gui.CSSPlugin", {
 	/**
 	 * classList.add
 	 * @param {String} name
-	 * @returns {gui.Spirit}
+	 * @returns {gui.CSSPlugin}
 	 */
 	add : function ( name ) {
 		gui.CSSPlugin.add ( this.spirit.element, name );
-		return this.spirit;
+		return this;
 	},
 
 	/**
 	 * classList.remove
 	 * @param {String} name
-	 * @returns {gui.Spirit}
+	 * @returns {gui.CSSPlugin}
 	 */
 	remove : function ( name ) {
 		gui.CSSPlugin.remove ( this.spirit.element, name );
-		return this.spirit;
+		return this;
 	},
 
 	/**
 	 * classList.toggle
 	 * @param {String} name
-	 * @returns {gui.Spirit}
+	 * @returns {gui.CSSPlugin}
 	 */
 	toggle : function ( name ) {
 		gui.CSSPlugin.toggle ( this.spirit.element, name );
-		return this.spirit;
+		return this;
 	},
 
 	/**
@@ -6023,7 +5895,7 @@ gui.DOMPlugin = gui.Plugin.extend ( "gui.DOMPlugin", {
 	 * Spiritual-aware innerHTML with special setup for WebKit.
 	 * Parse markup to node(s)
 	 * Detach spirits and remove old nodes
-	 * Append new nodes and attach spirits
+	 * Append new nodes and spiritualize spirits
 	 * @param {Element} element
 	 * @param @optional {String} markup
 	 */
@@ -6034,7 +5906,7 @@ gui.DOMPlugin = gui.Plugin.extend ( "gui.DOMPlugin", {
 				var nodes = new gui.HTMLParser ( 
 					element.ownerDocument 
 				).parse ( markup, element );
-				guide.detachSub ( element );
+				guide.materializeSub ( element );
 				guide.suspend ( function () {
 					gui.Observer.suspend ( element, function () {
 						while ( element.firstChild ) {
@@ -6045,7 +5917,7 @@ gui.DOMPlugin = gui.Plugin.extend ( "gui.DOMPlugin", {
 						});
 					});
 				});
-				guide.attachSub ( element );
+				guide.spiritualizeSub ( element );
 			}
 		} else {
 			// throw new TypeError ();
@@ -6068,7 +5940,7 @@ gui.DOMPlugin = gui.Plugin.extend ( "gui.DOMPlugin", {
 					element.ownerDocument 
 				).parse ( markup, element );
 				var parent = element.parentNode;
-				guide.detach ( element );
+				guide.materialize ( element );
 				guide.suspend ( function () {
 					gui.Observer.suspend ( parent, function () {
 						while ( nodes.length ) {
@@ -6077,7 +5949,7 @@ gui.DOMPlugin = gui.Plugin.extend ( "gui.DOMPlugin", {
 						parent.removeChild ( element );
 					});
 				});
-				guide.attachSub ( parent ); // @todo optimize
+				guide.spiritualizeSub ( parent ); // @todo optimize
 				res = element; // bad API design goes here...
 			}
 		} else {
@@ -6512,8 +6384,10 @@ gui.Object.each ({
 		if ( !gui.Type.isDefined ( type ) || gui.Type.isFunction ( type )) {
 			return method.apply ( this, arguments );
 		} else {
-			type = gui.Type.of ( type );
-			throw new TypeError ( "Unknown spirit for query: " + name + "(" + type + ")" );
+			throw new TypeError ( 
+				"Unknown spirit for query: " + name + 
+				"(" + gui.Type.of ( type ) + ")" 
+			);
 		}
 	});
 });
@@ -7003,12 +6877,8 @@ gui.Tick._dispatch = function ( type, time, sig ) {
 				}
 				if ( list._one && list._one [ i ]) {
 					delete list._one [ i ];
-<<<<<<< HEAD
-					list.remove ( i );
-=======
 					// do not remove untill after we are through the list (will screw up the index+length)
 					toBeRemoved.push ( i );
->>>>>>> efab0f2008acf471ea920a5ad6aaec92ced92fad
 				}
 				i++;
 			}
@@ -7106,10 +6976,6 @@ gui.TickPlugin = gui.Tracker.extend ( "gui.TickPlugin", {
 	 * @returns {gui.Tick}
 	 */
 	dispatch : function ( type, time ) {
-<<<<<<< HEAD
-		
-=======
->>>>>>> efab0f2008acf471ea920a5ad6aaec92ced92fad
 		return this._dispatch ( type, time || 0 );
 	},
 	
@@ -8562,6 +8428,7 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 	},
 
 	/**
+	 * TODO: rename to "seamless" or "fitiframe" ?
 	 * Dispatch fitness info. Please invoke this method whenever 
 	 * height changes: Parent iframes will resize to fit content.
 	 */
@@ -8880,7 +8747,7 @@ gui.WindowSpirit = gui.Spirit.infuse ( "gui.WindowSpirit", {
 	 */
 	summon : function ( doc, src ) {
 		var div = doc.createElement ( "div" );
-		var spirit = this.animate ( div );
+		var spirit = this.possess ( div );
 		if ( src ) {
 			spirit.src ( src );
 		}
@@ -8930,9 +8797,7 @@ gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
 	}
 	
 	
-}, { 
-
-	// RECURRING  ...........................................................
+}, { // Recurring static ......................................................
 
 	/**
 	 * Summon spirit.
@@ -8954,15 +8819,13 @@ gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
 		} else {
 			iframe.src = gui.IframeSpirit.SRC_DEFAULT;
 		}
-		var spirit = this.animate ( iframe );
+		var spirit = this.possess ( iframe );
 		spirit.signature = sig;
 		return spirit;
 	}
 
 
-}, { 
-
-	// Static ................................................................
+}, { // Static ................................................................
 
 	/**
 	 * The stuff going on here has to do with a future project 
@@ -9215,7 +9078,7 @@ gui.StyleSheetSpirit = gui.Spirit.infuse ( "gui.StyleSheetSpirit", {
 		link.className = "gui-styles";
 		link.rel = "stylesheet";
 		link.href = href ? href : "";
-		return this.animate ( link );
+		return this.possess ( link );
 	}
 });
 
@@ -9338,7 +9201,7 @@ gui.CoverSpirit = gui.Spirit.infuse ( "gui.CoverSpirit", {
 	 * @returns {gui.CoverSpirit}
 	 */
 	summon : function ( doc ) {
-		var spirit = this.animate ( doc.createElement ( "div" ));
+		var spirit = this.possess ( doc.createElement ( "div" ));
 		spirit.css.add ( "gui-cover" );
 		return spirit;
 	}
@@ -9382,88 +9245,26 @@ gui.module ( "jquery", {
 	// Private .............................................................
 
 	/**
-	 * Injecting Spiritual awareness into 
-	 * JQuery DOM manipulation methods.
+	 * Generating spirit management methods.
 	 * @param {jQuery} jq
 	 */
 	_expandos : function ( jq ) {
 		var guide = gui.Guide;
 		jq.__suspend = false;
-
-		/**
-		 * Element in page DOM?
-		 * @param {Element} el
-		 * @returns {boolean}
-		 */
-		function indom ( el ) {
-			return gui.DOMPlugin.embedded ( el );
-		}
-
-		/**
-		 * Attach spirits to collection.
-		 */
-		jq.fn.__attach = function () {
-			return this.each ( function ( i, el ) {
-				if ( indom ( el )) {
-					guide.attach ( el );
-				}
-			});
-		};
-
-		/**
-		 * Attach spirits to collection subtree.
-		 */
-		jq.fn.__attachSub = function () {
-			return this.each ( function ( i, el ) {
-				if ( indom ( el )) {
-					guide.attachSub ( el );
-				}
-			});
-		};
-
-		/**
-		 * Attach spirits to collection non-crawling.
-		 */
-		jq.fn.__attachOne = function () {
-			return this.each ( function ( i, el ) {
-				if ( indom ( el )) {
-					guide.attachOne ( el );
-				}
-			});
-		};
-
-		/**
-		 * Detach spirits from collection.
-		 */
-		jq.fn.__detach = function ( skip ) {
-			return this.each ( function ( i, el ) {
-				if ( indom ( el )) {
-					guide.detach ( el );
-				}
-			});
-		};
-
-		/**
-		 * Detach spirits from collection subtree.
-		 */
-		jq.fn.__detachSub = function ( skip ) {
-			return this.each ( function ( i, el ) {
-				if ( indom ( el )) {
-					guide.detachSub ( el );
-				}
-			});
-		};
-
-		/**
-		 * Detach spirits from collection non-crawling.
-		 */
-		jq.fn.__detachOne = function () {
-			return this.each ( function ( i, el ) {
-				if ( indom ( el )) {
-					guide.detachOne ( el );
-				}
-			});
-		};
+		[ 
+			"spiritualize", 
+			"spiritualizeSub", 
+			"spiritualizeOne",
+			"materialize", 
+			"materializeSub", 
+			"materializeOne" 
+		].forEach ( function ( method ) {
+			jq.fn [ "__" + method ] = function () {
+				return this.each ( function ( i, el ) {
+					gui.Guide [ method ] ( el );
+				});
+			};
+		});
 	},
 
 	/**
@@ -9494,6 +9295,7 @@ gui.module ( "jquery", {
 	 * @param {function} jq Constructor
 	 */
 	_overload : function ( jq ) {
+		var module = this;
 		var naive = Object.create ( null ); // mapping unmodified methods
 		[
 			"after", 
@@ -9531,7 +9333,7 @@ gui.module ( "jquery", {
 					res = suber ();
 				} else if ( name === "text" ) {
 					if ( set ) {
-						this.__detachSub ();
+						this.__materializeSub ();
 					}
 					res = suber ();
 				} else {
@@ -9541,95 +9343,70 @@ gui.module ( "jquery", {
 					switch ( name ) {
 						case "append" :
 						case "prepend" :
-							res = suber ();
-							this.__attachSub (); // @todo optimize!!!
+							res = module._append_prepend.call ( this, name === "append", suber, jq );
 							break;
 						case "after" :
 						case "before" :
-							// Can't use arguments here since JQuery inserts clones thereof.
-							// Stuff becomes extra tricky since "this" can itself be a list.
-							( function () {
-								var is = name === "after";
-								var key = "isattached";
-								var olds = is ? this.nextAll () : this.prevAll ();
-								olds.data ( key, "true" ); // mark current siblings
-								res = suber ();
-								var news = is ? this.nextAll () : this.prevAll ();
-								news.each(function ( i, m ) {
-									m = jq ( m );
-									if ( !m.data ( key )) {
-										m.__attach (); // attach unmarked sibling
-										m.data ( key, "true" );
-									}
-								});
-								gui.Tick.next ( function () {
-									news.removeData ( key ); // cleanup all this
-								});
-							}).call ( this );
+							res = module._after_before.call ( this, name === "after", suber, jq );
 							break;
 						case "appendTo" :
 							res = suber ();
 							arg().each ( function ( i, m ) {
-								jq ( m ).last ().__attach ();
+								jq ( m ).last ().__spiritualize ();
 							});
 							break;
 						case "prependTo" :
 							res = suber ();
 							arg().each ( function ( i, m ) {
-								jq ( m ).first ().__attach ();
+								jq ( m ).first ().__spiritualize ();
 							});
 							break;
 						case "insertAfter" :
 							res = suber ();
-							arg().next ().__attach ();
+							arg().next ().__spiritualize ();
 							break;
 						case "insertBefore" :
 							res = suber ();
-							arg().prev ().__attach ();
+							arg().prev ().__spiritualize ();
 							break;
 						case "detach" :
 						case "remove" :
-							this.__detach ();
+							this.__materialize ();
 							res = suber ();
 							break;
-						case "replaceAll" :
-							arg().__detach ();
-							res = suber ();
-							this.parent ().__attachSub (); // @todo optimize!
+						case "replaceAll" :	
+							res = module._replaceall_replacewith ( this, arg (), suber );
 							break;
 						case "replaceWith" :
-							this.__detach ();
-							var p = this.parent ();
-							res = suber ();
-							p.__attachSub (); // @todo optimize!
+							res = module._replaceall_replacewith ( arg (), this, suber );
 							break;
 						case "empty" :
-							this.__detachSub ();
+							this.__materializeSub ();
 							res = suber ();
 							break;
 						case "html" :
 							if ( set ) {
-								this.__detachSub ();
+								this.__materializeSub ();
 							}
 							res = suber ();
 							if ( set ) {
-								this.__attachSub ();
+								this.__spiritualizeSub ();
 							}
 							break;
 						case "unwrap" :
-							// note: detachment is skipped here!
-							this.parent ().__detachOne ();
+							// note: materializement is skipped here!
+							this.parent ().__materializeOne ();
 							res = suber ();
 							break;
 						case "wrap" :
 						case "wrapAll" :
-							// note: detachment is skipped here!
+							// note: materializement is skipped here!
 							res = suber ();
-							this.parent ().__attachOne ();
+							this.parent ().__spiritualizeOne ();
 							break;
 						case "wrapInner" :
 							res = suber ();
-							this.__attach ();
+							this.__spiritualize ();
 							break;
 					}
 					jq.__suspend = false;
@@ -9640,7 +9417,7 @@ gui.module ( "jquery", {
 	},
 	
 	/**
-	 * Overload Spiritual to attach/detach spirits on DOM mutation and to 
+	 * Overload Spiritual to spiritualize/materialize spirits on DOM mutation and to 
 	 * suspend mutation monitoring while DOM updating. This would normally 
 	 * be baked into native DOM methods appendChild, removeChild and so on.
 	 * @see {gui.DOMPlugin}
@@ -9671,13 +9448,13 @@ gui.module ( "jquery", {
 				var res, b = breakdown ( this.spirit );
 				if ( b.is$ ) {
 					if ( b.dom ){
-						gui.Guide.detachSub ( b.elm );
+						gui.Guide.materializeSub ( b.elm );
 					}
 					res = gui.Observer.suspend ( b.elm, function () {
 						return old.call ( this, arg );
 					}, this );
 					if ( b.dom && method === "html" ) {
-						gui.Guide.attachSub ( b.elm );
+						gui.Guide.spiritualizeSub ( b.elm );
 					}
 				} else {
 					res = old.call ( this, arg );
@@ -9694,7 +9471,7 @@ gui.module ( "jquery", {
 				var res, b = breakdown ( this.spirit );
 				if ( b.is$ ) {
 					if ( b.dom ) {
-						gui.Guide.detach ( b.elm );
+						gui.Guide.materialize ( b.elm );
 					}
 					res = gui.Observer.suspend ( b.elm, function () {
 						return old.call ( this, arg );
@@ -9721,7 +9498,7 @@ gui.module ( "jquery", {
 							return thing && thing instanceof gui.Spirit ? thing.element : thing;
 						});
 						els.forEach ( function ( el ) {
-							gui.Guide.attach ( el );
+							gui.Guide.spiritualize ( el );
 						});
 					}
 				} else {
@@ -9730,7 +9507,96 @@ gui.module ( "jquery", {
 				return res;
 			};
 		});
+	},
+
+	/**
+	 * JQuery append() and prepend().
+	 * @param {boolean} append
+	 * @param {function} suber
+	 */
+	_append_prepend : function ( append, suber ) {
+		var last = "lastElementChild";
+		var fist = "firstElementChild";
+		var next = "nextElementSibling";
+		var prev = "previousElementSibling";
+		var current = Array.map ( this, function ( elm ) {
+			return elm [ append ? last : fist ];
+		});
+		var old, res = suber ();
+		this.each ( function ( index, elm ) {
+			if (( old = current [ index ])) {
+				elm = old [ append ? next : prev ];
+			} else {
+				elm = elm.firstElementChild;
+			}	
+			while ( elm ) {
+				gui.Guide.spiritualize ( elm );	
+				elm = elm [ append ? next : prev ];
+			}
+		});
+		return res;
+	},
+
+	/**
+	 * JQuery after() and before(). We can't reliably use the arguments 
+	 * here becayse JQuery will switch them to clones in the process.
+	 * @param {boolean} after
+	 * @param {function} suber
+	 * @param {jQuery} jq
+	 */
+	_after_before : function ( after, suber, jq ) {
+		var next = "nextElementSibling";
+		var prev = "previousElementSibling";
+		var current = [];
+		this.each ( function ( i, elm ) {
+			while ( elm && current.indexOf ( elm ) === -1 ) {
+				current.push ( elm );
+				elm = elm [ after ? next : prev ];
+			}
+		});
+		var res = suber ();
+		var sibling, siblings;
+		this.each ( function ( i, elm ) {
+			sibling = elm [ after ? next : prev ];
+			while ( sibling && current.indexOf ( sibling ) === -1 ) {
+				gui.Guide.spiritualize ( sibling );
+				sibling = sibling [ after ? next : prev ];
+			}
+		});
+		return res;
+	},
+
+	/**
+	 * JQuery replaceAll() and replaceWith().
+	 * @param {$} source
+	 * @param {$} target
+	 * @param {function} suber
+	 */
+	_replaceall_replacewith : function ( source, target, suber ) {
+		var parent, parents = [], current = [];
+		target.each ( function ( i, elm ) {
+			gui.Guide.materialize ( elm );
+			parent = elm.parentNode;
+			if ( parents.indexOf ( parent ) === -1 ) {
+				parents.push ( parent );
+				current = current.concat ( Array.map ( parent.children, function ( child ) {
+					return child;
+				}));
+			}
+		});
+		var res = suber ();
+		parents.forEach ( function ( parent ) {
+			if ( parent ) {
+				Array.forEach ( parent.children, function ( elm ) {
+					if ( current.indexOf ( elm ) === -1 ) {
+						gui.Guide.spiritualize ( elm );
+					}
+				});
+			}		
+		});
+		return res;
 	}
+	
 });
 
 
@@ -9738,173 +9604,7 @@ gui.module ( "jquery", {
  * # gui.DOMChanger
  * Spiritualizing documents by overloading DOM methods.
  */
-<<<<<<< HEAD
-gui.UPGRADE = function () { // TODO: name this thing
-
-	var combo = gui.Combinator;
-	var guide = gui.Guide;
-
-	// node embedded in document?
-	var ifembedded = combo.provided ( function () {
-		return gui.SpiritDOM.embedded ( this );
-	});
-
-	// has spirit associated?
-	var ifspirit = combo.provided ( function () {
-		return !gui.Type.isNull ( this.spirit );
-	});
-
-	// attach node plus subtree
-	var attachafter = combo.after ( function ( node ) {
-		guide.attach ( node );
-	});
-
-	// detach node plus subtree
-	var detachbefore = combo.before ( function ( node ) {
-		guide.detach ( node );
-	});
-
-	// attach new node plus subtree
-	var attachnewafter = combo.after ( function ( newnode, oldnode ) {
-		guide.attach ( newnode );
-	});
-
-	// detach old node plus subtree
-	var detacholdbefore = combo.before ( function ( newnode, oldnode ) {
-		guide.detach ( oldnode );
-	});
-
-	// spirit-aware setattribute
-	var setattafter = combo.after ( function ( att, val ) {
-		this.spirit.att.__suspend__ ( function () {
-			this.set ( att, val );
-		});
-	});
-
-	// spirit-aware removeattribute
-	var delattafter = combo.after ( function ( att ) { // TODO: use the post combinator
-		this.spirit.att.__suspend__ ( function () {
-			this.del ( att );
-		});
-	});
-	
-	// disable DOM mutation observers while doing action
-	var suspending = combo.around ( function ( action ) {
-		return gui.Observer.suspend ( this, function () {
-			return action.apply ( this, arguments );
-		}, this );
-	});
-
-	// detach subtree of "this"
-	var detachsubbefore = combo.before ( function () {
-		guide.detachSub ( this );
-	});
-
-	// attach subtree of "this"
-	var attachsubafter = combo.after ( function () {
-		guide.attachSub ( this );
-	});
-
-	// detach "this"
-	var parent = null; // TODO: unref this at some point
-	var detachthisbefore = combo.before ( function () {
-		parent = this.parentNode;
-		guide.detach ( this );
-	});
-
-	// attach parent
-	var attachparentafter = combo.after ( function () {
-		guide.attach ( parent );
-	});
-
-	// webkit-patch property descriptors for node and subtree
-	var webkitafter = combo.after ( function ( node ) {
-		if ( gui.Client.isWebKit ) {
-			gui.WEBKIT.patch ( node );
-		}
-	});
-
-	// sugar
-	var otherwise = function ( action ) {
-		return action;
-	};
-
-
-	// PUBLIC ......................................................................
-
-	return { // TODO: standard DOM exceptions for missing arguments and so on.
-
-		appendChild : function ( base ) {
-			return (
-				ifembedded ( attachafter ( webkitafter ( suspending ( base ))), 
-				otherwise ( base ))
-			);
-		},
-		removeChild : function ( base ) {
-			return (
-				ifembedded ( detachbefore ( suspending ( base )),
-				otherwise ( base ))
-			);
-		},
-		insertBefore : function ( base ) {
-			return (
-				ifembedded ( attachafter ( webkitafter ( suspending ( base ))), 
-				otherwise ( base ))
-			);
-		},
-		replaceChild : function ( base ) {
-			return (
-				ifembedded ( detacholdbefore ( attachnewafter ( webkitafter ( suspending ( base )))), 
-				otherwise ( base ))
-			);
-		},
-		setAttribute : function ( base ) {
-			return ( 
-				ifembedded ( 
-					ifspirit ( setattafter ( base ), 
-					otherwise ( base )),
-				otherwise ( base ))
-			);
-		},
-		removeAttribute : function ( base ) {
-			return ( 
-				ifembedded ( 
-					ifspirit ( delattafter ( base ),
-					otherwise ( base )),
-				otherwise ( base ))
-			);
-		},
-
-		/*
-		 * Property setters are skipped for WebKit. The stuff works only because properties 
-		 * have been re-implemented using methods (see above) in all WebKit based browsers.
-		 */
-
-		innerHTML : function ( base ) {
-			return (
-				ifembedded ( detachsubbefore ( attachsubafter ( suspending ( base ))),
-				otherwise ( base ))
-			);
-		},
-		outerHTML : function ( base ) {
-			return (
-				ifembedded ( detachthisbefore ( attachparentafter ( suspending ( base ))),
-				otherwise ( base ))
-			);
-		},
-		textContent : function ( base ) {
-			return (
-				ifembedded ( detachsubbefore ( suspending ( base )),
-				otherwise ( base ))
-			);
-		}
-	};
-
-};
-
-=======
 gui.DOMChanger = {
->>>>>>> efab0f2008acf471ea920a5ad6aaec92ced92fad
 
 	/**
 	 * True when in JQuery mode. This will be removed when 
@@ -10249,15 +9949,15 @@ gui.DOMCombos = {
 		 * Is `this` embedded in document?
 		 * @returns {boolean}
 		 */
-		var ifembedded = combo.provided ( function () {
+		var ifEmbedded = combo.provided ( function () {
 			return gui.DOMPlugin.embedded ( this );
 		});
 
 		/**
-		 * Has spirit associated?
+		 * Element has spirit?
 		 * @returns {boolean}
 		 */
-		var ifspirit = combo.provided ( function () {
+		var ifSpirit = combo.provided ( function () {
 			return !gui.Type.isNull ( this.spirit );
 		});
 
@@ -10265,16 +9965,16 @@ gui.DOMCombos = {
 		 * Attach node plus subtree.
 		 * @param {Node} node
 		 */
-		var attachafter = combo.after ( function ( node ) {
-			guide.attach ( node );
+		var spiritualizeAfter = combo.after ( function ( node ) {
+			guide.spiritualize ( node );
 		});
 
 		/**
 		 * Detach node plus subtree.
 		 * @param {Node} node
 		 */
-		var detachbefore = combo.before ( function ( node ) {
-			guide.detach ( node );
+		var materializeBefore = combo.before ( function ( node ) {
+			guide.materialize ( node );
 		});
 
 		/**
@@ -10282,8 +9982,8 @@ gui.DOMCombos = {
 		 * @param {Node} newnode
 		 * @param {Node} oldnode
 		 */
-		var attachnewafter = combo.after ( function ( newnode, oldnode ) {
-			guide.attach ( newnode );
+		var spiritualizeNewAfter = combo.after ( function ( newnode, oldnode ) {
+			guide.spiritualize ( newnode );
 		});
 
 		/**
@@ -10291,8 +9991,8 @@ gui.DOMCombos = {
 		 * @param {Node} newnode
 		 * @param {Node} oldnode
 		 */
-		var detacholdbefore = combo.before ( function ( newnode, oldnode ) {
-			guide.detach ( oldnode );
+		var materializeOldBefore = combo.before ( function ( newnode, oldnode ) {
+			guide.materialize ( oldnode );
 		});
 
 		/**
@@ -10300,7 +10000,7 @@ gui.DOMCombos = {
 		 * @param {String} att
 		 * @param {String} val
 		 */
-		var setattafter = combo.after ( function ( att, val ) {
+		var setAttAfter = combo.after ( function ( att, val ) {
 			this.spirit.att.__suspend__ ( function () {
 				this.set ( att, val );
 			});
@@ -10311,7 +10011,7 @@ gui.DOMCombos = {
 		 * @todo use the post combo?
 		 * @param {String} att
 		 */
-		var delattafter = combo.after ( function ( att ) {
+		var delAttAfter = combo.after ( function ( att ) {
 			this.spirit.att.__suspend__ ( function () {
 				this.del ( att );
 			});
@@ -10330,38 +10030,39 @@ gui.DOMCombos = {
 		/**
 		 * Detach subtree of `this`.
 		 */
-		var detachsubbefore = combo.before ( function () {
-			guide.detachSub ( this );
+		var materializeSubBefore = combo.before ( function () {
+			guide.materializeSub ( this );
 		});
 
 		/**
 		 * Attach subtree of `this`
 		 */
-		var attachsubafter = combo.after ( function () {
-			guide.attachSub ( this );
+		var spiritualizeSubAfter = combo.after ( function () {
+			guide.spiritualizeSub ( this );
 		});
 
 		/**
 		 * Detach `this`.
 		 */
 		var parent = null; // @todo unref this at some point
-		var detachthisbefore = combo.before ( function () {
+		var materializeThisBefore = combo.before ( function () {
 			parent = this.parentNode;
-			guide.detach ( this );
+			guide.materialize ( this );
 		});
 
 		/**
 		 * Attach parent.
 		 */
-		var attachparentafter = combo.after ( function () {
-			guide.attach ( parent );
+		var spiritualizeParentAfter = combo.after ( function () {
+			guide.spiritualize ( parent );
 		});
 
 		/**
 		 * Webkit-patch property descriptors for node and subtree.
+		 * @see {gui.DOMPatcher}
 		 * @param {Node} node
 		 */
-		var patchafter = combo.after ( function ( node ) {
+		var patchAfter = combo.after ( function ( node ) {
 			if ( gui.Client.isWebKit ) {
 				gui.DOMPatcher.patch ( node );
 			}
@@ -10371,7 +10072,7 @@ gui.DOMCombos = {
 		 * Pretend nothing happened when running in "managed" mode.
 		 * @todo Simply mirror this prop with an internal boolean
 		 */
-		var ifenabled = combo.provided ( function () {
+		var ifEnabled = combo.provided ( function () {
 			return this.ownerDocument.defaultView.gui.mode !== gui.MODE_MANAGED;
 		});
 
@@ -10391,41 +10092,41 @@ gui.DOMCombos = {
 
 			appendChild : function ( base ) {
 				return (
-					ifenabled ( 
-						ifembedded ( attachafter ( patchafter ( suspending ( base ))), 
+					ifEnabled ( 
+						ifEmbedded ( spiritualizeAfter ( patchAfter ( suspending ( base ))), 
 						otherwise ( base )),
 					otherwise ( base ))
 				);
 			},
 			removeChild : function ( base ) {
 				return (
-					ifenabled ( 
-						ifembedded ( detachbefore ( suspending ( base )),
+					ifEnabled ( 
+						ifEmbedded ( materializeBefore ( suspending ( base )),
 						otherwise ( base )),
 					otherwise ( base ))
 				);
 			},
 			insertBefore : function ( base ) {
 				return (
-					ifenabled ( 
-						ifembedded ( attachafter ( patchafter ( suspending ( base ))), 
+					ifEnabled ( 
+						ifEmbedded ( spiritualizeAfter ( patchAfter ( suspending ( base ))), 
 						otherwise ( base )),
 					otherwise ( base ))
 				);
 			},
 			replaceChild : function ( base ) {
 				return (
-					ifenabled ( 
-						ifembedded ( detacholdbefore ( attachnewafter ( patchafter ( suspending ( base )))), 
+					ifEnabled ( 
+						ifEmbedded ( materializeOldBefore ( spiritualizeNewAfter ( patchAfter ( suspending ( base )))), 
 						otherwise ( base )),
 					otherwise ( base ))
 				);
 			},
 			setAttribute : function ( base ) {
 				return ( 
-					ifenabled ( 
-						ifembedded ( 
-							ifspirit ( setattafter ( base ), 
+					ifEnabled ( 
+						ifEmbedded ( 
+							ifSpirit ( setAttAfter ( base ), 
 							otherwise ( base )),
 						otherwise ( base )),
 					otherwise ( base ))
@@ -10433,9 +10134,9 @@ gui.DOMCombos = {
 			},
 			removeAttribute : function ( base ) {
 				return ( 
-					ifenabled ( 
-						ifembedded ( 
-							ifspirit ( delattafter ( base ),
+					ifEnabled ( 
+						ifEmbedded ( 
+							ifSpirit ( delAttAfter ( base ),
 							otherwise ( base )),
 						otherwise ( base )),
 					otherwise ( base ))
@@ -10443,24 +10144,24 @@ gui.DOMCombos = {
 			},
 			innerHTML : function ( base ) {
 				return (
-					ifenabled ( 
-						ifembedded ( detachsubbefore ( attachsubafter ( suspending ( base ))),
+					ifEnabled ( 
+						ifEmbedded ( materializeSubBefore ( spiritualizeSubAfter ( suspending ( base ))),
 						otherwise ( base )),
 					otherwise ( base ))
 				);
 			},
 			outerHTML : function ( base ) {
 				return (
-					ifenabled ( 
-						ifembedded ( detachthisbefore ( attachparentafter ( suspending ( base ))),
+					ifEnabled ( 
+						ifEmbedded ( materializeThisBefore ( spiritualizeParentAfter ( suspending ( base ))),
 						otherwise ( base )),
 					otherwise ( base ))
 				);
 			},
 			textContent : function ( base ) {
 				return (
-					ifenabled ( 
-						ifembedded ( detachsubbefore ( suspending ( base )),
+					ifEnabled ( 
+						ifEmbedded ( materializeSubBefore ( suspending ( base )),
 						otherwise ( base )),
 					otherwise ( base ))
 				);
@@ -10472,7 +10173,9 @@ gui.DOMCombos = {
 
 /**
  * # gui.DOMPatcher
- * Patching bad WebKit support for DOM getters and setters.
+ * Patching bad WebKit support for overloading DOM getters and setters, 
+ * specifically innerHTML, outerHTML and textContent.This operation is 
+ * very time consuming, so let's pray for the related bug to fix soon.
  * @see http://code.google.com/p/chromium/issues/detail?id=13175
  */
 gui.DOMPatcher = {
@@ -10815,66 +10518,52 @@ gui.Guide = {
 	},
 
 	/**
-	 * Construct spirits for element and descendants, 
-	 * then attach all spirits in document order.
+	 * Possess element and descendants.
 	 * @todo Jump detached spirit if matching id (!)
 	 * @param {Element} elm
 	 */
-	attach : function ( elm ) {
-		this._attach ( elm, false, false );
+	spiritualize : function ( elm ) {
+		this._spiritualize ( elm, false, false );
 	},
 
 	/**
-	 * Construct spirits for descendants.
+	 * Possess descendants.
 	 * @param {Element} elm
 	 */
-	attachSub : function ( elm ) {
-		this._attach ( elm, true, false );
+	spiritualizeSub : function ( elm ) {
+		this._spiritualize ( elm, true, false );
 	},
 
 	/**
-	 * Attach one spirit non-crawling.
+	 * Possess one element non-crawling.
 	 * @param {Element} elm
 	 */
-	attachOne : function ( elm ) {
-		this._attach ( elm, false, true );
+	spiritualizeOne : function ( elm ) {
+		this._spiritualize ( elm, false, true );
 	},
 
 	/**
-	 * Detach spirits from element and descendants.
+	 * Dispell spirits from element and descendants.
 	 * @param {Element} elm
 	 */
-	detach : function ( elm ) {
-		this._detach ( elm, false, false );
+	materialize : function ( elm ) {
+		this._materialize ( elm, false, false );
 	},
 
 	/**
-	 * Detach spirits for descendants.
+	 * Dispell spirits for descendants.
 	 * @param {Element} elm
 	 */
-	detachSub : function ( elm ) {
-		this._detach ( elm, true, false );
+	materializeSub : function ( elm ) {
+		this._materialize ( elm, true, false );
 	},
 
 	/**
-	 * Detach one spirit non-crawling.
+	 * Dispell one spirit non-crawling.
 	 * @param {Element} elm
 	 */
-	detachOne : function ( elm ) {
-		this._detach ( elm, false, true );
-	},
-
-	/**
-	 * Detach spirits from element and descendants.
-	 * @param {Node} node
-	 * @param @optional {boolean} unloading Trigger synchronous destruction of spirit on unload.
-	 */
-	dispose : function ( node, unloading ) {
-		this._collect ( node, false, gui.CRAWLER_DISPOSE ).forEach ( function ( spirit ) {
-			if ( !spirit.life.destructed ) {
-				spirit.ondestruct ( unloading );
-			}
-		}, this );
+	materializeOne : function ( elm ) {
+		this._materialize ( elm, false, true );
 	},
 
 	/**
@@ -10883,8 +10572,7 @@ gui.Guide = {
 	 * @param {function} C spirit constructor
 	 * @returns {Spirit}
 	 */
-	animate : function ( element, C ) {
-
+	possess : function ( element, C ) {
 		var spirit = new C ();
 		spirit.element = element;
 		spirit.document = element.ownerDocument;
@@ -10899,6 +10587,18 @@ gui.Guide = {
 			throw "Constructed twice: " + spirit.toString ();
 		}
 		return spirit;
+	},
+
+	/**
+	 * Dispell spirits from element and descendants. This destructs the spirit (immediately).
+	 * @param {Element} element
+	 */
+	exorcise : function ( element ) {
+		this._collect ( element, false, gui.CRAWLER_DISPOSE ).forEach ( function ( spirit ) {
+			if ( !spirit.life.destructed ) {
+				spirit.ondestruct ( true );
+			}
+		}, this );
 	},
 
 	/**
@@ -10930,7 +10630,7 @@ gui.Guide = {
 	_suspended : false,
 
 	/**
-	 * Continue with attachment/detachment of given node?
+	 * Continue with spiritualize/materialize of given node?
 	 * @returns {boolean}
 	 */
 	_handles : function ( node ) {
@@ -10941,7 +10641,7 @@ gui.Guide = {
 	},
 
 	/**
-	 * Fires on document.DOMContentLoaded.
+	 * Fires on document.DOMContentLoaded
 	 * @todo gui.Observer crashes with JQuery when both do stuff on DOMContentLoaded
 	 * @see http://stackoverflow.com/questions/11406515/domnodeinserted-behaves-weird-when-performing-dom-manipulation-on-body
 	 * @param {gui.EventSummary} sum
@@ -10972,7 +10672,7 @@ gui.Guide = {
 			sum.documentspirit.onunload ();
 		}
 		gui.broadcast ( gui.BROADCAST_UNLOAD, sum );
-		this.dispose ( sum.document.documentElement, true );
+		this.exorcise ( sum.document );
 		sum.window.gui.nameDestructAlreadyUsed ();
 	},
 
@@ -11005,10 +10705,10 @@ gui.Guide = {
 		var sig = win.gui.signature;
 
 		// broadcast before and after spirits attach
-		this.attachOne ( doc.documentElement );
+		this.spiritualizeOne ( doc.documentElement );
 		if ( win.gui.mode !== gui.MODE_MANAGED ) {
 			gui.broadcast ( gui.BROADCAST_WILL_SPIRITUALIZE, sig );
-			this.attachSub ( doc.documentElement );
+			this.spiritualizeSub ( doc.documentElement );
 			gui.broadcast ( gui.BROADCAST_DID_SPIRITUALIZE, sig );
 		}
 	},
@@ -11043,7 +10743,7 @@ gui.Guide = {
 		var xpr = ".gui-styles";
 		var css = doc.querySelectorAll ( xpr );
 		Array.forEach ( css, function ( elm ) {
-			this.attachOne ( elm );
+			this.spiritualizeOne ( elm );
 		}, this );
 	},
 
@@ -11077,17 +10777,13 @@ gui.Guide = {
 	 * @param {boolean} skip Skip the element?
 	 * @param {boolean} one Skip the subtree?
 	 */
-	_attach : function ( node, skip, one ) {
-		var hack = node.ownerDocument.title === "Modes";
-
+	_spiritualize : function ( node, skip, one ) {
+		node = node.nodeType === Node.DOCUMENT_NODE ? node.documentElement : node;
 		if ( this._handles ( node )) {
 			var attach = [];
 			var readys = [];
-			//var count = 0;
-			//console.time ( "Crawling DOM" )
 			new gui.Crawler ( gui.CRAWLER_ATTACH ).descend ( node, {
 				handleElement : function ( elm ) {
-					//count ++;
 					if ( !skip || elm !== node ) {
 						var spirit = elm.spirit;
 						if ( !spirit ) {
@@ -11102,9 +10798,6 @@ gui.Guide = {
 					return one ? gui.Crawler.STOP : gui.Crawler.CONTINUE;
 				}
 			});
-			//console.timeEnd ( "Crawling DOM" );
-			//console.log ( "Evaluated " + count + " elements ");
-			//console.time ( "Attaching " + attach.length + " spirits" );
 			attach.forEach ( function ( spirit ) {
 				if ( !spirit.life.configured ) {
 					spirit.onconfigure ();
@@ -11129,19 +10822,19 @@ gui.Guide = {
 			readys.reverse ().forEach ( function ( spirit ) {
 				spirit.onready ();
 			}, this );
-			//console.timeEnd ( "Attaching " + attach.length + " spirits" );
 		}
 	},
 
 	/**
 	 * Detach spirits from element and subtree.
-	 * @param {Element} elm
+	 * @param {Node} node
 	 * @param {boolean} skip Skip the element?
 	 * @param {boolean} one Skip the subtree?
 	 */
-	_detach : function ( elm, skip, one ) {
-		if ( this._handles ( elm )) {
-			this._collect ( elm, skip, gui.CRAWLER_DETACH ).forEach ( function detach ( spirit ) {
+	_materialize : function ( node, skip, one ) {
+		node = node.nodeType === Node.DOCUMENT_NODE ? node.documentElement : node;
+		if ( this._handles ( node )) {
+			this._collect ( node, skip, gui.CRAWLER_DETACH ).forEach ( function ( spirit ) {
 				if ( spirit.life.attached && !spirit.life.destructed ) {
 					spirit.ondetach ();
 				}
@@ -11157,13 +10850,12 @@ gui.Guide = {
 	 * @returns {Spirit} or null
 	 */
 	_evaluate : function ( element ) {
-		var hack = element.ownerDocument.title === "Modes";
 		if ( !element.spirit ) {
 			var doc = element.ownerDocument;
 			var win = doc.defaultView;
 			var hit = win.gui.evaluate ( element );
 			if ( hit ) {
-				this.animate ( element, hit );
+				this.possess ( element, hit );
 			}
 		}
 		return element.spirit;
