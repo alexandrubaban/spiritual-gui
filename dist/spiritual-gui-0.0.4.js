@@ -755,13 +755,16 @@ gui.Spiritual.prototype = {
 	 * Members of given namespace will be migrated 
 	 * to descendant iframes via the portal method.
 	 * @param {String} ns
+	 * @param {object} nsobject
+	 * @returns {object}
 	 */
-	namespace : function ( ns ) {	
+	namespace : function ( ns, nsobject ) {	
 		if ( gui.Type.isString ( ns )) { // @todo must it be a string?
 			this._spaces.push ( ns );
 		} else {
 			throw new TypeError ( "Expected a string: gui.namespace" );
 		}
+		return nsobject;
 	},
 
 	/**
@@ -4095,12 +4098,6 @@ gui.LifePlugin = gui.Tracker.extend ( "gui.LifePlugin", {
 	destructed : false,
 
 	/**
-	 * @todo move declaration to super!
-	 * @type {Map<String,Array<object>}
-	 */
-	_handlers : null,
-
-	/**
 	 * Construction time.
 	 * @overloads {gui.Tracker#construct}
 	 */
@@ -4160,18 +4157,25 @@ gui.LifePlugin = gui.Tracker.extend ( "gui.LifePlugin", {
 				handler.onlife ( life );
 			});
 			switch ( type ) {
-				case gui.Life.ATTACH :
+				case gui.Life.CONSTRUCT :
+				case gui.Life.CONFIGURE :
+				case gui.Life.ENTER :
+				case gui.Life.READY :
 				case gui.Life.DETACH :
-				case gui.Life.VISIBLE :
-				case gui.Life.INVISIBLE :
-					// may happen more than once
-					break;
-				default :
+				case gui.Life.EXIT :
+				case gui.Life.DESTRUCT :
 					delete this._handlers [ type ];
 					break;
 			}
 		}
-	}	
+	},
+
+	/**
+	 * @todo move declaration to super or something (?)
+	 * @type {Map<String,Array<object>}
+	 */
+	_handlers : null
+
 });
 
 /**
@@ -4228,8 +4232,9 @@ gui.LifePlugin = gui.Tracker.extend ( "gui.LifePlugin", {
 
 /**
  * Register plugin (not served in a module this plugin).
- */
+ *
 gui.Spirit.plugin ( "life", gui.LifePlugin );
+*/
 
 
 /**
@@ -4320,8 +4325,9 @@ gui.ConfigPlugin = gui.Plugin.extend ( "gui.ConfigPlugin", {
 
 /**
  * Register plugin (not served in a module this plugin).
- */
+ *
 gui.Spirit.plugin ( "config", gui.ConfigPlugin );
+*/
 
 
 /**
@@ -7920,6 +7926,40 @@ gui.AttentionPlugin = gui.Plugin.extend ( "gui.AttentionPlugin", {
 gui.module ( "core", {
 
 	/**
+	 * Channel spirits for CSS selectors.
+	 */
+	channels : [
+		
+		[ "html", "gui.DocumentSpirit" ],
+		[ ".gui-styles", "gui.StyleSheetSpirit" ], // @todo fix or deprecate
+		[ ".gui-iframe", "gui.IframeSpirit" ],
+		[ ".gui-window", "gui.WindowSpirit" ],
+		[ ".gui-action", "gui.ActionSpirit" ], // @todo fix or deprecate
+		[ ".gui-cover",  "gui.CoverSpirit" ],
+		[ ".gui-spirit", "gui.Spirit" ]
+	],
+
+	/**
+	 * Assign plugins to prefixes.
+	 */
+	plugins : {
+		
+		action : gui.ActionPlugin,
+		att : gui.AttPlugin, 
+		attention : gui.AttentionPlugin,
+		box : gui.BoxPlugin,
+		broadcast	: gui.BroadcastPlugin,
+		config : gui.ConfigPlugin,
+		css : gui.CSSPlugin,
+		dom	: gui.DOMPlugin,
+		event	: gui.EventPlugin,
+		lif : gui.LifePlugin,
+		tick : gui.TickPlugin,
+		tween : gui.TweenPlugin,
+		transition : gui.TransitionPlugin
+	},
+
+	/**
 	 * Methods added to gui.Spirit.prototype
 	 */
 	addins : {
@@ -7961,46 +8001,15 @@ gui.module ( "core", {
 		onevent : function ( event ) {},
 
 		/**
-		 * Implements DOM2 EventListener.
-		 * Forwards to method onevent()
+		 * Implements DOM2 EventListener only to forward the event to method onevent()
+		 * @see http://www.w3.org/TR/DOM-Level-2-Events/events.html#Events-EventListener
 		 * @param {Event} event
 		 */
 		handleEvent : function ( event ) {
 			this.onevent(event);
 		}
-	},
+	}
 
-	/**
-	 * Assign plugins to prefixes.
-	 */
-	plugins : {
-		
-		action : gui.ActionPlugin,
-		att : gui.AttPlugin, 
-		box : gui.BoxPlugin,
-		broadcast	: gui.BroadcastPlugin,
-		css : gui.CSSPlugin,
-		dom	: gui.DOMPlugin,
-		event	: gui.EventPlugin,
-		tick : gui.TickPlugin,
-		tween : gui.TweenPlugin,
-		transition : gui.TransitionPlugin,
-		attention : gui.AttentionPlugin
-	},
-
-	/**
-	 * Channel spirits for CSS selectors.
-	 */
-	channels : [
-		
-		[ "html", "gui.DocumentSpirit" ],
-		[ ".gui-styles", "gui.StyleSheetSpirit" ], // @todo fix or deprecate
-		[ ".gui-iframe", "gui.IframeSpirit" ],
-		[ ".gui-window", "gui.WindowSpirit" ],
-		[ ".gui-action", "gui.ActionSpirit" ], // @todo fix or deprecate
-		[ ".gui-cover",  "gui.CoverSpirit" ],
-		[ ".gui-spirit", "gui.Spirit" ]
-	]
 });
 
 

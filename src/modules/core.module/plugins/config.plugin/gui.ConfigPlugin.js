@@ -83,8 +83,3 @@ gui.ConfigPlugin = gui.Plugin.extend ( "gui.ConfigPlugin", {
 		return name;
 	}
 });
-
-/**
- * Register plugin (not served in a module this plugin).
- */
-gui.Spirit.plugin ( "config", gui.ConfigPlugin );

@@ -1,6 +1,7 @@
 /**
  * # gui.LifePlugin
  * Tracking spirit life cycle events.
+ * @todo Support optional data argument
  * @extends {gui.Tracker}
  */
 gui.LifePlugin = gui.Tracker.extend ( "gui.LifePlugin", {
@@ -71,12 +72,6 @@ gui.LifePlugin = gui.Tracker.extend ( "gui.LifePlugin", {
 	destructed : false,
 
 	/**
-	 * @todo move declaration to super!
-	 * @type {Map<String,Array<object>}
-	 */
-	_handlers : null,
-
-	/**
 	 * Construction time.
 	 * @overloads {gui.Tracker#construct}
 	 */
@@ -126,6 +121,7 @@ gui.LifePlugin = gui.Tracker.extend ( "gui.LifePlugin", {
 
 	/**
 	 * Dispatch type and cleanup handlers for life cycle events that only occurs once.
+	 * @todo support optional data argument
 	 * @param {String} type
 	 */
 	dispatch : function ( type ) {
@@ -136,18 +132,25 @@ gui.LifePlugin = gui.Tracker.extend ( "gui.LifePlugin", {
 				handler.onlife ( life );
 			});
 			switch ( type ) {
-				case gui.Life.ATTACH :
+				case gui.Life.CONSTRUCT :
+				case gui.Life.CONFIGURE :
+				case gui.Life.ENTER :
+				case gui.Life.READY :
 				case gui.Life.DETACH :
-				case gui.Life.VISIBLE :
-				case gui.Life.INVISIBLE :
-					// may happen more than once
-					break;
-				default :
+				case gui.Life.EXIT :
+				case gui.Life.DESTRUCT :
 					delete this._handlers [ type ];
 					break;
 			}
 		}
-	}	
+	},
+
+	/**
+	 * @todo move declaration to super or something (?)
+	 * @type {Map<String,Array<object>}
+	 */
+	_handlers : null
+
 });
 
 /**
@@ -201,8 +204,3 @@ gui.LifePlugin = gui.Tracker.extend ( "gui.LifePlugin", {
 		});
 	});
 })();
-
-/**
- * Register plugin (not served in a module this plugin).
- */
-gui.Spirit.plugin ( "life", gui.LifePlugin );

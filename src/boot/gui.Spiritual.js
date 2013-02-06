@@ -264,13 +264,16 @@ gui.Spiritual.prototype = {
 	 * Members of given namespace will be migrated 
 	 * to descendant iframes via the portal method.
 	 * @param {String} ns
+	 * @param {object} nsobject
+	 * @returns {object}
 	 */
-	namespace : function ( ns ) {	
+	namespace : function ( ns, nsobject ) {	
 		if ( gui.Type.isString ( ns )) { // @todo must it be a string?
 			this._spaces.push ( ns );
 		} else {
 			throw new TypeError ( "Expected a string: gui.namespace" );
 		}
+		return nsobject;
 	},
 
 	/**
