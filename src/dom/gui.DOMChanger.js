@@ -120,7 +120,7 @@ gui.DOMChanger = {
 			"body br button canvas caption cite code col colgroup command datalist dd del " +
 			"details device dfn div dl dt em fieldset figcaption figure footer form " +
 			"h1 h2 h3 h4 h5 h6 head header hgroup hr html i iframe img input ins kbd keygen " +
-			"label legend li link map menu meta meter nav noscript ol optgroup option " +
+			"label legend li link main map menu meta meter nav noscript ol optgroup option " +
 			"output p param pre progress q rp rt ruby s samp script section select small " +
 			"source span strong style submark summary sup table tbody td textarea tfoot " +
 			"th thead time title tr track ul unknown var video wbr" ).split ( " " );
@@ -260,7 +260,7 @@ gui.DOMChanger = {
 	},
 
 	/**
-	 * Overload DOM method (x-browser supported).
+	 * Overload DOM method (same for all browsers).
 	 * @param {object} proto
 	 * @param {String} name
 	 * @param {function} combo
@@ -286,7 +286,7 @@ gui.DOMChanger = {
 				return base.get.call ( this );
 			},
 			set: combo ( function () {
-				return base.apply ( this, arguments );
+				base.apply ( this, arguments );
 			})
 		});
 	},
@@ -299,9 +299,14 @@ gui.DOMChanger = {
 	 * @param {Element} root
 	 */
 	_doboth : function ( proto, name, combo, root ) {
-		var base = root.__lookupSetter__ ( name );
+		var setter = root.__lookupSetter__ ( name );
 		proto.__defineSetter__ ( name, combo ( function () {
-			return base.apply ( this, arguments );
+			setter.apply ( this, arguments );
 		}));
+		// firefox 20 needs a getter for this to work
+		var getter = root.__lookupGetter__ ( name );
+		proto.__defineGetter__ ( name, function () {
+			return getter.apply ( this, arguments );
+		});
 	}
 };
