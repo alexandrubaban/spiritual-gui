@@ -63,12 +63,13 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	},
 	
 	/**
+	 * @deprecated
 	 * `onconfigure` gets callend immediately after construction. This 
 	 * instructs the spirit to parse configuration attributes in markup. 
 	 * @todo Explain this
 	 */
 	onconfigure : function () {
-		this.config.configure ();
+		//this.config.configure ();
 		this.life.goconfigure ();
 	},
 	
@@ -376,7 +377,7 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	},
 
 	/**
-	 * Associate DOM element to Spirit instance.
+	 * Associate Spirit instance to DOM element.
 	 * @param {Element} element
 	 * @returns {Spirit}
 	 */
@@ -385,9 +386,9 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	},
 
 	/**
-	 * Subclassing a spirit allows you to also subclass it's plugins 
-	 * using the same declarative syntax. To avoid potential frustration, 
-	 * we throw on the `extend` method which doesn't offfer this feature.
+	 * Subclassing a spirit via `infuse` allows us to also subclass it's plugins 
+	 * using a nice declarative syntax. To avoid potential frustration, we throw 
+	 * on the `extend` method which doesn't offfer this feature.
 	 */
 	extend : function () {
 		throw new Error ( 

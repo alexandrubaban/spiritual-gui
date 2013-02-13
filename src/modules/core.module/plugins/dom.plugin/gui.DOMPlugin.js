@@ -143,7 +143,7 @@ gui.DOMPlugin = gui.Plugin.extend ( "gui.DOMPlugin", {
 	 * Match custom "this" keyword in CSS selector. We use this to start 
 	 * selector expressions with "this>*" to find immediate child, but 
 	 * maybe we should look into the spec for something instead. The goal 
-	 * here is to the make lookup indenpendant of spirit.element tagname.
+	 * here is to the make lookup indenpendant of the spirits tagname.
 	 * @type {RegExp}
 	 */
 	_thiskeyword : /^this|,this/g, // /^this\W|,this\W|^this$/g

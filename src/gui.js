@@ -115,8 +115,6 @@ var gui = {
 	 * Tick types (timed events)
 	 */
 	TICK_DESTRUCT_DETACHED : "gui-tick-destruct-detached",
-	TICK_SCRIPT_UPDATE : "gui-tick-spiritscript-update", // @todo move this to EDB
-	TICK_COLLECT_INPUT : "gui-tick-collect-input",
 	TICK_SPIRIT_NULL : "gui-tick-spirit-null",
 	TICK_FIT : "gui-tick-fit",
 

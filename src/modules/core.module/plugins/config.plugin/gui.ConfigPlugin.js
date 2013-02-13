@@ -15,18 +15,21 @@ gui.ConfigPlugin = gui.Plugin.extend ( "gui.ConfigPlugin", {
 	 * Configure spirit by DOM attributes.
 	 * @todo reconfigure scenario
 	 */
-	configure : function () {
+	onconstruct : function () {
 		this.spirit.att.all ().forEach ( function ( att ) {
-			this.attribute ( this._lookup ( att.name ), att.value );
+			this._evaluate ( this._lookup ( att.name ), att.value );
 		}, this );
 	},
 
+
+	// Private .................................................................
+	
 	/**
-	 * Parse single attribute in search for "gui." prefix
+	 * Evaluate single attribute in search for "gui." prefix.
 	 * @param {String} name
 	 * @param {String} value
 	 */
-	attribute : function ( name, value ) {
+	_evaluate : function ( name, value ) {
 		var prefix = "gui.",
 			struct = this.spirit,
 			success = true,
@@ -54,7 +57,7 @@ gui.ConfigPlugin = gui.Plugin.extend ( "gui.ConfigPlugin", {
 				// "false" becomes boolean, "23" becomes number.
 				value = gui.Type.cast ( value );
 				if ( gui.Type.isFunction ( struct [ prop ])) {
-					struct [ prop ] ( value ); // isInvocable....
+					struct [ prop ] ( value );
 				} else {
 					struct [ prop ] = value;
 				}
@@ -64,11 +67,9 @@ gui.ConfigPlugin = gui.Plugin.extend ( "gui.ConfigPlugin", {
 		}
 	},
 
-
-	// Private .................................................................
-
 	/**
-	 * Lookup mapping for attribute name.
+	 * Lookup mapping for attribute name, eg. "my.nested.complex.prop" 
+	 * can be mapped to a simple attribute declaration such as "myprop".
 	 * @param {String} name
 	 * @returns {String}
 	 */
@@ -82,9 +83,14 @@ gui.ConfigPlugin = gui.Plugin.extend ( "gui.ConfigPlugin", {
 		}
 		return name;
 	}
-});
 
-/**
- * Register plugin (not served in a module this plugin).
- */
-gui.Spirit.plugin ( "config", gui.ConfigPlugin );
+
+}, { // Static ...............................................................
+
+
+	/**
+	 * @type {boolean}
+	 */
+	lazy : false
+
+});

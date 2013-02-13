@@ -5,6 +5,40 @@
 gui.module ( "core", {
 
 	/**
+	 * Channel spirits for CSS selectors.
+	 */
+	channels : [
+		
+		[ "html", "gui.DocumentSpirit" ],
+		[ ".gui-styles", "gui.StyleSheetSpirit" ], // @todo fix or deprecate
+		[ ".gui-iframe", "gui.IframeSpirit" ],
+		[ ".gui-window", "gui.WindowSpirit" ],
+		[ ".gui-action", "gui.ActionSpirit" ], // @todo fix or deprecate
+		[ ".gui-cover",  "gui.CoverSpirit" ],
+		[ ".gui-spirit", "gui.Spirit" ]
+	],
+
+	/**
+	 * Assign plugins to prefixes.
+	 */
+	plugins : {
+		
+		action : gui.ActionPlugin,
+		att : gui.AttPlugin, 
+		attention : gui.AttentionPlugin,
+		box : gui.BoxPlugin,
+		broadcast	: gui.BroadcastPlugin,
+		config : gui.ConfigPlugin,
+		css : gui.CSSPlugin,
+		dom	: gui.DOMPlugin,
+		event	: gui.EventPlugin,
+		lif : gui.LifePlugin,
+		tick : gui.TickPlugin,
+		tween : gui.TweenPlugin,
+		transition : gui.TransitionPlugin
+	},
+
+	/**
 	 * Methods added to gui.Spirit.prototype
 	 */
 	addins : {
@@ -46,44 +80,13 @@ gui.module ( "core", {
 		onevent : function ( event ) {},
 
 		/**
-		 * Implements DOM2 EventListener.
-		 * Forwards to method onevent()
+		 * Implements DOM2 EventListener only to forward the event to method onevent()
+		 * @see http://www.w3.org/TR/DOM-Level-2-Events/events.html#Events-EventListener
 		 * @param {Event} event
 		 */
 		handleEvent : function ( event ) {
 			this.onevent(event);
 		}
-	},
+	}
 
-	/**
-	 * Assign plugins to prefixes.
-	 */
-	plugins : {
-		
-		action : gui.ActionPlugin,
-		att : gui.AttPlugin, 
-		box : gui.BoxPlugin,
-		broadcast	: gui.BroadcastPlugin,
-		css : gui.CSSPlugin,
-		dom	: gui.DOMPlugin,
-		event	: gui.EventPlugin,
-		tick : gui.TickPlugin,
-		tween : gui.TweenPlugin,
-		transition : gui.TransitionPlugin,
-		attention : gui.AttentionPlugin
-	},
-
-	/**
-	 * Channel spirits for CSS selectors.
-	 */
-	channels : [
-		
-		[ "html", "gui.DocumentSpirit" ],
-		[ ".gui-styles", "gui.StyleSheetSpirit" ], // @todo fix or deprecate
-		[ ".gui-iframe", "gui.IframeSpirit" ],
-		[ ".gui-window", "gui.WindowSpirit" ],
-		[ ".gui-action", "gui.ActionSpirit" ], // @todo fix or deprecate
-		[ ".gui-cover",  "gui.CoverSpirit" ],
-		[ ".gui-spirit", "gui.Spirit" ]
-	]
 });

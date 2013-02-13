@@ -329,28 +329,33 @@ gui.module ( "jquery", {
 
 	/**
 	 * JQuery after() and before(). We can't reliably use the arguments 
-	 * here becayse JQuery will switch them to clones in the process.
+	 * here becayse JQuery will switch them to clones in the process. 
 	 * @param {boolean} after
 	 * @param {function} suber
-	 * @param {jQuery} jq
+	 * @param {jQuery} $
 	 */
-	_after_before : function ( after, suber, jq ) {
-		var next = "nextElementSibling";
-		var prev = "previousElementSibling";
-		var current = [];
+	_after_before : function ( after, suber, $ ) {
+		/*
+		 * Using $.next and $.prev instead of DOM methods because 
+		 * Angular might inject stuff after/before comment nodes 
+		 * (which don't have nextElementSibling and such stuff). 
+		 * This should be performance boosted at some point.
+		 */
+		var next = "next";
+		var prev = "prev";
+		var current = [], sibling, res;
 		this.each ( function ( i, elm ) {
 			while ( elm && current.indexOf ( elm ) === -1 ) {
 				current.push ( elm );
-				elm = elm [ after ? next : prev ];
+				elm = $ ( elm ) [ after ? next : prev ]()[ 0 ];
 			}
 		});
-		var res = suber ();
-		var sibling, siblings;
+		res = suber ();
 		this.each ( function ( i, elm ) {
-			sibling = elm [ after ? next : prev ];
+			sibling = $ ( elm ) [ after ? next : prev ]()[ 0 ];
 			while ( sibling && current.indexOf ( sibling ) === -1 ) {
 				gui.Guide.spiritualize ( sibling );
-				sibling = sibling [ after ? next : prev ];
+				sibling = $ ( sibling ) [ after ? next : prev ]()[ 0 ]
 			}
 		});
 		return res;
