@@ -8,13 +8,17 @@ gui.KeyMaster = {
 	 * @static
 	 * Generate random key. Not simply incrementing a counter in order to celebrate the 
 	 * rare occasion that spirits might be uniquely identified across different domains.
+	 * @param @optional {String} prefix Used instead of "key" to prefix the key
 	 * @returns {String}
 	 */
-	generateKey : function () {
+	generateKey : function ( prefix ) {
+
+		prefix = "key"; // @todo: remove this line when we get drunk enough to fix the regular expression below...
+
 		var ran = Math.random ().toString ();
-		var key = "key" + ran.slice ( 2, 11 );
+		var key = ( prefix || "key" ) + ran.slice ( 2, 11 );
 		if ( this._keys.has ( key )) {
-			key = this.generateKey ();
+			key = this.generateKey ( prefix );
 		} else {
 			this._keys.add ( key );
 		}
