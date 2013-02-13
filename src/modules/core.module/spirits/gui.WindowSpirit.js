@@ -34,6 +34,7 @@ gui.WindowSpirit = gui.Spirit.infuse ( "gui.WindowSpirit", {
 		this._cover = this.dom.prepend ( gui.CoverSpirit.summon ( this.document ));
 		this._frame = this.dom.prepend ( gui.IframeSpirit.summon ( this.document, this._src ));
 		this.action.addGlobal ([ gui.ACTION_DOCUMENT_DONE, gui.ACTION_DOCUMENT_FIT ]);
+		this._frame.att.set("sandbox",this.att.get("sandbox"));
 		if ( this.style ) {
 			this._style ();
 		}
