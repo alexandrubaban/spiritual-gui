@@ -123,8 +123,6 @@ var gui = {
 	 * Tick types (timed events)
 	 */
 	TICK_DESTRUCT_DETACHED : "gui-tick-destruct-detached",
-	TICK_SCRIPT_UPDATE : "gui-tick-spiritscript-update", // @todo move this to EDB
-	TICK_COLLECT_INPUT : "gui-tick-collect-input",
 	TICK_SPIRIT_NULL : "gui-tick-spirit-null",
 	TICK_FIT : "gui-tick-fit",
 
@@ -2910,13 +2908,17 @@ gui.KeyMaster = {
 	 * @static
 	 * Generate random key. Not simply incrementing a counter in order to celebrate the 
 	 * rare occasion that spirits might be uniquely identified across different domains.
+	 * @param @optional {String} prefix Used instead of "key" to prefix the key
 	 * @returns {String}
 	 */
-	generateKey : function () {
+	generateKey : function ( prefix ) {
+
+		prefix = "key"; // @todo: remove this line when we get drunk enough to fix the regular expression below...
+
 		var ran = Math.random ().toString ();
-		var key = "key" + ran.slice ( 2, 11 );
+		var key = ( prefix || "key" ) + ran.slice ( 2, 11 );
 		if ( this._keys.has ( key )) {
-			key = this.generateKey ();
+			key = this.generateKey ( prefix );
 		} else {
 			this._keys.add ( key );
 		}
@@ -3208,12 +3210,13 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	},
 	
 	/**
+	 * @deprecated
 	 * `onconfigure` gets callend immediately after construction. This 
 	 * instructs the spirit to parse configuration attributes in markup. 
 	 * @todo Explain this
 	 */
 	onconfigure : function () {
-		this.config.configure ();
+		//this.config.configure ();
 		this.life.goconfigure ();
 	},
 	
@@ -3521,7 +3524,7 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	},
 
 	/**
-	 * Associate DOM element to Spirit instance.
+	 * Associate Spirit instance to DOM element.
 	 * @param {Element} element
 	 * @returns {Spirit}
 	 */
@@ -3530,9 +3533,9 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	},
 
 	/**
-	 * Subclassing a spirit allows you to also subclass it's plugins 
-	 * using the same declarative syntax. To avoid potential frustration, 
-	 * we throw on the `extend` method which doesn't offfer this feature.
+	 * Subclassing a spirit via `infuse` allows us to also subclass it's plugins 
+	 * using a nice declarative syntax. To avoid potential frustration, we throw 
+	 * on the `extend` method which doesn't offfer this feature.
 	 */
 	extend : function () {
 		throw new Error ( 
@@ -4028,6 +4031,7 @@ gui.Life.prototype = {
 /**
  * # gui.LifePlugin
  * Tracking spirit life cycle events.
+ * @todo Support optional data argument
  * @extends {gui.Tracker}
  */
 gui.LifePlugin = gui.Tracker.extend ( "gui.LifePlugin", {
@@ -4147,6 +4151,7 @@ gui.LifePlugin = gui.Tracker.extend ( "gui.LifePlugin", {
 
 	/**
 	 * Dispatch type and cleanup handlers for life cycle events that only occurs once.
+	 * @todo support optional data argument
 	 * @param {String} type
 	 */
 	dispatch : function ( type ) {
@@ -4230,12 +4235,6 @@ gui.LifePlugin = gui.Tracker.extend ( "gui.LifePlugin", {
 	});
 })();
 
-/**
- * Register plugin (not served in a module this plugin).
- *
-gui.Spirit.plugin ( "life", gui.LifePlugin );
-*/
-
 
 /**
  * # gui.ConfigPlugin
@@ -4254,18 +4253,21 @@ gui.ConfigPlugin = gui.Plugin.extend ( "gui.ConfigPlugin", {
 	 * Configure spirit by DOM attributes.
 	 * @todo reconfigure scenario
 	 */
-	configure : function () {
+	onconstruct : function () {
 		this.spirit.att.all ().forEach ( function ( att ) {
-			this.attribute ( this._lookup ( att.name ), att.value );
+			this._evaluate ( this._lookup ( att.name ), att.value );
 		}, this );
 	},
 
+
+	// Private .................................................................
+	
 	/**
-	 * Parse single attribute in search for "gui." prefix
+	 * Evaluate single attribute in search for "gui." prefix.
 	 * @param {String} name
 	 * @param {String} value
 	 */
-	attribute : function ( name, value ) {
+	_evaluate : function ( name, value ) {
 		var prefix = "gui.",
 			struct = this.spirit,
 			success = true,
@@ -4293,7 +4295,7 @@ gui.ConfigPlugin = gui.Plugin.extend ( "gui.ConfigPlugin", {
 				// "false" becomes boolean, "23" becomes number.
 				value = gui.Type.cast ( value );
 				if ( gui.Type.isFunction ( struct [ prop ])) {
-					struct [ prop ] ( value ); // isInvocable....
+					struct [ prop ] ( value );
 				} else {
 					struct [ prop ] = value;
 				}
@@ -4303,11 +4305,9 @@ gui.ConfigPlugin = gui.Plugin.extend ( "gui.ConfigPlugin", {
 		}
 	},
 
-
-	// Private .................................................................
-
 	/**
-	 * Lookup mapping for attribute name.
+	 * Lookup mapping for attribute name, eg. "my.nested.complex.prop" 
+	 * can be mapped to a simple attribute declaration such as "myprop".
 	 * @param {String} name
 	 * @returns {String}
 	 */
@@ -4321,13 +4321,17 @@ gui.ConfigPlugin = gui.Plugin.extend ( "gui.ConfigPlugin", {
 		}
 		return name;
 	}
-});
 
-/**
- * Register plugin (not served in a module this plugin).
- *
-gui.Spirit.plugin ( "config", gui.ConfigPlugin );
-*/
+
+}, { // Static ...............................................................
+
+
+	/**
+	 * @type {boolean}
+	 */
+	lazy : false
+
+});
 
 
 /**
@@ -5892,7 +5896,7 @@ gui.DOMPlugin = gui.Plugin.extend ( "gui.DOMPlugin", {
 	 * Match custom "this" keyword in CSS selector. We use this to start 
 	 * selector expressions with "this>*" to find immediate child, but 
 	 * maybe we should look into the spec for something instead. The goal 
-	 * here is to the make lookup indenpendant of spirit.element tagname.
+	 * here is to the make lookup indenpendant of the spirits tagname.
 	 * @type {RegExp}
 	 */
 	_thiskeyword : /^this|,this/g, // /^this\W|,this\W|^this$/g
@@ -8625,6 +8629,7 @@ gui.WindowSpirit = gui.Spirit.infuse ( "gui.WindowSpirit", {
 		this._cover = this.dom.prepend ( gui.CoverSpirit.summon ( this.document ));
 		this._frame = this.dom.prepend ( gui.IframeSpirit.summon ( this.document, this._src ));
 		this.action.addGlobal ([ gui.ACTION_DOCUMENT_DONE, gui.ACTION_DOCUMENT_FIT ]);
+		this._frame.att.set("sandbox",this.att.get("sandbox"));
 		if ( this.style ) {
 			this._style ();
 		}
@@ -9356,7 +9361,7 @@ gui.module ( "jquery", {
 							break;
 						case "after" :
 						case "before" :
-							res = module._after_before.call ( this, name === "after", suber, jq );
+							res = module._after_before.call ( this, name === "after", suber );
 							break;
 						case "appendTo" :
 							res = suber ();
@@ -9548,28 +9553,32 @@ gui.module ( "jquery", {
 
 	/**
 	 * JQuery after() and before(). We can't reliably use the arguments 
-	 * here becayse JQuery will switch them to clones in the process.
+	 * here becayse JQuery will switch them to clones in the process. 
 	 * @param {boolean} after
 	 * @param {function} suber
-	 * @param {jQuery} jq
 	 */
-	_after_before : function ( after, suber, jq ) {
-		var next = "nextElementSibling";
-		var prev = "previousElementSibling";
-		var current = [];
+	_after_before : function ( after, suber ) {
+		var res, sib, current = [];
+		var target = after ? "nextSibling" : "previousSibling";
+		function sibling ( node ) {	// (node may be a comment)
+			node = node [ target ];
+			while ( node && node.nodeType !== Node.ELEMENT_NODE ) {
+				node = node [ target ];
+			}
+			return node;
+		}
 		this.each ( function ( i, elm ) {
 			while ( elm && current.indexOf ( elm ) === -1 ) {
 				current.push ( elm );
-				elm = elm [ after ? next : prev ];
+				elm = sibling ( elm );
 			}
 		});
-		var res = suber ();
-		var sibling, siblings;
+		res = suber ();
 		this.each ( function ( i, elm ) {
-			sibling = elm [ after ? next : prev ];
-			while ( sibling && current.indexOf ( sibling ) === -1 ) {
-				gui.Guide.spiritualize ( sibling );
-				sibling = sibling [ after ? next : prev ];
+			sib = sibling ( elm );
+			while ( sib && current.indexOf ( sib ) === -1 ) {
+				gui.Guide.spiritualize ( sib );
+				sib = sibling ( sib );
 			}
 		});
 		return res;
@@ -9588,9 +9597,11 @@ gui.module ( "jquery", {
 			parent = elm.parentNode;
 			if ( parents.indexOf ( parent ) === -1 ) {
 				parents.push ( parent );
-				current = current.concat ( Array.map ( parent.children, function ( child ) {
-					return child;
-				}));
+				current = current.concat ( 
+					Array.map ( parent.children, function ( child ) {
+						return child;
+					})
+				);
 			}
 		});
 		var res = suber ();
@@ -9731,7 +9742,7 @@ gui.DOMChanger = {
 			"body br button canvas caption cite code col colgroup command datalist dd del " +
 			"details device dfn div dl dt em fieldset figcaption figure footer form " +
 			"h1 h2 h3 h4 h5 h6 head header hgroup hr html i iframe img input ins kbd keygen " +
-			"label legend li link map menu meta meter nav noscript ol optgroup option " +
+			"label legend li link main map menu meta meter nav noscript ol optgroup option " +
 			"output p param pre progress q rp rt ruby s samp script section select small " +
 			"source span strong style submark summary sup table tbody td textarea tfoot " +
 			"th thead time title tr track ul unknown var video wbr" ).split ( " " );
@@ -9871,7 +9882,7 @@ gui.DOMChanger = {
 	},
 
 	/**
-	 * Overload DOM method (x-browser supported).
+	 * Overload DOM method (same for all browsers).
 	 * @param {object} proto
 	 * @param {String} name
 	 * @param {function} combo
@@ -9897,7 +9908,7 @@ gui.DOMChanger = {
 				return base.get.call ( this );
 			},
 			set: combo ( function () {
-				return base.apply ( this, arguments );
+				base.apply ( this, arguments );
 			})
 		});
 	},
@@ -9910,10 +9921,15 @@ gui.DOMChanger = {
 	 * @param {Element} root
 	 */
 	_doboth : function ( proto, name, combo, root ) {
-		var base = root.__lookupSetter__ ( name );
+		var setter = root.__lookupSetter__ ( name );
 		proto.__defineSetter__ ( name, combo ( function () {
-			return base.apply ( this, arguments );
+			setter.apply ( this, arguments );
 		}));
+		// firefox 20 needs a getter for this to work
+		var getter = root.__lookupGetter__ ( name );
+		proto.__defineGetter__ ( name, function () {
+			return getter.apply ( this, arguments );
+		});
 	}
 };
 
