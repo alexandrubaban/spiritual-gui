@@ -137,7 +137,7 @@ gui.module ( "jquery", {
 							break;
 						case "after" :
 						case "before" :
-							res = module._after_before.call ( this, name === "after", suber, jq );
+							res = module._after_before.call ( this, name === "after", suber );
 							break;
 						case "appendTo" :
 							res = suber ();
@@ -332,30 +332,29 @@ gui.module ( "jquery", {
 	 * here becayse JQuery will switch them to clones in the process. 
 	 * @param {boolean} after
 	 * @param {function} suber
-	 * @param {jQuery} $
 	 */
-	_after_before : function ( after, suber, $ ) {
-		/*
-		 * Using $.next and $.prev instead of DOM methods because 
-		 * Angular might inject stuff after/before comment nodes 
-		 * (which don't have nextElementSibling and such stuff). 
-		 * This should be performance boosted at some point.
-		 */
-		var next = "next";
-		var prev = "prev";
-		var current = [], sibling, res;
+	_after_before : function ( after, suber ) {
+		var res, sib, current = [];
+		var target = after ? "nextSibling" : "previousSibling";
+		function sibling ( node ) {	// (node may be a comment)
+			node = node [ target ];
+			while ( node && node.nodeType !== Node.ELEMENT_NODE ) {
+				node = node [ target ];
+			}
+			return node;
+		}
 		this.each ( function ( i, elm ) {
 			while ( elm && current.indexOf ( elm ) === -1 ) {
 				current.push ( elm );
-				elm = $ ( elm ) [ after ? next : prev ]()[ 0 ];
+				elm = sibling ( elm );
 			}
 		});
 		res = suber ();
 		this.each ( function ( i, elm ) {
-			sibling = $ ( elm ) [ after ? next : prev ]()[ 0 ];
-			while ( sibling && current.indexOf ( sibling ) === -1 ) {
-				gui.Guide.spiritualize ( sibling );
-				sibling = $ ( sibling ) [ after ? next : prev ]()[ 0 ]
+			sib = sibling ( elm );
+			while ( sib && current.indexOf ( sib ) === -1 ) {
+				gui.Guide.spiritualize ( sib );
+				sib = sibling ( sib );
 			}
 		});
 		return res;
@@ -374,9 +373,11 @@ gui.module ( "jquery", {
 			parent = elm.parentNode;
 			if ( parents.indexOf ( parent ) === -1 ) {
 				parents.push ( parent );
-				current = current.concat ( Array.map ( parent.children, function ( child ) {
-					return child;
-				}));
+				current = current.concat ( 
+					Array.map ( parent.children, function ( child ) {
+						return child;
+					})
+				);
 			}
 		});
 		var res = suber ();
