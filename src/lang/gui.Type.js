@@ -30,6 +30,15 @@ gui.Type = {
 	},
 
 	/**
+	 * Is object a Window?
+	 * @param {object} o
+	 * @returns {boolean}
+	 */
+	isWindow : function ( o ) {
+		return o && o.document && o.location && o.alert && o.setInterval;
+	},
+
+	/**
 	 * Autocast string to an inferred type. "123" will 
 	 * return a number, "false" will return a boolean.
 	 * @todo move to gui.Type :)
@@ -124,7 +133,8 @@ gui.Type = {
 		"number", 
 		"boolean", 
 		"null",
-		"arguments"
+		"arguments",
+		"file"
 	].forEach ( function ( type ) {
 		this [ "is" + type [ 0 ].toUpperCase () + type.slice ( 1 )] = function is ( o ) {
 			return this.of ( o ) === type; 
