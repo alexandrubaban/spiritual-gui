@@ -137,7 +137,7 @@ gui.module ( "jquery", {
 							break;
 						case "after" :
 						case "before" :
-							res = module._after_before.call ( this, name === "after", suber );
+							res = module._after_before.call ( this, name === "after", suber, jq );
 							break;
 						case "appendTo" :
 							res = suber ();
@@ -326,6 +326,35 @@ gui.module ( "jquery", {
 		});
 		return res;
 	},
+
+	/**
+	 * JQuery after() and before(). We can't reliably use the arguments 
+	 * here becayse JQuery will switch them to clones in the process. 
+	 * @param {boolean} after
+	 * @param {function} suber
+	 * @param {jQuery} $
+	 *
+	_after_before : function ( after, suber, $ ) {
+		var next = "next";
+		var prev = "prev";
+		var current = [], sibling, res;
+		this.each ( function ( i, elm ) {
+			while ( elm && current.indexOf ( elm ) === -1 ) {
+				current.push ( elm );
+				elm = $ ( elm ) [ after ? next : prev ]()[ 0 ];
+			}
+		});
+		res = suber ();
+		this.each ( function ( i, elm ) {
+			sibling = $ ( elm ) [ after ? next : prev ]()[ 0 ];
+			while ( sibling && current.indexOf ( sibling ) === -1 ) {
+				gui.Guide.spiritualize ( sibling );
+				sibling = $ ( sibling ) [ after ? next : prev ]()[ 0 ]
+			}
+		});
+		return res;
+	},
+	*/
 
 	/**
 	 * JQuery after() and before(). We can't reliably use the arguments 
