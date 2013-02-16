@@ -160,16 +160,16 @@ gui.LifePlugin = gui.Tracker.extend ( "gui.LifePlugin", {
  */
 ( function generatecode () {
 	var states = {
-		construct : gui.Life.CONSTRUCT,
-		configure : gui.Life.CONFIGURE,
-		enter : gui.Life.ENTER,
-		attach : gui.Life.ATTACH,
-		ready : gui.Life.READY,
-		visible : gui.Life.VISIBLE,
-		invisible : gui.Life.INVISIBLE,
-		detach : gui.Life.DETACH,
-		exit : gui.Life.EXIT,
-		destruct : gui.Life.DESTRUCT
+		construct : gui.LIFE_CONSTRUCT,
+		configure : gui.LIFE_CONFIGURE,
+		enter : gui.LIFE_ENTER,
+		attach : gui.LIFE_ATTACH,
+		ready : gui.LIFE_READY,
+		visible : gui.LIFE_VISIBLE,
+		invisible : gui.LIFE_INVISIBLE,
+		detach : gui.LIFE_DETACH,
+		exit : gui.LIFE_EXIT,
+		destruct : gui.LIFE_DESTRUCT
 	};
 	// prefix methods with "on", suffix booleans with "ed"
 	gui.Object.each ( states, function ( state, event ) {
