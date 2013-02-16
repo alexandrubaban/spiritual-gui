@@ -291,7 +291,7 @@ gui.DOMPlugin = gui.Plugin.extend ( "gui.DOMPlugin", {
 
 
 /**
- * Generate CSS query methods accept a CSS selector and an optional spirit constructor 
+ * DOM query methods accept a CSS selector and an optional spirit constructor 
  * as arguments. They return a spirit, an element or an array of either.
  */
 gui.Object.each ({
@@ -653,7 +653,7 @@ gui.Object.each ({
 /**
  * DOM insertion methods accept one argument: one spirit OR one element OR an array of either or both. 
  * The input argument is returned as given. This allows for the following one-liner to be constructed: 
- * this.something = this.dom.append ( gui.SomeThingSpirit.summon ( this.document ));  * imagine 15 more
+ * this.something = this.dom.append ( gui.SomeThingSpirit.summon ( this.document )); // imagine 15 more
  */
 gui.Object.each ({
 
