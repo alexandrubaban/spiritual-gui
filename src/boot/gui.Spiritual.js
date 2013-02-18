@@ -128,10 +128,10 @@ gui.Spiritual.prototype = {
 		}
 		// modules extend gui.Spirit, use init() to extend subclass
 		var base = this.context.gui.Spirit;
-		// addins (@todo all sorts of "decorators" instead)
-		if ( gui.Type.isObject ( module.addins )) {
-			gui.Object.each ( module.addins, function ( name, value ) {
-				base.addin ( name, value );
+		// mixins (@todo all sorts of "decorators" instead)
+		if ( gui.Type.isObject ( module.mixins )) {
+			gui.Object.each ( module.mixins, function ( name, value ) {
+				base.mixin ( name, value );
 			}, this );
 		}
 		// plugins

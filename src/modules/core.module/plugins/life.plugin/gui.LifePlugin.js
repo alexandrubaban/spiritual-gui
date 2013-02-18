@@ -173,7 +173,7 @@ gui.LifePlugin = gui.Tracker.extend ( "gui.LifePlugin", {
 	};
 	// prefix methods with "on", suffix booleans with "ed"
 	gui.Object.each ( states, function ( state, event ) {
-		gui.LifePlugin.addin ( "go" + state , function () {
+		gui.LifePlugin.mixin ( "go" + state , function () {
 			var prop = state;
 			switch ( state ) {
 				case "ready" :

@@ -41,7 +41,7 @@ gui.module ( "core", {
 	/**
 	 * Methods added to gui.Spirit.prototype
 	 */
-	addins : {
+	mixins : {
 
 		/**
 		 * Handle action.
