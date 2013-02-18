@@ -30,7 +30,7 @@ gui.Super.disclaimer = "/**\n" +
 	"  */\n";
 
 /**
- * Declare all method stubs on gui.Super instance.
+ * Declare all method stubs on {gui.Super} instance.
  * @param {gui.Super} target
  * @param {object} proto
  */
@@ -41,7 +41,7 @@ gui.Super.stubAll = function ( target, proto ) {
 };
 
 /**
- * Declare single method stub on gui.Super instance.
+ * Declare single method stub on {gui.Super} instance.
  * @param {gui.Super} target
  * @param {object} proto
  * @param {String} method Name of the method
@@ -73,9 +73,9 @@ gui.Super.stamp = function ( superconstructor, constructor, object ) {
 					break;
 				case "object" : // setup getter-and-setter type declarations
 					var o = prop.value;
-					if ( o.get || o.set ) {
+					if ( o.getter || o.setter ) {
 						if ( Object.keys ( o ).every ( function ( k ) {
-							return k === "get" || k === "set";
+							return k === "getter" || k === "setter";
 						})) {
 							prop = gui.Super._property ( key, o, constructor );
 						}
@@ -138,23 +138,23 @@ gui.Super._function = function ( object, key, prop, superconstructor ) {
  */
 gui.Super._property = function ( key, o, constructor ) {
 	"use strict";
-	[ "get", "set" ].forEach ( function ( what ) {
+	[ "getter", "setter" ].forEach ( function ( what ) {
 		var d, p = constructor.prototype;
 		while ( p && !gui.Type.isDefined ( o [ what ])) {
 			p = Object.getPrototypeOf ( p );
 			d = Object.getOwnPropertyDescriptor ( p, key );
 			if ( d ) {
-				o [ what ] = d [ what ];
+				o [ what ] = d [ what === "getter" ? "get" : "set" ];
 			}
 		}
 	});
 	return {
 		enumerable : true,
 		configurable : true,
-		get : o.get || function () {
+		get : o.getter || function () {
 			throw new Error ( constructor + " Getting a property that has only a setter: " + key );
 		},
-		set : o.set || function () {
+		set : o.setter || function () {
 			throw new Error ( constructor + " Setting a property that has only a getter: " + key );
 		}
 	};
