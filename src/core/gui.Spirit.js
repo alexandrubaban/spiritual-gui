@@ -334,14 +334,14 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 }, { // Recurring static ...............................................................
 	
 	/**
-	 * Portal spirit via the `gui.portal` method?
+	 * Portal spirit into iframes via the `gui.portal` method?
 	 * @see {ui#portal}  
 	 * @type {boolean}
 	 */
 	portals : true,
 	
 	/**
-	 * Extends spirit and plugins (mutating plugins) plus update getters/setters.
+	 * Extends spirit and plugins (mutating plugins) plus updates getters/setters.
 	 * @param {object} expando 
 	 * @param {object} recurring 
 	 * @param {object} statics 
@@ -416,9 +416,9 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	/**
 	 * Assign plugin to prefix, checking for naming collision. Prepared for 
 	 * a scenario where spirits may have been declared before plugins load.
-	 * @param {String} prefix
+	 * @param {String} prefix "att", "dom", "action", "event" etc
 	 * @param {function} plugin Constructor for plugin
-	 * @param {boolean} override Disable collision detection
+	 * @param @optional {boolean} override Disable collision detection
 	 */
 	plugin : function ( prefix, plugin, override ) {
 		var plugins = this.__plugins__;
@@ -437,30 +437,11 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	},
 
 	/**
-	 * Mapping plugin constructor to prefix.
+	 * Mapping plugin constructor to plugin prefix.
 	 * @type {Map<String,function>}
 	 */
 	__plugins__ : Object.create ( null )
 
-	/*
-	 * @todo move to Spiritual EDB
-	 * @type {String}
-	 *
-	script : null,
-	
-	 * @todo move to Spiritual EDB.
-	 * @param {Document} doc
-	 * @returns {String}
-	run : function ( doc ) {
-
-		var func = edb.Function.get ( this.script, doc.defaultView );
-		var args = Array.filter ( arguments, function ( e, i ) {
-			return i > 0;
-		});
-		var html = func.apply ( {}, args );
-		return this.possess ( this.parse ( doc, html ));
-	}
-	*/
 	
 }, { // Static ....................................................................
 
@@ -471,7 +452,7 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	 */
 	visible : function ( spirit ) {
 		if ( spirit.life.invisible ) {
-			this._visible ( spirit, true, spirit.life.entered );
+			this._setvisibility ( spirit, true, spirit.life.entered );
 			spirit.css.remove ( gui.CLASS_INVISIBLE );
 		}
 		return spirit;
@@ -484,19 +465,19 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	 */
 	invisible : function ( spirit ) {
 		if ( spirit.life.visible ) {
-			this._visible ( spirit, false, spirit.life.entered );
+			this._setvisibility ( spirit, false, spirit.life.entered );
 			spirit.css.add ( gui.CLASS_INVISIBLE );
 		}
 		return spirit;
 	},
 
 	/**
-	 * Hello again.
+	 * Update spirit visibility. Recursively updagtes descendant spirits.
 	 * @param {gui.Spirit} spirit
-	 * @param {boolean} show
-	 * @param {boolean} subtree
+	 * @param {boolean} show Visible or invisible?
+	 * @param {boolean} subtree Recurse?
 	 */
-	_visible : function ( spirit, show, subtree ) {
+	_setvisibility : function ( spirit, show, subtree ) {
 		var crawler = new gui.Crawler ( show ? 
 			gui.CRAWLER_VISIBLE : gui.CRAWLER_INVISIBLE 
 		);
@@ -530,7 +511,8 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	},
 
 	/**
-	 * Hello
+	 * Spirit was terminated.
+	 * @type {String}
 	 */
 	DENIAL : "Attempt to handle destructed spirit"
 
