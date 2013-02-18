@@ -81,12 +81,33 @@ gui.module ( "jquery", {
 
 	/**
 	 * Overloading DOM manipulation methods.
-	 * @todo attr and removeAttr must be hooked into gui.AttPlugin setup...
 	 * @param {function} jq Constructor
 	 */
 	_overload : function ( jq ) {
 		var module = this;
 		var naive = Object.create ( null ); // mapping unmodified methods
+		[ 
+			"attr", 
+			"removeAttr" 
+		].forEach ( function ( name ) {
+			naive [ name ] = jq.fn [ name ];
+			jq.fn [ name ] = function () {
+				var res, that = this, args = arguments, n = args [ 0 ];
+				var v = name === "removeAttr" ? null : args [ 1 ];
+				this.each ( function ( i, elm ) {
+					if ( elm.spirit ) {
+						if ( gui.Type.isDefined ( v )) {
+							elm.spirit.att.set ( n, v );
+						} else {
+							res = elm.spirit.att.get ( n );
+						}			
+					} else {
+						res = naive [ name ].apply ( that, args );
+					}
+				});
+				return res;
+			}
+		});
 		[
 			"after", 
 			"append", 
@@ -184,13 +205,13 @@ gui.module ( "jquery", {
 							}
 							break;
 						case "unwrap" :
-							// note: materializement is skipped here!
+							// note: materialize is skipped here!
 							this.parent ().__materializeOne ();
 							res = suber ();
 							break;
 						case "wrap" :
 						case "wrapAll" :
-							// note: materializement is skipped here!
+							// note: materialize is skipped here!
 							res = suber ();
 							this.parent ().__spiritualizeOne ();
 							break;
