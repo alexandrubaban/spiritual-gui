@@ -134,6 +134,9 @@ gui.Spiritual.prototype = {
 				base.mixin ( name, value );
 			}, this );
 		}
+		if ( gui.Type.isObject ( module.addins )) { // TEMP! 
+			throw new Error ( "Deprecated" );
+		}
 		// plugins
 		if ( gui.Type.isObject ( module.plugins )) {
 			gui.Object.each ( module.plugins, function ( prefix, plugin ) {
