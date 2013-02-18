@@ -188,7 +188,6 @@ gui.Tick.dispatchGlobal = function ( type, time ) {
 
 /**
  * Hello.
- * @todo
  */
 gui.Tick._add = function ( type, handler, one, sig ) {
 	if ( gui.Type.isArray ( type )) {
@@ -212,8 +211,13 @@ gui.Tick._add = function ( type, handler, one, sig ) {
 		if ( index < 0 ) {
 			index = list.push ( handler ) - 1;
 		}
+		/*
+		 * @todo
+		 * Adding a property to an array will 
+		 * make it slower in Firefox. Fit it!
+		 */
 		if ( one ) {
-			list._one = list._one || {};
+			list._one = list._one || Object.create ( null );
 			list._one [ index ] = true;
 		}
 	}
@@ -222,7 +226,6 @@ gui.Tick._add = function ( type, handler, one, sig ) {
 
 /**
  * Hello.
- * @todo
  */
 gui.Tick._remove = function ( type, handler, sig ) {
 	if ( gui.Type.isArray ( type )) {
@@ -253,25 +256,17 @@ gui.Tick._dispatch = function ( type, time, sig ) {
 	if ( !gui.Type.isDefined ( time )) {	
 		var list = map.handlers [ type ];
 		if ( list ) {
-			var i = 0, toBeRemoved = [];
-			while ( i < list.length ) {
+			list.slice ().forEach ( function ( handler, i ) {
 				try {
-					list [ i ].ontick ( tick );
-				} catch ( exception ) {
-					// @todo figure out how destructed spirits should behave while we loop (see below)
+					handler.ontick ( tick );
+				} catch ( exception ) { // @todo figure out how destructed spirits should behave while we loop
 					if ( exception.message !== gui.Spirit.DENIAL ) {
 						throw new Error ( exception.message );
 					}
 				}
 				if ( list._one && list._one [ i ]) {
 					delete list._one [ i ];
-					// do not remove untill after we are through the list (will screw up the index+length)
-					toBeRemoved.push ( i );
 				}
-				i++;
-			}
-			toBeRemoved.forEach ( function ( index ) {
-				list.remove ( index );
 			});
 		}
 	} else if ( !types [ type ]) {

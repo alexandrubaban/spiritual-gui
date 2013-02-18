@@ -55,7 +55,7 @@ gui.TickPlugin = gui.Tracker.extend ( "gui.TickPlugin", {
 		if ( gui.Interface.validate ( gui.ITickHandler, handler )) {
 			this._breakdown ( arg ).forEach ( function ( type ) {
 				if ( this._removechecks ( type, [ handler, this._global ])) {
-					gui.Tick.remove ( type, handler );
+					this._remove ( type, handler );
 				}
 			}, this );
 		}
