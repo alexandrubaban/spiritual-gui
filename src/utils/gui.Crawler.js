@@ -43,18 +43,22 @@ gui.Crawler.prototype = {
 	 */
 	ascend : function ( start, handler ) {
 		this.direction = gui.Crawler.ASCENDING;
-		var elm = start instanceof gui.Spirit ? start.element : start;
+		var win, elm = start instanceof gui.Spirit ? start.element : start;
 		do {
 			if ( elm.nodeType === Node.DOCUMENT_NODE ) {
 				if ( this.global ) {
-					elm = elm.defaultView.frameElement;
-					if ( elm ) {
-						try {
-							var assignment = elm.ownerDocument;
-						} catch ( accessDeniedException ) {
-							console.warn ( "@todo Ascend cross domain" );
-							elm = null;
+					win = elm.defaultView;
+					if ( win.parent !== win ) {
+						if ( win.location.search.contains ( gui.IframeSpirit.KEY_SIGNATURE )) {
+							elm = null;	
+							if ( handler.crossHost ) {
+								this._crossHost ( win, handler );
+							}
+						} else {
+							elm = win.frameElement;
 						}
+					} else {
+						elm = null;
 					}
 				} else {
 					elm = null;
@@ -178,6 +182,20 @@ gui.Crawler.prototype = {
 	 */
 	_handleSpirit : function ( spirit, handler ) {
 		return handler.handleSpirit ( spirit );
+	},
+
+	/**
+	 * Hello.
+	 * @param {Window} win
+	 * @param {object} handler
+	 */
+	_crossHost : function ( win, handler ) {
+		var url = win.location.href,
+			sig = gui.IframeSpirit.getParam ( url, gui.IframeSpirit.KEY_SIGNATURE ),
+			cut = sig.split ( "/" ),
+			key = cut.pop (),
+			uri = cut.join ( "/" );
+		handler.crossHost ( win, uri, key );
 	}
 };
 

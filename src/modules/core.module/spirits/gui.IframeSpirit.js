@@ -6,35 +6,56 @@
 gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
 
 	/**
-	 * Signs iframe URLs with a unique identifier eg. to 
-	 * relay spirit actions from across exotic domains.
-	 * @type {String}
-	 */
-	signature : null,
-
-	/**
-	 * Construct.
+	 * TODO: only setup this listener if indeed xdomain stuff.
 	 */
 	onconstruct : function () {
 		this._super.onconstruct ();
-		if ( this.signature === null ) {
-			this.signature = gui.IframeSpirit.generateSignature ();
+		this.event.add ( "message", this.window, this );
+	},
+
+	/**
+	 * Handle event.
+	 * @param {Event} e
+	 */
+	onevent : function ( e ) {
+		this._super.onevent ( e );
+		if ( e.type === "message" ) {
+			this._onmessage ( e.data );
 		}
 	},
 
 	/**
 	 * Get or set iframe source.
-	 * See also method path.
 	 * @param {String} src
 	 */
 	src : function ( src ) {
-		if ( gui.Type.isString ( src )) {
+		if ( src ) {
 			if ( gui.IframeSpirit.isExternal ( src )) {
-				src = gui.IframeSpirit.sign ( src, this.signature );
+				src = gui.IframeSpirit.sign ( src, this.document, this.spiritkey );
 			}
 			this.element.src = src;
+		} else {
+			return this.element.src;
 		}
-		return this.element.src;
+	},
+
+
+	// Private ..................................................................
+	
+	/**
+	 * Handle posted message.
+	 * @param {String} msg
+	 */
+	_onmessage : function ( msg ) {
+		if ( msg.startsWith ( "spiritual-action:" )) {
+			var key = msg.split ( ":" )[ 1 ];
+			alert ( key + ":" + this.spiritkey );
+			return;
+			if ( key === this.spiritkey ) {
+				 var json = msg.split ( key + ":" )[ 1 ];
+				 alert ( json );
+			}
+		}
 	}
 	
 	
@@ -43,35 +64,26 @@ gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
 	/**
 	 * Summon spirit.
 	 * @param {Document} doc
-	 * @param {String} src
+	 * @param @optional {String} src
 	 * @returns {gui.IframeSpirit}
 	 */
 	summon : function ( doc, src ) {
-		// Unique key stamped into iframe SRC.
-		var sig = gui.IframeSpirit.generateSignature ();
-		// To avoid problems with the browser back button 
-		// and iframe history, better set iframe src now. 
 		var iframe = doc.createElement ( "iframe" );
-		if ( gui.Type.isString ( src )) {
-			if ( !this.isExternal ( src )) {
-				src = this.sign ( src, sig );
-			}
-			iframe.src = src; 
-		} else {
-			iframe.src = gui.IframeSpirit.SRC_DEFAULT;
-		}
 		var spirit = this.possess ( iframe );
-		spirit.signature = sig;
+		// @todo why does spirit.src method fail strangely just now? using iframe.src instead...
+		if ( src ) {
+			if ( gui.IframeSpirit.isExternal ( src )) {
+				src = this.sign ( src, doc, spirit.spiritkey );
+			}
+		} else {
+			src = this.SRC_DEFAULT;	
+		}
+		iframe.src = src;
 		return spirit;
 	}
 
 
 }, { // Static ................................................................
-
-	/**
-	 * The stuff going on here has to do with a future project 
-	 * about supporting cross-doman spiritualized websites
-	 */
 
 	/**
 	 * Presumably harmless iframe source. The issue here is that "about:blank" 
@@ -88,21 +100,18 @@ gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
 	KEY_SIGNATURE : "spiritual-signature",
 
 	/**
-	 * Generate unique signature (for this session).
-	 * @returns {String}
-	 */
-	generateSignature : function () {
-		return gui.KeyMaster.generateKey ().replace ( "key", "sig" );
-	},
-
-	/**
-	 * Sign URL with signature.
+	 * Sign URL with cross-domain credentials 
+	 * and key to identify the IframeSpirit.
 	 * @param {String} url
-	 * @param @optional {String} signature
+	 * @param {Document} doc
+	 * @param {String} key
 	 * @returns {String}
 	 */
-	sign : function ( url, signature ) {
-		return this.setParam ( url, this.KEY_SIGNATURE, signature || this.generateSignature ());
+	sign : function ( url, doc, key ) {
+		var loc = doc.location;
+		var uri = loc.protocol + "//" + loc.host;
+		var sig = uri + "/" + key;
+		return this.setParam ( url, this.KEY_SIGNATURE, sig );
 	},
 
 	/**
@@ -138,10 +147,12 @@ gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
 	 */
 	setParam : function ( url, name, value ) {
 		var params = [], cut, index = -1;
+		/*
 		name = encodeURIComponent ( name );
 		if ( value !== null ) {
 			value = encodeURIComponent ( value );
 		}
+		*/
 		if ( url.indexOf ( "?" ) >-1 ) {
 			cut = url.split ( "?" );
 			url = cut [ 0 ];

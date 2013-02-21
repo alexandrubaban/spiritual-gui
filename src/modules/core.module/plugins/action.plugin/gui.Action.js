@@ -7,7 +7,7 @@
  * @param @optional {String} direction
  * @param @optional {boolean} global
  */
-gui.Action = function SpiritAction ( target, type, data, direction, global ) {
+gui.Action = function Action ( target, type, data, direction, global ) {
 	this.target = target;
 	this.type = type;
 	this.data = data;
@@ -124,6 +124,11 @@ gui.Action.dispatch = function dispatch ( target, type, data, direction, global 
 				}
 			}
 			return directive;
+		},
+		crossHost : function ( win, uri, key ) {
+			var json = JSON.stringify ( action, [ "type", "data", "direction", "global" ]);
+			var xmsg = "spiritual-action:" + key + ":" + json;
+			win.postMessage ( xmsg, "*" );
 		}
 	});
 	return action;
