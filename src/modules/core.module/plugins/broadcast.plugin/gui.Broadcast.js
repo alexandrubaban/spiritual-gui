@@ -1,5 +1,6 @@
 /**
  * # gui.Broadcast
+ * @todo "one" and "oneGlobal" methods...
  * @param {Spirit} target
  * @param {String} type
  * @param {object} data

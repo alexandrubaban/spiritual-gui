@@ -27,5 +27,5 @@ gui.URL.prototype = {
 	protocol : null, // http:
 	search : null, // ?q=devmo
 	id : null,	// test
-	external : false // external relative to//document*, not the server host
+	external : false // external relative to the *document*, not the server host
 };

@@ -31,6 +31,7 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	/**
 	 * Matches the property `signature` of the local `gui` object.
 	 * @todo rename this property
+	 * @todo perhapse deprecate?
 	 * @type {String}
 	 */
 	signature : null,
