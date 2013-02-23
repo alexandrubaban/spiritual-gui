@@ -79,7 +79,7 @@ gui.Broadcast._locals = Object.create ( null );
  * @param @optional {String} sig
  */
 gui.Broadcast.add = function ( message, handler, sig ) {
- return	this._add ( message, handler, sig );
+ return	this._add ( message, handler, sig || gui.signature );
 };
 
 /**
@@ -89,7 +89,7 @@ gui.Broadcast.add = function ( message, handler, sig ) {
  * @param @optional {String} sig
  */
 gui.Broadcast.remove = function ( message, handler, sig ) {
-	return this._remove ( message, handler, sig );
+	return this._remove ( message, handler, sig || gui.signature );
 };
 
 /**
@@ -102,7 +102,7 @@ gui.Broadcast.remove = function ( message, handler, sig ) {
  * @returns {gui.Broadcast}
  */
 gui.Broadcast.dispatch = function ( target, type, data, sig ) {
-	return this._dispatch ( target, type, data, sig );
+	return this._dispatch ( target, type, data, sig || gui.signature );
 };
 
 /**
