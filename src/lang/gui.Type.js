@@ -30,12 +30,59 @@ gui.Type = {
 	},
 
 	/**
-	 * Is object a Window?
+	 * Is complex type?
+	 * @param {object} o
+	 * @returns {boolean}
+	 */
+	isComplex : function ( o ) {
+		switch ( this.of ( o )) {
+			case "undefined" :
+			case "boolean" :
+			case "number" :
+			case "string" :
+			case "null" :
+				return false;
+		}
+		return true;
+	},
+
+	/**
+	 * Is Window object?
 	 * @param {object} o
 	 * @returns {boolean}
 	 */
 	isWindow : function ( o ) {
 		return o && o.document && o.location && o.alert && o.setInterval;
+	},
+
+	/**
+	 * Is Event object?
+	 * @pram {object} o
+	 * @returns {boolean}
+	 */
+	isEvent : function ( o ) {
+		return this.of ( o ).endsWith ( "event" ) && this.isDefined ( o.type );
+	},
+
+	/**
+	 * Is function fit to be invoked via the "new" operator? 
+	 * We assume true if the prototype reveals any properties.
+	 * @param {function} what
+	 * @returns {boolean}
+	 */
+	isConstructor : function ( what ) {
+		return this.isFunction ( what ) && Object.keys ( what.prototype ).length > 0;
+	},
+
+	/**
+	 * Is constructor for a Spirit?
+	 * @todo Why can't isConstructor be used here?
+	 * @todo something more reliable than "portals".
+	 * @param {function} what
+	 * @returns {boolean}
+	 */
+	isSpiritConstructor : function ( what ) {
+		return this.isFunction ( what ) && this.isBoolean ( what.portals ); // lousy
 	},
 
 	/**
@@ -64,27 +111,6 @@ gui.Type = {
 				break;	
 		}
 		return result;
-	},
-
-	/**
-	 * Is function fit to be invoked via the "new" operator? 
-	 * We assume true if the prototype reveals any properties.
-	 * @param {function} what
-	 * @returns {boolean}
-	 */
-	isConstructor : function ( what ) {
-		return this.isFunction ( what ) && Object.keys ( what.prototype ).length > 0;
-	},
-
-	/**
-	 * Is constructor for a Spirit?
-	 * @todo Why can't isConstructor be used here?
-	 * @todo something more reliable than "portals".
-	 * @param {function} what
-	 * @returns {boolean}
-	 */
-	isSpiritConstructor : function ( what ) {
-		return this.isFunction ( what ) && this.isBoolean ( what.portals ); // lousy
 	},
 
 	/**

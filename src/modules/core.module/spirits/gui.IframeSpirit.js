@@ -6,10 +6,42 @@
 gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
 
 	/**
-	 * TODO: only setup this listener if indeed xdomain stuff.
+	 * True when hosting xdomain stuff.
+	 * @type {boolean}
 	 */
-	onconstruct : function () {
-		this._super.onconstruct ();
+	external : false,
+
+	/**
+	 * Hosted window.
+	 * @type {Window}
+	 */
+	contentWindow : {
+		getter : function () {
+			return this.element ? this.element.contentWindow : null;
+		},
+		setter : function () {
+			// @todo Or else the getter malfunctions!
+		}
+	},
+
+	/**
+	 * Hosted document.
+	 * @type {Document}
+	 */
+	contentDocument : {
+		getter : function () {
+			return this.element ? this.element.contentDocument : null;
+		},
+		setter : function () {
+			// @todo Or else the getter malfunctions!
+		}
+	},
+
+	/**
+	 * Get ready.
+	 */
+	onready : function () {
+		this._super.onready ();
 		this.event.add ( "message", this.window, this );
 	},
 
@@ -19,19 +51,20 @@ gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
 	 */
 	onevent : function ( e ) {
 		this._super.onevent ( e );
-		if ( e.type === "message" ) {
+		if ( e.type === "message" && this.external ) {
 			this._onmessage ( e.data );
 		}
 	},
 
 	/**
-	 * Get or set iframe source.
-	 * @param {String} src
+	 * Get and set the iframe source.
+	 * @param @optional {String} src
 	 */
 	src : function ( src ) {
-		if ( src ) {
+		if ( gui.Type.isString ( src )) {
 			if ( gui.IframeSpirit.isExternal ( src )) {
-				src = gui.IframeSpirit.sign ( src, this.document, this.spiritkey );
+				src = gui.IframeSpirit.sign 	( src, this.document, this.spiritkey );
+				this.external = true;
 			}
 			this.element.src = src;
 		} else {
@@ -43,26 +76,29 @@ gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
 	// Private ..................................................................
 	
 	/**
-	 * Handle posted message.
+	 * Handle posted message, scanning for ascending actions. 
+	 * Descending actions are handled by the documentspirit.
+	 * @todo Don't claim this as action target!
+	 * @see {gui.DocumentSpirit._onmessage}
 	 * @param {String} msg
 	 */
 	_onmessage : function ( msg ) {
-		if ( msg.startsWith ( "spiritual-action:" )) {
-			var key = msg.split ( ":" )[ 1 ];
-			alert ( key + ":" + this.spiritkey );
-			return;
-			if ( key === this.spiritkey ) {
-				 var json = msg.split ( key + ":" )[ 1 ];
-				 alert ( json );
+		if ( this.external && msg.startsWith ( "spiritual-action:" )) {
+			var a = gui.Action.parse ( msg );
+			if ( a.direction === gui.Action.ASCEND ) {
+				if ( a.spiritkey === this.spiritkey ) {
+					this.action.ascendGlobal ( a.type, a.data );
+				}
 			}
 		}
-	}
-	
+	},
+
 	
 }, { // Recurring static ......................................................
 
 	/**
 	 * Summon spirit.
+	 * @todo why does spirit.src method fail strangely just now? using iframe.src instead...
 	 * @param {Document} doc
 	 * @param @optional {String} src
 	 * @returns {gui.IframeSpirit}
@@ -70,10 +106,11 @@ gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
 	summon : function ( doc, src ) {
 		var iframe = doc.createElement ( "iframe" );
 		var spirit = this.possess ( iframe );
-		// @todo why does spirit.src method fail strangely just now? using iframe.src instead...
+		spirit.css.add ( "gui-iframe" );
 		if ( src ) {
-			if ( gui.IframeSpirit.isExternal ( src )) {
+			if ( gui.IframeSpirit.isExternal ( src )) { // should be moved to src() method!!!!!
 				src = this.sign ( src, doc, spirit.spiritkey );
+				spirit.external = true;
 			}
 		} else {
 			src = this.SRC_DEFAULT;	
@@ -111,72 +148,17 @@ gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
 		var loc = doc.location;
 		var uri = loc.protocol + "//" + loc.host;
 		var sig = uri + "/" + key;
-		return this.setParam ( url, this.KEY_SIGNATURE, sig );
+		return gui.URL.setParam ( url, this.KEY_SIGNATURE, sig );
 	},
 
 	/**
-	 * Remove signature from URL (prettyfied for end user). 
+	 * Remove signature from URL (for whatever reason).
 	 * @param {String} url
 	 * @param {String} sign
 	 * @returns {String}
 	 */
 	unsign : function ( url ) {	
-		return this.setParam ( url, this.KEY_SIGNATURE, null );
-	},
-
-	/**
-	 * Extract querystring parameter value from URL.
-	 * @param {String} url
-	 * @param {String} name
-	 * @returns {String} String or null
-	 */
-	getParam : function ( url, name ) {
-		name = name.replace( /(\[|\])/g, "\\$1" ); // was: name = name.replace ( /[\[]/, "\\\[" ).replace( /[\]]/, "\\\]" ); (http://stackoverflow.com/questions/2338547/why-does-jslint-returns-bad-escapement-on-this-line-of-code)
-		var results = new RegExp ( "[\\?&]" + name + "=([^&#]*)" ).exec ( url );
-		return results === null ? null : results [ 1 ];
-	},
-
-	/**
-	 * Add or remove querystring parameter from URL. If the parameter 
-	 * already exists, we'll replace it's (first ancountered!) value. 
-	 * @todo Something simpler
-	 * @param {String} url
-	 * @param {String} name
-	 * @param {String} value Use null to remove
-	 * @returns {String} String
-	 */
-	setParam : function ( url, name, value ) {
-		var params = [], cut, index = -1;
-		/*
-		name = encodeURIComponent ( name );
-		if ( value !== null ) {
-			value = encodeURIComponent ( value );
-		}
-		*/
-		if ( url.indexOf ( "?" ) >-1 ) {
-			cut = url.split ( "?" );
-			url = cut [ 0 ];
-			params = cut [ 1 ].split ( "&" );
-			params.every ( function ( param, i ) {
-				var x = param.split ( "=" );
-				if ( x [ 0 ] === name ) {
-					index = i;
-					if ( value !== null ) {
-						x [ 1 ] = value;
-						params [ i ] = x.join ( "=" );
-					}
-				}
-				return index < 0;
-			});
-		}
-		if ( value === null ) {
-			if ( index > -1 ) {
-				params.remove ( index, index );
-			}
-		} else if ( index < 0 ) {
-			params [ params.length ] = [ name, value ].join ( "=" );
-		}
-		return url + ( params.length > 0 ? "?" + params.join ( "&" ) : "" );
+		return gui.URL.setParam ( url, this.KEY_SIGNATURE, null );
 	},
 
 	/**

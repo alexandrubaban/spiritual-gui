@@ -3,15 +3,10 @@
  * Provides convenient access to an events originating 
  * window, document and spirit of the document element. 
  * @todo Fire this onmousemove only if has listeners!
- * @todo Figure this out with cross-domain spirits.
  * @param {Event} e
  */
 gui.EventSummary = function ( e ) {
-	if ( gui.Type.of ( e ).endsWith ( "event" )) {
-		this._construct ( e );
-	} else {
-		throw new TypeError ();
-	}
+	this._construct ( e );
 };
 
 gui.EventSummary.prototype = {

@@ -208,7 +208,7 @@ gui.Guide = {
 	 * @param {gui.EventSummary} sum
 	 */
 	_ondom : function ( sum ) {
-		gui.broadcast ( gui.BROADCAST_DOMCONTENT, sum );
+		gui.broadcastGlobal ( gui.BROADCAST_DOMCONTENT, sum );
 		this._step1 ( sum.document ); // can't setImmedeate to bypass JQuery, we risk onload being fired first
 	},
 
@@ -220,7 +220,7 @@ gui.Guide = {
 		if ( sum.documentspirit ) {
 			sum.documentspirit.onload ();
 		}
-		gui.broadcast ( gui.BROADCAST_ONLOAD, sum );
+		gui.broadcastGlobal ( gui.BROADCAST_ONLOAD, sum );
 	},
 
 	/**
@@ -232,7 +232,7 @@ gui.Guide = {
 		if ( sum.documentspirit ) {
 			sum.documentspirit.onunload ();
 		}
-		gui.broadcast ( gui.BROADCAST_UNLOAD, sum );
+		gui.broadcastGlobal ( gui.BROADCAST_UNLOAD, sum );
 		this.exorcise ( sum.document );
 		sum.window.gui.nameDestructAlreadyUsed ();
 	},
@@ -268,9 +268,9 @@ gui.Guide = {
 		// broadcast before and after spirits attach
 		this.spiritualizeOne ( doc.documentElement );
 		if ( win.gui.mode !== gui.MODE_MANAGED ) {
-			gui.broadcast ( gui.BROADCAST_WILL_SPIRITUALIZE, sig );
+			gui.broadcastGlobal ( gui.BROADCAST_WILL_SPIRITUALIZE, sig );
 			this.spiritualizeSub ( doc.documentElement );
-			gui.broadcast ( gui.BROADCAST_DID_SPIRITUALIZE, sig );
+			gui.broadcastGlobal ( gui.BROADCAST_DID_SPIRITUALIZE, sig );
 		}
 	},
 

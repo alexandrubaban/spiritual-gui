@@ -51,8 +51,8 @@ gui.Crawler.prototype = {
 					if ( win.parent !== win ) {
 						if ( win.location.search.contains ( gui.IframeSpirit.KEY_SIGNATURE )) {
 							elm = null;	
-							if ( handler.crossHost ) {
-								this._crossHost ( win, handler );
+							if ( gui.Type.isFunction ( handler.transcend )) {
+								this._transcend ( win, win.parent, handler );
 							}
 						} else {
 							elm = win.frameElement;
@@ -110,20 +110,20 @@ gui.Crawler.prototype = {
 	 * @param {boolean} start
 	 */
 	_descend : function ( elm, handler, start ) {
-		var directive = this._handleElement ( elm, handler );
+		var win, spirit, directive = this._handleElement ( elm, handler );
 		switch ( directive ) {
 			case 0 :
 				if ( elm.childElementCount > 0 ) {
 					this._descend ( elm.firstElementChild, handler, false );
-				} else {
-					if ( this.global && elm.localName === "iframe" ) {
-						try {
-							var assignment = elm.contentDocument;
-						} catch ( accessDeniedException ) {
-							console.warn ( "@todo Descend cross domain" );
-						}
-						var root = elm.contentDocument.documentElement;
-						if ( root && root.spirit ) { // otherwise just created or no Spiritual
+				} else if ( this.global && elm.localName === "iframe" ) {
+					if (( spirit = elm.spirit )) {
+						if ( spirit.external ) {
+							win = elm.ownerDocument.defaultView;
+							if ( gui.Type.isFunction ( handler.transcend )) {
+								this._transcend ( win, spirit.contentWindow, handler );
+							}
+						} else {
+							var root = elm.contentDocument.documentElement;
 							this._descend ( root, handler, false );
 						}
 					}
@@ -185,17 +185,23 @@ gui.Crawler.prototype = {
 	},
 
 	/**
-	 * Hello.
-	 * @param {Window} win
+	 * Teleport crawler to hosting (parent) or hosted (subframe) domain.
+	 * @param {Window} thiswin Current window
+	 * @param {Window} thatwin Target window
 	 * @param {object} handler
 	 */
-	_crossHost : function ( win, handler ) {
-		var url = win.location.href,
-			sig = gui.IframeSpirit.getParam ( url, gui.IframeSpirit.KEY_SIGNATURE ),
+	_transcend : function ( thiswin, thatwin, handler ) {
+		var uri, key, cut, url = thiswin.location.href;
+		var sig = gui.URL.getParam ( url, gui.IframeSpirit.KEY_SIGNATURE );
+		if ( sig ) {
 			cut = sig.split ( "/" ),
 			key = cut.pop (),
 			uri = cut.join ( "/" );
-		handler.crossHost ( win, uri, key );
+		} else {
+			uri = "*"; // @todo
+			key = thiswin.gui.signature;
+		}
+		handler.transcend ( thatwin, uri, key );
 	}
 };
 

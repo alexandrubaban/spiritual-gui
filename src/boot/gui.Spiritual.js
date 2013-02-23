@@ -329,17 +329,15 @@ gui.Spiritual.prototype = {
 	},
 
 	/**
-	 * TODO: Must be renamed to broadcastGlobal! Broadcast event details globally. 
-	 * Use this if you stopPropagate an event for personal reasons and don't want 
-	 * to keep it a secret (also, update this description).
+	 * Broadcast something globally. Events will be wrapped in an EventSummary.
 	 * @param {String} message gui.BROADCAST_MOUSECLICK or similar
 	 * @param @optional {object} arg This could well be a MouseEvent
 	 */
-	broadcast : function ( message, arg ) {
-		if ( gui.Type.of ( arg ).endsWith ( "event" )) {
+	broadcastGlobal : function ( msg, arg ) {
+		if ( gui.Type.isEvent ( arg )) {
 			arg = new gui.EventSummary ( arg );
 		}
-		gui.Broadcast.dispatchGlobal ( this, message, arg );
+		gui.Broadcast.dispatchGlobal ( this, msg, arg );
 	},
 
 	/**
@@ -506,8 +504,17 @@ gui.Spiritual.prototype = {
 	_construct : function ( win ) {
 		// patching features
 		this._spiritualaid.polyfill ( win );		
-		// generate signature
-		this.signature = "sig" + String ( Math.random ()).split ( "." )[ 1 ];
+		// compute signature (possibly identical to spiritkey of hosting iframe spirit)
+		this.signature = ( function () {
+			var sig, url = location.href;
+			var key = "spiritual-signature"; // ouch, must remain configurable!
+			if ( url.contains ( key )) {
+				return gui.URL.getParam ( url, key ).split ( "/" ).pop ();
+			} else {
+				return gui.KeyMaster.generateKey ();	
+			}
+		}());
+		
 		// basic setup
 		this.context = win;
 		this._document = win.document;

@@ -17,7 +17,6 @@ gui.URL = function ( doc, href ) {
 };
 
 gui.URL.prototype = {
-	
 	hash : null, // #test
 	host : null, // www.example.com:80
 	hostname : null, // www.example.com
@@ -28,4 +27,56 @@ gui.URL.prototype = {
 	search : null, // ?q=devmo
 	id : null,	// test
 	external : false // external relative to the *document*, not the server host
+};
+
+
+// Statics ....................................................................
+
+/**
+ * Extract querystring parameter value from URL.
+ * @param {String} url
+ * @param {String} name
+ * @returns {String} String or null
+ */
+gui.URL.getParam = function ( url, name ) {
+	name = name.replace ( /(\[|\])/g, "\\$1" );
+	var results = new RegExp ( "[\\?&]" + name + "=([^&#]*)" ).exec ( url );
+	return results === null ? null : results [ 1 ];
+};
+
+/**
+ * Add or remove (unencoded) querystring parameter from URL. If it 
+ * already exists, we'll replace it's (first ancountered) value. 
+ * @todo Something simpler
+ * @param {String} url
+ * @param {String} name
+ * @param {String} value Use null to remove
+ * @returns {String} String
+ */
+gui.URL.setParam = function ( url, name, value ) {
+	var params = [], cut, index = -1;
+	if ( url.indexOf ( "?" ) >-1 ) {
+		cut = url.split ( "?" );
+		url = cut [ 0 ];
+		params = cut [ 1 ].split ( "&" );
+		params.every ( function ( param, i ) {
+			var x = param.split ( "=" );
+			if ( x [ 0 ] === name ) {
+				index = i;
+				if ( value !== null ) {
+					x [ 1 ] = value;
+					params [ i ] = x.join ( "=" );
+				}
+			}
+			return index < 0;
+		});
+	}
+	if ( value === null ) {
+		if ( index > -1 ) {
+			params.remove ( index, index );
+		}
+	} else if ( index < 0 ) {
+		params [ params.length ] = [ name, value ].join ( "=" );
+	}
+	return url + ( params.length > 0 ? "?" + params.join ( "&" ) : "" );
 };

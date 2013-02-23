@@ -12,6 +12,7 @@ gui.Broadcast = function ( target, type, data, global ) {
 	this.type = type;
 	this.data = data;
 	this.isGlobal = global;
+	this.signatures = [];
 };
 
 gui.Broadcast.prototype = {
@@ -40,6 +41,12 @@ gui.Broadcast.prototype = {
 	 * @type {boolean}
 	 */
 	isGlobal : false,
+
+	/**
+	 * Experimental...
+	 * @type {Array<String>}
+	 */
+	signatures : null,
 
 	/**
 	 * Identification
@@ -129,6 +136,47 @@ gui.Broadcast.dispatchGlobal = function ( target, type, data ) {
 };
 
 /**
+ * Encode broadcast to be posted xdomain.
+ * @param {gui.Broacast} b
+ * @returns {String}
+ */
+gui.Broadcast.stringify = function ( b ) {
+	var prefix = "spiritual-broadcast:";
+	return prefix + ( function () {
+		b.target = null;
+		b.data = ( function ( d ) {
+			if ( gui.Type.isComplex ( d )) {
+				if ( gui.Type.isFunction ( d.stringify )) {
+					d = d.stringify ();
+				} else {
+					try {
+						JSON.stringify ( d );
+					} catch ( jsonexception ) {
+						d = null;
+					}
+				}
+			}
+			return d;
+		}( b.data ));
+		return JSON.stringify ( b );
+	}());
+};
+
+/**
+ * Decode broadcast posted from xdomain and return a broadcast-like object.
+ * @param {String} msg
+ * @returns {object}
+ */
+gui.Broadcast.parse = function ( msg ) {
+	var prefix = "spiritual-broadcast:";
+	if ( msg.startsWith ( prefix )) {
+		return JSON.parse ( msg.split ( prefix )[ 1 ]);
+	}
+}
+
+// PRIVATE ...................................................................................
+
+/**
  * mapcribe handler to message(s).
  * @param {Array<string>|string} type
  * @param {object|function} handler Implements BroadcastListener
@@ -200,14 +248,18 @@ gui.Broadcast._remove = function ( message, handler, sig ) {
  */
 gui.Broadcast._dispatch = function ( target, type, data, sig ) {
 	var global = !gui.Type.isString ( sig );
-	var broadcast = new gui.Broadcast ( target, type, data, global );
 	var map = global ? this._globals : this._locals [ sig ];
+	var b = new gui.Broadcast ( target, type, data, global );
 	if ( map ) {
 		var handlers = map [ type ];
 		if ( handlers ) {
-			handlers.slice ().forEach ( function ( handler, index ) {
-				handler.onbroadcast ( broadcast );
+			handlers.slice ().forEach ( function ( handler ) {
+				handler.onbroadcast ( b );
 			});
 		}
+	}
+	if ( global ) {
+		var root = document.documentElement.spirit;
+		root.propagateBroadcast ( b );
 	}
 };
