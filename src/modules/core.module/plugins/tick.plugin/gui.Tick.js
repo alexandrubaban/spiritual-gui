@@ -60,11 +60,8 @@ gui.Tick._local = Object.create ( null );
  * @returns {function}
  */
 gui.Tick.add = function ( type, handler, sig ) {
-	if ( !sig ) {
-		console.error ( "SIG REQUIRED for tick of type: " + type );
-	}
 	if ( gui.Arguments.validate ( arguments, "string|array", "object|function", "string" )) {
-		return this._add ( type, handler, false, sig );
+		return this._add ( type, handler, false, sig || gui.signature );
 	}
 };
 
@@ -75,11 +72,8 @@ gui.Tick.add = function ( type, handler, sig ) {
  * @returns {function}
  */
 gui.Tick.one = function ( type, handler, sig ) {
-	if ( !sig ) {
-		console.error ( "SIG REQUIRED for tick of type: " + type );
-	}
 	if ( gui.Arguments.validate ( arguments, "string|array", "object|function", "string" )) {
-		return this._add ( type, handler, true, sig );
+		return this._add ( type, handler, true, sig || gui.signature );
 	}
 };
 
