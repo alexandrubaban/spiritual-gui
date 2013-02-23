@@ -55,9 +55,7 @@ gui.AttPlugin = gui.Plugin.extend ( "gui.AttPlugin", {
 	 * @returns {Array<Attr>}
 	 */
 	all : function () {
-		return Array.map ( this.spirit.element.attributes, function ( att ) {
-			return att;
-		});
+		return gui.AttPlugin.all ( this.spirit.element );
 	},
 
 	/**
@@ -66,11 +64,7 @@ gui.AttPlugin = gui.Plugin.extend ( "gui.AttPlugin", {
 	 * @returns {Map<String,String>} 
 	 */
 	getup : function () {
-		var map = Object.create ( null );
-		this.all ().forEach ( function ( att ) {
-			map [ att.name ] = gui.Type.cast ( att.value );
-		});
-		return map;
+		return gui.AttPlugin.getup ( this.spirit.element );
 	},
 
 	/**
@@ -105,5 +99,27 @@ gui.AttPlugin = gui.Plugin.extend ( "gui.AttPlugin", {
 		this.__suspended__ = false;
 		return res;
 	}
+
 	
+}, {}, { // Static ...........................................
+
+	/** 
+	 * 
+	 */
+	all : function ( element ) {
+		return Array.map ( element.attributes, function ( att ) {
+			return att;
+		});
+	},
+
+	/**
+	 *
+	 */
+	getup : function ( element ) {
+		var map = Object.create ( null );
+		this.all ( element ).forEach ( function ( att ) {
+			map [ att.name ] = gui.Type.cast ( att.value );
+		});
+		return map;
+	}
 });
