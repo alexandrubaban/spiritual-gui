@@ -65,6 +65,14 @@ gui.Type = {
 	},
 
 	/**
+	 * Is spirit instance?
+	 * @returns {boolean}
+	 */
+	isSpirit : function ( o ) {
+		return o && o instanceof gui.Spirit;
+	},
+
+	/**
 	 * Is function fit to be invoked via the "new" operator? 
 	 * We assume true if the prototype reveals any properties.
 	 * @param {function} what
