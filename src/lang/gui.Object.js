@@ -136,5 +136,16 @@ gui.Object = {
 			}
 		}
 		return result;
+	},
+
+	/**
+	 * Convert array-like object to array.
+	 * @param {object} object
+	 * @returns {Array<object>}
+	 */
+	toArray : function ( object ) {
+		return Array.map ( object, function ( thing ) {
+			return thing;
+		});
 	}
 };

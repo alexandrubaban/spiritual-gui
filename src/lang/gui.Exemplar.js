@@ -106,7 +106,7 @@ gui.Exemplar = { // @todo Evaluate static stuff first so that proto can declare 
 	 * @param {object} value
 	 * @param @optional {boolean} override Disable collision detection
 	 */
-	addin : function ( name, value, override ) {
+	mixin : function ( name, value, override ) {
 		if ( this.prototype [ name ] === undefined || override ) {
 			this.prototype [ name ] = value;
 			gui.Exemplar.family ( this, function ( C ) {
@@ -179,7 +179,7 @@ gui.Exemplar = { // @todo Evaluate static stuff first so that proto can declare 
 		C.prototype = Object.create ( proto );
 		C.prototype.constructor = C;
 		C.__super__ = null;
-		[ "extend", "addin" ].forEach ( function ( method ) {
+		[ "extend", "mixin" ].forEach ( function ( method ) {
 			C [ method ] = this [ method ];
 		}, this );
 		return C;

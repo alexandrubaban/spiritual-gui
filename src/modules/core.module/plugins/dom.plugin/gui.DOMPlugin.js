@@ -291,7 +291,7 @@ gui.DOMPlugin = gui.Plugin.extend ( "gui.DOMPlugin", {
 
 
 /**
- * Generate CSS query methods accept a CSS selector and an optional spirit constructor 
+ * DOM query methods accept a CSS selector and an optional spirit constructor 
  * as arguments. They return a spirit, an element or an array of either.
  */
 gui.Object.each ({
@@ -355,8 +355,8 @@ gui.Object.each ({
 	 * @param {String} name
 	 * @param {function} method
 	 */
-}, function addin ( name, method ) {
-	gui.DOMPlugin.addin ( name, function () {
+}, function mixin ( name, method ) {
+	gui.DOMPlugin.mixin ( name, function () {
 		var selector = arguments [ 0 ], type = arguments [ 1 ];
 		if ( gui.Type.isString ( selector )) {
 			if ( arguments.length === 1 || gui.Type.isFunction ( type )) {
@@ -636,8 +636,8 @@ gui.Object.each ({
 	 * @param {String} name
 	 * @param {function} method
 	 */
-},  function addin ( name, method ) {
-	gui.DOMPlugin.addin ( name, function ( type ) {
+},  function mixin ( name, method ) {
+	gui.DOMPlugin.mixin ( name, function ( type ) {
 		if ( !gui.Type.isDefined ( type ) || gui.Type.isFunction ( type )) {
 			return method.apply ( this, arguments );
 		} else {
@@ -653,7 +653,7 @@ gui.Object.each ({
 /**
  * DOM insertion methods accept one argument: one spirit OR one element OR an array of either or both. 
  * The input argument is returned as given. This allows for the following one-liner to be constructed: 
- * this.something = this.dom.append ( gui.SomeThingSpirit.summon ( this.document ));  * imagine 15 more
+ * this.something = this.dom.append ( gui.SomeThingSpirit.summon ( this.document )); // imagine 15 more
  */
 gui.Object.each ({
 
@@ -737,8 +737,8 @@ gui.Object.each ({
 	 * @param {String} name
 	 * @param {function} method
 	 */
-}, function addin ( name, method ) {
-	gui.DOMPlugin.addin ( name, function ( things ) {
+}, function mixin ( name, method ) {
+	gui.DOMPlugin.mixin ( name, function ( things ) {
 		var elms = Array.map ( gui.Type.list ( things ), function ( thing ) {
 			return thing && thing instanceof gui.Spirit ? thing.element : thing;
 		});

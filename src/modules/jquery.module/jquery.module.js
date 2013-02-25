@@ -81,12 +81,33 @@ gui.module ( "jquery", {
 
 	/**
 	 * Overloading DOM manipulation methods.
-	 * @todo attr and removeAttr must be hooked into gui.AttPlugin setup...
 	 * @param {function} jq Constructor
 	 */
 	_overload : function ( jq ) {
 		var module = this;
 		var naive = Object.create ( null ); // mapping unmodified methods
+		[ 
+			"attr", 
+			"removeAttr" 
+		].forEach ( function ( name ) {
+			naive [ name ] = jq.fn [ name ];
+			jq.fn [ name ] = function () {
+				var res, that = this, args = arguments, n = args [ 0 ];
+				var v = name === "removeAttr" ? null : args [ 1 ];
+				this.each ( function ( i, elm ) {
+					if ( elm.spirit ) {
+						if ( gui.Type.isDefined ( v )) {
+							elm.spirit.att.set ( n, v );
+						} else {
+							res = elm.spirit.att.get ( n );
+						}			
+					} else {
+						res = naive [ name ].apply ( that, args );
+					}
+				});
+				return res;
+			}
+		});
 		[
 			"after", 
 			"append", 
@@ -184,13 +205,13 @@ gui.module ( "jquery", {
 							}
 							break;
 						case "unwrap" :
-							// note: materializement is skipped here!
+							// note: materialize is skipped here!
 							this.parent ().__materializeOne ();
 							res = suber ();
 							break;
 						case "wrap" :
 						case "wrapAll" :
-							// note: materializement is skipped here!
+							// note: materialize is skipped here!
 							res = suber ();
 							this.parent ().__spiritualizeOne ();
 							break;
@@ -333,14 +354,8 @@ gui.module ( "jquery", {
 	 * @param {boolean} after
 	 * @param {function} suber
 	 * @param {jQuery} $
-	 */
+	 *
 	_after_before : function ( after, suber, $ ) {
-		/*
-		 * Using $.next and $.prev instead of DOM methods because 
-		 * Angular might inject stuff after/before comment nodes 
-		 * (which don't have nextElementSibling and such stuff). 
-		 * This should be performance boosted at some point.
-		 */
 		var next = "next";
 		var prev = "prev";
 		var current = [], sibling, res;
@@ -360,6 +375,40 @@ gui.module ( "jquery", {
 		});
 		return res;
 	},
+	*/
+
+	/**
+	 * JQuery after() and before(). We can't reliably use the arguments 
+	 * here becayse JQuery will switch them to clones in the process. 
+	 * @param {boolean} after
+	 * @param {function} suber
+	 */
+	_after_before : function ( after, suber ) {
+		var res, sib, current = [];
+		var target = after ? "nextSibling" : "previousSibling";
+		function sibling ( node ) {	// (node may be a comment)
+			node = node [ target ];
+			while ( node && node.nodeType !== Node.ELEMENT_NODE ) {
+				node = node [ target ];
+			}
+			return node;
+		}
+		this.each ( function ( i, elm ) {
+			while ( elm && current.indexOf ( elm ) === -1 ) {
+				current.push ( elm );
+				elm = sibling ( elm );
+			}
+		});
+		res = suber ();
+		this.each ( function ( i, elm ) {
+			sib = sibling ( elm );
+			while ( sib && current.indexOf ( sib ) === -1 ) {
+				gui.Guide.spiritualize ( sib );
+				sib = sibling ( sib );
+			}
+		});
+		return res;
+	},
 
 	/**
 	 * JQuery replaceAll() and replaceWith().
@@ -374,9 +423,11 @@ gui.module ( "jquery", {
 			parent = elm.parentNode;
 			if ( parents.indexOf ( parent ) === -1 ) {
 				parents.push ( parent );
-				current = current.concat ( Array.map ( parent.children, function ( child ) {
-					return child;
-				}));
+				current = current.concat ( 
+					Array.map ( parent.children, function ( child ) {
+						return child;
+					})
+				);
 			}
 		});
 		var res = suber ();

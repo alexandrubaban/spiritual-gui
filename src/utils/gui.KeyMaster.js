@@ -12,15 +12,13 @@ gui.KeyMaster = {
 	 * @returns {String}
 	 */
 	generateKey : function ( prefix ) {
-
 		prefix = "key"; // @todo: remove this line when we get drunk enough to fix the regular expression below...
-
 		var ran = Math.random ().toString ();
 		var key = ( prefix || "key" ) + ran.slice ( 2, 11 );
-		if ( this._keys.has ( key )) {
+		if ( this._keys [ key ]) {
 			key = this.generateKey ( prefix );
 		} else {
-			this._keys.add ( key );
+			this._keys [ key ] = true;
 		}
 		return key;
 	},
@@ -68,7 +66,7 @@ gui.KeyMaster = {
 
 	/**
 	 * Tracking generated keys to prevent doubles.
-	 * @type {Set<String>}
+	 * @type {Map<String,boolean>}
 	 */
-	_keys : new Set ()
+	_keys : Object.create ( null )
 };

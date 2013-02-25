@@ -11,25 +11,24 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 	onconstruct : function () {
 		this._super.onconstruct ();
 		this._dimension = new gui.Dimension ( 0, 0 );
+		this.action.addGlobal ([
+			gui.ACTION_DOCUMENT_FIT,
+			gui.ACTION_GLOBALIZE
+		]);
+		this.event.add ( "message", this.window );
 		Object.keys ( this._messages ).forEach ( function ( type ) {
 			var target = this.document;
 			switch ( type ) {
-				// case "load" : 
 				case "scroll" :
 				case "resize" :
-				//case "popstate" :  * @todo top only? tackle history?
-				//case "hashchange" :  * @todo top only? tackle history?
 					target = this.window;
 					break;
 			}
 			this.event.add ( type, target );
 		}, this );
-		// setup event listeners for top document only.
 		if ( this.document === document ) {
 			this._constructTop ();
 		}
-		// consuming and redispatching fit-action
-		this.action.addGlobal ( gui.ACTION_DOCUMENT_FIT );
 		/*
 		 * BUG!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 		 * @todo it appears we *must* listen for touch start events
@@ -66,49 +65,46 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 			case "orientationchange" :
 				this._onorientationchange ();
 				break;
-			// all documents
-			default : 
+			default : // all documents
+				switch ( e.type ) {
+					case "resize" :
+						if ( parent === window ) {
+							this._onresize ();
+						}
+						break;
+					case "load" :
+						if ( !this._isLoaded ) {
+							this._onload ();
+						}
+						break;
+					case "message" :
+						this._onmessage ( e.data );
+						break;
+				}
+				// broadcast event globally?
 				var message = this._messages [ e.type ];
 				if ( gui.Type.isDefined ( message )) {
-					switch ( e.type ) { 
-						/*
-						 * Nuke all touch events for now @todo move to touch module
-						case "touchstart" :
-						case "touchend" :
-						case "touchcancel" :
-						case "touchleave" :
-						case "touchmove" :
-							e.preventDefault ();
-							break;
-						*/
-						case "resize" :
-							var istop = this.window === window;
-							if ( istop ) {
-								this._onresize ();
-							}
-							break;
-						case "load" :
-							if ( !this._isLoaded ) {
-								this._onload ();
-							}
-							break;
-					}
-					// Broadcast event globally.
-					this._broadcast ( message, e );
+					this._broadcastEvent ( e, message );
 				}
 		}
 	},
 
 	/**
 	 * Handle action.
-	 * @param {gui.Action} action
+	 * @param {gui.Action} a
 	 */
-	onaction : function ( action ) {
-		this._super.onaction ( action );
-		switch ( action.type ) {
-			case gui.ACTION_DOCUMENT_FIT : // relay fit action, but claim ourselves as new action.target
-				action.consume ();
-				this.fit ( action.data === true );
+	onaction : function ( a ) {
+		this._super.onaction ( a );
+		switch ( a.type ) {
+			case gui.ACTION_DOCUMENT_FIT : // relay fit a, but claim ourselves as new a.target
+				a.consume ();
+				this.fit ( a.data === true );
+				break;
+			case gui.ACTION_GLOBALIZE :
+				if ( parent === window ) {
+					var json = a.data.split ( "spiritual-broadcast:" )[ 1 ];
+					gui.Broadcast.dispatchGlobal 
+				}
 				break;
 		}
 	},
@@ -183,6 +179,27 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 			}
 		}
 	},
+
+	/**
+	 * Propagate broadcast xdomain, recursively posting to neighboring documentspirits.
+	 *
+	 * 1. Propagate descending
+	 * 2. Propagate ascending
+	 * @todo Don't post to universal domain "*" let's bypass the iframe spirit for this...
+	 * @param {gui.Broadcast} b
+	 */
+	propagateBroadcast : function ( b ) {
+		b.signatures.push ( this.signature );
+		var msg = gui.Broadcast.stringify ( b ), win = this.window, parent = win.parent;
+		this.dom.qall ( "iframe", gui.IframeSpirit ).forEach ( function ( iframe ) {
+			if ( iframe.external ) {
+				iframe.contentWindow.postMessage ( msg, "*" );
+			}
+		});
+		if ( parent !== win ) {
+			parent.postMessage ( msg, "*" );
+		}
+	},
 	
 	
 	// Private ...................................................................
@@ -198,24 +215,57 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 	 * will be broadcasted to all windows. This way, a click event in one iframe might 
 	 * close a menu in another iframe; and mousemove events can be listened for in all 
 	 * documents at once. Important: If you stopPropagate() an event so that the 
-	 * gui.DocumentSpirit cannot handle it, you should invoke this method manually.
-	 * @param {String} message
+	 * gui.DocumentSpirit cannot handle it, you should broadcast this stuff *manually*.
 	 * @param {Event} e
+	 * @param {String} message
 	 */
-	_broadcast : function ( message, e ) {
+	_broadcastEvent : function ( e, message ) {
 		switch ( e.type ) {
 				case "mousemove" :
 				case "touchmove" :
-					try { // * don't fire errors onmousemove :)
-						gui.broadcast ( message, e );
+					try {
+						gui.broadcastGlobal ( message, e );
 					} catch ( x ) {
 						this.event.remove ( e.type, e.target );
 						throw x;
 					}
 					break;
 				default :
-					gui.broadcast ( message, e );
+					gui.broadcastGlobal ( message, e );
 					break;
+		}
+	},
+
+	/**
+	 * Handle message posted from subframe or xdomain.
+	 * 
+	 * 1. Relay broadcasts
+	 * 2. Relay descending actions
+	 * @todo Don't claim this as action target!
+	 * @param {String} msg
+	 */
+	_onmessage : function ( msg ) {
+		var pattern = "spiritual-broadcast";
+		if ( msg.startsWith ( pattern )) {
+			var b = gui.Broadcast.parse ( msg );
+			if ( b.signatures.indexOf ( this.signature ) < 0 ) {
+				gui.Broadcast.dispatchGlobal ( 
+					b.target, 
+					b.type, 
+					b.data 
+				);
+			}
+		} else {
+			pattern = "spiritual-action";
+			if ( msg.startsWith ( pattern )) {
+				var a = gui.Action.parse ( msg );
+				if ( a.direction === gui.Action.DESCEND ) {
+					this.action.descendGlobal ( 
+						a.type, 
+						a.data
+					);
+				}
+			}
 		}
 	},
 
@@ -227,16 +277,16 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 		"click"	: gui.BROADCAST_MOUSECLICK,
 		"mousedown"	: gui.BROADCAST_MOUSEDOWN,
 		"mouseup"	: gui.BROADCAST_MOUSEUP,
-		//"mousemove"	: gui.BROADCAST_MOUSEMOVE,
 		"scroll" : gui.BROADCAST_SCROLL,
 		"resize" : gui.BROADCAST_RESIZE,
-		//"popstate" : gui.BROADCAST_POPSTATE,
-		//"hashchange" : gui.BROADCAST_HASHCHANGE,
 		"touchstart" : gui.BROADCAST_TOUCHSTART,
 		"touchend" : gui.BROADCAST_TOUCHEND,
 		"touchcancel"	: gui.BROADCAST_TOUCHCANCEL,
 		"touchleave" : gui.BROADCAST_TOUCHLEAVE,
 		"touchmove"	: gui.BROADCAST_TOUCHMOVE
+		// "popstate" : gui.BROADCAST_POPSTATE,
+		// "hashchange" : gui.BROADCAST_HASHCHANGE,
+		// "mousemove"	: gui.BROADCAST_MOUSEMOVE,
 	},
 
 	/**
@@ -279,12 +329,14 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 	},
 
 	/**
-	 * Special setup for top document. Broadcast 
+	 * Special setup for top document: Broadcast 
 	 * orientation on startup and when it changes.
 	 */
 	_constructTop : function () {
-		this._onorientationchange ();
-		this.event.add ( "orientationchange", window );
+		if ( parent === window ) {
+			this._onorientationchange ();
+			this.event.add ( "orientationchange", window );
+		}
 	},
 
 	/**
@@ -295,24 +347,23 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 	_onresize : function () {
 		this.window.clearTimeout ( this._timeout );
 		this._timeout = this.window.setTimeout ( function () {
-			gui.broadcast ( gui.BROADCAST_RESIZE_END );
+			gui.broadcastGlobal ( gui.BROADCAST_RESIZE_END );
 		}, gui.DocumentSpirit.TIMEOUT_RESIZE_END );
 	},
 
 	/**
 	 * Device orientation changed.
-	 * @todo move to touch module
+	 * @todo Move to touch module?
+	 * @todo Only in top-loaded window :)
 	 * @todo gui.SpiritDevice entity
 	 */
 	_onorientationchange : function () {
 		gui.orientation = window.innerWidth > window.innerHeight ? 1 : 0;
-		gui.broadcast ( gui.BROADCAST_ORIENTATIONCHANGE );
+		gui.broadcastGlobal ( gui.BROADCAST_ORIENTATIONCHANGE );
 	}
-	
-	
-}, {}, { 
 
-	// Static .............................................................
+	
+}, {}, { // Static .............................................................
 
 	/**
 	 * Timeout in milliseconds before we decide 

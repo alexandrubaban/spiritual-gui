@@ -1,5 +1,7 @@
 [
 	"src/gui.js",
+	"src/utils/gui.URL.js",
+	"src/utils/gui.KeyMaster.js",
 	"src/boot/gui.SpiritualAid.js",
 	"src/boot/gui.Spiritual.js",
 
@@ -15,7 +17,6 @@
 	"src/abstract/gui.Dimension.js",
 	"src/abstract/gui.Geometry.js",
 
-	"src/utils/gui.URL.js",
 	"src/utils/gui.Then.js",
 	"src/utils/gui.HTMLParser.js",
 	"src/utils/gui.DOMSerializer.js",
@@ -23,7 +24,6 @@
 	"src/utils/gui.BlobLoader.js",
 	"src/utils/gui.EventSummary.js",
 	"src/utils/gui.Crawler.js",
-	"src/utils/gui.KeyMaster.js",
 	"src/utils/gui.Request.js",
 
 	"src/core/gui.Spirit.js",

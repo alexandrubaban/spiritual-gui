@@ -259,6 +259,7 @@ gui.SpiritualAid = {
 	/**
 	 * Patching cheap DHTML effects with super-simplistic polyfills.
 	 * @todo cancelAnimationFrame
+	 * @todo use MessageChannel (@http://www.nonblocking.io/2011/06/windownexttick.html) pending moz bug#677638
 	 * @param [Window} win
 	 */
 	_effects : function ( win ) {
