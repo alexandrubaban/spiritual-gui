@@ -208,7 +208,7 @@ gui.Guide = {
 	 * @param {gui.EventSummary} sum
 	 */
 	_ondom : function ( sum ) {
-		gui.broadcastGlobal ( gui.BROADCAST_DOMCONTENT, sum );
+		gui.broadcastGlobal ( gui.BROADCAST_DOMCONTENT, sum ); // careful - no spirits are attached at this point
 		this._step1 ( sum.document ); // can't setImmedeate to bypass JQuery, we risk onload being fired first
 	},
 
@@ -242,14 +242,11 @@ gui.Guide = {
 	 * @param {Document} doc
 	 */
 	_step1 : function ( doc ) {
-
 		var win = doc.defaultView;
 		var sig = win.gui.signature;
-
 		this._metatags ( win ); // configure runtime
 		win.gui.go (); // channel spirits
 		this._stylesheets ( win ); // more spirits?
-		
 		// resolving spiritual stylesheets? If not, skip directly to _step2.
 		if ( !this._windows [ sig ]) {
 			this._step2 ( doc );
@@ -261,10 +258,8 @@ gui.Guide = {
 	 * @param {Document} doc
 	 */
 	_step2 : function ( doc ) {
-
 		var win = doc.defaultView;
 		var sig = win.gui.signature;
-
 		// broadcast before and after spirits attach
 		this.spiritualizeOne ( doc.documentElement );
 		if ( win.gui.mode !== gui.MODE_MANAGED ) {

@@ -260,6 +260,8 @@ gui.Broadcast._dispatch = function ( target, type, data, sig ) {
 	}
 	if ( global ) {
 		var root = document.documentElement.spirit;
-		root.propagateBroadcast ( b );
+		if ( root ) { // no spirit before DOMContentLoaded
+			root.propagateBroadcast ( b );
+		}
 	}
 };
