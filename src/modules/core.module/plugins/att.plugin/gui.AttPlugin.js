@@ -21,7 +21,7 @@ gui.AttPlugin = gui.Plugin.extend ( "gui.AttPlugin", {
 	 * @returns {gui.AttPlugin}
 	 */
 	set : function ( name, value ) {
-		gui.AttPlugin.get ( this.spirit.element, name, value );
+		gui.AttPlugin.set ( this.spirit.element, name, value );
 		return this;
 	},
 
