@@ -92,17 +92,17 @@ gui.module ( "jquery", {
 		].forEach ( function ( name ) {
 			naive [ name ] = jq.fn [ name ];
 			jq.fn [ name ] = function () {
-				var res, that = this, args = arguments, n = args [ 0 ];
-				var v = name === "removeAttr" ? null : args [ 1 ];
+				var nam = arguments [ 0 ];
+				var val = arguments [ 1 ];
+				var res = naive [ name ].apply ( this, arguments );
+				var del, val = ( del = name === "removeAttr" ) ? null : val;
 				this.each ( function ( i, elm ) {
 					if ( elm.spirit ) {
-						if ( gui.Type.isDefined ( v )) {
-							elm.spirit.att.set ( n, v );
+						if ( !val || del ) {
+							elm.spirit.att.set ( nam, val );
 						} else {
-							res = elm.spirit.att.get ( n );
-						}			
-					} else {
-						res = naive [ name ].apply ( that, args );
+							ret = elm.spirit.att.get ( nam );
+						}
 					}
 				});
 				return res;
