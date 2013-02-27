@@ -152,6 +152,164 @@ var gui = {
 };
 
 
+ /**
+ * # gui.URL
+ * Resolve an URL string relative to a document.
+ * @param {Document} doc
+ * @param {String} href
+ */
+gui.URL = function ( doc, href ) {
+	var link = doc.createElement ( "a" ); link.href = href;
+	Object.keys ( gui.URL.prototype ).forEach ( function ( key ) {
+		if ( gui.Type.isString ( link [ key ])) {
+			this [ key ] = link [ key ];
+		}
+	}, this );
+	this.id = this.hash ? this.hash.substring ( 1 ) : null;
+	this.location = this.href.split ( "#" )[ 0 ];
+	this.external = this.location !== String ( doc.location ).split ( "#" )[ 0 ];
+};
+
+gui.URL.prototype = {
+	hash : null, // #test
+	host : null, // www.example.com:80
+	hostname : null, // www.example.com
+	href : null, // http://www.example.com:80/search?q=devmo#test
+	pathname : null, // search
+	port : null, // 80
+	protocol : null, // http:
+	search : null, // ?q=devmo
+	id : null,	// test
+	external : false // external relative to the *document*, not the server host
+};
+
+
+// Statics ....................................................................
+
+/**
+ * Extract querystring parameter value from URL.
+ * @param {String} url
+ * @param {String} name
+ * @returns {String} String or null
+ */
+gui.URL.getParam = function ( url, name ) {
+	name = name.replace ( /(\[|\])/g, "\\$1" );
+	var results = new RegExp ( "[\\?&]" + name + "=([^&#]*)" ).exec ( url );
+	return results === null ? null : results [ 1 ];
+};
+
+/**
+ * Add or remove (unencoded) querystring parameter from URL. If it 
+ * already exists, we'll replace it's (first ancountered) value. 
+ * @todo Something simpler
+ * @param {String} url
+ * @param {String} name
+ * @param {String} value Use null to remove
+ * @returns {String} String
+ */
+gui.URL.setParam = function ( url, name, value ) {
+	var params = [], cut, index = -1;
+	if ( url.indexOf ( "?" ) >-1 ) {
+		cut = url.split ( "?" );
+		url = cut [ 0 ];
+		params = cut [ 1 ].split ( "&" );
+		params.every ( function ( param, i ) {
+			var x = param.split ( "=" );
+			if ( x [ 0 ] === name ) {
+				index = i;
+				if ( value !== null ) {
+					x [ 1 ] = value;
+					params [ i ] = x.join ( "=" );
+				}
+			}
+			return index < 0;
+		});
+	}
+	if ( value === null ) {
+		if ( index > -1 ) {
+			params.remove ( index, index );
+		}
+	} else if ( index < 0 ) {
+		params [ params.length ] = [ name, value ].join ( "=" );
+	}
+	return url + ( params.length > 0 ? "?" + params.join ( "&" ) : "" );
+};
+
+
+/**
+ * # gui.KeyMaster
+ * Generating keys for unique key purposes.
+ */
+gui.KeyMaster = {
+
+	/**
+	 * @static
+	 * Generate random key. Not simply incrementing a counter in order to celebrate the 
+	 * rare occasion that spirits might be uniquely identified across different domains.
+	 * @param @optional {String} prefix Used instead of "key" to prefix the key
+	 * @returns {String}
+	 */
+	generateKey : function ( prefix ) {
+		prefix = "key"; // @todo: remove this line when we get drunk enough to fix the regular expression below...
+		var ran = Math.random ().toString ();
+		var key = ( prefix || "key" ) + ran.slice ( 2, 11 );
+		if ( this._keys [ key ]) {
+			key = this.generateKey ( prefix );
+		} else {
+			this._keys [ key ] = true;
+		}
+		return key;
+	},
+
+	/**
+	 * @static
+	 * Generate GUID. @todo Verify integrity of this by mounting result in Java or something.
+	 * @see http://stackoverflow.com/questions/105034/how-to-create-a-guid-uuid-in-javascript
+	 * @returns {String}
+	 */
+	generateGUID : function () {
+		return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace ( /[xy]/g, function ( c ) {
+			var r = Math.random () * 16 | 0, v = c === "x" ? r : ( r&0x3 | 0x8 );
+			return v.toString ( 16 );
+		}).toUpperCase();
+	},
+
+	/**
+	 * @static
+	 * String appears to be a generated key? We don't look it up in the key cache, 
+	 * so this method can be used to check a key that was generated in old session.
+	 * @param {String} string
+	 * @returns {boolean}
+	 */
+	isKey : function ( string ) {
+		var hit = null, looks = false;
+		if ( gui.Type.isString ( string )) {
+			hit = this.extractKey ( string ); 
+			looks = hit && hit [ 0 ] === string;
+		}
+		return looks;
+	},
+
+	/**
+	 * Extract (potential) key from string.
+	 * @param {String} string
+	 * @returns {String}
+	 */
+	extractKey : function ( string ) {
+		return ( /key\d{9}/ ).exec ( string );
+	},
+
+
+	// Private .............................................................................
+
+	/**
+	 * Tracking generated keys to prevent doubles.
+	 * @type {Map<String,boolean>}
+	 */
+	_keys : Object.create ( null )
+};
+
+
 /**
  * # gui.SpiritualAid
  * Polyfilling missing features from ES5 and selected features from ES6. 
@@ -413,6 +571,7 @@ gui.SpiritualAid = {
 	/**
 	 * Patching cheap DHTML effects with super-simplistic polyfills.
 	 * @todo cancelAnimationFrame
+	 * @todo use MessageChannel (@http://www.nonblocking.io/2011/06/windownexttick.html) pending moz bug#677638
 	 * @param [Window} win
 	 */
 	_effects : function ( win ) {
@@ -617,11 +776,14 @@ gui.Spiritual.prototype = {
 		}
 		// modules extend gui.Spirit, use init() to extend subclass
 		var base = this.context.gui.Spirit;
-		// addins (@todo all sorts of "decorators" instead)
-		if ( gui.Type.isObject ( module.addins )) {
-			gui.Object.each ( module.addins, function ( name, value ) {
-				base.addin ( name, value );
+		// mixins (@todo all sorts of "decorators")
+		if ( gui.Type.isObject ( module.mixins )) {
+			gui.Object.each ( module.mixins, function ( name, value ) {
+				base.mixin ( name, value );
 			}, this );
+		}
+		if ( gui.Type.isObject ( module.addins )) { // TEMP! 
+			throw new Error ( "Deprecated" );
 		}
 		// plugins
 		if ( gui.Type.isObject ( module.plugins )) {
@@ -815,17 +977,15 @@ gui.Spiritual.prototype = {
 	},
 
 	/**
-	 * TODO: Must be renamed to broadcastGlobal! Broadcast event details globally. 
-	 * Use this if you stopPropagate an event for personal reasons and don't want 
-	 * to keep it a secret (also, update this description).
+	 * Broadcast something globally. Events will be wrapped in an EventSummary.
 	 * @param {String} message gui.BROADCAST_MOUSECLICK or similar
 	 * @param @optional {object} arg This could well be a MouseEvent
 	 */
-	broadcast : function ( message, arg ) {
-		if ( gui.Type.of ( arg ).endsWith ( "event" )) {
+	broadcastGlobal : function ( msg, arg ) {
+		if ( gui.Type.isEvent ( arg )) {
 			arg = new gui.EventSummary ( arg );
 		}
-		gui.Broadcast.dispatchGlobal ( this, message, arg );
+		gui.Broadcast.dispatchGlobal ( this, msg, arg );
 	},
 
 	/**
@@ -992,8 +1152,17 @@ gui.Spiritual.prototype = {
 	_construct : function ( win ) {
 		// patching features
 		this._spiritualaid.polyfill ( win );		
-		// generate signature
-		this.signature = "sig" + String ( Math.random ()).split ( "." )[ 1 ];
+		// compute signature (possibly identical to spiritkey of hosting iframe spirit)
+		this.signature = ( function () {
+			var sig, url = location.href;
+			var key = "spiritual-signature"; // ouch, must remain configurable!
+			if ( url.contains ( key )) {
+				return gui.URL.getParam ( url, key ).split ( "/" ).pop ();
+			} else {
+				return gui.KeyMaster.generateKey ();	
+			}
+		}());
+		
 		// basic setup
 		this.context = win;
 		this._document = win.document;
@@ -1292,7 +1461,7 @@ gui.Exemplar = { // @todo Evaluate static stuff first so that proto can declare 
 	 * @param {object} value
 	 * @param @optional {boolean} override Disable collision detection
 	 */
-	addin : function ( name, value, override ) {
+	mixin : function ( name, value, override ) {
 		if ( this.prototype [ name ] === undefined || override ) {
 			this.prototype [ name ] = value;
 			gui.Exemplar.family ( this, function ( C ) {
@@ -1365,7 +1534,7 @@ gui.Exemplar = { // @todo Evaluate static stuff first so that proto can declare 
 		C.prototype = Object.create ( proto );
 		C.prototype.constructor = C;
 		C.__super__ = null;
-		[ "extend", "addin" ].forEach ( function ( method ) {
+		[ "extend", "mixin" ].forEach ( function ( method ) {
 			C [ method ] = this [ method ];
 		}, this );
 		return C;
@@ -1690,6 +1859,17 @@ gui.Object = {
 			}
 		}
 		return result;
+	},
+
+	/**
+	 * Convert array-like object to array.
+	 * @param {object} object
+	 * @returns {Array<object>}
+	 */
+	toArray : function ( object ) {
+		return Array.map ( object, function ( thing ) {
+			return thing;
+		});
 	}
 };
 
@@ -1726,7 +1906,7 @@ gui.Super.disclaimer = "/**\n" +
 	"  */\n";
 
 /**
- * Declare all method stubs on gui.Super instance.
+ * Declare all method stubs on {gui.Super} instance.
  * @param {gui.Super} target
  * @param {object} proto
  */
@@ -1737,7 +1917,7 @@ gui.Super.stubAll = function ( target, proto ) {
 };
 
 /**
- * Declare single method stub on gui.Super instance.
+ * Declare single method stub on {gui.Super} instance.
  * @param {gui.Super} target
  * @param {object} proto
  * @param {String} method Name of the method
@@ -1769,9 +1949,9 @@ gui.Super.stamp = function ( superconstructor, constructor, object ) {
 					break;
 				case "object" : // setup getter-and-setter type declarations
 					var o = prop.value;
-					if ( o.get || o.set ) {
+					if ( o.getter || o.setter ) {
 						if ( Object.keys ( o ).every ( function ( k ) {
-							return k === "get" || k === "set";
+							return k === "getter" || k === "setter";
 						})) {
 							prop = gui.Super._property ( key, o, constructor );
 						}
@@ -1834,23 +2014,23 @@ gui.Super._function = function ( object, key, prop, superconstructor ) {
  */
 gui.Super._property = function ( key, o, constructor ) {
 	"use strict";
-	[ "get", "set" ].forEach ( function ( what ) {
+	[ "getter", "setter" ].forEach ( function ( what ) {
 		var d, p = constructor.prototype;
 		while ( p && !gui.Type.isDefined ( o [ what ])) {
 			p = Object.getPrototypeOf ( p );
 			d = Object.getOwnPropertyDescriptor ( p, key );
 			if ( d ) {
-				o [ what ] = d [ what ];
+				o [ what ] = d [ what === "getter" ? "get" : "set" ];
 			}
 		}
 	});
 	return {
 		enumerable : true,
 		configurable : true,
-		get : o.get || function () {
+		get : o.getter || function () {
 			throw new Error ( constructor + " Getting a property that has only a setter: " + key );
 		},
-		set : o.set || function () {
+		set : o.setter || function () {
 			throw new Error ( constructor + " Setting a property that has only a getter: " + key );
 		}
 	};
@@ -1889,6 +2069,70 @@ gui.Type = {
 	},
 
 	/**
+	 * Is complex type?
+	 * @param {object} o
+	 * @returns {boolean}
+	 */
+	isComplex : function ( o ) {
+		switch ( this.of ( o )) {
+			case "undefined" :
+			case "boolean" :
+			case "number" :
+			case "string" :
+			case "null" :
+				return false;
+		}
+		return true;
+	},
+
+	/**
+	 * Is Window object?
+	 * @param {object} o
+	 * @returns {boolean}
+	 */
+	isWindow : function ( o ) {
+		return o && o.document && o.location && o.alert && o.setInterval;
+	},
+
+	/**
+	 * Is Event object?
+	 * @pram {object} o
+	 * @returns {boolean}
+	 */
+	isEvent : function ( o ) {
+		return this.of ( o ).endsWith ( "event" ) && this.isDefined ( o.type );
+	},
+
+	/**
+	 * Is spirit instance?
+	 * @returns {boolean}
+	 */
+	isSpirit : function ( o ) {
+		return o && o instanceof gui.Spirit;
+	},
+
+	/**
+	 * Is function fit to be invoked via the "new" operator? 
+	 * We assume true if the prototype reveals any properties.
+	 * @param {function} what
+	 * @returns {boolean}
+	 */
+	isConstructor : function ( what ) {
+		return this.isFunction ( what ) && Object.keys ( what.prototype ).length > 0;
+	},
+
+	/**
+	 * Is constructor for a Spirit?
+	 * @todo Why can't isConstructor be used here?
+	 * @todo something more reliable than "portals".
+	 * @param {function} what
+	 * @returns {boolean}
+	 */
+	isSpiritConstructor : function ( what ) {
+		return this.isFunction ( what ) && this.isBoolean ( what.portals ); // lousy
+	},
+
+	/**
 	 * Autocast string to an inferred type. "123" will 
 	 * return a number, "false" will return a boolean.
 	 * @todo move to gui.Type :)
@@ -1914,27 +2158,6 @@ gui.Type = {
 				break;	
 		}
 		return result;
-	},
-
-	/**
-	 * Is function fit to be invoked via the "new" operator? 
-	 * We assume true if the prototype reveals any properties.
-	 * @param {function} what
-	 * @returns {boolean}
-	 */
-	isConstructor : function ( what ) {
-		return this.isFunction ( what ) && Object.keys ( what.prototype ).length > 0;
-	},
-
-	/**
-	 * Is constructor for a Spirit?
-	 * @todo Why can't isConstructor be used here?
-	 * @todo something more reliable than "portals".
-	 * @param {function} what
-	 * @returns {boolean}
-	 */
-	isSpiritConstructor : function ( what ) {
-		return this.isFunction ( what ) && this.isBoolean ( what.portals ); // lousy
 	},
 
 	/**
@@ -1983,7 +2206,8 @@ gui.Type = {
 		"number", 
 		"boolean", 
 		"null",
-		"arguments"
+		"arguments",
+		"file"
 	].forEach ( function ( type ) {
 		this [ "is" + type [ 0 ].toUpperCase () + type.slice ( 1 )] = function is ( o ) {
 			return this.of ( o ) === type; 
@@ -2188,39 +2412,6 @@ gui.Geometry.hitTest = function ( geo1, geo2 ) {
 	var hitx = x ( geo1, geo2 ) || x ( geo2, geo1 );
 	var hity = y ( geo1, geo2 ) || y ( geo2, geo1 );
 	return hitx && hity;
-};
-
-
- /**
- * # gui.URL
- * Resolve an URL string relative to a document.
- * @param {Document} doc
- * @param {String} href
- */
-gui.URL = function ( doc, href ) {
-	var link = doc.createElement ( "a" ); link.href = href;
-	Object.keys ( gui.URL.prototype ).forEach ( function ( key ) {
-		if ( gui.Type.isString ( link [ key ])) {
-			this [ key ] = link [ key ];
-		}
-	}, this );
-	this.id = this.hash ? this.hash.substring ( 1 ) : null;
-	this.location = this.href.split ( "#" )[ 0 ];
-	this.external = this.location !== String ( doc.location ).split ( "#" )[ 0 ];
-};
-
-gui.URL.prototype = {
-	
-	hash : null, // #test
-	host : null, // www.example.com:80
-	hostname : null, // www.example.com
-	href : null, // http://www.example.com:80/search?q=devmo#test
-	pathname : null, // search
-	port : null, // 80
-	protocol : null, // http:
-	search : null, // ?q=devmo
-	id : null,	// test
-	external : false // external relative to//document*, not the server host
 };
 
 
@@ -2630,15 +2821,10 @@ gui.BlobLoader = {
  * Provides convenient access to an events originating 
  * window, document and spirit of the document element. 
  * @todo Fire this onmousemove only if has listeners!
- * @todo Figure this out with cross-domain spirits.
  * @param {Event} e
  */
 gui.EventSummary = function ( e ) {
-	if ( gui.Type.of ( e ).endsWith ( "event" )) {
-		this._construct ( e );
-	} else {
-		throw new TypeError ();
-	}
+	this._construct ( e );
 };
 
 gui.EventSummary.prototype = {
@@ -2746,18 +2932,22 @@ gui.Crawler.prototype = {
 	 */
 	ascend : function ( start, handler ) {
 		this.direction = gui.Crawler.ASCENDING;
-		var elm = start instanceof gui.Spirit ? start.element : start;
+		var win, elm = start instanceof gui.Spirit ? start.element : start;
 		do {
 			if ( elm.nodeType === Node.DOCUMENT_NODE ) {
 				if ( this.global ) {
-					elm = elm.defaultView.frameElement;
-					if ( elm ) {
-						try {
-							var assignment = elm.ownerDocument;
-						} catch ( accessDeniedException ) {
-							console.warn ( "@todo Ascend cross domain" );
-							elm = null;
+					win = elm.defaultView;
+					if ( win.parent !== win ) {
+						if ( win.location.search.contains ( gui.IframeSpirit.KEY_SIGNATURE )) {
+							elm = null;	
+							if ( gui.Type.isFunction ( handler.transcend )) {
+								this._transcend ( win, win.parent, handler );
+							}
+						} else {
+							elm = win.frameElement;
 						}
+					} else {
+						elm = null;
 					}
 				} else {
 					elm = null;
@@ -2809,20 +2999,20 @@ gui.Crawler.prototype = {
 	 * @param {boolean} start
 	 */
 	_descend : function ( elm, handler, start ) {
-		var directive = this._handleElement ( elm, handler );
+		var win, spirit, directive = this._handleElement ( elm, handler );
 		switch ( directive ) {
 			case 0 :
 				if ( elm.childElementCount > 0 ) {
 					this._descend ( elm.firstElementChild, handler, false );
-				} else {
-					if ( this.global && elm.localName === "iframe" ) {
-						try {
-							var assignment = elm.contentDocument;
-						} catch ( accessDeniedException ) {
-							console.warn ( "@todo Descend cross domain" );
-						}
-						var root = elm.contentDocument.documentElement;
-						if ( root && root.spirit ) { // otherwise just created or no Spiritual
+				} else if ( this.global && elm.localName === "iframe" ) {
+					if (( spirit = elm.spirit )) {
+						if ( spirit.external ) {
+							win = elm.ownerDocument.defaultView;
+							if ( gui.Type.isFunction ( handler.transcend )) {
+								this._transcend ( win, spirit.contentWindow, handler );
+							}
+						} else {
+							var root = elm.contentDocument.documentElement;
 							this._descend ( root, handler, false );
 						}
 					}
@@ -2881,6 +3071,26 @@ gui.Crawler.prototype = {
 	 */
 	_handleSpirit : function ( spirit, handler ) {
 		return handler.handleSpirit ( spirit );
+	},
+
+	/**
+	 * Teleport crawler to hosting (parent) or hosted (subframe) domain.
+	 * @param {Window} thiswin Current window
+	 * @param {Window} thatwin Target window
+	 * @param {object} handler
+	 */
+	_transcend : function ( thiswin, thatwin, handler ) {
+		var uri, key, cut, url = thiswin.location.href;
+		var sig = gui.URL.getParam ( url, gui.IframeSpirit.KEY_SIGNATURE );
+		if ( sig ) {
+			cut = sig.split ( "/" ),
+			key = cut.pop (),
+			uri = cut.join ( "/" );
+		} else {
+			uri = "*"; // @todo
+			key = thiswin.gui.signature;
+		}
+		handler.transcend ( thatwin, uri, key );
 	}
 };
 
@@ -2896,82 +3106,6 @@ gui.Crawler.DESCENDING = "descending";
  */
 gui.Crawler.CONTINUE = 0;
 gui.Crawler.STOP = 1;
-
-
-/**
- * # gui.KeyMaster
- * Generating keys for unique key purposes.
- */
-gui.KeyMaster = {
-
-	/**
-	 * @static
-	 * Generate random key. Not simply incrementing a counter in order to celebrate the 
-	 * rare occasion that spirits might be uniquely identified across different domains.
-	 * @param @optional {String} prefix Used instead of "key" to prefix the key
-	 * @returns {String}
-	 */
-	generateKey : function ( prefix ) {
-
-		prefix = "key"; // @todo: remove this line when we get drunk enough to fix the regular expression below...
-
-		var ran = Math.random ().toString ();
-		var key = ( prefix || "key" ) + ran.slice ( 2, 11 );
-		if ( this._keys.has ( key )) {
-			key = this.generateKey ( prefix );
-		} else {
-			this._keys.add ( key );
-		}
-		return key;
-	},
-
-	/**
-	 * @static
-	 * Generate GUID. @todo Verify integrity of this by mounting result in Java or something.
-	 * @see http://stackoverflow.com/questions/105034/how-to-create-a-guid-uuid-in-javascript
-	 * @returns {String}
-	 */
-	generateGUID : function () {
-		return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace ( /[xy]/g, function ( c ) {
-			var r = Math.random () * 16 | 0, v = c === "x" ? r : ( r&0x3 | 0x8 );
-			return v.toString ( 16 );
-		}).toUpperCase();
-	},
-
-	/**
-	 * @static
-	 * String appears to be a generated key? We don't look it up in the key cache, 
-	 * so this method can be used to check a key that was generated in old session.
-	 * @param {String} string
-	 * @returns {boolean}
-	 */
-	isKey : function ( string ) {
-		var hit = null, looks = false;
-		if ( gui.Type.isString ( string )) {
-			hit = this.extractKey ( string ); 
-			looks = hit && hit [ 0 ] === string;
-		}
-		return looks;
-	},
-
-	/**
-	 * Extract (potential) key from string.
-	 * @param {String} string
-	 * @returns {String}
-	 */
-	extractKey : function ( string ) {
-		return ( /key\d{9}/ ).exec ( string );
-	},
-
-
-	// Private .............................................................................
-
-	/**
-	 * Tracking generated keys to prevent doubles.
-	 * @type {Set<String>}
-	 */
-	_keys : new Set ()
-};
 
 
 /**
@@ -3178,6 +3312,7 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	/**
 	 * Matches the property `signature` of the local `gui` object.
 	 * @todo rename this property
+	 * @todo perhapse deprecate?
 	 * @type {String}
 	 */
 	signature : null,
@@ -3481,14 +3616,14 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 }, { // Recurring static ...............................................................
 	
 	/**
-	 * Portal spirit via the `gui.portal` method?
+	 * Portal spirit into iframes via the `gui.portal` method?
 	 * @see {ui#portal}  
 	 * @type {boolean}
 	 */
 	portals : true,
 	
 	/**
-	 * Extends spirit and plugins (mutating plugins) plus update getters/setters.
+	 * Extends spirit and plugins (mutating plugins) plus updates getters/setters.
 	 * @param {object} expando 
 	 * @param {object} recurring 
 	 * @param {object} statics 
@@ -3563,9 +3698,9 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	/**
 	 * Assign plugin to prefix, checking for naming collision. Prepared for 
 	 * a scenario where spirits may have been declared before plugins load.
-	 * @param {String} prefix
+	 * @param {String} prefix "att", "dom", "action", "event" etc
 	 * @param {function} plugin Constructor for plugin
-	 * @param {boolean} override Disable collision detection
+	 * @param @optional {boolean} override Disable collision detection
 	 */
 	plugin : function ( prefix, plugin, override ) {
 		var plugins = this.__plugins__;
@@ -3584,30 +3719,11 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	},
 
 	/**
-	 * Mapping plugin constructor to prefix.
+	 * Mapping plugin constructor to plugin prefix.
 	 * @type {Map<String,function>}
 	 */
 	__plugins__ : Object.create ( null )
 
-	/*
-	 * @todo move to Spiritual EDB
-	 * @type {String}
-	 *
-	script : null,
-	
-	 * @todo move to Spiritual EDB.
-	 * @param {Document} doc
-	 * @returns {String}
-	run : function ( doc ) {
-
-		var func = edb.Function.get ( this.script, doc.defaultView );
-		var args = Array.filter ( arguments, function ( e, i ) {
-			return i > 0;
-		});
-		var html = func.apply ( {}, args );
-		return this.possess ( this.parse ( doc, html ));
-	}
-	*/
 	
 }, { // Static ....................................................................
 
@@ -3618,7 +3734,7 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	 */
 	visible : function ( spirit ) {
 		if ( spirit.life.invisible ) {
-			this._visible ( spirit, true, spirit.life.entered );
+			this._setvisibility ( spirit, true, spirit.life.entered );
 			spirit.css.remove ( gui.CLASS_INVISIBLE );
 		}
 		return spirit;
@@ -3631,19 +3747,19 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	 */
 	invisible : function ( spirit ) {
 		if ( spirit.life.visible ) {
-			this._visible ( spirit, false, spirit.life.entered );
+			this._setvisibility ( spirit, false, spirit.life.entered );
 			spirit.css.add ( gui.CLASS_INVISIBLE );
 		}
 		return spirit;
 	},
 
 	/**
-	 * Hello again.
+	 * Update spirit visibility. Recursively updagtes descendant spirits.
 	 * @param {gui.Spirit} spirit
-	 * @param {boolean} show
-	 * @param {boolean} subtree
+	 * @param {boolean} show Visible or invisible?
+	 * @param {boolean} subtree Recurse?
 	 */
-	_visible : function ( spirit, show, subtree ) {
+	_setvisibility : function ( spirit, show, subtree ) {
 		var crawler = new gui.Crawler ( show ? 
 			gui.CRAWLER_VISIBLE : gui.CRAWLER_INVISIBLE 
 		);
@@ -3677,7 +3793,8 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	},
 
 	/**
-	 * Hello
+	 * Spirit was terminated.
+	 * @type {String}
 	 */
 	DENIAL : "Attempt to handle destructed spirit"
 
@@ -4190,20 +4307,20 @@ gui.LifePlugin = gui.Tracker.extend ( "gui.LifePlugin", {
  */
 ( function generatecode () {
 	var states = {
-		construct : gui.Life.CONSTRUCT,
-		configure : gui.Life.CONFIGURE,
-		enter : gui.Life.ENTER,
-		attach : gui.Life.ATTACH,
-		ready : gui.Life.READY,
-		visible : gui.Life.VISIBLE,
-		invisible : gui.Life.INVISIBLE,
-		detach : gui.Life.DETACH,
-		exit : gui.Life.EXIT,
-		destruct : gui.Life.DESTRUCT
+		construct : gui.LIFE_CONSTRUCT,
+		configure : gui.LIFE_CONFIGURE,
+		enter : gui.LIFE_ENTER,
+		attach : gui.LIFE_ATTACH,
+		ready : gui.LIFE_READY,
+		visible : gui.LIFE_VISIBLE,
+		invisible : gui.LIFE_INVISIBLE,
+		detach : gui.LIFE_DETACH,
+		exit : gui.LIFE_EXIT,
+		destruct : gui.LIFE_DESTRUCT
 	};
 	// prefix methods with "on", suffix booleans with "ed"
 	gui.Object.each ( states, function ( state, event ) {
-		gui.LifePlugin.addin ( "go" + state , function () {
+		gui.LifePlugin.mixin ( "go" + state , function () {
 			var prop = state;
 			switch ( state ) {
 				case "ready" :
@@ -4343,11 +4460,11 @@ gui.ConfigPlugin = gui.Plugin.extend ( "gui.ConfigPlugin", {
  * @param @optional {String} direction
  * @param @optional {boolean} global
  */
-gui.Action = function SpiritAction ( target, type, data, direction, global ) {
+gui.Action = function Action ( target, type, data, direction, global ) {
 	this.target = target;
 	this.type = type;
 	this.data = data;
-	this.direction = direction || "ascending";
+	this.direction = direction || gui.Action.ASCEND;
 	this.global = global || false;
 };
 
@@ -4373,7 +4490,7 @@ gui.Action.prototype = {
 	data : null,
 
 	/**
-	 * Is travelling up or down? Matches "ascending" or "descending".
+	 * Is travelling up or down? Matches "ascend" or "descend".
 	 * @type {String}
 	 */
 	direction : null,
@@ -4384,6 +4501,12 @@ gui.Action.prototype = {
 	 * @type {boolean}
 	 */
 	global : false,
+
+	/**
+	 * Used when posting actions xdomain. Matches an iframespirit key.
+	 * @type {String}
+	 */
+	spiritkey : null,
 
 	/**
 	 * Is action consumed?
@@ -4434,8 +4557,12 @@ gui.Action.prototype = {
 
 // Static .........................................................................
 
+gui.Action.DESCEND = "descend";
+gui.Action.ASCEND = "ascend";
+
 /**
  * Dispatch action. The dispatching spirit will not `onaction()` its own action.
+ * @todo Class-like thing to carry all these scoped methods...
  * @todo support custom `gui.Action` as an argument
  * @todo common exemplar for action, broadcast etc?
  * @param {gui.Spirit} target
@@ -4450,6 +4577,9 @@ gui.Action.dispatch = function dispatch ( target, type, data, direction, global 
 	var crawler = new gui.Crawler ( gui.CRAWLER_ACTION );
 	crawler.global = global || false;
 	crawler [ direction || "ascend" ] ( target, {
+		/*
+		 * @param {gui.Spirit} spirit
+		 */
 		handleSpirit : function ( spirit ) {
 			var directive = gui.Crawler.CONTINUE;
 			if ( spirit.action.contains ( type )) {
@@ -4460,9 +4590,62 @@ gui.Action.dispatch = function dispatch ( target, type, data, direction, global 
 				}
 			}
 			return directive;
+		},
+		/*
+		 * Teleport action across domains (through iframe boundaries).
+		 * @see {gui.IframeSpirit}
+		 * @param {Window} win Remote window
+		 * @param {String} uri target origin
+		 * @param {String} key Spiritkey of xdomain IframeSpirit (who will relay the action)
+		 */
+		transcend : function ( win, uri, key ) {
+			var msg = gui.Action.stringify ( action, key );
+			win.postMessage ( msg, uri );
 		}
 	});
 	return action;
+};
+
+/**
+ * Encode action to be posted xdomain.
+ * @param {gui.Action} a
+ * @param @optional {String} key Associates dispatching document 
+ *        to the hosting iframespirit (ascending action scenario)
+ * @returns {String}
+ */
+gui.Action.stringify = function ( a, key ) {
+	var prefix = "spiritual-action:";
+	return prefix + ( function () {
+		a.target = null;
+		a.data = ( function ( d ) {
+			if ( gui.Type.isComplex ( d )) {
+				if ( gui.Type.isFunction ( d.stringify )) {
+					d = d.stringify ();
+				} else {
+					try {
+						JSON.stringify ( d );
+					} catch ( jsonexception ) {
+						d = null;
+					}
+				}
+			}
+			return d;
+		}( a.data ));
+		a.spiritkey = key || null;
+		return JSON.stringify ( a );
+	}());
+};
+
+/**
+ * Decode action posted from xdomain and return an action-like object.
+ * @param {String} msg
+ * @returns {object}
+ */
+gui.Action.parse = function ( msg ) {
+	var prefix = "spiritual-action:";
+	if ( msg.startsWith ( prefix )) {
+		return JSON.parse ( msg.split ( prefix )[ 1 ]);
+	}
 };
 
 
@@ -4720,23 +4903,17 @@ gui.AttPlugin = gui.Plugin.extend ( "gui.AttPlugin", {
 	 * @returns {object} String, boolean or number
 	 */
 	get : function ( name ) {
-		return gui.Type.cast ( 
-			this.spirit.element.getAttribute ( name )
-		);
+		return gui.AttPlugin.get ( this.spirit.element, name );
 	},
 
 	/**
 	 * Set single element attribute (use null to remove).
 	 * @param {String} name
 	 * @param {String} value
-	 * @returns {Spirit}
+	 * @returns {gui.AttPlugin}
 	 */
 	set : function ( name, value ) {
-		if ( value === null ) {
-			this.del ( name );
-		} else if ( !this.__suspended__ ) {
-			this.spirit.element.setAttribute ( name, String ( value ));
-		}
+		gui.AttPlugin.set ( this.spirit.element, name, value );
 		return this;
 	},
 
@@ -4746,17 +4923,19 @@ gui.AttPlugin = gui.Plugin.extend ( "gui.AttPlugin", {
 	 * @returns {boolean}
 	 */
 	has : function ( name ) {
-		return this.spirit.element.getAttribute ( name ) !== null;
+		gui.AttPlugin.has ( this.spirit.element, name );
 	},
 
 	/**
 	 * Remove element attribute.
 	 * @param {String} att
+	 * @returns {gui.AttPlugin}
 	 */
 	del : function ( name ) {
 		if ( !this.__suspended__ ) {
-			this.spirit.element.removeAttribute ( name );
+			gui.AttPlugin.del ( this.spirit.element, name );
 		}
+		return this;
 	},
 
 	/**
@@ -4764,9 +4943,7 @@ gui.AttPlugin = gui.Plugin.extend ( "gui.AttPlugin", {
 	 * @returns {Array<Attr>}
 	 */
 	all : function () {
-		return Array.map ( this.spirit.element.attributes, function ( att ) {
-			return att;
-		});
+		return gui.AttPlugin.all ( this.spirit.element );
 	},
 
 	/**
@@ -4774,12 +4951,8 @@ gui.AttPlugin = gui.Plugin.extend ( "gui.AttPlugin", {
 	 * Values are converted to an inferred type.
 	 * @returns {Map<String,String>} 
 	 */
-	getup : function () {
-		var map = Object.create ( null );
-		this.all ().forEach ( function ( att ) {
-			map [ att.name ] = gui.Type.cast ( att.value );
-		});
-		return map;
+	getmap : function () {
+		return gui.AttPlugin.getmap ( this.spirit.element );
 	},
 
 	/**
@@ -4787,10 +4960,8 @@ gui.AttPlugin = gui.Plugin.extend ( "gui.AttPlugin", {
 	 * argument. Use null value to remove an attribute.
 	 * @param {Map<String,String>}
 	 */
-	setup : function ( map ) {
-		gui.Object.each ( map, function ( name, value ) {
-			this.set ( name, value );
-		}, this );
+	setmap : function ( map ) {
+		gui.AttPlugin.setmap ( this.spirit.element, map );
 	},
 
 
@@ -4814,7 +4985,88 @@ gui.AttPlugin = gui.Plugin.extend ( "gui.AttPlugin", {
 		this.__suspended__ = false;
 		return res;
 	}
+
 	
+}, {}, { // Static ...........................................
+
+	/**
+	 * Get single element attribute cast to an inferred type.
+	 * @param {Element} elm
+	 * @param {String} att
+	 * @returns {object} String, boolean or number
+	 */
+	get : function ( elm, name ) {
+		return gui.Type.cast ( elm.getAttribute ( name ));
+	},
+
+	/**
+	 * Set single element attribute (use null to remove).
+	 * @param {Element} elm
+	 * @param {String} name
+	 * @param {String} value
+	 * @returns {gui.AttPlugin}
+	 */
+	set : function ( elm, name, value ) {
+		if ( value === null ) {
+			this.del ( elm, name );
+		} else {
+			elm.setAttribute ( name, String ( value ));
+		}
+	},
+
+	/**
+	 * Element has attribute?
+	 * @param {Element} elm
+	 * @param {String} att
+	 * @returns {boolean}
+	 */
+	has : function ( elm, name ) {
+		return elm.getAttribute ( name ) !== null;
+	},
+
+	/**
+	 * Remove element attribute.
+	 * @param {Element} elm
+	 * @param {String} att
+	 */
+	del : function ( elm, name ) {
+		elm.removeAttribute ( name );
+	},
+
+	/**
+	 * Collect attributes as an array (of DOMAttributes).
+	 * @param {Element} elm
+	 * @returns {Array<Attr>}
+	 */
+	all : function ( elm ) {
+		return gui.Object.toArray ( elm.attributes );
+	},
+
+	/**
+	 * Get all attributes as hashmap type object. 
+	 * Values are converted to an inferred type.
+	 * @param {Element} elm
+	 * @returns {Map<String,String>} 
+	 */
+	getmap : function ( elm ) {
+		var map = Object.create ( null );
+		this.all ( elm ).forEach ( function ( att ) {
+			map [ att.name ] = gui.Type.cast ( att.value );
+		});
+		return map;
+	},
+
+	/**
+	 * Invoke multiple attributes update via hashmap 
+	 * argument. Use null value to remove an attribute.
+	 * @param {Element} elm
+	 * @param {Map<String,String>}
+	 */
+	setmap : function ( elm, map) {
+		gui.Object.each ( map, function ( name, value ) {
+			this.set ( elm, name, value );
+		}, this );
+	}
 });
 
 
@@ -4924,6 +5176,7 @@ Object.defineProperties ( gui.BoxPlugin.prototype, {
 
 /**
  * # gui.Broadcast
+ * @todo "one" and "oneGlobal" methods...
  * @param {Spirit} target
  * @param {String} type
  * @param {object} data
@@ -4935,6 +5188,7 @@ gui.Broadcast = function ( target, type, data, global ) {
 	this.type = type;
 	this.data = data;
 	this.isGlobal = global;
+	this.signatures = [];
 };
 
 gui.Broadcast.prototype = {
@@ -4963,6 +5217,12 @@ gui.Broadcast.prototype = {
 	 * @type {boolean}
 	 */
 	isGlobal : false,
+
+	/**
+	 * Experimental...
+	 * @type {Array<String>}
+	 */
+	signatures : null,
 
 	/**
 	 * Identification
@@ -4995,7 +5255,7 @@ gui.Broadcast._locals = Object.create ( null );
  * @param @optional {String} sig
  */
 gui.Broadcast.add = function ( message, handler, sig ) {
- return	this._add ( message, handler, sig );
+ return	this._add ( message, handler, sig || gui.signature );
 };
 
 /**
@@ -5005,7 +5265,7 @@ gui.Broadcast.add = function ( message, handler, sig ) {
  * @param @optional {String} sig
  */
 gui.Broadcast.remove = function ( message, handler, sig ) {
-	return this._remove ( message, handler, sig );
+	return this._remove ( message, handler, sig || gui.signature );
 };
 
 /**
@@ -5018,7 +5278,7 @@ gui.Broadcast.remove = function ( message, handler, sig ) {
  * @returns {gui.Broadcast}
  */
 gui.Broadcast.dispatch = function ( target, type, data, sig ) {
-	return this._dispatch ( target, type, data, sig );
+	return this._dispatch ( target, type, data, sig || gui.signature );
 };
 
 /**
@@ -5050,6 +5310,47 @@ gui.Broadcast.removeGlobal = function ( message, handler ) {
 gui.Broadcast.dispatchGlobal = function ( target, type, data ) {
 	return this._dispatch ( target, type, data );
 };
+
+/**
+ * Encode broadcast to be posted xdomain.
+ * @param {gui.Broacast} b
+ * @returns {String}
+ */
+gui.Broadcast.stringify = function ( b ) {
+	var prefix = "spiritual-broadcast:";
+	return prefix + ( function () {
+		b.target = null;
+		b.data = ( function ( d ) {
+			if ( gui.Type.isComplex ( d )) {
+				if ( gui.Type.isFunction ( d.stringify )) {
+					d = d.stringify ();
+				} else {
+					try {
+						JSON.stringify ( d );
+					} catch ( jsonexception ) {
+						d = null;
+					}
+				}
+			}
+			return d;
+		}( b.data ));
+		return JSON.stringify ( b );
+	}());
+};
+
+/**
+ * Decode broadcast posted from xdomain and return a broadcast-like object.
+ * @param {String} msg
+ * @returns {object}
+ */
+gui.Broadcast.parse = function ( msg ) {
+	var prefix = "spiritual-broadcast:";
+	if ( msg.startsWith ( prefix )) {
+		return JSON.parse ( msg.split ( prefix )[ 1 ]);
+	}
+};
+
+// PRIVATE ...................................................................................
 
 /**
  * mapcribe handler to message(s).
@@ -5123,14 +5424,20 @@ gui.Broadcast._remove = function ( message, handler, sig ) {
  */
 gui.Broadcast._dispatch = function ( target, type, data, sig ) {
 	var global = !gui.Type.isString ( sig );
-	var broadcast = new gui.Broadcast ( target, type, data, global );
 	var map = global ? this._globals : this._locals [ sig ];
+	var b = new gui.Broadcast ( target, type, data, global );
 	if ( map ) {
 		var handlers = map [ type ];
 		if ( handlers ) {
-			handlers.slice ().forEach ( function ( handler, index ) {
-				handler.onbroadcast ( broadcast );
+			handlers.slice ().forEach ( function ( handler ) {
+				handler.onbroadcast ( b );
 			});
+		}
+	}
+	if ( global ) {
+		var root = document.documentElement.spirit;
+		if ( root ) { // no spirit before DOMContentLoaded
+			root.propagateBroadcast ( b );
 		}
 	}
 };
@@ -6044,7 +6351,7 @@ gui.DOMPlugin = gui.Plugin.extend ( "gui.DOMPlugin", {
 
 
 /**
- * Generate CSS query methods accept a CSS selector and an optional spirit constructor 
+ * DOM query methods accept a CSS selector and an optional spirit constructor 
  * as arguments. They return a spirit, an element or an array of either.
  */
 gui.Object.each ({
@@ -6108,8 +6415,8 @@ gui.Object.each ({
 	 * @param {String} name
 	 * @param {function} method
 	 */
-}, function addin ( name, method ) {
-	gui.DOMPlugin.addin ( name, function () {
+}, function mixin ( name, method ) {
+	gui.DOMPlugin.mixin ( name, function () {
 		var selector = arguments [ 0 ], type = arguments [ 1 ];
 		if ( gui.Type.isString ( selector )) {
 			if ( arguments.length === 1 || gui.Type.isFunction ( type )) {
@@ -6389,8 +6696,8 @@ gui.Object.each ({
 	 * @param {String} name
 	 * @param {function} method
 	 */
-},  function addin ( name, method ) {
-	gui.DOMPlugin.addin ( name, function ( type ) {
+},  function mixin ( name, method ) {
+	gui.DOMPlugin.mixin ( name, function ( type ) {
 		if ( !gui.Type.isDefined ( type ) || gui.Type.isFunction ( type )) {
 			return method.apply ( this, arguments );
 		} else {
@@ -6406,7 +6713,7 @@ gui.Object.each ({
 /**
  * DOM insertion methods accept one argument: one spirit OR one element OR an array of either or both. 
  * The input argument is returned as given. This allows for the following one-liner to be constructed: 
- * this.something = this.dom.append ( gui.SomeThingSpirit.summon ( this.document ));  * imagine 15 more
+ * this.something = this.dom.append ( gui.SomeThingSpirit.summon ( this.document )); // imagine 15 more
  */
 gui.Object.each ({
 
@@ -6490,8 +6797,8 @@ gui.Object.each ({
 	 * @param {String} name
 	 * @param {function} method
 	 */
-}, function addin ( name, method ) {
-	gui.DOMPlugin.addin ( name, function ( things ) {
+}, function mixin ( name, method ) {
+	gui.DOMPlugin.mixin ( name, function ( things ) {
 		var elms = Array.map ( gui.Type.list ( things ), function ( thing ) {
 			return thing && thing instanceof gui.Spirit ? thing.element : thing;
 		});
@@ -6682,11 +6989,8 @@ gui.Tick._local = Object.create ( null );
  * @returns {function}
  */
 gui.Tick.add = function ( type, handler, sig ) {
-	if ( !sig ) {
-		console.error ( "SIG REQUIRED for tick of type: " + type );
-	}
 	if ( gui.Arguments.validate ( arguments, "string|array", "object|function", "string" )) {
-		return this._add ( type, handler, false, sig );
+		return this._add ( type, handler, false, sig || gui.signature );
 	}
 };
 
@@ -6697,11 +7001,8 @@ gui.Tick.add = function ( type, handler, sig ) {
  * @returns {function}
  */
 gui.Tick.one = function ( type, handler, sig ) {
-	if ( !sig ) {
-		console.error ( "SIG REQUIRED for tick of type: " + type );
-	}
 	if ( gui.Arguments.validate ( arguments, "string|array", "object|function", "string" )) {
-		return this._add ( type, handler, true, sig );
+		return this._add ( type, handler, true, sig || gui.signature );
 	}
 };
 
@@ -6810,7 +7111,6 @@ gui.Tick.dispatchGlobal = function ( type, time ) {
 
 /**
  * Hello.
- * @todo
  */
 gui.Tick._add = function ( type, handler, one, sig ) {
 	if ( gui.Type.isArray ( type )) {
@@ -6834,8 +7134,13 @@ gui.Tick._add = function ( type, handler, one, sig ) {
 		if ( index < 0 ) {
 			index = list.push ( handler ) - 1;
 		}
+		/*
+		 * @todo
+		 * Adding a property to an array will 
+		 * make it slower in Firefox. Fit it!
+		 */
 		if ( one ) {
-			list._one = list._one || {};
+			list._one = list._one || Object.create ( null );
 			list._one [ index ] = true;
 		}
 	}
@@ -6844,7 +7149,6 @@ gui.Tick._add = function ( type, handler, one, sig ) {
 
 /**
  * Hello.
- * @todo
  */
 gui.Tick._remove = function ( type, handler, sig ) {
 	if ( gui.Type.isArray ( type )) {
@@ -6875,25 +7179,17 @@ gui.Tick._dispatch = function ( type, time, sig ) {
 	if ( !gui.Type.isDefined ( time )) {	
 		var list = map.handlers [ type ];
 		if ( list ) {
-			var i = 0, toBeRemoved = [];
-			while ( i < list.length ) {
+			list.slice ().forEach ( function ( handler, i ) {
 				try {
-					list [ i ].ontick ( tick );
-				} catch ( exception ) {
-					// @todo figure out how destructed spirits should behave while we loop (see below)
+					handler.ontick ( tick );
+				} catch ( exception ) { // @todo figure out how destructed spirits should behave while we loop
 					if ( exception.message !== gui.Spirit.DENIAL ) {
 						throw new Error ( exception.message );
 					}
 				}
 				if ( list._one && list._one [ i ]) {
 					delete list._one [ i ];
-					// do not remove untill after we are through the list (will screw up the index+length)
-					toBeRemoved.push ( i );
 				}
-				i++;
-			}
-			toBeRemoved.forEach ( function ( index ) {
-				list.remove ( index );
 			});
 		}
 	} else if ( !types [ type ]) {
@@ -6972,7 +7268,7 @@ gui.TickPlugin = gui.Tracker.extend ( "gui.TickPlugin", {
 		if ( gui.Interface.validate ( gui.ITickHandler, handler )) {
 			this._breakdown ( arg ).forEach ( function ( type ) {
 				if ( this._removechecks ( type, [ handler, this._global ])) {
-					gui.Tick.remove ( type, handler );
+					this._remove ( type, handler );
 				}
 			}, this );
 		}
@@ -7966,7 +8262,7 @@ gui.module ( "core", {
 	/**
 	 * Methods added to gui.Spirit.prototype
 	 */
-	addins : {
+	mixins : {
 
 		/**
 		 * Handle action.
@@ -8282,25 +8578,21 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 	onconstruct : function () {
 		this._super.onconstruct ();
 		this._dimension = new gui.Dimension ( 0, 0 );
+		this.action.addGlobal (gui.ACTION_DOCUMENT_FIT);
+		this.event.add ( "message", this.window );
 		Object.keys ( this._messages ).forEach ( function ( type ) {
 			var target = this.document;
 			switch ( type ) {
-				// case "load" : 
 				case "scroll" :
 				case "resize" :
-				//case "popstate" :  * @todo top only? tackle history?
-				//case "hashchange" :  * @todo top only? tackle history?
 					target = this.window;
 					break;
 			}
 			this.event.add ( type, target );
 		}, this );
-		// setup event listeners for top document only.
 		if ( this.document === document ) {
 			this._constructTop ();
 		}
-		// consuming and redispatching fit-action
-		this.action.addGlobal ( gui.ACTION_DOCUMENT_FIT );
 		/*
 		 * BUG!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 		 * @todo it appears we *must* listen for touch start events
@@ -8337,49 +8629,40 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 			case "orientationchange" :
 				this._onorientationchange ();
 				break;
-			// all documents
-			default : 
+			default : // all documents
+				switch ( e.type ) {
+					case "resize" :
+						if ( parent === window ) {
+							this._onresize ();
+						}
+						break;
+					case "load" :
+						if ( !this._isLoaded ) {
+							this._onload ();
+						}
+						break;
+					case "message" :
+						this._onmessage ( e.data );
+						break;
+				}
+				// broadcast event globally?
 				var message = this._messages [ e.type ];
 				if ( gui.Type.isDefined ( message )) {
-					switch ( e.type ) { 
-						/*
-						 * Nuke all touch events for now @todo move to touch module
-						case "touchstart" :
-						case "touchend" :
-						case "touchcancel" :
-						case "touchleave" :
-						case "touchmove" :
-							e.preventDefault ();
-							break;
-						*/
-						case "resize" :
-							var istop = this.window === window;
-							if ( istop ) {
-								this._onresize ();
-							}
-							break;
-						case "load" :
-							if ( !this._isLoaded ) {
-								this._onload ();
-							}
-							break;
-					}
-					// Broadcast event globally.
-					this._broadcast ( message, e );
+					this._broadcastEvent ( e, message );
 				}
 		}
 	},
 
 	/**
 	 * Handle action.
-	 * @param {gui.Action} action
+	 * @param {gui.Action} a
 	 */
-	onaction : function ( action ) {
-		this._super.onaction ( action );
-		switch ( action.type ) {
-			case gui.ACTION_DOCUMENT_FIT : // relay fit action, but claim ourselves as new action.target
-				action.consume ();
-				this.fit ( action.data === true );
+	onaction : function ( a ) {
+		this._super.onaction ( a );
+		switch ( a.type ) {
+			case gui.ACTION_DOCUMENT_FIT : // relay fit a, but claim ourselves as new a.target
+				a.consume ();
+				this.fit ( a.data === true );
 				break;
 		}
 	},
@@ -8454,6 +8737,27 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 			}
 		}
 	},
+
+	/**
+	 * Propagate broadcast xdomain, recursively posting to neighboring documentspirits.
+	 *
+	 * 1. Propagate descending
+	 * 2. Propagate ascending
+	 * @todo Don't post to universal domain "*" let's bypass the iframe spirit for this...
+	 * @param {gui.Broadcast} b
+	 */
+	propagateBroadcast : function ( b ) {
+		b.signatures.push ( this.signature );
+		var msg = gui.Broadcast.stringify ( b ), win = this.window, parent = win.parent;
+		this.dom.qall ( "iframe", gui.IframeSpirit ).forEach ( function ( iframe ) {
+			if ( iframe.external ) {
+				iframe.contentWindow.postMessage ( msg, "*" );
+			}
+		});
+		if ( parent !== win ) {
+			parent.postMessage ( msg, "*" );
+		}
+	},
 	
 	
 	// Private ...................................................................
@@ -8469,24 +8773,57 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 	 * will be broadcasted to all windows. This way, a click event in one iframe might 
 	 * close a menu in another iframe; and mousemove events can be listened for in all 
 	 * documents at once. Important: If you stopPropagate() an event so that the 
-	 * gui.DocumentSpirit cannot handle it, you should invoke this method manually.
-	 * @param {String} message
+	 * gui.DocumentSpirit cannot handle it, you should broadcast this stuff *manually*.
 	 * @param {Event} e
+	 * @param {String} message
 	 */
-	_broadcast : function ( message, e ) {
+	_broadcastEvent : function ( e, message ) {
 		switch ( e.type ) {
 				case "mousemove" :
 				case "touchmove" :
-					try { // * don't fire errors onmousemove :)
-						gui.broadcast ( message, e );
+					try {
+						gui.broadcastGlobal ( message, e );
 					} catch ( x ) {
 						this.event.remove ( e.type, e.target );
 						throw x;
 					}
 					break;
 				default :
-					gui.broadcast ( message, e );
+					gui.broadcastGlobal ( message, e );
 					break;
+		}
+	},
+
+	/**
+	 * Handle message posted from subframe or xdomain.
+	 * 
+	 * 1. Relay broadcasts
+	 * 2. Relay descending actions
+	 * @todo Don't claim this as action target!
+	 * @param {String} msg
+	 */
+	_onmessage : function ( msg ) {
+		var pattern = "spiritual-broadcast";
+		if ( msg.startsWith ( pattern )) {
+			var b = gui.Broadcast.parse ( msg );
+			if ( b.signatures.indexOf ( this.signature ) < 0 ) {
+				gui.Broadcast.dispatchGlobal ( 
+					b.target, 
+					b.type, 
+					b.data 
+				);
+			}
+		} else {
+			pattern = "spiritual-action";
+			if ( msg.startsWith ( pattern )) {
+				var a = gui.Action.parse ( msg );
+				if ( a.direction === gui.Action.DESCEND ) {
+					this.action.descendGlobal ( 
+						a.type, 
+						a.data
+					);
+				}
+			}
 		}
 	},
 
@@ -8498,16 +8835,16 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 		"click"	: gui.BROADCAST_MOUSECLICK,
 		"mousedown"	: gui.BROADCAST_MOUSEDOWN,
 		"mouseup"	: gui.BROADCAST_MOUSEUP,
-		//"mousemove"	: gui.BROADCAST_MOUSEMOVE,
 		"scroll" : gui.BROADCAST_SCROLL,
 		"resize" : gui.BROADCAST_RESIZE,
-		//"popstate" : gui.BROADCAST_POPSTATE,
-		//"hashchange" : gui.BROADCAST_HASHCHANGE,
 		"touchstart" : gui.BROADCAST_TOUCHSTART,
 		"touchend" : gui.BROADCAST_TOUCHEND,
 		"touchcancel"	: gui.BROADCAST_TOUCHCANCEL,
 		"touchleave" : gui.BROADCAST_TOUCHLEAVE,
 		"touchmove"	: gui.BROADCAST_TOUCHMOVE
+		// "popstate" : gui.BROADCAST_POPSTATE,
+		// "hashchange" : gui.BROADCAST_HASHCHANGE,
+		// "mousemove"	: gui.BROADCAST_MOUSEMOVE,
 	},
 
 	/**
@@ -8550,12 +8887,14 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 	},
 
 	/**
-	 * Special setup for top document. Broadcast 
+	 * Special setup for top document: Broadcast 
 	 * orientation on startup and when it changes.
 	 */
 	_constructTop : function () {
-		this._onorientationchange ();
-		this.event.add ( "orientationchange", window );
+		if ( parent === window ) {
+			this._onorientationchange ();
+			this.event.add ( "orientationchange", window );
+		}
 	},
 
 	/**
@@ -8566,24 +8905,23 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 	_onresize : function () {
 		this.window.clearTimeout ( this._timeout );
 		this._timeout = this.window.setTimeout ( function () {
-			gui.broadcast ( gui.BROADCAST_RESIZE_END );
+			gui.broadcastGlobal ( gui.BROADCAST_RESIZE_END );
 		}, gui.DocumentSpirit.TIMEOUT_RESIZE_END );
 	},
 
 	/**
 	 * Device orientation changed.
-	 * @todo move to touch module
+	 * @todo Move to touch module?
+	 * @todo Only in top-loaded window :)
 	 * @todo gui.SpiritDevice entity
 	 */
 	_onorientationchange : function () {
 		gui.orientation = window.innerWidth > window.innerHeight ? 1 : 0;
-		gui.broadcast ( gui.BROADCAST_ORIENTATIONCHANGE );
+		gui.broadcastGlobal ( gui.BROADCAST_ORIENTATIONCHANGE );
 	}
-	
-	
-}, {}, { 
 
-	// Static .............................................................
+	
+}, {}, { // Static .............................................................
 
 	/**
 	 * Timeout in milliseconds before we decide 
@@ -8629,7 +8967,7 @@ gui.WindowSpirit = gui.Spirit.infuse ( "gui.WindowSpirit", {
 		this._cover = this.dom.prepend ( gui.CoverSpirit.summon ( this.document ));
 		this._frame = this.dom.prepend ( gui.IframeSpirit.summon ( this.document, this._src ));
 		this.action.addGlobal ([ gui.ACTION_DOCUMENT_DONE, gui.ACTION_DOCUMENT_FIT ]);
-		this._frame.att.set("sandbox",this.att.get("sandbox"));
+		this._frame.att.set ( "sandbox", this.att.get ( "sandbox" ));
 		if ( this.style ) {
 			this._style ();
 		}
@@ -8779,72 +9117,121 @@ gui.WindowSpirit = gui.Spirit.infuse ( "gui.WindowSpirit", {
 gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
 
 	/**
-	 * Signs iframe URLs with a unique identifier eg. to 
-	 * relay spirit actions from across exotic domains.
-	 * @type {String}
+	 * True when hosting xdomain stuff.
+	 * @type {boolean}
 	 */
-	signature : null,
+	external : false,
 
 	/**
-	 * Construct.
+	 * Hosted window.
+	 * @type {Window}
 	 */
-	onconstruct : function () {
-		this._super.onconstruct ();
-		if ( this.signature === null ) {
-			this.signature = gui.IframeSpirit.generateSignature ();
+	contentWindow : {
+		getter : function () {
+			return this.element ? this.element.contentWindow : null;
+		},
+		setter : function () {
+			// @todo Or else the getter malfunctions!
 		}
 	},
 
 	/**
-	 * Get or set iframe source.
-	 * See also method path.
-	 * @param {String} src
+	 * Hosted document.
+	 * @type {Document}
+	 */
+	contentDocument : {
+		getter : function () {
+			return this.element ? this.element.contentDocument : null;
+		},
+		setter : function () {
+			// @todo Or else the getter malfunctions!
+		}
+	},
+
+	/**
+	 * Get ready.
+	 */
+	onready : function () {
+		this._super.onready ();
+		this.event.add ( "message", this.window, this );
+	},
+
+	/**
+	 * Handle event.
+	 * @param {Event} e
+	 */
+	onevent : function ( e ) {
+		this._super.onevent ( e );
+		if ( e.type === "message" && this.external ) {
+			this._onmessage ( e.data );
+		}
+	},
+
+	/**
+	 * Get and set the iframe source.
+	 * @param @optional {String} src
 	 */
 	src : function ( src ) {
 		if ( gui.Type.isString ( src )) {
 			if ( gui.IframeSpirit.isExternal ( src )) {
-				src = gui.IframeSpirit.sign ( src, this.signature );
+				src = gui.IframeSpirit.sign ( src, this.document, this.spiritkey );
+				this.external = true;
 			}
 			this.element.src = src;
+		} else {
+			return this.element.src;
 		}
-		return this.element.src;
-	}
+	},
+
+
+	// Private ..................................................................
 	
+	/**
+	 * Handle posted message, scanning for ascending actions. 
+	 * Descending actions are handled by the documentspirit.
+	 * @todo Don't claim this as action target!
+	 * @see {gui.DocumentSpirit._onmessage}
+	 * @param {String} msg
+	 */
+	_onmessage : function ( msg ) {
+		if ( this.external && msg.startsWith ( "spiritual-action:" )) {
+			var a = gui.Action.parse ( msg );
+			if ( a.direction === gui.Action.ASCEND ) {
+				if ( a.spiritkey === this.spiritkey ) {
+					this.action.ascendGlobal ( a.type, a.data );
+				}
+			}
+		}
+	}
+
 	
 }, { // Recurring static ......................................................
 
 	/**
 	 * Summon spirit.
+	 * @todo why does spirit.src method fail strangely just now? using iframe.src instead...
 	 * @param {Document} doc
-	 * @param {String} src
+	 * @param @optional {String} src
 	 * @returns {gui.IframeSpirit}
 	 */
 	summon : function ( doc, src ) {
-		// Unique key stamped into iframe SRC.
-		var sig = gui.IframeSpirit.generateSignature ();
-		// To avoid problems with the browser back button 
-		// and iframe history, better set iframe src now. 
 		var iframe = doc.createElement ( "iframe" );
-		if ( gui.Type.isString ( src )) {
-			if ( !this.isExternal ( src )) {
-				src = this.sign ( src, sig );
-			}
-			iframe.src = src; 
-		} else {
-			iframe.src = gui.IframeSpirit.SRC_DEFAULT;
-		}
 		var spirit = this.possess ( iframe );
-		spirit.signature = sig;
+		spirit.css.add ( "gui-iframe" );
+		if ( src ) {
+			if ( gui.IframeSpirit.isExternal ( src )) { // should be moved to src() method!!!!!
+				src = this.sign ( src, doc, spirit.spiritkey );
+				spirit.external = true;
+			}
+		} else {
+			src = this.SRC_DEFAULT;	
+		}
+		iframe.src = src;
 		return spirit;
 	}
 
 
 }, { // Static ................................................................
-
-	/**
-	 * The stuff going on here has to do with a future project 
-	 * about supporting cross-doman spiritualized websites
-	 */
 
 	/**
 	 * Presumably harmless iframe source. The issue here is that "about:blank" 
@@ -8861,84 +9248,28 @@ gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
 	KEY_SIGNATURE : "spiritual-signature",
 
 	/**
-	 * Generate unique signature (for this session).
-	 * @returns {String}
-	 */
-	generateSignature : function () {
-		return gui.KeyMaster.generateKey ().replace ( "key", "sig" );
-	},
-
-	/**
-	 * Sign URL with signature.
+	 * Sign URL with cross-domain credentials 
+	 * and key to identify the IframeSpirit.
 	 * @param {String} url
-	 * @param @optional {String} signature
+	 * @param {Document} doc
+	 * @param {String} key
 	 * @returns {String}
 	 */
-	sign : function ( url, signature ) {
-		return this.setParam ( url, this.KEY_SIGNATURE, signature || this.generateSignature ());
+	sign : function ( url, doc, key ) {
+		var loc = doc.location;
+		var uri = loc.protocol + "//" + loc.host;
+		var sig = uri + "/" + key;
+		return gui.URL.setParam ( url, this.KEY_SIGNATURE, sig );
 	},
 
 	/**
-	 * Remove signature from URL (prettyfied for end user). 
+	 * Remove signature from URL (for whatever reason).
 	 * @param {String} url
 	 * @param {String} sign
 	 * @returns {String}
 	 */
 	unsign : function ( url ) {	
-		return this.setParam ( url, this.KEY_SIGNATURE, null );
-	},
-
-	/**
-	 * Extract querystring parameter value from URL.
-	 * @param {String} url
-	 * @param {String} name
-	 * @returns {String} String or null
-	 */
-	getParam : function ( url, name ) {
-		name = name.replace( /(\[|\])/g, "\\$1" ); // was: name = name.replace ( /[\[]/, "\\\[" ).replace( /[\]]/, "\\\]" ); (http://stackoverflow.com/questions/2338547/why-does-jslint-returns-bad-escapement-on-this-line-of-code)
-		var results = new RegExp ( "[\\?&]" + name + "=([^&#]*)" ).exec ( url );
-		return results === null ? null : results [ 1 ];
-	},
-
-	/**
-	 * Add or remove querystring parameter from URL. If the parameter 
-	 * already exists, we'll replace it's (first ancountered!) value. 
-	 * @todo Something simpler
-	 * @param {String} url
-	 * @param {String} name
-	 * @param {String} value Use null to remove
-	 * @returns {String} String
-	 */
-	setParam : function ( url, name, value ) {
-		var params = [], cut, index = -1;
-		name = encodeURIComponent ( name );
-		if ( value !== null ) {
-			value = encodeURIComponent ( value );
-		}
-		if ( url.indexOf ( "?" ) >-1 ) {
-			cut = url.split ( "?" );
-			url = cut [ 0 ];
-			params = cut [ 1 ].split ( "&" );
-			params.every ( function ( param, i ) {
-				var x = param.split ( "=" );
-				if ( x [ 0 ] === name ) {
-					index = i;
-					if ( value !== null ) {
-						x [ 1 ] = value;
-						params [ i ] = x.join ( "=" );
-					}
-				}
-				return index < 0;
-			});
-		}
-		if ( value === null ) {
-			if ( index > -1 ) {
-				params.remove ( index, index );
-			}
-		} else if ( index < 0 ) {
-			params [ params.length ] = [ name, value ].join ( "=" );
-		}
-		return url + ( params.length > 0 ? "?" + params.join ( "&" ) : "" );
+		return gui.URL.setParam ( url, this.KEY_SIGNATURE, null );
 	},
 
 	/**
@@ -9305,12 +9636,34 @@ gui.module ( "jquery", {
 
 	/**
 	 * Overloading DOM manipulation methods.
-	 * @todo attr and removeAttr must be hooked into gui.AttPlugin setup...
 	 * @param {function} jq Constructor
 	 */
 	_overload : function ( jq ) {
 		var module = this;
 		var naive = Object.create ( null ); // mapping unmodified methods
+		[ 
+			"attr", 
+			"removeAttr" 
+		].forEach ( function ( name ) {
+			naive [ name ] = jq.fn [ name ];
+			jq.fn [ name ] = function () {
+				var nam = arguments [ 0 ];
+				var val = arguments [ 1 ];
+				var res = naive [ name ].apply ( this, arguments );
+				var del = name === "removeAttr";
+				val = del ? null : val;
+				this.each ( function ( i, elm ) {
+					if ( elm.spirit ) {
+						if ( !val || del ) {
+							elm.spirit.att.set ( nam, val );
+						} else {
+							res = elm.spirit.att.get ( nam );
+						}
+					}
+				});
+				return res;
+			};
+		});
 		[
 			"after", 
 			"append", 
@@ -9361,7 +9714,7 @@ gui.module ( "jquery", {
 							break;
 						case "after" :
 						case "before" :
-							res = module._after_before.call ( this, name === "after", suber );
+							res = module._after_before.call ( this, name === "after", suber, jq );
 							break;
 						case "appendTo" :
 							res = suber ();
@@ -9408,13 +9761,13 @@ gui.module ( "jquery", {
 							}
 							break;
 						case "unwrap" :
-							// note: materializement is skipped here!
+							// note: materialize is skipped here!
 							this.parent ().__materializeOne ();
 							res = suber ();
 							break;
 						case "wrap" :
 						case "wrapAll" :
-							// note: materializement is skipped here!
+							// note: materialize is skipped here!
 							res = suber ();
 							this.parent ().__spiritualizeOne ();
 							break;
@@ -9550,6 +9903,35 @@ gui.module ( "jquery", {
 		});
 		return res;
 	},
+
+	/**
+	 * JQuery after() and before(). We can't reliably use the arguments 
+	 * here becayse JQuery will switch them to clones in the process. 
+	 * @param {boolean} after
+	 * @param {function} suber
+	 * @param {jQuery} $
+	 *
+	_after_before : function ( after, suber, $ ) {
+		var next = "next";
+		var prev = "prev";
+		var current = [], sibling, res;
+		this.each ( function ( i, elm ) {
+			while ( elm && current.indexOf ( elm ) === -1 ) {
+				current.push ( elm );
+				elm = $ ( elm ) [ after ? next : prev ]()[ 0 ];
+			}
+		});
+		res = suber ();
+		this.each ( function ( i, elm ) {
+			sibling = $ ( elm ) [ after ? next : prev ]()[ 0 ];
+			while ( sibling && current.indexOf ( sibling ) === -1 ) {
+				gui.Guide.spiritualize ( sibling );
+				sibling = $ ( sibling ) [ after ? next : prev ]()[ 0 ]
+			}
+		});
+		return res;
+	},
+	*/
 
 	/**
 	 * JQuery after() and before(). We can't reliably use the arguments 
@@ -10672,7 +11054,7 @@ gui.Guide = {
 	 * @param {gui.EventSummary} sum
 	 */
 	_ondom : function ( sum ) {
-		gui.broadcast ( gui.BROADCAST_DOMCONTENT, sum );
+		gui.broadcastGlobal ( gui.BROADCAST_DOMCONTENT, sum ); // careful - no spirits are attached at this point
 		this._step1 ( sum.document ); // can't setImmedeate to bypass JQuery, we risk onload being fired first
 	},
 
@@ -10684,7 +11066,7 @@ gui.Guide = {
 		if ( sum.documentspirit ) {
 			sum.documentspirit.onload ();
 		}
-		gui.broadcast ( gui.BROADCAST_ONLOAD, sum );
+		gui.broadcastGlobal ( gui.BROADCAST_ONLOAD, sum );
 	},
 
 	/**
@@ -10696,7 +11078,7 @@ gui.Guide = {
 		if ( sum.documentspirit ) {
 			sum.documentspirit.onunload ();
 		}
-		gui.broadcast ( gui.BROADCAST_UNLOAD, sum );
+		gui.broadcastGlobal ( gui.BROADCAST_UNLOAD, sum );
 		this.exorcise ( sum.document );
 		sum.window.gui.nameDestructAlreadyUsed ();
 	},
@@ -10706,14 +11088,11 @@ gui.Guide = {
 	 * @param {Document} doc
 	 */
 	_step1 : function ( doc ) {
-
 		var win = doc.defaultView;
 		var sig = win.gui.signature;
-
 		this._metatags ( win ); // configure runtime
 		win.gui.go (); // channel spirits
 		this._stylesheets ( win ); // more spirits?
-		
 		// resolving spiritual stylesheets? If not, skip directly to _step2.
 		if ( !this._windows [ sig ]) {
 			this._step2 ( doc );
@@ -10725,16 +11104,14 @@ gui.Guide = {
 	 * @param {Document} doc
 	 */
 	_step2 : function ( doc ) {
-
 		var win = doc.defaultView;
 		var sig = win.gui.signature;
-
 		// broadcast before and after spirits attach
 		this.spiritualizeOne ( doc.documentElement );
 		if ( win.gui.mode !== gui.MODE_MANAGED ) {
-			gui.broadcast ( gui.BROADCAST_WILL_SPIRITUALIZE, sig );
+			gui.broadcastGlobal ( gui.BROADCAST_WILL_SPIRITUALIZE, sig );
 			this.spiritualizeSub ( doc.documentElement );
-			gui.broadcast ( gui.BROADCAST_DID_SPIRITUALIZE, sig );
+			gui.broadcastGlobal ( gui.BROADCAST_DID_SPIRITUALIZE, sig );
 		}
 	},
 

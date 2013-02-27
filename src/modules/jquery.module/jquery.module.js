@@ -95,18 +95,19 @@ gui.module ( "jquery", {
 				var nam = arguments [ 0 ];
 				var val = arguments [ 1 ];
 				var res = naive [ name ].apply ( this, arguments );
-				var del, val = ( del = name === "removeAttr" ) ? null : val;
+				var del = name === "removeAttr";
+				val = del ? null : val;
 				this.each ( function ( i, elm ) {
 					if ( elm.spirit ) {
 						if ( !val || del ) {
 							elm.spirit.att.set ( nam, val );
 						} else {
-							ret = elm.spirit.att.get ( nam );
+							res = elm.spirit.att.get ( nam );
 						}
 					}
 				});
 				return res;
-			}
+			};
 		});
 		[
 			"after", 

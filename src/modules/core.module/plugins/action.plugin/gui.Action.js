@@ -181,7 +181,7 @@ gui.Action.stringify = function ( a, key ) {
 		a.spiritkey = key || null;
 		return JSON.stringify ( a );
 	}());
-}
+};
 
 /**
  * Decode action posted from xdomain and return an action-like object.
@@ -193,4 +193,4 @@ gui.Action.parse = function ( msg ) {
 	if ( msg.startsWith ( prefix )) {
 		return JSON.parse ( msg.split ( prefix )[ 1 ]);
 	}
-}
+};

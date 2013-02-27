@@ -63,7 +63,7 @@ gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
 	src : function ( src ) {
 		if ( gui.Type.isString ( src )) {
 			if ( gui.IframeSpirit.isExternal ( src )) {
-				src = gui.IframeSpirit.sign 	( src, this.document, this.spiritkey );
+				src = gui.IframeSpirit.sign ( src, this.document, this.spiritkey );
 				this.external = true;
 			}
 			this.element.src = src;
@@ -91,7 +91,7 @@ gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
 				}
 			}
 		}
-	},
+	}
 
 	
 }, { // Recurring static ......................................................

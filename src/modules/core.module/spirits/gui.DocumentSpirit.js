@@ -11,10 +11,7 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 	onconstruct : function () {
 		this._super.onconstruct ();
 		this._dimension = new gui.Dimension ( 0, 0 );
-		this.action.addGlobal ([
-			gui.ACTION_DOCUMENT_FIT,
-			gui.ACTION_GLOBALIZE
-		]);
+		this.action.addGlobal (gui.ACTION_DOCUMENT_FIT);
 		this.event.add ( "message", this.window );
 		Object.keys ( this._messages ).forEach ( function ( type ) {
 			var target = this.document;
@@ -99,12 +96,6 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 			case gui.ACTION_DOCUMENT_FIT : // relay fit a, but claim ourselves as new a.target
 				a.consume ();
 				this.fit ( a.data === true );
-				break;
-			case gui.ACTION_GLOBALIZE :
-				if ( parent === window ) {
-					var json = a.data.split ( "spiritual-broadcast:" )[ 1 ];
-					gui.Broadcast.dispatchGlobal 
-				}
 				break;
 		}
 	},

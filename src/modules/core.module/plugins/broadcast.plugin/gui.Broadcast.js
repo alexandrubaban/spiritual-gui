@@ -172,7 +172,7 @@ gui.Broadcast.parse = function ( msg ) {
 	if ( msg.startsWith ( prefix )) {
 		return JSON.parse ( msg.split ( prefix )[ 1 ]);
 	}
-}
+};
 
 // PRIVATE ...................................................................................
 
