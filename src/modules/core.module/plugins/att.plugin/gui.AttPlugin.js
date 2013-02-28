@@ -125,11 +125,11 @@ gui.AttPlugin = gui.Plugin.extend ( "gui.AttPlugin", {
 	/**
 	 * Element has attribute?
 	 * @param {Element} elm
-	 * @param {String} att
+	 * @param {String} name
 	 * @returns {boolean}
 	 */
 	has : function ( elm, name ) {
-		return elm.getAttribute ( name ) !== null;
+		return elm.hasAttribute ( name );
 	},
 
 	/**
