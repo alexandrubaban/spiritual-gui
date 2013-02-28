@@ -59,7 +59,9 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	 */
 	onconstruct : function () {
 		this.__plugin__ ();
-		this.__debug__ ( true );
+		if ( this.window.gui.debug ) {
+			this.__debug__ ( true );
+		}
 		this.life.goconstruct ();
 	},
 	
@@ -146,7 +148,9 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 		this.window.gui.destruct ( this );
 		this.life.godestruct ();
 		this.__debug__ ( false );
-		this.__destruct__ ( now );
+		if ( this.window.gui.debug ) {
+			this.__destruct__ ( now );
+		}
 	},
 	
 	// Handlers .....................................................................
@@ -255,18 +259,16 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	 * @param {boolean} constructing
 	 */
 	__debug__ : function ( constructing ) {
-		var val;
-		if ( this.window.gui.debug ) {
-			if ( constructing ) {
-				if ( !this.att.has ( "gui" )) {
-					val = "[" + this.displayName + "]";
-					this.att.set ( "gui", val );
-				}
-			} else {
-				val = this.att.get ( "gui" );
-				if ( val && val.startsWith ( "[" )) {
-					this.att.del ( "gui" );
-				}
+		var val, elm = this.element;
+		if ( constructing ) {
+			if ( !elm.hasAttribute ( "gui" )) {
+				val = "[" + this.displayName + "]";
+				elm.setAttribute ( "gui", val );
+			}
+		} else {
+			val = elm.getAttribute ( "gui" );
+			if ( val && val.startsWith ( "[" )) {
+				elm.removeAttribute ( "gui" );
 			}
 		}
 	},
