@@ -99,7 +99,7 @@ gui.module ( "jquery", {
 				val = del ? null : val;
 				this.each ( function ( i, elm ) {
 					if ( elm.spirit ) {
-						if ( !val || del ) {
+						if ( val !== undefined || del ) {
 							elm.spirit.att.set ( nam, val );
 						} else {
 							res = elm.spirit.att.get ( nam );
