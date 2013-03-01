@@ -27,7 +27,7 @@ gui.module ( "jquery", {
 			jq.__rootnode = root;
 			this._instance ( jq );
 			this._expandos ( jq );
-			this._overload ( jq );
+			this._overload ( jq, context );
 		}
 	},
 
@@ -82,13 +82,14 @@ gui.module ( "jquery", {
 	/**
 	 * Overloading DOM manipulation methods.
 	 * @param {function} jq Constructor
+	 * @param {Window} context
 	 */
-	_overload : function ( jq ) {
+	_overload : function ( jq, context ) {
 		var module = this;
 		var naive = Object.create ( null ); // mapping unmodified methods
 		[ 
 			"attr", 
-			"removeAttr" 
+			"removeAttr"
 		].forEach ( function ( name ) {
 			naive [ name ] = jq.fn [ name ];
 			jq.fn [ name ] = function () {
@@ -141,7 +142,9 @@ gui.module ( "jquery", {
 						return naive [ name ].apply ( that, args );
 					}, that );
 				}
-				if ( jq.__suspend ) {
+				if ( context.gui.mode !== gui.MODE_JQUERY ) {
+					res = suber ();
+				} else if ( jq.__suspend ) {
 					res = suber ();
 				} else if ( name === "text" ) {
 					if ( set ) {
@@ -348,36 +351,7 @@ gui.module ( "jquery", {
 		});
 		return res;
 	},
-
-	/**
-	 * JQuery after() and before(). We can't reliably use the arguments 
-	 * here becayse JQuery will switch them to clones in the process. 
-	 * @param {boolean} after
-	 * @param {function} suber
-	 * @param {jQuery} $
-	 *
-	_after_before : function ( after, suber, $ ) {
-		var next = "next";
-		var prev = "prev";
-		var current = [], sibling, res;
-		this.each ( function ( i, elm ) {
-			while ( elm && current.indexOf ( elm ) === -1 ) {
-				current.push ( elm );
-				elm = $ ( elm ) [ after ? next : prev ]()[ 0 ];
-			}
-		});
-		res = suber ();
-		this.each ( function ( i, elm ) {
-			sibling = $ ( elm ) [ after ? next : prev ]()[ 0 ];
-			while ( sibling && current.indexOf ( sibling ) === -1 ) {
-				gui.Guide.spiritualize ( sibling );
-				sibling = $ ( sibling ) [ after ? next : prev ]()[ 0 ]
-			}
-		});
-		return res;
-	},
-	*/
-
+	
 	/**
 	 * JQuery after() and before(). We can't reliably use the arguments 
 	 * here becayse JQuery will switch them to clones in the process. 
