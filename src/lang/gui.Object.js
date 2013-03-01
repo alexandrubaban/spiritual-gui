@@ -139,13 +139,26 @@ gui.Object = {
 	},
 
 	/**
-	 * Convert array-like object to array.
+	 * Convert array-like object to array (but always return an array).
 	 * @param {object} object
 	 * @returns {Array<object>}
 	 */
 	toArray : function ( object ) {
-		return Array.map ( object, function ( thing ) {
-			return thing;
-		});
+		var result = [];
+		switch ( gui.Type.of ( object )) {
+			case "object" :
+				try {
+					if ( obj.length > 0 && "0" in Object ( obj )) {
+						result = Array.map ( object, function ( thing ) {
+							return thing;
+						});
+			    }
+			  } catch ( exception ) {}
+				break;
+			case "array" :
+				result = object;
+				break;
+		}
+		return result;
 	}
 };
