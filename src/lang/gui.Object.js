@@ -145,20 +145,15 @@ gui.Object = {
 	 */
 	toArray : function ( object ) {
 		var result = [];
-		switch ( gui.Type.of ( object )) {
-			case "object" :
-				try {
-					if ( obj.length > 0 && "0" in Object ( obj )) {
-						result = Array.map ( object, function ( thing ) {
-							return thing;
-						});
-			    }
-			  } catch ( exception ) {}
-				break;
-			case "array" :
-				result = object;
-				break;
-		}
+		if ( gui.Type.isArray ( object )) {
+			result = object;
+		} else try {
+			if ( object.length !== undefined && ( "0" in Object ( object ))) {
+				result = Array.map ( object, function ( thing ) {
+					return thing;
+				});
+	    }
+	  } catch ( exception ) {}
 		return result;
 	}
 };
