@@ -119,8 +119,11 @@ gui.AttPlugin = gui.Plugin.extend ( "gui.AttPlugin", {
 	set : function ( elm, name, value ) {
 		if ( value === null ) {
 			this.del ( elm, name );
-		} else if (!elm.getAttribute ( name ) !== value ) {
-			elm.setAttribute ( name, value );
+		} else {
+			value = String ( value );
+			if ( elm.getAttribute ( name ) !== value ) {
+				elm.setAttribute ( name, value );
+			}
 		}
 	},
 

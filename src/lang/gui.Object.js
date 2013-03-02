@@ -147,13 +147,15 @@ gui.Object = {
 		var result = [];
 		if ( gui.Type.isArray ( object )) {
 			result = object;
-		} else try {
-			if ( object.length !== undefined && ( "0" in Object ( object ))) {
-				result = Array.map ( object, function ( thing ) {
-					return thing;
-				});
-	    }
-	  } catch ( exception ) {}
+		} else {
+			try {
+				if ( object.length !== undefined && ( "0" in Object ( object ))) {
+					result = Array.map ( object, function ( thing ) {
+						return thing;
+					});
+				}
+			} catch ( exception ) {}
+	  }
 		return result;
 	}
 };
