@@ -5,15 +5,19 @@
  * @param {String} href
  */
 gui.URL = function ( doc, href ) {
-	var link = doc.createElement ( "a" ); link.href = href;
-	Object.keys ( gui.URL.prototype ).forEach ( function ( key ) {
-		if ( gui.Type.isString ( link [ key ])) {
-			this [ key ] = link [ key ];
-		}
-	}, this );
-	this.id = this.hash ? this.hash.substring ( 1 ) : null;
-	this.location = this.href.split ( "#" )[ 0 ];
-	this.external = this.location !== String ( doc.location ).split ( "#" )[ 0 ];
+	if ( doc && doc.nodeType === Node.DOCUMENT_NODE ) {
+		var link = doc.createElement ( "a" ); link.href = href;
+		Object.keys ( gui.URL.prototype ).forEach ( function ( key ) {
+			if ( gui.Type.isString ( link [ key ])) {
+				this [ key ] = link [ key ];
+			}
+		}, this );
+		this.id = this.hash ? this.hash.substring ( 1 ) : null;
+		this.location = this.href.split ( "#" )[ 0 ];
+		this.external = this.location !== String ( doc.location ).split ( "#" )[ 0 ];
+	} else {
+		throw new TypeError ( "Document expected" );
+	}
 };
 
 gui.URL.prototype = {
@@ -31,6 +35,15 @@ gui.URL.prototype = {
 
 
 // Statics ....................................................................
+
+/**
+ * Convert relative path to absolute path.
+ * @param {String} href
+ * @returns {String}
+ */
+gui.URL.absolute = function ( doc, href ) {
+	return new gui.URL ( doc, href ).href;
+};
 
 /**
  * Extract querystring parameter value from URL.
