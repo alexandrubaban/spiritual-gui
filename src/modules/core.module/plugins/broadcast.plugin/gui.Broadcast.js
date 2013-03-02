@@ -223,16 +223,24 @@ gui.Broadcast._add = function ( type, handler, sig ) {
 gui.Broadcast._remove = function ( message, handler, sig ) {
 	if ( gui.Interface.validate ( gui.IBroadcastHandler, handler )) {
 		if ( gui.Type.isArray ( message )) {
-			message.forEach ( function ( mes ) {
-				this._remove ( mes, handler, sig );
+			message.forEach ( function ( msg ) {
+				this._remove ( msg, handler, sig );
 			}, this );
 		} else {
-			var array = sig ?
-					this._locals [ sig ][ message ] :
-					this._globals [ message ];
-			var index = array.indexOf ( handler );
-			if ( index > -1 ) {
-				array.remove ( index );
+			var index, array = ( function ( locals, globals) {
+				if ( sig ) {
+					if ( locals [ sig ]) {
+						return locals [ sig ][ message ];
+					}
+				} else {
+					return globals [ message ];
+				}
+			}( this._locals, this._globals ));
+			if ( array ) {
+				index = array.indexOf ( handler );
+				if ( index > -1 ) {
+					array.remove ( index );
+				}
 			}
 		}
 	}
