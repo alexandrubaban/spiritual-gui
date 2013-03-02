@@ -255,7 +255,8 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 
 	/**
 	 * In debug mode, stamp the toString value onto the spirit element. 
-	 * @note The toString value is defined by the string that may be passed as first argument to the gui.Spirit.infuse("JohnsonSpirit") method.
+	 * @note The toString value is defined by the string that may be 
+	 * passed as first argument to the gui.Spirit.infuse("John") method.
 	 * @param {boolean} constructing
 	 */
 	__debug__ : function ( constructing ) {
