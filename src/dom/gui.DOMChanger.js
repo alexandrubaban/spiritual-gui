@@ -228,10 +228,14 @@ gui.DOMChanger = {
 			switch ( gui.Client.agent ) {
 				case "opera" :
 				case "gecko" :
-					this._doboth ( proto, name, combo, root );
+					try {
+						this._doboth ( proto, name, combo, root );
+					} catch ( exception ) {
+						this._doie ( proto, name, combo );	
+					}
 					break;
 				case "explorer" :
-					this._doie ( proto, name, combo, root );
+					this._doie ( proto, name, combo );
 					break;
 				case "webkit" :
 					// it's complicated
@@ -279,8 +283,9 @@ gui.DOMChanger = {
 	 * @param {function} combo
 	 * @param {Element} root
 	 */
-	_doie : function ( proto, name, combo, root ) {
+	_doie : function ( proto, name, combo ) {
 		var base = Object.getOwnPropertyDescriptor ( proto, name );
+		alert ( base.set )
 		Object.defineProperty ( proto, name, {
 			get: function () {
 				return base.get.call ( this );
@@ -292,21 +297,28 @@ gui.DOMChanger = {
 	},
 
 	/**
-	 * Overload property setter for Firefox and Opera.
+	 * Overload property setter for Firefox and Opera. 
+	 * Looks like Gecko is moved towards IE setup (?)
 	 * @param {object} proto
 	 * @param {String} name
 	 * @param {function} combo
 	 * @param {Element} root
 	 */
 	_doboth : function ( proto, name, combo, root ) {
-		var setter = root.__lookupSetter__ ( name );
-		proto.__defineSetter__ ( name, combo ( function () {
-			setter.apply ( this, arguments );
-		}));
-		// firefox 20 needs a getter for this to work
 		var getter = root.__lookupGetter__ ( name );
-		proto.__defineGetter__ ( name, function () {
-			return getter.apply ( this, arguments );
-		});
+		var setter = root.__lookupSetter__ ( name );
+		if ( getter ) {
+			// firefox 20 needs a getter for this to work
+			proto.__defineGetter__ ( name, function () {
+				return getter.apply ( this, arguments );
+			});
+			// the setter still seems to work as expected
+			proto.__defineSetter__ ( name, combo ( function () {
+				setter.apply ( this, arguments );
+			}));
+		} else {
+			// firefox 21 can't lookup textContent getter no more...
+			throw new Error ( "This causes a call to method _doie" );
+		}
 	}
 };
