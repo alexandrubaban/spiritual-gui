@@ -228,11 +228,14 @@ gui.DOMChanger = {
 			switch ( gui.Client.agent ) {
 				case "opera" :
 				case "gecko" :
-					try {
+					//try {
 						this._doboth ( proto, name, combo, root );
-					} catch ( exception ) {
+					/*
+					} catch ( exception ) { // firefox 21 is changing to IE style?
+						alert("??")
 						this._doie ( proto, name, combo );	
 					}
+					*/
 					break;
 				case "explorer" :
 					this._doie ( proto, name, combo );
@@ -285,7 +288,6 @@ gui.DOMChanger = {
 	 */
 	_doie : function ( proto, name, combo ) {
 		var base = Object.getOwnPropertyDescriptor ( proto, name );
-		alert ( base.set )
 		Object.defineProperty ( proto, name, {
 			get: function () {
 				return base.get.call ( this );
@@ -317,8 +319,8 @@ gui.DOMChanger = {
 				setter.apply ( this, arguments );
 			}));
 		} else {
-			// firefox 21 can't lookup textContent getter no more...
-			throw new Error ( "This causes a call to method _doie" );
+			// firefox 21 can't lookup textContent getter *sometimes*
+			throw new Error ( "Can't lookup getter for " + name );
 		}
 	}
 };
