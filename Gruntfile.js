@@ -1,13 +1,21 @@
 /*global module:false*/
 
-module.exports = function(grunt) {
+// (npm uninstall -g grunt)
+// npm install -g grunt-cli
+// npm install -g grunt --save-dev
+// npm install grunt --save-dev
+// npm install grunt-contrib-concat --save-dev
+// npm install grunt-contrib-uglify --save-dev
+// npm install grunt-contrib-jshint --save-dev
 
-	// (npm uninstall -g grunt)
-	// npm install -g grunt-cli
-	// npm install -g grunt --save-dev
-	// npm install grunt-contrib-concat --save-dev // https://developer.webinos.org/forums/intall-error-linux
-	// npm install grunt-contrib-uglify --save-dev 
-	// npm install grunt-contrib-jshint --save-dev
+module.exports = function ( grunt ) {
+
+	grunt.loadNpmTasks("grunt-contrib-concat");
+	grunt.loadNpmTasks("grunt-contrib-uglify");
+	grunt.loadNpmTasks("grunt-contrib-jshint");
+
+	var sourcelist = grunt.file.readJSON("Gruntfile.json");
+	sourcelist.unshift("<banner:meta.banner>");
 
 	var BANNER = '' +
 		'/*\n' +
@@ -16,17 +24,9 @@ module.exports = function(grunt) {
 		' * Spiritual is freely distributable under the MIT license.\n' +
 		' */\n';
 
-	grunt.loadNpmTasks("grunt-contrib-concat");
-	grunt.loadNpmTasks("grunt-contrib-uglify");
-	grunt.loadNpmTasks("grunt-contrib-jshint");
-
-	var sourcelist = grunt.file.readJSON("grunt.json");
-	sourcelist.unshift("<banner:meta.banner>");
-
 	grunt.initConfig({
 		meta: {
-			version: "0.0.4",
-			banner : BANNER
+			version: "0.0.5"
 		},
 		jshint: {
 			all: [ "Gruntfile.js", "src/**/*.js" ],
@@ -59,6 +59,10 @@ module.exports = function(grunt) {
 			}
 		},
 		concat: {
+			options: {
+				separator : "\n\n\n",
+				banner: BANNER
+			},
 			dist: {
 				src: sourcelist,
 				dest: 'dist/spiritual-gui-<%= meta.version %>.js',
