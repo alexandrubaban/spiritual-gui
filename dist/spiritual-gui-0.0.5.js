@@ -1,11 +1,8 @@
 /*
- * Spiritual GUI 0.0.4
+ * Spiritual GUI 0.0.5
  * (c) 2013 Wunderbyte
  * Spiritual is freely distributable under the MIT license.
  */
-
-
-
 /**
  * # gui
  * Top namespace object for everything Spiritual. On startup, the global variable `gui` gets 
@@ -159,15 +156,19 @@ var gui = {
  * @param {String} href
  */
 gui.URL = function ( doc, href ) {
-	var link = doc.createElement ( "a" ); link.href = href;
-	Object.keys ( gui.URL.prototype ).forEach ( function ( key ) {
-		if ( gui.Type.isString ( link [ key ])) {
-			this [ key ] = link [ key ];
-		}
-	}, this );
-	this.id = this.hash ? this.hash.substring ( 1 ) : null;
-	this.location = this.href.split ( "#" )[ 0 ];
-	this.external = this.location !== String ( doc.location ).split ( "#" )[ 0 ];
+	if ( doc && doc.nodeType === Node.DOCUMENT_NODE ) {
+		var link = doc.createElement ( "a" ); link.href = href;
+		Object.keys ( gui.URL.prototype ).forEach ( function ( key ) {
+			if ( gui.Type.isString ( link [ key ])) {
+				this [ key ] = link [ key ];
+			}
+		}, this );
+		this.id = this.hash ? this.hash.substring ( 1 ) : null;
+		this.location = this.href.split ( "#" )[ 0 ];
+		this.external = this.location !== String ( doc.location ).split ( "#" )[ 0 ];
+	} else {
+		throw new TypeError ( "Document expected" );
+	}
 };
 
 gui.URL.prototype = {
@@ -185,6 +186,15 @@ gui.URL.prototype = {
 
 
 // Statics ....................................................................
+
+/**
+ * Convert relative path to absolute path.
+ * @param {String} href
+ * @returns {String}
+ */
+gui.URL.absolute = function ( doc, href ) {
+	return new gui.URL ( doc, href ).href;
+};
 
 /**
  * Extract querystring parameter value from URL.
@@ -1359,8 +1369,10 @@ gui.Arguments = {
  * for prototypal inheritance. Nevertheless, this fellow allow us to create a newable 
  * constructor that can be easily "subclassed". Instances of this constructor may use a 
  * special `_super` method to overload members of the "superclass" prototype. 
+ * @todo Evaluate static stuff first so that proto can declare vals as static props 
+ * @todo Check if static stuff shadows recurring static (vice versa) and warn about it.
  */
-gui.Exemplar = { // @todo Evaluate static stuff first so that proto can declare vals as static props 
+gui.Exemplar = { 
 
 	/**
 	 * Create magic constructor. Use static method `extend` on the constructor to subclass further.
@@ -1862,14 +1874,24 @@ gui.Object = {
 	},
 
 	/**
-	 * Convert array-like object to array.
+	 * Convert array-like object to array (but always return an array).
 	 * @param {object} object
 	 * @returns {Array<object>}
 	 */
 	toArray : function ( object ) {
-		return Array.map ( object, function ( thing ) {
-			return thing;
-		});
+		var result = [];
+		if ( gui.Type.isArray ( object )) {
+			result = object;
+		} else {
+			try {
+				if ( object.length !== undefined && ( "0" in Object ( object ))) {
+					result = Array.map ( object, function ( thing ) {
+						return thing;
+					});
+				}
+			} catch ( exception ) {}
+	  }
+		return result;
 	}
 };
 
@@ -3340,7 +3362,9 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	 */
 	onconstruct : function () {
 		this.__plugin__ ();
-		this.__debug__ ( true );
+		if ( this.window.gui.debug ) {
+			this.__debug__ ( true );
+		}
 		this.life.goconstruct ();
 	},
 	
@@ -3427,7 +3451,9 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 		this.window.gui.destruct ( this );
 		this.life.godestruct ();
 		this.__debug__ ( false );
-		this.__destruct__ ( now );
+		if ( this.window.gui.debug ) {
+			this.__destruct__ ( now );
+		}
 	},
 	
 	// Handlers .....................................................................
@@ -3532,22 +3558,21 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 
 	/**
 	 * In debug mode, stamp the toString value onto the spirit element. 
-	 * @note The toString value is defined by the string that may be passed as first argument to the gui.Spirit.infuse("JohnsonSpirit") method.
+	 * @note The toString value is defined by the string that may be 
+	 * passed as first argument to the gui.Spirit.infuse("John") method.
 	 * @param {boolean} constructing
 	 */
 	__debug__ : function ( constructing ) {
-		var val;
-		if ( this.window.gui.debug ) {
-			if ( constructing ) {
-				if ( !this.att.has ( "gui" )) {
-					val = "[" + this.displayName + "]";
-					this.att.set ( "gui", val );
-				}
-			} else {
-				val = this.att.get ( "gui" );
-				if ( val && val.startsWith ( "[" )) {
-					this.att.del ( "gui" );
-				}
+		var val, elm = this.element;
+		if ( constructing ) {
+			if ( !elm.hasAttribute ( "gui" )) {
+				val = "[" + this.displayName + "]";
+				elm.setAttribute ( "gui", val );
+			}
+		} else {
+			val = elm.getAttribute ( "gui" );
+			if ( val && val.startsWith ( "[" )) {
+				elm.removeAttribute ( "gui" );
 			}
 		}
 	},
@@ -4913,7 +4938,9 @@ gui.AttPlugin = gui.Plugin.extend ( "gui.AttPlugin", {
 	 * @returns {gui.AttPlugin}
 	 */
 	set : function ( name, value ) {
-		gui.AttPlugin.set ( this.spirit.element, name, value );
+		if ( !this.__suspended__ ) {
+			gui.AttPlugin.set ( this.spirit.element, name, value );
+		}
 		return this;
 	},
 
@@ -4974,8 +5001,8 @@ gui.AttPlugin = gui.Plugin.extend ( "gui.AttPlugin", {
 	__suspended__ : false,
 
 	/**
-	 * Suspend attribute updates for the duration of the action.
-	 * @todo Figure out why and if we need this stuff
+	 * Suspend attribute updates for the duration of the 
+	 * action. This to prevent endless attribute updates
 	 * @param {function} action
 	 * @retruns {object}
 	 */
@@ -5010,18 +5037,21 @@ gui.AttPlugin = gui.Plugin.extend ( "gui.AttPlugin", {
 		if ( value === null ) {
 			this.del ( elm, name );
 		} else {
-			elm.setAttribute ( name, String ( value ));
+			value = String ( value );
+			if ( elm.getAttribute ( name ) !== value ) {
+				elm.setAttribute ( name, value );
+			}
 		}
 	},
 
 	/**
 	 * Element has attribute?
 	 * @param {Element} elm
-	 * @param {String} att
+	 * @param {String} name
 	 * @returns {boolean}
 	 */
 	has : function ( elm, name ) {
-		return elm.getAttribute ( name ) !== null;
+		return elm.hasAttribute ( name );
 	},
 
 	/**
@@ -5399,16 +5429,24 @@ gui.Broadcast._add = function ( type, handler, sig ) {
 gui.Broadcast._remove = function ( message, handler, sig ) {
 	if ( gui.Interface.validate ( gui.IBroadcastHandler, handler )) {
 		if ( gui.Type.isArray ( message )) {
-			message.forEach ( function ( mes ) {
-				this._remove ( mes, handler, sig );
+			message.forEach ( function ( msg ) {
+				this._remove ( msg, handler, sig );
 			}, this );
 		} else {
-			var array = sig ?
-					this._locals [ sig ][ message ] :
-					this._globals [ message ];
-			var index = array.indexOf ( handler );
-			if ( index > -1 ) {
-				array.remove ( index );
+			var index, array = ( function ( locals, globals) {
+				if ( sig ) {
+					if ( locals [ sig ]) {
+						return locals [ sig ][ message ];
+					}
+				} else {
+					return globals [ message ];
+				}
+			}( this._locals, this._globals ));
+			if ( array ) {
+				index = array.indexOf ( handler );
+				if ( index > -1 ) {
+					array.remove ( index );
+				}
 			}
 		}
 	}
@@ -9582,7 +9620,7 @@ gui.module ( "jquery", {
 			jq.__rootnode = root;
 			this._instance ( jq );
 			this._expandos ( jq );
-			this._overload ( jq );
+			this._overload ( jq, context );
 		}
 	},
 
@@ -9637,13 +9675,14 @@ gui.module ( "jquery", {
 	/**
 	 * Overloading DOM manipulation methods.
 	 * @param {function} jq Constructor
+	 * @param {Window} context
 	 */
-	_overload : function ( jq ) {
+	_overload : function ( jq, context ) {
 		var module = this;
 		var naive = Object.create ( null ); // mapping unmodified methods
 		[ 
 			"attr", 
-			"removeAttr" 
+			"removeAttr"
 		].forEach ( function ( name ) {
 			naive [ name ] = jq.fn [ name ];
 			jq.fn [ name ] = function () {
@@ -9654,7 +9693,8 @@ gui.module ( "jquery", {
 				val = del ? null : val;
 				this.each ( function ( i, elm ) {
 					if ( elm.spirit ) {
-						if ( !val || del ) {
+						if ( val !== undefined || del ) {
+							// @todo spirit.att.__suspend__ ???
 							elm.spirit.att.set ( nam, val );
 						} else {
 							res = elm.spirit.att.get ( nam );
@@ -9696,7 +9736,9 @@ gui.module ( "jquery", {
 						return naive [ name ].apply ( that, args );
 					}, that );
 				}
-				if ( jq.__suspend ) {
+				if ( context.gui.mode !== gui.MODE_JQUERY ) {
+					res = suber ();
+				} else if ( jq.__suspend ) {
 					res = suber ();
 				} else if ( name === "text" ) {
 					if ( set ) {
@@ -9718,23 +9760,23 @@ gui.module ( "jquery", {
 							break;
 						case "appendTo" :
 							res = suber ();
-							arg().each ( function ( i, m ) {
+							arg ().each ( function ( i, m ) {
 								jq ( m ).last ().__spiritualize ();
 							});
 							break;
 						case "prependTo" :
 							res = suber ();
-							arg().each ( function ( i, m ) {
+							arg ().each ( function ( i, m ) {
 								jq ( m ).first ().__spiritualize ();
 							});
 							break;
 						case "insertAfter" :
 							res = suber ();
-							arg().next ().__spiritualize ();
+							arg ().next ().__spiritualize ();
 							break;
 						case "insertBefore" :
 							res = suber ();
-							arg().prev ().__spiritualize ();
+							arg ().prev ().__spiritualize ();
 							break;
 						case "detach" :
 						case "remove" :
@@ -9785,19 +9827,15 @@ gui.module ( "jquery", {
 	
 	/**
 	 * Overload Spiritual to spiritualize/materialize spirits on DOM mutation and to 
-	 * suspend mutation monitoring while DOM updating. This would normally 
-	 * be baked into native DOM methods appendChild, removeChild and so on.
+	 * suspend mutation monitoring while DOM updating. This would normally (in native 
+	 * mode) be baked into native DOM methods appendChild, removeChild and so on.
 	 * @see {gui.DOMPlugin}
 	 */
 	_spiritualdom : function () {
-
 		// overloading this fellow
 		var plugin = gui.DOMPlugin.prototype;
-
-		/*
-		 * @param {gui.Spirit} spirit
-		 * @returns {object}
-		 */
+		// @param {gui.Spirit} spirit
+		// @returns {object}
 		function breakdown ( spirit ) {
 			var elm = spirit.element;
 			var doc = elm.ownerDocument;
@@ -9806,9 +9844,7 @@ gui.module ( "jquery", {
 			var is$ = win.gui.mode === gui.MODE_JQUERY;
 			return { elm : elm, doc : doc, win : win, dom : dom, is$ : is$ };
 		}
-		/**
-		 * Manage invoker subtree.
-		 */
+		// manage invoker subtree.
 		[ "html", "empty", "text" ].forEach ( function ( method ) {
 			var old = plugin [ method ];
 			plugin [ method ] = function ( arg ) {
@@ -9829,9 +9865,7 @@ gui.module ( "jquery", {
 				return res;
 			};
 		});
-		/**
-		 * Manage invoker itself.
-		 */
+		// manage invoker itself.
 		[ "remove" ].forEach ( function ( method ) {
 			var old = plugin [ method ];
 			plugin [ method ] = function ( arg ) {
@@ -9849,9 +9883,7 @@ gui.module ( "jquery", {
 				return res;
 			};
 		});
-		/**
-		 * Manage targeted element(s)
-		 */
+		// manage targeted element(s)
 		[ "append", "prepend", "before", "after" ].forEach ( function ( method ) {
 			var old = plugin [ method ];
 			plugin [ method ] = function ( things ) {
@@ -9903,36 +9935,7 @@ gui.module ( "jquery", {
 		});
 		return res;
 	},
-
-	/**
-	 * JQuery after() and before(). We can't reliably use the arguments 
-	 * here becayse JQuery will switch them to clones in the process. 
-	 * @param {boolean} after
-	 * @param {function} suber
-	 * @param {jQuery} $
-	 *
-	_after_before : function ( after, suber, $ ) {
-		var next = "next";
-		var prev = "prev";
-		var current = [], sibling, res;
-		this.each ( function ( i, elm ) {
-			while ( elm && current.indexOf ( elm ) === -1 ) {
-				current.push ( elm );
-				elm = $ ( elm ) [ after ? next : prev ]()[ 0 ];
-			}
-		});
-		res = suber ();
-		this.each ( function ( i, elm ) {
-			sibling = $ ( elm ) [ after ? next : prev ]()[ 0 ];
-			while ( sibling && current.indexOf ( sibling ) === -1 ) {
-				gui.Guide.spiritualize ( sibling );
-				sibling = $ ( sibling ) [ after ? next : prev ]()[ 0 ]
-			}
-		});
-		return res;
-	},
-	*/
-
+	
 	/**
 	 * JQuery after() and before(). We can't reliably use the arguments 
 	 * here becayse JQuery will switch them to clones in the process. 
@@ -10232,10 +10235,17 @@ gui.DOMChanger = {
 			switch ( gui.Client.agent ) {
 				case "opera" :
 				case "gecko" :
-					this._doboth ( proto, name, combo, root );
+					//try {
+						this._doboth ( proto, name, combo, root );
+					/*
+					} catch ( exception ) { // firefox 21 is changing to IE style?
+						alert("??")
+						this._doie ( proto, name, combo );	
+					}
+					*/
 					break;
 				case "explorer" :
-					this._doie ( proto, name, combo, root );
+					this._doie ( proto, name, combo );
 					break;
 				case "webkit" :
 					// it's complicated
@@ -10283,7 +10293,7 @@ gui.DOMChanger = {
 	 * @param {function} combo
 	 * @param {Element} root
 	 */
-	_doie : function ( proto, name, combo, root ) {
+	_doie : function ( proto, name, combo ) {
 		var base = Object.getOwnPropertyDescriptor ( proto, name );
 		Object.defineProperty ( proto, name, {
 			get: function () {
@@ -10296,22 +10306,29 @@ gui.DOMChanger = {
 	},
 
 	/**
-	 * Overload property setter for Firefox and Opera.
+	 * Overload property setter for Firefox and Opera. 
+	 * Looks like Gecko is moved towards IE setup (?)
 	 * @param {object} proto
 	 * @param {String} name
 	 * @param {function} combo
 	 * @param {Element} root
 	 */
 	_doboth : function ( proto, name, combo, root ) {
-		var setter = root.__lookupSetter__ ( name );
-		proto.__defineSetter__ ( name, combo ( function () {
-			setter.apply ( this, arguments );
-		}));
-		// firefox 20 needs a getter for this to work
 		var getter = root.__lookupGetter__ ( name );
-		proto.__defineGetter__ ( name, function () {
-			return getter.apply ( this, arguments );
-		});
+		var setter = root.__lookupSetter__ ( name );
+		if ( getter ) {
+			// firefox 20 needs a getter for this to work
+			proto.__defineGetter__ ( name, function () {
+				return getter.apply ( this, arguments );
+			});
+			// the setter still seems to work as expected
+			proto.__defineSetter__ ( name, combo ( function () {
+				setter.apply ( this, arguments );
+			}));
+		} else {
+			// firefox 21 can't lookup textContent getter *sometimes*
+			throw new Error ( "Can't lookup getter for " + name );
+		}
 	}
 };
 

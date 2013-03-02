@@ -21,7 +21,9 @@ gui.AttPlugin = gui.Plugin.extend ( "gui.AttPlugin", {
 	 * @returns {gui.AttPlugin}
 	 */
 	set : function ( name, value ) {
-		gui.AttPlugin.set ( this.spirit.element, name, value );
+		if ( !this.__suspended__ ) {
+			gui.AttPlugin.set ( this.spirit.element, name, value );
+		}
 		return this;
 	},
 
@@ -82,8 +84,8 @@ gui.AttPlugin = gui.Plugin.extend ( "gui.AttPlugin", {
 	__suspended__ : false,
 
 	/**
-	 * Suspend attribute updates for the duration of the action.
-	 * @todo Figure out why and if we need this stuff
+	 * Suspend attribute updates for the duration of the 
+	 * action. This to prevent endless attribute updates
 	 * @param {function} action
 	 * @retruns {object}
 	 */
@@ -118,7 +120,10 @@ gui.AttPlugin = gui.Plugin.extend ( "gui.AttPlugin", {
 		if ( value === null ) {
 			this.del ( elm, name );
 		} else {
-			elm.setAttribute ( name, String ( value ));
+			value = String ( value );
+			if ( elm.getAttribute ( name ) !== value ) {
+				elm.setAttribute ( name, value );
+			}
 		}
 	},
 
