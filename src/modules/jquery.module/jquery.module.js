@@ -101,6 +101,7 @@ gui.module ( "jquery", {
 				this.each ( function ( i, elm ) {
 					if ( elm.spirit ) {
 						if ( val !== undefined || del ) {
+							// @todo spirit.att.__suspend__ ???
 							elm.spirit.att.set ( nam, val );
 						} else {
 							res = elm.spirit.att.get ( nam );
@@ -166,23 +167,23 @@ gui.module ( "jquery", {
 							break;
 						case "appendTo" :
 							res = suber ();
-							arg().each ( function ( i, m ) {
+							arg ().each ( function ( i, m ) {
 								jq ( m ).last ().__spiritualize ();
 							});
 							break;
 						case "prependTo" :
 							res = suber ();
-							arg().each ( function ( i, m ) {
+							arg ().each ( function ( i, m ) {
 								jq ( m ).first ().__spiritualize ();
 							});
 							break;
 						case "insertAfter" :
 							res = suber ();
-							arg().next ().__spiritualize ();
+							arg ().next ().__spiritualize ();
 							break;
 						case "insertBefore" :
 							res = suber ();
-							arg().prev ().__spiritualize ();
+							arg ().prev ().__spiritualize ();
 							break;
 						case "detach" :
 						case "remove" :
@@ -233,19 +234,15 @@ gui.module ( "jquery", {
 	
 	/**
 	 * Overload Spiritual to spiritualize/materialize spirits on DOM mutation and to 
-	 * suspend mutation monitoring while DOM updating. This would normally 
-	 * be baked into native DOM methods appendChild, removeChild and so on.
+	 * suspend mutation monitoring while DOM updating. This would normally (in native 
+	 * mode) be baked into native DOM methods appendChild, removeChild and so on.
 	 * @see {gui.DOMPlugin}
 	 */
 	_spiritualdom : function () {
-
 		// overloading this fellow
 		var plugin = gui.DOMPlugin.prototype;
-
-		/*
-		 * @param {gui.Spirit} spirit
-		 * @returns {object}
-		 */
+		// @param {gui.Spirit} spirit
+		// @returns {object}
 		function breakdown ( spirit ) {
 			var elm = spirit.element;
 			var doc = elm.ownerDocument;
@@ -254,9 +251,7 @@ gui.module ( "jquery", {
 			var is$ = win.gui.mode === gui.MODE_JQUERY;
 			return { elm : elm, doc : doc, win : win, dom : dom, is$ : is$ };
 		}
-		/**
-		 * Manage invoker subtree.
-		 */
+		// manage invoker subtree.
 		[ "html", "empty", "text" ].forEach ( function ( method ) {
 			var old = plugin [ method ];
 			plugin [ method ] = function ( arg ) {
@@ -277,9 +272,7 @@ gui.module ( "jquery", {
 				return res;
 			};
 		});
-		/**
-		 * Manage invoker itself.
-		 */
+		// manage invoker itself.
 		[ "remove" ].forEach ( function ( method ) {
 			var old = plugin [ method ];
 			plugin [ method ] = function ( arg ) {
@@ -297,9 +290,7 @@ gui.module ( "jquery", {
 				return res;
 			};
 		});
-		/**
-		 * Manage targeted element(s)
-		 */
+		// manage targeted element(s)
 		[ "append", "prepend", "before", "after" ].forEach ( function ( method ) {
 			var old = plugin [ method ];
 			plugin [ method ] = function ( things ) {
