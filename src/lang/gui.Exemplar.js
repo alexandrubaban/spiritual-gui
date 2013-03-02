@@ -4,8 +4,10 @@
  * for prototypal inheritance. Nevertheless, this fellow allow us to create a newable 
  * constructor that can be easily "subclassed". Instances of this constructor may use a 
  * special `_super` method to overload members of the "superclass" prototype. 
+ * @todo Evaluate static stuff first so that proto can declare vals as static props 
+ * @todo Check if static stuff shadows recurring static (vice versa) and warn about it.
  */
-gui.Exemplar = { // @todo Evaluate static stuff first so that proto can declare vals as static props 
+gui.Exemplar = { 
 
 	/**
 	 * Create magic constructor. Use static method `extend` on the constructor to subclass further.
