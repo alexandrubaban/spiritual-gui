@@ -3,7 +3,7 @@
  * Top namespace object for everything Spiritual. On startup, the global variable `gui` gets 
  * redefined to an instance of {gui.Spiritual}. All these constants get copied in the process.
  */
-var gui = {
+window.gui = {
 
 	/**
 	 * Spiritual version. Hardcoded for now.
