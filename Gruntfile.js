@@ -61,7 +61,7 @@ module.exports = function ( grunt ) {
 		concat: {
 			options: {
 				separator : "\n\n\n",
-				banner: BANNER
+				banner: BANNER + "\n\n\n"
 			},
 			dist: {
 				src: sourcelist,
