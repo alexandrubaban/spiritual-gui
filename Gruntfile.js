@@ -1,6 +1,6 @@
 /*global module:false*/
 
-// (npm uninstall -g grunt)
+// (npm uninstall -g grunt) (if old grunt lingers, delete from /usr/local/lib/node_modules)
 // npm install -g grunt-cli
 // npm install -g grunt --save-dev
 // npm install grunt --save-dev
@@ -65,8 +65,7 @@ module.exports = function ( grunt ) {
 			},
 			dist: {
 				src: sourcelist,
-				dest: 'dist/spiritual-gui-<%= meta.version %>.js',
-				separator : "\n\n\n"
+				dest: 'dist/spiritual-gui-<%= meta.version %>.js'
 			}
 		},
 		uglify: {
@@ -84,5 +83,5 @@ module.exports = function ( grunt ) {
 	});
 
 	// default task
-	grunt.registerTask('default', [ "jshint", "concat","uglify" ]);
+	grunt.registerTask('default', [ "jshint", "concat", "uglify" ]);
 };
