@@ -265,19 +265,19 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 	 * @type {Map<String,String>}
 	 */
 	_messages : {
-		"click"	: gui.BROADCAST_MOUSECLICK,
-		"mousedown"	: gui.BROADCAST_MOUSEDOWN,
-		"mouseup"	: gui.BROADCAST_MOUSEUP,
+		"click" : gui.BROADCAST_MOUSECLICK,
+		"mousedown" : gui.BROADCAST_MOUSEDOWN,
+		"mouseup" : gui.BROADCAST_MOUSEUP,
 		"scroll" : gui.BROADCAST_SCROLL,
 		"resize" : gui.BROADCAST_RESIZE,
 		"touchstart" : gui.BROADCAST_TOUCHSTART,
 		"touchend" : gui.BROADCAST_TOUCHEND,
-		"touchcancel"	: gui.BROADCAST_TOUCHCANCEL,
+		"touchcancel" : gui.BROADCAST_TOUCHCANCEL,
 		"touchleave" : gui.BROADCAST_TOUCHLEAVE,
-		"touchmove"	: gui.BROADCAST_TOUCHMOVE
+		"touchmove" : gui.BROADCAST_TOUCHMOVE
 		// "popstate" : gui.BROADCAST_POPSTATE,
 		// "hashchange" : gui.BROADCAST_HASHCHANGE,
-		// "mousemove"	: gui.BROADCAST_MOUSEMOVE,
+		// "mousemove" : gui.BROADCAST_MOUSEMOVE,
 	},
 
 	/**
