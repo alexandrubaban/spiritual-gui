@@ -20,8 +20,15 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 				case "resize" :
 					target = this.window;
 					break;
+				case "popstate" :
+				case "hashchange" :
+					var win = this.window;
+					target = win === top ? win : null;
+					break;
 			}
-			this.event.add ( type, target );
+			if ( target ) {
+				this.event.add ( type, target );
+			}
 		}, this );
 		if ( this.document === document ) {
 			this._constructTop ();
@@ -274,9 +281,9 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 		"touchend" : gui.BROADCAST_TOUCHEND,
 		"touchcancel" : gui.BROADCAST_TOUCHCANCEL,
 		"touchleave" : gui.BROADCAST_TOUCHLEAVE,
-		"touchmove" : gui.BROADCAST_TOUCHMOVE
-		// "popstate" : gui.BROADCAST_POPSTATE,
-		// "hashchange" : gui.BROADCAST_HASHCHANGE,
+		"touchmove" : gui.BROADCAST_TOUCHMOVE,
+		"hashchange" : gui.BROADCAST_HASHCHANGE,
+		"popstate" : gui.BROADCAST_POPSTATE
 		// "mousemove" : gui.BROADCAST_MOUSEMOVE,
 	},
 
