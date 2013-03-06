@@ -202,14 +202,20 @@ gui.Guide = {
 	},
 
 	/**
-	 * Fires on document.DOMContentLoaded
+	 * Fires on document.DOMContentLoaded.
 	 * @todo gui.Observer crashes with JQuery when both do stuff on DOMContentLoaded
+	 * @todo (can't setImmedeate to bypass JQuery, we risk onload being fired first)
 	 * @see http://stackoverflow.com/questions/11406515/domnodeinserted-behaves-weird-when-performing-dom-manipulation-on-body
 	 * @param {gui.EventSummary} sum
 	 */
 	_ondom : function ( sum ) {
-		gui.broadcastGlobal ( gui.BROADCAST_DOMCONTENT, sum ); // careful - no spirits are attached at this point
-		this._step1 ( sum.document ); // can't setImmedeate to bypass JQuery, we risk onload being fired first
+		gui.broadcastGlobal ( gui.BROADCAST_DOMCONTENT, sum );
+		if ( gui.autostart ) {
+			var meta = sum.document.querySelector ( "meta[name='gui.autostart']" );
+			if ( !meta || gui.Type.cast ( meta.getAttribute ( "content" )) !== false ) {
+				this._step1 ( sum.document ); // else await gui.kickstart()
+			}
+		}
 	},
 
 	/**

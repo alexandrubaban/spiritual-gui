@@ -20,8 +20,15 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 				case "resize" :
 					target = this.window;
 					break;
+				case "popstate" :
+				case "hashchange" :
+					var win = this.window;
+					target = win === top ? win : null;
+					break;
 			}
-			this.event.add ( type, target );
+			if ( target ) {
+				this.event.add ( type, target );
+			}
 		}, this );
 		if ( this.document === document ) {
 			this._constructTop ();
@@ -265,19 +272,19 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 	 * @type {Map<String,String>}
 	 */
 	_messages : {
-		"click"	: gui.BROADCAST_MOUSECLICK,
-		"mousedown"	: gui.BROADCAST_MOUSEDOWN,
-		"mouseup"	: gui.BROADCAST_MOUSEUP,
+		"click" : gui.BROADCAST_MOUSECLICK,
+		"mousedown" : gui.BROADCAST_MOUSEDOWN,
+		"mouseup" : gui.BROADCAST_MOUSEUP,
 		"scroll" : gui.BROADCAST_SCROLL,
 		"resize" : gui.BROADCAST_RESIZE,
 		"touchstart" : gui.BROADCAST_TOUCHSTART,
 		"touchend" : gui.BROADCAST_TOUCHEND,
-		"touchcancel"	: gui.BROADCAST_TOUCHCANCEL,
+		"touchcancel" : gui.BROADCAST_TOUCHCANCEL,
 		"touchleave" : gui.BROADCAST_TOUCHLEAVE,
-		"touchmove"	: gui.BROADCAST_TOUCHMOVE
-		// "popstate" : gui.BROADCAST_POPSTATE,
-		// "hashchange" : gui.BROADCAST_HASHCHANGE,
-		// "mousemove"	: gui.BROADCAST_MOUSEMOVE,
+		"touchmove" : gui.BROADCAST_TOUCHMOVE,
+		"hashchange" : gui.BROADCAST_HASHCHANGE,
+		"popstate" : gui.BROADCAST_POPSTATE
+		// "mousemove" : gui.BROADCAST_MOUSEMOVE,
 	},
 
 	/**
