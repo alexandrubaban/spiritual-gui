@@ -50,6 +50,13 @@ gui.Spiritual.prototype = {
 	debug : false,
 
 	/**
+	 * Automatically run on DOMContentLoaded? 
+	 * If set to false, run using kickstart().
+	 * @type {boolean}
+	 */
+	autostart : true,
+
+	/**
 	 * Identification.
 	 * @returns {String}
 	 */
