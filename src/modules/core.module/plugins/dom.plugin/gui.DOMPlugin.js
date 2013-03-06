@@ -24,16 +24,24 @@ gui.DOMPlugin = gui.Plugin.extend ( "gui.DOMPlugin", {
 	},
  
 	/**
-	 * Get spirit element tagname or create an element of given tagname.
-	 * @param {String} name If present, create an element
-	 * @param @optional {String} namespace (TODO)
+	 * Get spirit element tagname or create an element of given tagname. 
+	 * @param @optional {String} name If present, create an element
+	 * @param @optional {String} text If present, also append a text node
+	 * @todo Third argument for namespace? Investigate general XML-ness.
 	 */
-	tag : function ( name ) {
+	tag : function ( name, text ) {
 		var res = null;
+		var doc = this.spirit.document;
+		var elm = this.spirit.element;
 		if ( name ) {
-			res = this.spirit.document.createElement ( name );
+			res = doc.createElement ( name );
+			if ( gui.Type.isString ( text )) {
+				res.appendChild ( 
+					doc.createTextNode ( text )
+				);
+			}
 		} else {
-			res = this.spirit.element.localName;
+			res = elm.localName;
 		}
 		return res;
 	},
@@ -654,6 +662,7 @@ gui.Object.each ({
  * DOM insertion methods accept one argument: one spirit OR one element OR an array of either or both. 
  * The input argument is returned as given. This allows for the following one-liner to be constructed: 
  * this.something = this.dom.append ( gui.SomeThingSpirit.summon ( this.document )); // imagine 15 more
+ * @todo Go for compliance with DOM4 method matches (something about textnoding string arguments)
  */
 gui.Object.each ({
 
