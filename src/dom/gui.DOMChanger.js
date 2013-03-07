@@ -6,16 +6,17 @@ gui.DOMChanger = {
 
 	/**
 	 * True when in JQuery mode. This will be removed when 
-	 * iOS supports a mechanism for intercepting innerHTML. 
+	 * iOS supports a mechanism for intercepting `innerHTML`. 
 	 * @type {boolean}
 	 */
 	jquery : false,
 
 	/**
-	 * Tracking success with overloading innerHTML setter in the current browser.
-	 * * Firefox, Opera and Explorer does this on an Element.prototype level
-	 * * Webkit does this on all *instances* of Element @see {gui.Guide#attach}
-	 * * Safari on iOS fails completely on must fallback to use "jquery" module
+	 * Tracking success with overloading `innerHTML`.
+	 * 
+	 * - Firefox, Opera and Explorer does this on an Element.prototype level
+	 * - Webkit must do this on all *instances* of Element (pending WebKit issue 13175)
+	 * - Safari on iOS fails completely and must fallback to use the jQquery module
 	 * @type {Map<String,boolean>}
 	 */
 	innerhtml : {
@@ -83,10 +84,9 @@ gui.DOMChanger = {
 	 * intercept DOM updates. Firefox ignores extending of 
 	 * Element.prototype, we must step down the prototype chain.
 	 * @see https://bugzilla.mozilla.org/show_bug.cgi?id=618379
-	 * @todo Add to the bug a comment about Object.prototype
 	 * @todo Extend DocumentFragment
-	 * @todo Extend insertAdjecantHTML
-	 * @todo Support SVG elements (in XHTML)
+	 * @todo Support insertAdjecantHTML
+	 * @todo Support SVG elements
 	 * @param {Window} win
 	 * @param {Map<String,function} combos
 	 */

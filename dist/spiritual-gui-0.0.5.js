@@ -3,12 +3,15 @@
  * (c) 2013 Wunderbyte
  * Spiritual is freely distributable under the MIT license.
  */
+
+
+
 /**
  * # gui
  * Top namespace object for everything Spiritual. On startup, the global variable `gui` gets 
  * redefined to an instance of {gui.Spiritual}. All these constants get copied in the process.
  */
-var gui = {
+window.gui = {
 
 	/**
 	 * Spiritual version. Hardcoded for now.
@@ -706,6 +709,13 @@ gui.Spiritual.prototype = {
 	 * @type {boolean}
 	 */
 	debug : false,
+
+	/**
+	 * Automatically run on DOMContentLoaded? 
+	 * If set to false, run using kickstart().
+	 * @type {boolean}
+	 */
+	autostart : true,
 
 	/**
 	 * Identification.
@@ -6122,16 +6132,24 @@ gui.DOMPlugin = gui.Plugin.extend ( "gui.DOMPlugin", {
 	},
  
 	/**
-	 * Get spirit element tagname or create an element of given tagname.
-	 * @param {String} name If present, create an element
-	 * @param @optional {String} namespace (TODO)
+	 * Get spirit element tagname or create an element of given tagname. 
+	 * @param @optional {String} name If present, create an element
+	 * @param @optional {String} text If present, also append a text node
+	 * @todo Third argument for namespace? Investigate general XML-ness.
 	 */
-	tag : function ( name ) {
+	tag : function ( name, text ) {
 		var res = null;
+		var doc = this.spirit.document;
+		var elm = this.spirit.element;
 		if ( name ) {
-			res = this.spirit.document.createElement ( name );
+			res = doc.createElement ( name );
+			if ( gui.Type.isString ( text )) {
+				res.appendChild ( 
+					doc.createTextNode ( text )
+				);
+			}
 		} else {
-			res = this.spirit.element.localName;
+			res = elm.localName;
 		}
 		return res;
 	},
@@ -6752,6 +6770,7 @@ gui.Object.each ({
  * DOM insertion methods accept one argument: one spirit OR one element OR an array of either or both. 
  * The input argument is returned as given. This allows for the following one-liner to be constructed: 
  * this.something = this.dom.append ( gui.SomeThingSpirit.summon ( this.document )); // imagine 15 more
+ * @todo Go for compliance with DOM4 method matches (something about textnoding string arguments)
  */
 gui.Object.each ({
 
@@ -8625,8 +8644,15 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 				case "resize" :
 					target = this.window;
 					break;
+				case "popstate" :
+				case "hashchange" :
+					var win = this.window;
+					target = win === top ? win : null;
+					break;
 			}
-			this.event.add ( type, target );
+			if ( target ) {
+				this.event.add ( type, target );
+			}
 		}, this );
 		if ( this.document === document ) {
 			this._constructTop ();
@@ -8870,19 +8896,19 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 	 * @type {Map<String,String>}
 	 */
 	_messages : {
-		"click"	: gui.BROADCAST_MOUSECLICK,
-		"mousedown"	: gui.BROADCAST_MOUSEDOWN,
-		"mouseup"	: gui.BROADCAST_MOUSEUP,
+		"click" : gui.BROADCAST_MOUSECLICK,
+		"mousedown" : gui.BROADCAST_MOUSEDOWN,
+		"mouseup" : gui.BROADCAST_MOUSEUP,
 		"scroll" : gui.BROADCAST_SCROLL,
 		"resize" : gui.BROADCAST_RESIZE,
 		"touchstart" : gui.BROADCAST_TOUCHSTART,
 		"touchend" : gui.BROADCAST_TOUCHEND,
-		"touchcancel"	: gui.BROADCAST_TOUCHCANCEL,
+		"touchcancel" : gui.BROADCAST_TOUCHCANCEL,
 		"touchleave" : gui.BROADCAST_TOUCHLEAVE,
-		"touchmove"	: gui.BROADCAST_TOUCHMOVE
-		// "popstate" : gui.BROADCAST_POPSTATE,
-		// "hashchange" : gui.BROADCAST_HASHCHANGE,
-		// "mousemove"	: gui.BROADCAST_MOUSEMOVE,
+		"touchmove" : gui.BROADCAST_TOUCHMOVE,
+		"hashchange" : gui.BROADCAST_HASHCHANGE,
+		"popstate" : gui.BROADCAST_POPSTATE
+		// "mousemove" : gui.BROADCAST_MOUSEMOVE,
 	},
 
 	/**
@@ -11065,14 +11091,20 @@ gui.Guide = {
 	},
 
 	/**
-	 * Fires on document.DOMContentLoaded
+	 * Fires on document.DOMContentLoaded.
 	 * @todo gui.Observer crashes with JQuery when both do stuff on DOMContentLoaded
+	 * @todo (can't setImmedeate to bypass JQuery, we risk onload being fired first)
 	 * @see http://stackoverflow.com/questions/11406515/domnodeinserted-behaves-weird-when-performing-dom-manipulation-on-body
 	 * @param {gui.EventSummary} sum
 	 */
 	_ondom : function ( sum ) {
-		gui.broadcastGlobal ( gui.BROADCAST_DOMCONTENT, sum ); // careful - no spirits are attached at this point
-		this._step1 ( sum.document ); // can't setImmedeate to bypass JQuery, we risk onload being fired first
+		gui.broadcastGlobal ( gui.BROADCAST_DOMCONTENT, sum );
+		if ( gui.autostart ) {
+			var meta = sum.document.querySelector ( "meta[name='gui.autostart']" );
+			if ( !meta || gui.Type.cast ( meta.getAttribute ( "content" )) !== false ) {
+				this._step1 ( sum.document ); // else await gui.kickstart()
+			}
+		}
 	},
 
 	/**

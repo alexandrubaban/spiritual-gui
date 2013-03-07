@@ -10,7 +10,7 @@ window.gui = {
 	 * @todo Deprecate or generate buildtime.
 	 * @type {String}
 	 */
-	version : "0.0.4",
+	version : "0.0.5",
 
 	/**
 	 * Native mode: Overloading native DOM methods.

@@ -6,6 +6,7 @@
  * special `_super` method to overload members of the "superclass" prototype. 
  * @todo Evaluate static stuff first so that proto can declare vals as static props 
  * @todo Check if static stuff shadows recurring static (vice versa) and warn about it.
+ * @todo "expando" should be universally renamed "extension" or something.
  */
 gui.Exemplar = { 
 
@@ -26,6 +27,7 @@ gui.Exemplar = {
 		gui.Object.extend ( C, args.statics );
 		C.__recurring__ = Object.create ( null ); // tracking recurring static members
 		C.__extenders__ = []; // tracking subclasses of this class
+		C.__ = gui.KeyMaster.generateKey (); // make it easy to use class as key in map
 		if ( args.recurring ) {
 			gui.Object.each ( args.recurring, function ( key, val ) {
 				C [ key ] = C.__recurring__ [ key ] = val;
@@ -177,7 +179,7 @@ gui.Exemplar = {
 	 * @returns {function}
 	 */
 	_create : function ( proto, name ) {
-		var C = this._constructor ( name );
+		var C = gui.Function.create ( name, null, this._body );
 		C.prototype = Object.create ( proto );
 		C.prototype.constructor = C;
 		C.__super__ = null;
@@ -189,9 +191,10 @@ gui.Exemplar = {
 
 	/**
 	 * Create named constructor.
+	 * @todo Perhaps gui.Function.create (@see http://wiki.ecmascript.org/doku.php?id=strawman:name_property_of_functions)
 	 * @param {String} name
 	 * @returns {function} constructor
-	 */
+	 *
 	_constructor : function ( name ) {
 		if ( name.contains ( "." )) {
 			var index = name.lastIndexOf ( "." );
@@ -208,6 +211,7 @@ gui.Exemplar = {
 		);
 		return named ();
 	},
+	*/
 
 	/**
 	 * Name constructor and instance.
@@ -241,5 +245,15 @@ gui.Exemplar = {
 				}
 			});
 		}
-	}
+	},
+
+	/**
+	 * Constructor body common to all exemplars.
+	 * @todo Return new this if not called with new keyword
+	 * @type {String}
+	 */
+	_body : "var constructor = this.__construct__ || this.onconstruct;" +
+		"if ( gui.Type.isFunction ( constructor )) {" +
+			"constructor.apply ( this, arguments );" +
+		"}"
 };

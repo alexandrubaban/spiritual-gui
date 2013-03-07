@@ -46,7 +46,7 @@ gui.Object = {
   },
 
   /**
-	 * Call function for each key/value in iterated object. 
+	 * Call function for each key in object with value as argument.
 	 * @param {object} object
 	 * @param {function} func
 	 * @param @optional {object} thisp
@@ -139,7 +139,7 @@ gui.Object = {
 	},
 
 	/**
-	 * Convert array-like object to array (but always return an array).
+	 * Convert array-like object to array; but always return an array.
 	 * @param {object} object
 	 * @returns {Array<object>}
 	 */
