@@ -6,7 +6,7 @@
 	"src/boot/gui.Spiritual.js",
 
 	"src/lang/gui.Arguments.js",
-	"src/lang/gui.Combinator.js",
+	"src/lang/gui.Combo.js",
 	"src/lang/gui.Exemplar.js",
 	"src/lang/gui.Function.js",
 	"src/lang/gui.Interface.js",

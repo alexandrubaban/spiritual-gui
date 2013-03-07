@@ -31,7 +31,7 @@ gui.DOMCombos = {
 	 */
 	_create : function () {
 
-		var combo = gui.Combinator;
+		var combo = gui.Combo;
 		var guide = gui.Guide;
 		
 		/**

@@ -1,10 +1,10 @@
 /**
- * # gui.Combinator
+ * # gui.Combo
  * From Raganwalds "Method Combinators".
  * @see https://github.com/raganwald/method-combinators/blob/master/README-JS.md
  * @see https://github.com/raganwald/homoiconic/blob/master/2012/09/precondition-and-postcondition.md
  */
-gui.Combinator = {
+gui.Combo = {
 
 	/**
 	 * Decorate before.
@@ -43,7 +43,7 @@ gui.Combinator = {
 	around : function ( decoration ) {
 		return function ( base ) {
 			return function () {
-				var argv, callback, __value__, that = this, slice = gui.Combinator._slice;
+				var argv, callback, __value__, that = this, slice = gui.Combo._slice;
 				argv = 1 <= arguments.length ? slice.call ( arguments, 0 ) : [];
 				__value__ = void 0;
 				callback = function () {
@@ -59,7 +59,7 @@ gui.Combinator = {
 	 * Decorate provided. Note that we added support for an otherwise otherwise.
 	 * @param {function} condition
 	 */
-	provided : function ( condition ){
+	provided : function ( condition ) {
 		return function ( base, otherwise ) {
 			return function () {
 				if ( condition.apply ( this, arguments )) {
