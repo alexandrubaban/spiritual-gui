@@ -8,7 +8,7 @@ gui.Function = {
 	 * @see https://mail.mozilla.org/pipermail/es-discuss/2009-March/008954.html
 	 * @see http://wiki.ecmascript.org/doku.php?id=strawman:name_property_of_functions
 	 * @param @optional {String} name
-	 * @param @optional {Array<String>} args
+	 * @param @optional {Array<String>} params
 	 * @param @optional {String} body
 	 * @param @optional {Window} context
 	 * @returns {function}
