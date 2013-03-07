@@ -35,6 +35,8 @@ gui.DOMPlugin = gui.Plugin.extend ( "gui.DOMPlugin", {
 		var elm = this.spirit.element;
 		if ( name ) {
 			res = doc.createElement ( name );
+
+			// @todo "text" > "child" and let gui.DOMPlugin handle the rest....
 			if ( gui.Type.isString ( text )) {
 				res.appendChild ( 
 					doc.createTextNode ( text )
