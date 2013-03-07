@@ -323,12 +323,12 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	 * Null all props.
 	 */
 	__null__ : function () {
-		var element = this.element;
+		var myelm = this.element;
 		var debug = this.window.gui.debug;
 		var ident = this.toString ();
-		if ( element ) {
+		if ( myelm ) {
 			try {
-				element.spirit = null;
+				myelm.spirit = null;
 			} catch ( denied ) {} // explorer may deny permission in frames
 		}
 		Object.keys ( this ).forEach ( function ( prop ) {
