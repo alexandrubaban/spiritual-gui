@@ -28,9 +28,9 @@ gui.Combo = {
 	after : function ( decoration ) {
 		return function ( base ) {
 			return function () {
-				var __value__ = base.apply ( this, arguments );
+				var result = base.apply ( this, arguments );
 				decoration.apply ( this, arguments );
-				return __value__;
+				return result;
 			};
 		};
 	},
@@ -43,14 +43,14 @@ gui.Combo = {
 	around : function ( decoration ) {
 		return function ( base ) {
 			return function () {
-				var argv, callback, __value__, that = this, slice = gui.Combo._slice;
+				var argv, callback, result, that = this, slice = gui.Combo._slice;
 				argv = 1 <= arguments.length ? slice.call ( arguments, 0 ) : [];
-				__value__ = void 0;
+				result = void 0;
 				callback = function () {
-					return __value__ = base.apply ( that, argv );
+					return result = base.apply ( that, argv );
 				};
 				decoration.apply ( this, [ callback ].concat ( argv ));
-				return __value__;
+				return result;
 			};
 		};
 	},
@@ -74,5 +74,9 @@ gui.Combo = {
 
 	// Private ..........................................................
 
+	/**
+	 * Slice it once and for all.
+	 * @type {function}
+	 */
 	_slice : [].slice
 };
