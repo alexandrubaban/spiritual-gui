@@ -323,14 +323,17 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	 * Null all props.
 	 */
 	__null__ : function () {
-		var element = this.element;
-		if ( element ) {
+		var myelm = this.element;
+		var debug = this.window.gui.debug;
+		var ident = this.toString ();
+		if ( myelm ) {
 			try {
-				element.spirit = null;
+				myelm.spirit = null;
 			} catch ( denied ) {} // explorer may deny permission in frames
 		}
 		Object.keys ( this ).forEach ( function ( prop ) {
-			Object.defineProperty ( this, prop, gui.Spirit.DENIED );
+			var desc = debug ? gui.Spirit.denial ( ident, prop ) : gui.Spirit.DENIED;
+			Object.defineProperty ( this, prop, desc );
 		}, this );
 	}
 
@@ -501,7 +504,26 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	},
 
 	/**
-	 * User to access property post destruction, report that the spirit was terminated. 
+	 * Custom property access denial for debug mode.
+	 * @param {String} name
+	 * @param {String} prop
+	 */
+	denial : function ( name, prop ) {
+		return {
+			enumerable : true,
+			configurable : true,
+			get : function DENIED () {
+				throw new Error ( gui.Spirit.DENIAL + ": " + name + ":" + prop );
+			},
+			set : function DENIED () {
+				throw new Error ( gui.Spirit.DENIAL + ": " + name + ":" + prop );
+			}
+		};	
+	},
+
+	/**
+	 * Standard propety access denial: User to access property 
+	 * post destruction, report that the spirit was terminated. 
 	 */
 	DENIED : {
 		enumerable : true,
