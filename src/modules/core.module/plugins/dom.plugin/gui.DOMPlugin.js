@@ -74,21 +74,20 @@ gui.DOMPlugin = gui.Plugin.extend ( "gui.DOMPlugin", {
 	 * Get or set element markup.
 	 * @param @optional {String} html
 	 * @param @optional {String} position Insert adjecant HTML
-	 * @returns {object} String or gui.Spirit (returns the spirit when setting)
+	 * @returns {String|gui.DOMPlugin}
 	 */
-	html : function ( html, position ) {
-		var res = this.spirit, element = res.element;
+	html : gui.Combo.chained ( function ( html, position ) {
+		var element = this.spirit.element;
 		if ( gui.Type.isString ( html )) {
 			if ( position ) {
-				element.insertAdjacentHTML ( position, html ); // @todo spiritualize this :)
+				element.insertAdjacentHTML ( position, html ); // @todo static + spiritualize!
 			} else {
 				gui.DOMPlugin.html ( element, html );
 			}			
 		} else {
-			res = element.innerHTML;
+			return element.innerHTML;
 		}
-		return res;
-	},
+	}),
 
 	/**
 	 * Empty spirit subtree.
@@ -101,15 +100,16 @@ gui.DOMPlugin = gui.Plugin.extend ( "gui.DOMPlugin", {
 	/**
 	 * Get or set element textContent.
 	 * @param @optional {String} text
-	 * @returns {object} String or gui.Spirit
+	 * @returns {String|gui.DOMPlugin}
 	 */
-	text : function ( text ) {
+	text : gui.Combo.chained ( function ( text ) {
 		var elm = this.spirit.element;
 		if ( gui.Type.isString ( text )) {
 			elm.textContent = text;
+			return this;
 		}
 		return elm.textContent;
-	},
+	}),
 
 	/**
 	 * Clone spirit element.
@@ -122,18 +122,18 @@ gui.DOMPlugin = gui.Plugin.extend ( "gui.DOMPlugin", {
 	/**
 	 * Show spirit element, recursively informing descendants.
 	 */
-	show : function () {
+	show : gui.Combo.chained ( function () {
 		this.spirit.css.remove("_gui-invisible");
 		this.spirit.visible ();
-	},
+	}),
 
 	/**
 	 * Hide spirit element, recursively informing descendants.
 	 */
-	hide : function () {
+	hide : gui.Combo.chained ( function () {
 		this.spirit.css.add("_gui-invisible");
 		this.spirit.invisible ();
-	},	
+	}),
 	
 	// Private .....................................................................
 
