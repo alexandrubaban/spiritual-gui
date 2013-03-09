@@ -81,6 +81,7 @@ gui.SpiritualAid = {
 	_arrays : function ( win ) {
 		this._extend ( win.Array.prototype, {
 			remove : function remove ( from, to ) {
+				console.warn ( "TODO: depracate array.remove from prototype and move to static" );
 				this.splice ( from, !to || 1 + to - from + ( ! ( to < 0 ^ from >= 0 ) && ( to < 0 || -1 ) * this.length ));
 				return this.length;
 			}
