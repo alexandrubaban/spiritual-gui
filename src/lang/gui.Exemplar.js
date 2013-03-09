@@ -2,11 +2,13 @@
  * # gui.Exemplar
  * The term "exemplar" has been proposed to avoid the term "class" which is misleading 
  * for prototypal inheritance. Nevertheless, this fellow allow us to create a newable 
- * constructor that can be easily "subclassed". Instances of this constructor may use a 
- * special `_super` method to overload members of the "superclass" prototype. 
+ * constructor that can be easily subclassed. Instances of this constructor may use a 
+ * special `_super` method to overload members of the superclass prototype. 
  * @todo Evaluate static stuff first so that proto can declare vals as static props 
  * @todo Check if static stuff shadows recurring static (vice versa) and warn about it.
  * @todo "expando" should be universally renamed "extension" or something.
+ * @todo It's possible for a prototype to be a prototype, investigate this inception
+ * @todo Formalize naming of __indexident__ and __children__ and __recurring__
  */
 gui.Exemplar = { 
 
@@ -26,8 +28,10 @@ gui.Exemplar = {
 		gui.Object.extend ( C.prototype, args.expando );
 		gui.Object.extend ( C, args.statics );
 		C.__recurring__ = Object.create ( null ); // tracking recurring static members
-		C.__extenders__ = []; // tracking subclasses of this class
-		C.__ = gui.KeyMaster.generateKey (); // make it easy to use class as key in map
+		C.__children__ = []; // tracking immediate subclasses of this class
+		C.__parent__ = null;
+		C.__indexident__ = gui.KeyMaster.generateKey (); // make it easy to use class as key in map
+		//C.__ = deprecated!
 		if ( args.recurring ) {
 			gui.Object.each ( args.recurring, function ( key, val ) {
 				C [ key ] = C.__recurring__ [ key ] = val;
@@ -67,39 +71,76 @@ gui.Exemplar = {
 	},
 	
 	/**
-	 * Apply action to immediate subclasses of given class.
+	 * Apply action to all immediate subclasses of given type. Returns an array of 
+	 * results. If no action is provided, returns array of descendant sublasses.
 	 * @param {function} C constructor
-	 * @param {function} action
+	 * @param @optionaæ {function} action
 	 * @param @optional {object} thisp
+	 * @returns {Array<object>}
 	 */
 	children : function ( C, action, thisp ) {
-		C.__extenders__.forEach ( function ( sub ) {
-			action.call ( thisp, sub );
+		var results = [];
+		action = action || gui.Combo.identity;
+		C.__children__.forEach ( function ( sub ) {
+			results.push ( action.call ( thisp, sub ));
 		}, thisp );
+		return results;
 	},
 
 	/**
 	 * Apply action recursively to all derived subclasses of given class.
+	 * Returns an array of accumulated results. If no action is provided, 
+	 * returns array of descendant sublasses.
 	 * @param {function} C constructor
-	 * @param {function} action
+	 * @param @optional {function} action
 	 * @param @optional {object} thisp 
+	 * @returns {Array<object>}
 	 */
-	descendants : function ( C, action, thisp ) {
-		C.__extenders__.forEach ( function ( sub ) {
-			action.call ( thisp, sub );
-			gui.Exemplar.descendants ( sub, action, thisp );
+	descendants : function ( C, action, thisp, results ) {
+		results = results || [];
+		action = action || gui.Combo.identity;
+		C.__children__.forEach ( function ( sub ) {
+			results.push ( action.call ( thisp, sub ));
+			gui.Exemplar.descendants ( sub, action, thisp, results );
 		}, thisp );
+		return results;
+	},
+
+	/**
+	 * @param {function} C constructor
+	 * @param @optional {function} action
+	 * @param @optional {object} thisp
+	 * @returns {object}
+	 */
+	parent : function ( C, action, thisp ) {
+		action = action || gui.Combo.identity;
+		return action.call ( thisp, C.__parent__ );
+	},
+
+	/*
+	 * 
+	 */
+	ancestors : function ( C, action, thisp, results ) {
+		results = results || [];
+		action = action || gui.Combo.identity;
+		if ( C.__parent__ ) {
+			results.push ( action.call ( thisp, C.__parent__ ));
+			gui.Exemplar.ancestors ( C.__parent__, action, thisp, results );
+		}
+		return results;
 	},
 
 	/**
 	 * Apply action recursively to base class and all derived subclasses.
+	 * @todo Rename "descendantsAndSelf" or something
+	 * @deprecated (must be)
 	 * @param {function} C constructor
 	 * @param {function} action
 	 * @param @optional {object} thisp
 	 */
 	family : function ( C, action, thisp ) {
-		action.call ( thisp, C );
-		this.descendants ( C, action, thisp );
+		action = action || gui.Combo.identity;
+		return this.descendants ( C, action, thisp, [ action.call ( thisp, C )]);
 	},
 
 	/**
@@ -156,9 +197,12 @@ gui.Exemplar = {
 		name = name || "Anonymous";
 		var C = this._create ( constructor.prototype, name );
 		this._name ( C, name );
+		// used for key in maps (if no native Map)
+		C.__indexident__ = gui.KeyMaster.generateKey ();
 		// extenders
-		constructor.__extenders__.push ( C );
-		C.__extenders__ = [];
+		C.__children__ = [];
+		C.__parent__ = constructor;
+		constructor.__children__.push ( C );
 		// static methods
 		gui.Object.extend ( C, statics );
 		// recurring statics
@@ -250,6 +294,7 @@ gui.Exemplar = {
 	/**
 	 * Constructor body common to all exemplars.
 	 * @todo Return new this if not called with new keyword
+	 * @todo Why doesn't all this stuff work???????????????
 	 * @type {String}
 	 */
 	_body : "var constructor = this.__construct__ || this.onconstruct;" +
