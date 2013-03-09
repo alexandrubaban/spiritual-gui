@@ -4,7 +4,7 @@
  * of a XMLHttpRequest to cache the result and save repeated lookups.
  * @todo custom protocol handlers to load from localstorage
  */
-gui.FileLoader = gui.Exemplar.create ( "gui.FileLoader", Object.prototype, {
+gui.FileLoader = gui.Class.create ( "gui.FileLoader", Object.prototype, {
 
 	/**
 	 * Construction time again.

@@ -7,7 +7,7 @@
 
 	"src/lang/gui.Arguments.js",
 	"src/lang/gui.Combo.js",
-	"src/lang/gui.Exemplar.js",
+	"src/lang/gui.Class.js",
 	"src/lang/gui.Function.js",
 	"src/lang/gui.Interface.js",
 	"src/lang/gui.Object.js",

@@ -2,7 +2,7 @@
  * # gui.Spirit
  * Base constructor for all spirits
  */
-gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
+gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 
 	/**
 	 * Spirit DOM element.
@@ -352,9 +352,9 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	 * @returns {gui.Spirit}
 	 */
 	infuse : function () {
-		var C = gui.Exemplar.extend.apply ( this, arguments );
+		var C = gui.Class.extend.apply ( this, arguments );
 		C.__plugins__ = gui.Object.copy ( this.__plugins__ );
-		var breakdown = gui.Exemplar.breakdown ( arguments );
+		var breakdown = gui.Class.breakdown ( arguments );
 		gui.Object.each ( C.__plugins__, function ( prefix, plugin ) {
 			var def = breakdown.expando [ prefix ];			
 			switch ( gui.Type.of ( def )) {
@@ -431,7 +431,7 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 			if ( !plugins [ prefix ] || override ) {
 				plugins [ prefix ] = plugin;
 				proto.prefix = null;
-				gui.Exemplar.children ( this, function ( child ) {
+				gui.Class.children ( this, function ( child ) {
 					child.plugin ( prefix, plugin, override ); // recurses to descendants
 				});
 			}
