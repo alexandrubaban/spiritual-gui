@@ -23,8 +23,10 @@ gui.Tracker = gui.Plugin.extend ( "gui.Tracker", {
 	 */
 	onconstruct : function () {
 		this._super.onconstruct ();
-		this._sig = this.spirit.window.gui.signature;
 		this._xxx = Object.create ( null );
+		if ( this.spirit ) {
+			this._sig = this.spirit.window.gui.signature;
+		}
 	},
 
 	/**
