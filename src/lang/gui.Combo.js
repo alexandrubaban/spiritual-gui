@@ -4,7 +4,7 @@
  * @see https://github.com/raganwald/method-combinators/blob/master/README-JS.md
  * @see https://github.com/raganwald/homoiconic/blob/master/2012/09/precondition-and-postcondition.md
  */
-gui.Combo = {
+gui.Combo = { // @todo gui.Deco would perhaps fit better for some of these....
 
 	/**
 	 * Decorate before.
@@ -68,6 +68,27 @@ gui.Combo = {
 					return otherwise.apply ( this, arguments );
 				}
 			};
+		};
+	},
+
+	/**
+	 * Output the input.
+	 * @param {object} subject
+	 * @return {object}
+	 */
+	identity : function ( subject ) {
+		return subject;
+	},
+
+	/**
+	 * Make function return "this" if otherwise it would return undefined.
+	 * @param {function} base
+	 * @returns {function}
+	 */
+	chained : function ( base ) {
+		return function () {
+			var result = base.apply ( this, arguments );
+			return result === undefined ? this : result;
 		};
 	},
 
