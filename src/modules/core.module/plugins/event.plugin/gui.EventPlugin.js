@@ -1,6 +1,7 @@
 /**
  * # gui.EventPlugin
  * Tracking DOM events.
+ * @todo Throw an error on remove not added!
  * @todo Static interface for general consumption.
  * @extends {gui.Tracker}
  */
