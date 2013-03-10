@@ -83,6 +83,24 @@ gui.EventPlugin = gui.Tracker.extend ( "gui.EventPlugin", {
 			}
 		}, this );
 		return this;
+	},
+
+
+	// PRIVATE ..........................................................
+
+	/**
+	 * Remove event listeners.
+	 * @overwrites {gui.Tracker#_cleanup}
+	 * @param {String} type
+	 * @param {Array<object>} checks
+	 */
+	_cleanup : function ( type, checks ) {
+		if ( this._removechecks ( type, checks )) {
+			var target = checks [ 0 ];
+			var handler = checks [ 1 ];
+			var capture = checks [ 2 ];
+			target.removeEventListener ( type, handler, capture );
+		}
 	}
 
 });
