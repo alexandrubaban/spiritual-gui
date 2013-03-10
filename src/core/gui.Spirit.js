@@ -346,7 +346,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	
 	/**
 	 * Extends spirit and plugins (mutating plugins) plus updates getters/setters.
-	 * @param {object} expando 
+	 * @param {object} extension 
 	 * @param {object} recurring 
 	 * @param {object} statics 
 	 * @returns {gui.Spirit}
@@ -356,7 +356,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 		C.__plugins__ = gui.Object.copy ( this.__plugins__ );
 		var breakdown = gui.Class.breakdown ( arguments );
 		gui.Object.each ( C.__plugins__, function ( prefix, plugin ) {
-			var def = breakdown.expando [ prefix ];			
+			var def = breakdown.extension [ prefix ];			
 			switch ( gui.Type.of ( def )) {
 				case "object" :
 					var mutant = plugin.extend ( def );
