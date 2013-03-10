@@ -1,5 +1,4 @@
 /**
- * # gui.Spiritual
  * An instance of this thing may be referenced as `gui` inside all windows. 
  * @param {Window} win Window or Worker scope
  */

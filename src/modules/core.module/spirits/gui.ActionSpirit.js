@@ -1,5 +1,4 @@
 /**
- * # gui.ActionSpirit
  * @extends {gui.Spirit}
  * @deprecated
  * Spirit of the button-like element.

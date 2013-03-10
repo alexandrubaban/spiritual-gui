@@ -1,5 +1,4 @@
 /**
- * # gui.Tick
  * Ticks are used for timed events. 
  * @todo Global versus local ticks
  * @todo Tick.push

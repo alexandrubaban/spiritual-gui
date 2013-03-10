@@ -1,5 +1,4 @@
 /**
- * # gui.BroadcastPlugin
  * Tracking broadcasts.
  * @extends {gui.Tracker}
  */

@@ -1,6 +1,5 @@
 /**
- * # gui.Action
- * SpiritAction.
+ * Spirit action.
  * @param {gui.Spirit} target
  * @param {String} type
  * @param @optional {object} data

@@ -1,6 +1,5 @@
 /**
- * # Module "core"
- * Injects methods into {gui.Spirit} and such stuff.
+ * Injects methods into {gui.Spirit} and such.
  */
 gui.module ( "core", {
 

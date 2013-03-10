@@ -1,5 +1,4 @@
 /**
- * # gui.Tween
  * Tweening away.
  * @param {String} type
  * @param @optional {object} data

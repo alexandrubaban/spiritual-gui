@@ -1,5 +1,4 @@
 /**
- * # gui.SpiritualAid
  * Polyfilling missing features from ES5 and selected features from ES6. 
  * Some of these are implemented weakly and should be used with caution 
  * (See Map, Set and WeakMap).

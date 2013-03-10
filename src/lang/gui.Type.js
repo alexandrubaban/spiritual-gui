@@ -1,5 +1,4 @@
 /**
- * # gui.Type
  * Type checking studio. All checks are string based not to cause 
  * confusion when checking the types of objects in another window.
  */

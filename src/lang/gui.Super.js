@@ -1,5 +1,4 @@
 /**
- * # gui.Super
  * Det er bare super.
  * @param {function} constructor
  */

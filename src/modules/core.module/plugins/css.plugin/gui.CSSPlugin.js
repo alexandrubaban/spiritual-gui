@@ -1,5 +1,4 @@
 /**
- * # gui.CSSPlugin
  * Spirit styling studio.
  * @extends {gui.Plugin}
  */

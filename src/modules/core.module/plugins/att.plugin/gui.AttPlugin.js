@@ -1,5 +1,4 @@
 /**
- * # gui.AttPlugin
  * Methods to read and write DOM attributes.
  * @extends {gui.Tracker}
  */

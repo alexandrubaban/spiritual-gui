@@ -1,7 +1,6 @@
 /**
- * # gui.IframeSpirit
- * @extends {gui.Spirit}
  * Spirit of the iframe.
+ * @extends {gui.Spirit}
  */
 gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
 

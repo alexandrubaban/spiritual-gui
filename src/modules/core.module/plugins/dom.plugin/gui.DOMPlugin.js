@@ -1,5 +1,4 @@
 /**
- * # gui.DOMPlugin
  * DOM query and manipulation.
  * @extends {gui.Plugin}
  * @todo implement missing stuff

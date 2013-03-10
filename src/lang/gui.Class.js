@@ -1,5 +1,4 @@
 /**
- * # gui.Class
  * This fellow allow us to create a newable constructor that can 
  * be easily 'subclassed' via an extend method. Instances of the 
  * 'class' may use a special `_super` method to overload members 

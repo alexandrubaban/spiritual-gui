@@ -1,5 +1,4 @@
  /**
- * # gui.ActionPlugin
  * Tracking actions.
  * @extends {gui.Tracker}
  */

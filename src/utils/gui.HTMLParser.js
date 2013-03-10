@@ -1,5 +1,4 @@
 /**
- * # gui.HTMLParser
  * Parse HTML string to DOM node(s) in given document context. 
  * Adapted from https://github.com/petermichaux/arbutus
  * @todo High level awareness of HTMLparser elements. Plugin ui.SpiritDOM and ui.Spirit.parse should know about added historic HTML chrome and strip when inserted.

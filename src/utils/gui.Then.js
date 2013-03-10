@@ -1,5 +1,4 @@
 /**
- * # The heading
  * Encapsulates a callback for future use.
  */
 gui.Then = function Then () {};

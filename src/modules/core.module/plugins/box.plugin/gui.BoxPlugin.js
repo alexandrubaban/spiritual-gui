@@ -1,5 +1,4 @@
 /**
- * # gui.BoxPlugin
  * Spirit box object. Note that these are all properties, not methods. 
  * @extends {gui.Plugin}
  * @todo Support globalX, globalY, screenX, screenY

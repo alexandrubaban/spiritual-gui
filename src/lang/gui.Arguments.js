@@ -1,5 +1,4 @@
 /**
- * # gui.Arguments
  * Function argument type checking studio.
  */
 gui.Arguments = {

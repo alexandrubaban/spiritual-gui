@@ -1,5 +1,4 @@
 /**
- * #gui.Geometry
  * Something that has position and width and height.
  * @param {number} x
  * @param {number} y

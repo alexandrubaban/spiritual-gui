@@ -1,5 +1,4 @@
 /**
- * # gui.DOMCombos
  * This is where it gets interesting.
  * @todo Standard DOM exceptions for missing arguments and so on.
  * @todo insertAdjecantHTML

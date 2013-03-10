@@ -1,5 +1,4 @@
 /**
- * # gui.Object
  * Working with objects.
  */
 gui.Object = {

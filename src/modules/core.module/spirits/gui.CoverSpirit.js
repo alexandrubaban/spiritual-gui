@@ -1,8 +1,7 @@
  /**
- * # gui.CoverSpirit
- * @extends {gui.Spirit}
  * Spirit of the cover. Use it to cover stuff up. Note that the cover should 
  * be fitted with a background-color in CSS in order to actually cover stuff.
+ * @extends {gui.Spirit}
  */
 gui.CoverSpirit = gui.Spirit.infuse ( "gui.CoverSpirit", {
 

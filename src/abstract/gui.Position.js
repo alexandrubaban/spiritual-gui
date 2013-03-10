@@ -1,5 +1,4 @@
 /**
- * #gui.Position
  * Something that has position.
  * @param {number} x
  * @param {number} y

@@ -1,5 +1,4 @@
 /**
- * # gui.Crawler
  * Crawling the DOM ascending or descending.
  * @todo method <code>descendSub</code> to skip start element (and something similar for ascend)
  * @param @optional {String} type

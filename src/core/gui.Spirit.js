@@ -1,5 +1,4 @@
 /**
- * # gui.Spirit
  * Base constructor for all spirits
  */
 gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {

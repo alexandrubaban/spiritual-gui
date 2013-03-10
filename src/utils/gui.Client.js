@@ -1,5 +1,4 @@
 /**
- * # gui.Client
  * Questionable browser identity and feature detection. Note that Chrome on iOS 
  * identifies itself as Safari (it basically is, so that shouldn't cause concern).
  * @todo Load earlier by not using gui.Broadcast?

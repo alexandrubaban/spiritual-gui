@@ -1,7 +1,6 @@
 /**
- * # gui.StyleSheetSpirit
+ *Spirit of the stylesheet. To be refactored.
  * @extends {gui.Spirit}
- * Spirit of the stylesheet.
  */
 gui.StyleSheetSpirit = gui.Spirit.infuse ( "gui.StyleSheetSpirit", {
 

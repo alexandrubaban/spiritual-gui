@@ -1,5 +1,4 @@
 /**
- * # gui.Tracker
  * Comment goes here.
  * @extends {gui.Plugin}
  */

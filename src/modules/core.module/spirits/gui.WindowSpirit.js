@@ -1,8 +1,7 @@
 /**
- * # gui.WindowSpirit
- * @extends {gui.Spirit}
  * Spirit of the window.
  * @todo use this name?
+ * @extends {gui.Spirit}
  */
 gui.WindowSpirit = gui.Spirit.infuse ( "gui.WindowSpirit", {
 

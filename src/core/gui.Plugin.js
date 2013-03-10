@@ -1,5 +1,4 @@
 /**
- * # gui.Plugin
  * Base class for all spirit plugins.
  * @todo "context" should be required in constructor
  * @todo Rename "gui.Plugin"
