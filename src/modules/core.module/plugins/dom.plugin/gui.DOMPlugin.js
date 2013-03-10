@@ -8,20 +8,17 @@
 gui.DOMPlugin = gui.Plugin.extend ( "gui.DOMPlugin", {
 
 	/**
-	 * Get or set element id.
+	 * Set or get element id.
 	 * @param @optional {String} id
-	 * @returns {object} String or gui.Spirit
+	 * @returns {String|gui.DOMPlugin}
 	 */
-	id : function ( id ) {	
-		var res = this;
-		if ( id !== undefined ) {
+	id : gui.Combo.chained ( function ( id ) {
+		if ( id ) {
 			this.spirit.element.id = id;
 		} else {
-			id = this.spirit.element.id;
-			res = id ? id : null;
+			return this.spirit.element.id || null;
 		}
-		return res;
-	},
+	}),
  
 	/**
 	 * Get spirit element tagname or create an element of given tagname. 
@@ -53,13 +50,14 @@ gui.DOMPlugin = gui.Plugin.extend ( "gui.DOMPlugin", {
 	 * @param @optional {String} title
 	 * @returns {String}
 	 */
-	title : function ( title ) {
+	title : gui.Combo.chained ( function ( title ) {
 		var element = this.spirit.element;
 		if ( gui.Type.isDefined ( title )) {
 			element.title = title ? title : "";
+		} else {
+			return element.title;
 		}
-		return element.title;
-	},
+	}),
 
 	/**
 	 * Is positioned in page DOM? Otherwise plausible 
@@ -93,9 +91,9 @@ gui.DOMPlugin = gui.Plugin.extend ( "gui.DOMPlugin", {
 	 * Empty spirit subtree.
 	 * @returns {gui.Spirit}
 	 */
-	empty : function () {
+	empty : gui.Combo.chained ( function () {
 		return this.html ( "" );
-	},
+	}),
 
 	/**
 	 * Get or set element textContent.
@@ -134,6 +132,7 @@ gui.DOMPlugin = gui.Plugin.extend ( "gui.DOMPlugin", {
 		this.spirit.css.add("_gui-invisible");
 		this.spirit.invisible ();
 	}),
+	
 	
 	// Private .....................................................................
 
