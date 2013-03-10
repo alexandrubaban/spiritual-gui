@@ -239,7 +239,7 @@ gui.Broadcast._remove = function ( message, handler, sig ) {
 			if ( array ) {
 				index = array.indexOf ( handler );
 				if ( index > -1 ) {
-					array.remove ( index );
+					gui.Array.remove ( array, index );
 				}
 			}
 		}

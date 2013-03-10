@@ -230,8 +230,8 @@ gui.Tick._remove = function ( type, handler, sig ) {
 		var map = sig ? this._local [ sig] : this._global;
 		var list = map.handlers [ type ];
 		if ( list ) {
-			list.remove ( list.indexOf ( handler ));
-			if ( list.length === 0 ) {
+			var index = list.indexOf ( handler );
+			if ( gui.Array.remove ( list, index ) === 0 ) {
 				delete map.handlers [ type ];
 			}
 		}
