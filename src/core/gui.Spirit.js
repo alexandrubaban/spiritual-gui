@@ -356,9 +356,9 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	infuse : function () {
 		var C = gui.Class.extend.apply ( this, arguments );
 		C.__plugins__ = gui.Object.copy ( this.__plugins__ );
-		var breakdown = gui.Class.breakdown ( arguments );
+		var b = gui.Class.breakdown ( arguments );
 		gui.Object.each ( C.__plugins__, function ( prefix, plugin ) {
-			var def = breakdown.extension [ prefix ];			
+			var def = b.protos [ prefix ];			
 			switch ( gui.Type.of ( def )) {
 				case "object" :
 					var mutant = plugin.extend ( def );

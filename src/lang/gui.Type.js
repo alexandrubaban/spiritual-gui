@@ -64,6 +64,15 @@ gui.Type = {
 	},
 
 	/**
+	 * Is likely a method?
+	 * @param {object} o
+	 * @return {boolean}
+	 */
+	isMethod : function ( o ) {
+		return this.isFunction ( o ) && !this.isConstructor ( o );
+	},
+
+	/**
 	 * Is spirit instance?
 	 * @returns {boolean}
 	 */

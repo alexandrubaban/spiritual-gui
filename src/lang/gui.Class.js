@@ -1,35 +1,32 @@
 /**
- * This fellow allow us to create a newable constructor that can 
- * be easily 'subclassed' via an extend method. Instances of the 
- * 'class' may use a special `_super` method to overload members 
- * of the `superclass`. The `create` method creates one for you...
+ * This fellow allow us to create a newable constructor that can be 'subclassed' via an extend method. 
+ * Instances of the "class" may use a special `_super` method to overload members of the "superclass".
  * @todo Evaluate static stuff first so that proto can declare vals as static props 
  * @todo Check if static stuff shadows recurring static (vice versa) and warn about it.
- * @todo "extension" should be universally renamed "extension" or something.
  * @todo It's possible for a prototype to be a prototype, investigate this inception
  */
-gui.Class = { 
+gui.Class = {
 
 	/**
 	 * Create constructor. Use method `extend` on the constructor to subclass further.
+	 * @param @optional {String} name
 	 * @param {object} proto Base prototype
-	 * @param {object} extension Prototype extensions
+	 * @param {object} protos Prototype extensions
 	 * @param {object} recurring Constructor and subconstructor extensions
 	 * @param {object} statics Constructor extensions
 	 * @returns {function}
 	 */
 	create : function () {
-		var args = this._breakdown_base ( arguments );
-		var C = this._create ( args.proto, args.name || "Anonymous" );
-		this._internals ( C );
-		gui.Object.extend ( C.prototype, args.extension );
-		gui.Object.extend ( C, args.statics );
-		if ( args.recurring ) {
-			gui.Object.each ( args.recurring, function ( key, val ) {
+		var b = this._breakdown_base ( arguments );
+		var C = this._createclass ( null, b.proto, b.name );
+		gui.Object.extend ( C.prototype, b.protos );
+		gui.Object.extend ( C, b.statics );
+		if ( b.recurring ) {
+			gui.Object.each ( b.recurring, function ( key, val ) {
 				C [ key ] = C.__recurring__ [ key ] = val;
 			});
 		}
-		return C;
+		return this._profiling ( C );
 	},
 
 	/**
@@ -40,15 +37,229 @@ gui.Class = {
 	 * @returns {object}
 	 */
 	breakdown : function ( args ) {
+		return this._breakdown_subs ( args );
+	},
+	
+
+	// Private ..................................................................
+
+	/**
+	 * Nameless name.
+	 * @type {String}
+	 */
+	_ANONYMOUS : "Anonymous",
+
+	/**
+	 * Mapping classes to keys.
+	 * @type {Map<String,gui.Class>}
+	 */
+	_classes : Object.create ( null ),
+	
+	/**
+	 * Breakdown arguments for base exemplar only (has one extra argument).
+	 * @see {gui.Class#breakdown}
+	 * @param {Arguments} args
+	 * @returns {object}
+	 */
+	_breakdown_base : function ( args ) {
+		var named = gui.Type.isString ( args [ 0 ]);
+		return {
+			name : named ? args [ 0 ] : null,
+			proto	: args [ named ? 1 : 0 ] || {},
+			protos : args [ named ? 2 : 1 ] || {},
+			recurring : args [ named ? 3 : 2 ] || {},
+			statics : args [ named ? 4 : 3 ] || {}
+		};
+	},
+
+	/**
+	 * Break down class constructor arguments. We want to make the string (naming) 
+	 * argument optional, but we still want to keep is as first argument, so the 
+	 * other arguments must be identified by whether or not it's present. 
+	 * @param {Arguments} args
+	 * @returns {object}
+	 */
+	_breakdown_subs : function ( args ) {
 		var named = gui.Type.isString ( args [ 0 ]);
 		return {
 			name : named ? args [ 0 ] : null,			
-			extension : args [ named ? 1 : 0 ] || Object.create ( null ),
+			protos : args [ named ? 1 : 0 ] || Object.create ( null ),
 			recurring : args [ named ? 2 : 1 ] || Object.create ( null ),
 			statics : args [ named ? 3 : 2 ] || Object.create ( null )
 		};
 	},
-	
+
+	/**
+	 * @todo comments here!
+	 * @param {object} proto Prototype of superconstructor
+	 * @param {String} name Constructor name (for debug).
+	 * @returns {function}
+	 */
+	_createclass : function ( SuperC, proto, name ) {
+		var C = gui.Function.create ( name, null, this._body );
+		C.prototype = Object.create ( proto || null );
+		C.prototype.constructor = C;
+		this._internals ( C, SuperC );
+		[ "extend", "mixin" ].forEach ( function ( method ) {
+			C [ method ] = this [ method ];
+		}, this );
+		this._name ( C, name );
+		return C;
+	},
+
+	_createsubclass : function ( SuperC, args ) {
+		args = this.breakdown ( args );
+		SuperC.__super__ = SuperC.__super__ || new gui.Super ( SuperC );
+		return this._extend_fister ( SuperC, args.protos, args.recurring, args.statics, args.name );
+	},
+
+	/**
+	 * Create subclass constructor.
+	 * @param {object} SuperC super constructor
+	 * @param {object} protos Prototype extensions
+	 * @param {object} recurring Constructor and subconstructor extensions
+	 * @param {object} statics Constructor extensions
+	 * @param {String} generated display name (for development)
+	 * @returns {function} Constructor
+	 */
+	_extend_fister : function ( SuperC, protos, recurring, statics, name ) {
+		var C = this._createclass ( SuperC, SuperC.prototype, name );
+		gui.Object.extend ( C, statics );
+		gui.Object.extend ( C.__recurring__, recurring );
+		gui.Object.each ( C.__recurring__, function ( key, val ) {
+			C [ key ] = val;
+		});
+		gui.Super.stamp ( SuperC, C, protos );
+		this._name ( C, name );
+		return this._profiling ( C );
+	},
+
+	/**
+	 * Might do something in the profiler, no such luck with stack traces.
+	 * @see http://www.alertdebugging.com/2009/04/29/building-a-better-javascript-profiler-with-webkit/
+	 * @see https://code.google.com/p/chromium/issues/detail?id=17356
+	 * @param {function} C
+	 * @returns {function}
+	 */
+	_profiling : function ( C ) {
+		var name = C.name || gui.Class._ANONYMOUS;
+		[ C, C.prototype ].forEach ( function ( thing ) {
+			gui.Object.each ( thing, function ( key, value ) {
+				if ( gui.Type.isMethod ( value )) {
+					value.displayName = value.displayName || name + "." + key; 
+				}
+			});
+		});
+		return C;
+	},
+
+	/**
+	 * Computing internal class propeties.
+	 * @param {function} C
+	 * @param @optional {function} superclass
+	 * @param @optional {Map<String,object>} recurring
+	 * @returns {function}
+	 */
+	_internals : function ( C, SuperC ) {
+		C.__super__ = null;
+		C.__subclasses__ = [];
+		C.__superclass__ = SuperC || null;
+		C.__recurring__ = SuperC ? gui.Object.copy ( SuperC.__recurring__ ) : Object.create ( null );
+		C.__indexident__ = gui.KeyMaster.generateKey ( "class" );
+		if ( SuperC ) {
+			SuperC.__subclasses__.push ( C );
+		}
+		return C;
+	},
+
+	/**
+	 * Name constructor and instance.
+	 * @param {function} C
+	 * @param {String} name
+	 * @returns {function}
+	 */
+	_name : function ( C, name ) {
+		name = name || gui.Class._ANONYMOUS;
+		this._doname ( C, "function", name );
+		this._doname ( C.prototype, "object", name );
+		return C;
+	},
+
+	/**
+	 * Name constructor or instance.
+	 * @param {object} what
+	 * @param {String} type
+	 * @param {String} name
+	 */
+	_doname : function ( what, type, name ) {
+		what.displayName = name; // not working :/
+		if ( !what.hasOwnProperty ( "toString" )) {
+			what.toString = function toString () {
+				return "[" + type + " " + name + "]";
+			};
+		}
+	},
+
+	/**
+	 * Constructor body common to all exemplars.
+	 * @todo Return new this if not called with new keyword
+	 * @todo Why doesn't all this stuff work???????????????
+	 * @type {String}
+	 */
+	_body : "var constructor = this.__construct__ || this.onconstruct;" +
+		"if ( gui.Type.isFunction ( constructor )) {" +
+			"constructor.apply ( this, arguments );" +
+		"}"
+};
+
+
+// Class members .............................................................................
+
+gui.Object.each ({
+
+	/**
+	 * Create subclass. This method is called on the class constructor: MyClass.extend()
+	 * @param @optional {String} name
+	 * @param {object} proto Base prototype
+	 * @param {object} protos Prototype methods and properties
+	 * @param {object} recurring Constructor and subconstructor extensions
+	 * @param {object} statics Constructor extensions
+	 * @returns {function} Constructor
+	 */
+	extend : function () { // protos, recurring, statics 
+		return gui.Class._createsubclass ( this, arguments );
+	},
+
+	/**
+	 * Mixin something on prototype while checking for naming collision.
+	 * This method is called on the class constructor: MyClass.mixin()
+	 * @todo http://www.nczonline.net/blog/2012/12/11/are-your-mixins-ecmascript-5-compatible
+	 * @param {String} name
+	 * @param {object} value
+	 * @param @optional {boolean} override Disable collision detection
+	 */
+	mixin : function ( name, value, override ) {
+		if ( !gui.Type.isDefined ( this.prototype [ name ]) || override ) {
+			this.prototype [ name ] = value;
+			gui.Class.descendantsAndSelf ( this, function ( C ) {
+				if ( C.__super__ ) { // mixin added to _super objects as well...
+					gui.Super.generateStub ( C.__super__, C.prototype, name );
+				}
+			});
+		} else {
+			console.error ( "Addin naming collision in " + this + ": " + name );
+		}
+	}
+
+}, function ( name, method ) {
+	gui.Class [ name ] = method;
+});
+
+
+// Class navigation .........................................................................
+
+gui.Object.each ({
+
 	/**
 	 * Return superclass. If action is provided, return an array of the results 
 	 * of executing the action for each subclass with the subclass as argument.
@@ -146,165 +357,6 @@ gui.Class = {
 		action = action || gui.Combo.identity;
 		results.push ( action.call ( thisp, C ));
 		return this.ancestors ( C, action, thisp, results );
-	},
-
-	
-	// Private .....................................................
-
-	/**
-	 * Mapping classes to keys.
-	 * @type {Map<String,gui.Class>}
-	 */
-	_classes : Object.create ( null ),
-	
-	/**
-	 * Breakdown arguments for base exemplar only (has one extra argument).
-	 * @see {gui.Class#breakdown}
-	 * @param {Arguments} args
-	 * @returns {object}
-	 */
-	_breakdown_base : function ( args ) {
-		var named = gui.Type.isString ( args [ 0 ]);
-		return {
-			name : named ? args [ 0 ] : null,
-			proto	: args [ named ? 1 : 0 ] || {},
-			extension : args [ named ? 2 : 1 ] || {},
-			recurring : args [ named ? 3 : 2 ] || {},
-			statics : args [ named ? 4 : 3 ] || {}
-		};
-	},
-
-	/**
-	 * @todo comments here!
-	 * @param {object} proto Prototype of superconstructor
-	 * @param {String} name Constructor name (for debug).
-	 * @returns {function}
-	 */
-	_create : function ( proto, name ) {
-		var C = gui.Function.create ( name, null, this._body );
-		C.prototype = Object.create ( proto || null );
-		C.prototype.constructor = C;
-		C.__super__ = null;
-		[ "extend", "mixin" ].forEach ( function ( method ) {
-			C [ method ] = this [ method ];
-		}, this );
-		return this._name ( C, name );
-	},
-
-	/**
-	 * Create subclass constructor.
-	 * @param {object} constructor Super constructor
-	 * @param {object} extension Prototype extensions
-	 * @param {object} recurring Constructor and subconstructor extensions
-	 * @param {object} statics Constructor extensions
-	 * @param {String} generated display name (for development)
-	 * @returns {function} Constructor
-	 */
-	_extend : function ( constructor, extension, recurring, statics, name ) {
-		name = name || "Anonymous";
-		var C = this._create ( constructor.prototype, name );
-		constructor.__subclasses__.push ( C );
-		this._internals ( C, constructor, gui.Object.copy ( constructor.__recurring__ ));
-		gui.Object.extend ( C, statics );
-		gui.Object.extend ( C.__recurring__, recurring );
-		gui.Object.each ( C.__recurring__, function ( key, val ) {
-			C [ key ] = val;
-		});
-		gui.Super.stamp ( constructor, C, extension );
-		return this._name ( C, name );
-	},
-
-	/**
-	 * Create some properties that probably should be renamed.
-	 * @param {function} C
-	 * @param @optional {function} superclass
-	 * @param @optional {Map<String,function>} recurring
-	 * @returns {function}
-	 */
-	_internals : function ( C, superclass, recurring ) {
-		C.__recurring__ = recurring || Object.create ( null );
-		C.__subclasses__ = [];
-		C.__superclass__ = superclass || null;
-		C.__indexident__ = gui.KeyMaster.generateKey ( "class" );
-		return C;
-	},
-
-	/**
-	 * Name constructor and instance.
-	 * @param {function} C
-	 * @param {String} name
-	 * @returns {function}
-	 */
-	_name : function ( C, name ) {
-		this._doname ( C, "function", name );
-		this._doname ( C.prototype, "object", name );
-		return C;
-	},
-
-	/**
-	 * Name constructor or instance.
-	 * @param {object} what
-	 * @param {String} type
-	 * @param {String} name
-	 */
-	_doname : function ( what, type, name ) {
-		if ( !what.hasOwnProperty ( "toString" )) {
-			what.displayName = name;
-			what.toString = function toString () {
-				return "[" + type + " " + name + "]";
-			};
-		}
-	},
-
-	/**
-	 * Constructor body common to all exemplars.
-	 * @todo Return new this if not called with new keyword
-	 * @todo Why doesn't all this stuff work???????????????
-	 * @type {String}
-	 */
-	_body : "var constructor = this.__construct__ || this.onconstruct;" +
-		"if ( gui.Type.isFunction ( constructor )) {" +
-			"constructor.apply ( this, arguments );" +
-		"}"
-};
-
-
-gui.Object.each ({
-
-	/**
-	 * Create subclass. This method is called on the class constructor: MyClass.extend()
-	 * @param {object} proto Base prototype
-	 * @param {object} extension Prototype extensions
-	 * @param {object} recurring Constructor and subconstructor extensions
-	 * @param {object} statics Constructor extensions
-	 * @returns {function} Constructor
-	 */
-	extend : function () { // extension, recurring, statics 
-		var args = gui.Class.breakdown ( arguments );		
-		this.__super__ = this.__super__ || new gui.Super ( this ); // support _super() in subclass
-		return gui.Class._extend ( this, args.extension, args.recurring, args.statics, args.name );
-	},
-
-	/**
-	 * Assign method or property to prototype, checking for naming collision.
-	 * This method is called on the class constructor: MyClass.mixin()
-	 * @todo http://www.nczonline.net/blog/2012/12/11/are-your-mixins-ecmascript-5-compatible
-	 * @param {String} name
-	 * @param {object} value
-	 * @param @optional {boolean} override Disable collision detection
-	 */
-	mixin : function ( name, value, override ) {
-		if ( this.prototype [ name ] === undefined || override ) {
-			this.prototype [ name ] = value;
-			gui.Class.descendantsAndSelf ( this, function ( C ) {
-				var s = C.__super__; 
-				if ( s !== null ) {
-					gui.Super.stubOne ( s, C.prototype, name );
-				}
-			});
-		} else {
-			console.error ( "Addin naming collision in " + this + ": " + name );
-		}
 	}
 
 }, function ( name, method ) {
