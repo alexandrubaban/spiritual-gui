@@ -64,7 +64,7 @@ gui.Object.each ({ // generating static methods
 			if ( gui.Type.isMethod ( base )) {
 				proto [ key ] = combo ( base );
 				proto [ key ].toString = function () {
-					original = base.toString ().replace ( /\t/g, "  " );
+					var original = base.toString ().replace ( /\t/g, "  " );
 					return gui.Super._DISCLAIMER + original;
 				};
 			} else {
@@ -138,10 +138,10 @@ gui.Object.each ({ // generating static methods
 			enumerable : true,
 			configurable : true,
 			get : o.getter || function () {
-				throw new Error ( C + " Getting a property that has only a setter: " + key );
+				throw new Error ( this + " getting a property that has only a setter: " + key );
 			},
 			set : o.setter || function () {
-				throw new Error ( C + " Setting a property that has only a getter: " + key );
+				throw new Error ( this + " setting a property that has only a getter: " + key );
 			}
 		};
 	}
