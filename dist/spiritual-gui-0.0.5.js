@@ -7,7 +7,6 @@
 
 
 /**
- * # gui
  * Top namespace object for everything Spiritual. On startup, the global variable `gui` gets 
  * redefined to an instance of {gui.Spiritual}. All these constants get copied in the process.
  */
@@ -153,7 +152,6 @@ window.gui = {
 
 
  /**
- * # gui.URL
  * Resolve an URL string relative to a document.
  * @param {Document} doc
  * @param {String} href
@@ -250,7 +248,6 @@ gui.URL.setParam = function ( url, name, value ) {
 
 
 /**
- * # gui.KeyMaster
  * Generating keys for unique key purposes.
  */
 gui.KeyMaster = {
@@ -324,7 +321,6 @@ gui.KeyMaster = {
 
 
 /**
- * # gui.SpiritualAid
  * Polyfilling missing features from ES5 and selected features from ES6. 
  * Some of these are implemented weakly and should be used with caution 
  * (See Map, Set and WeakMap).
@@ -660,7 +656,6 @@ gui.SpiritualAid = {
 
 
 /**
- * # gui.Spiritual
  * An instance of this thing may be referenced as `gui` inside all windows. 
  * @param {Window} win Window or Worker scope
  */
@@ -1277,7 +1272,6 @@ gui = new gui.Spiritual ( window );
 
 
 /**
- * # gui.Type
  * Type checking studio. All checks are string based not to cause 
  * confusion when checking the types of objects in another window.
  */
@@ -1340,6 +1334,15 @@ gui.Type = {
 	 */
 	isEvent : function ( o ) {
 		return this.of ( o ).endsWith ( "event" ) && this.isDefined ( o.type );
+	},
+
+	/**
+	 * Is likely a method?
+	 * @param {object} o
+	 * @return {boolean}
+	 */
+	isMethod : function ( o ) {
+		return this.isFunction ( o ) && !this.isConstructor ( o );
 	},
 
 	/**
@@ -1456,7 +1459,6 @@ gui.Type = {
 
 
 /**
- * # gui.Object
  * Working with objects.
  */
 gui.Object = {
@@ -1572,10 +1574,8 @@ gui.Object = {
 	methods : function ( object ) {
 		var result = [];
 		for ( var def in object ) {
-			if ( gui.Type.isFunction ( object [ def ])) {
-				if ( !gui.Type.isConstructor ( def )) {
-					result.push ( def );
-				}
+			if ( gui.Type.isMethod ( object [ def ])) {
+				result.push ( def );
 			}
 		}
 		return result;
@@ -1682,38 +1682,34 @@ gui.Function = {
 
 
 /**
- * # gui.Class
- * This fellow allow us to create a newable constructor that can 
- * be easily 'subclassed' via an extend method. Instances of the 
- * 'class' may use a special `_super` method to overload members 
- * of the `superclass`. The `create` method creates one for you...
+ * This fellow allow us to create a newable constructor that can be 'subclassed' via an extend method. 
+ * Instances of the "class" may use a special `_super` method to overload members of the "superclass".
  * @todo Evaluate static stuff first so that proto can declare vals as static props 
  * @todo Check if static stuff shadows recurring static (vice versa) and warn about it.
- * @todo "extension" should be universally renamed "extension" or something.
  * @todo It's possible for a prototype to be a prototype, investigate this inception
  */
-gui.Class = { 
+gui.Class = {
 
 	/**
 	 * Create constructor. Use method `extend` on the constructor to subclass further.
+	 * @param @optional {String} name
 	 * @param {object} proto Base prototype
-	 * @param {object} extension Prototype extensions
+	 * @param {object} protos Prototype extensions
 	 * @param {object} recurring Constructor and subconstructor extensions
 	 * @param {object} statics Constructor extensions
 	 * @returns {function}
 	 */
 	create : function () {
-		var args = this._breakdown_base ( arguments );
-		var C = this._create ( args.proto, args.name || "Anonymous" );
-		this._internals ( C );
-		gui.Object.extend ( C.prototype, args.extension );
-		gui.Object.extend ( C, args.statics );
-		if ( args.recurring ) {
-			gui.Object.each ( args.recurring, function ( key, val ) {
+		var b = this._breakdown_base ( arguments );
+		var C = this._createclass ( null, b.proto, b.name );
+		gui.Object.extend ( C.prototype, b.protos );
+		gui.Object.extend ( C, b.statics );
+		if ( b.recurring ) {
+			gui.Object.each ( b.recurring, function ( key, val ) {
 				C [ key ] = C.__recurring__ [ key ] = val;
 			});
 		}
-		return C;
+		return this._profiling ( C );
 	},
 
 	/**
@@ -1724,15 +1720,229 @@ gui.Class = {
 	 * @returns {object}
 	 */
 	breakdown : function ( args ) {
+		return this._breakdown_subs ( args );
+	},
+	
+
+	// Private ..................................................................
+
+	/**
+	 * Nameless name.
+	 * @type {String}
+	 */
+	_ANONYMOUS : "Anonymous",
+
+	/**
+	 * Mapping classes to keys.
+	 * @type {Map<String,gui.Class>}
+	 */
+	_classes : Object.create ( null ),
+	
+	/**
+	 * Breakdown arguments for base exemplar only (has one extra argument).
+	 * @see {gui.Class#breakdown}
+	 * @param {Arguments} args
+	 * @returns {object}
+	 */
+	_breakdown_base : function ( args ) {
+		var named = gui.Type.isString ( args [ 0 ]);
+		return {
+			name : named ? args [ 0 ] : null,
+			proto	: args [ named ? 1 : 0 ] || {},
+			protos : args [ named ? 2 : 1 ] || {},
+			recurring : args [ named ? 3 : 2 ] || {},
+			statics : args [ named ? 4 : 3 ] || {}
+		};
+	},
+
+	/**
+	 * Break down class constructor arguments. We want to make the string (naming) 
+	 * argument optional, but we still want to keep is as first argument, so the 
+	 * other arguments must be identified by whether or not it's present. 
+	 * @param {Arguments} args
+	 * @returns {object}
+	 */
+	_breakdown_subs : function ( args ) {
 		var named = gui.Type.isString ( args [ 0 ]);
 		return {
 			name : named ? args [ 0 ] : null,			
-			extension : args [ named ? 1 : 0 ] || Object.create ( null ),
+			protos : args [ named ? 1 : 0 ] || Object.create ( null ),
 			recurring : args [ named ? 2 : 1 ] || Object.create ( null ),
 			statics : args [ named ? 3 : 2 ] || Object.create ( null )
 		};
 	},
-	
+
+	/**
+	 * @todo comments here!
+	 * @param {object} proto Prototype of superconstructor
+	 * @param {String} name Constructor name (for debug).
+	 * @returns {function}
+	 */
+	_createclass : function ( SuperC, proto, name ) {
+		var C = gui.Function.create ( name, null, this._body );
+		C.prototype = Object.create ( proto || null );
+		C.prototype.constructor = C;
+		this._internals ( C, SuperC );
+		[ "extend", "mixin" ].forEach ( function ( method ) {
+			C [ method ] = this [ method ];
+		}, this );
+		this._name ( C, name );
+		return C;
+	},
+
+	_createsubclass : function ( SuperC, args ) {
+		args = this.breakdown ( args );
+		SuperC.__super__ = SuperC.__super__ || new gui.Super ( SuperC );
+		return this._extend_fister ( SuperC, args.protos, args.recurring, args.statics, args.name );
+	},
+
+	/**
+	 * Create subclass constructor.
+	 * @param {object} SuperC super constructor
+	 * @param {object} protos Prototype extensions
+	 * @param {object} recurring Constructor and subconstructor extensions
+	 * @param {object} statics Constructor extensions
+	 * @param {String} generated display name (for development)
+	 * @returns {function} Constructor
+	 */
+	_extend_fister : function ( SuperC, protos, recurring, statics, name ) {
+		var C = this._createclass ( SuperC, SuperC.prototype, name );
+		gui.Object.extend ( C, statics );
+		gui.Object.extend ( C.__recurring__, recurring );
+		gui.Object.each ( C.__recurring__, function ( key, val ) {
+			C [ key ] = val;
+		});
+		gui.Super.stamp ( SuperC, C.prototype, protos );
+		this._name ( C, name );
+		return this._profiling ( C );
+	},
+
+	/**
+	 * Might do something in the profiler, no such luck with stack traces.
+	 * @see http://www.alertdebugging.com/2009/04/29/building-a-better-javascript-profiler-with-webkit/
+	 * @see https://code.google.com/p/chromium/issues/detail?id=17356
+	 * @param {function} C
+	 * @returns {function}
+	 */
+	_profiling : function ( C ) {
+		var name = C.name || gui.Class._ANONYMOUS;
+		[ C, C.prototype ].forEach ( function ( thing ) {
+			gui.Object.each ( thing, function ( key, value ) {
+				if ( gui.Type.isMethod ( value )) {
+					value.displayName = value.displayName || name + "." + key; 
+				}
+			});
+		});
+		return C;
+	},
+
+	/**
+	 * Computing internal class propeties.
+	 * @param {function} C
+	 * @param @optional {function} superclass
+	 * @param @optional {Map<String,object>} recurring
+	 * @returns {function}
+	 */
+	_internals : function ( C, SuperC ) {
+		C.__super__ = null;
+		C.__subclasses__ = [];
+		C.__superclass__ = SuperC || null;
+		C.__recurring__ = SuperC ? gui.Object.copy ( SuperC.__recurring__ ) : Object.create ( null );
+		C.__indexident__ = gui.KeyMaster.generateKey ( "class" );
+		if ( SuperC ) {
+			SuperC.__subclasses__.push ( C );
+		}
+		return C;
+	},
+
+	/**
+	 * Name constructor and instance.
+	 * @param {function} C
+	 * @param {String} name
+	 * @returns {function}
+	 */
+	_name : function ( C, name ) {
+		name = name || gui.Class._ANONYMOUS;
+		this._doname ( C, "function", name );
+		this._doname ( C.prototype, "object", name );
+		return C;
+	},
+
+	/**
+	 * Name constructor or instance.
+	 * @param {object} what
+	 * @param {String} type
+	 * @param {String} name
+	 */
+	_doname : function ( what, type, name ) {
+		what.displayName = name; // not working :/
+		if ( !what.hasOwnProperty ( "toString" )) {
+			what.toString = function toString () {
+				return "[" + type + " " + name + "]";
+			};
+		}
+	},
+
+	/**
+	 * Constructor body common to all exemplars.
+	 * @todo Return new this if not called with new keyword
+	 * @todo Why doesn't all this stuff work???????????????
+	 * @type {String}
+	 */
+	_body : "var constructor = this.__construct__ || this.onconstruct;" +
+		"if ( gui.Type.isFunction ( constructor )) {" +
+			"constructor.apply ( this, arguments );" +
+		"}"
+};
+
+
+// Class members .............................................................................
+
+gui.Object.each ({
+
+	/**
+	 * Create subclass. This method is called on the class constructor: MyClass.extend()
+	 * @param @optional {String} name
+	 * @param {object} proto Base prototype
+	 * @param {object} protos Prototype methods and properties
+	 * @param {object} recurring Constructor and subconstructor extensions
+	 * @param {object} statics Constructor extensions
+	 * @returns {function} Constructor
+	 */
+	extend : function () { // protos, recurring, statics 
+		return gui.Class._createsubclass ( this, arguments );
+	},
+
+	/**
+	 * Mixin something on prototype while checking for naming collision.
+	 * This method is called on the class constructor: MyClass.mixin()
+	 * @todo http://www.nczonline.net/blog/2012/12/11/are-your-mixins-ecmascript-5-compatible
+	 * @param {String} name
+	 * @param {object} value
+	 * @param @optional {boolean} override Disable collision detection
+	 */
+	mixin : function ( name, value, override ) {
+		if ( !gui.Type.isDefined ( this.prototype [ name ]) || override ) {
+			this.prototype [ name ] = value;
+			gui.Class.descendantsAndSelf ( this, function ( C ) {
+				if ( C.__super__ ) { // mixin added to _super objects as well...
+					gui.Super.generateStub ( C.__super__, C.prototype, name );
+				}
+			});
+		} else {
+			console.error ( "Addin naming collision in " + this + ": " + name );
+		}
+	}
+
+}, function ( name, method ) {
+	gui.Class [ name ] = method;
+});
+
+
+// Class navigation .........................................................................
+
+gui.Object.each ({
+
 	/**
 	 * Return superclass. If action is provided, return an array of the results 
 	 * of executing the action for each subclass with the subclass as argument.
@@ -1830,165 +2040,6 @@ gui.Class = {
 		action = action || gui.Combo.identity;
 		results.push ( action.call ( thisp, C ));
 		return this.ancestors ( C, action, thisp, results );
-	},
-
-	
-	// Private .....................................................
-
-	/**
-	 * Mapping classes to keys.
-	 * @type {Map<String,gui.Class>}
-	 */
-	_classes : Object.create ( null ),
-	
-	/**
-	 * Breakdown arguments for base exemplar only (has one extra argument).
-	 * @see {gui.Class#breakdown}
-	 * @param {Arguments} args
-	 * @returns {object}
-	 */
-	_breakdown_base : function ( args ) {
-		var named = gui.Type.isString ( args [ 0 ]);
-		return {
-			name : named ? args [ 0 ] : null,
-			proto	: args [ named ? 1 : 0 ] || {},
-			extension : args [ named ? 2 : 1 ] || {},
-			recurring : args [ named ? 3 : 2 ] || {},
-			statics : args [ named ? 4 : 3 ] || {}
-		};
-	},
-
-	/**
-	 * @todo comments here!
-	 * @param {object} proto Prototype of superconstructor
-	 * @param {String} name Constructor name (for debug).
-	 * @returns {function}
-	 */
-	_create : function ( proto, name ) {
-		var C = gui.Function.create ( name, null, this._body );
-		C.prototype = Object.create ( proto || null );
-		C.prototype.constructor = C;
-		C.__super__ = null;
-		[ "extend", "mixin" ].forEach ( function ( method ) {
-			C [ method ] = this [ method ];
-		}, this );
-		return this._name ( C, name );
-	},
-
-	/**
-	 * Create subclass constructor.
-	 * @param {object} constructor Super constructor
-	 * @param {object} extension Prototype extensions
-	 * @param {object} recurring Constructor and subconstructor extensions
-	 * @param {object} statics Constructor extensions
-	 * @param {String} generated display name (for development)
-	 * @returns {function} Constructor
-	 */
-	_extend : function ( constructor, extension, recurring, statics, name ) {
-		name = name || "Anonymous";
-		var C = this._create ( constructor.prototype, name );
-		constructor.__subclasses__.push ( C );
-		this._internals ( C, constructor, gui.Object.copy ( constructor.__recurring__ ));
-		gui.Object.extend ( C, statics );
-		gui.Object.extend ( C.__recurring__, recurring );
-		gui.Object.each ( C.__recurring__, function ( key, val ) {
-			C [ key ] = val;
-		});
-		gui.Super.stamp ( constructor, C, extension );
-		return this._name ( C, name );
-	},
-
-	/**
-	 * Create some properties that probably should be renamed.
-	 * @param {function} C
-	 * @param @optional {function} superclass
-	 * @param @optional {Map<String,function>} recurring
-	 * @returns {function}
-	 */
-	_internals : function ( C, superclass, recurring ) {
-		C.__recurring__ = recurring || Object.create ( null );
-		C.__subclasses__ = [];
-		C.__superclass__ = superclass || null;
-		C.__indexident__ = gui.KeyMaster.generateKey ( "class" );
-		return C;
-	},
-
-	/**
-	 * Name constructor and instance.
-	 * @param {function} C
-	 * @param {String} name
-	 * @returns {function}
-	 */
-	_name : function ( C, name ) {
-		this._doname ( C, "function", name );
-		this._doname ( C.prototype, "object", name );
-		return C;
-	},
-
-	/**
-	 * Name constructor or instance.
-	 * @param {object} what
-	 * @param {String} type
-	 * @param {String} name
-	 */
-	_doname : function ( what, type, name ) {
-		if ( !what.hasOwnProperty ( "toString" )) {
-			what.displayName = name;
-			what.toString = function toString () {
-				return "[" + type + " " + name + "]";
-			};
-		}
-	},
-
-	/**
-	 * Constructor body common to all exemplars.
-	 * @todo Return new this if not called with new keyword
-	 * @todo Why doesn't all this stuff work???????????????
-	 * @type {String}
-	 */
-	_body : "var constructor = this.__construct__ || this.onconstruct;" +
-		"if ( gui.Type.isFunction ( constructor )) {" +
-			"constructor.apply ( this, arguments );" +
-		"}"
-};
-
-
-gui.Object.each ({
-
-	/**
-	 * Create subclass. This method is called on the class constructor: MyClass.extend()
-	 * @param {object} proto Base prototype
-	 * @param {object} extension Prototype extensions
-	 * @param {object} recurring Constructor and subconstructor extensions
-	 * @param {object} statics Constructor extensions
-	 * @returns {function} Constructor
-	 */
-	extend : function () { // extension, recurring, statics 
-		var args = gui.Class.breakdown ( arguments );		
-		this.__super__ = this.__super__ || new gui.Super ( this ); // support _super() in subclass
-		return gui.Class._extend ( this, args.extension, args.recurring, args.statics, args.name );
-	},
-
-	/**
-	 * Assign method or property to prototype, checking for naming collision.
-	 * This method is called on the class constructor: MyClass.mixin()
-	 * @todo http://www.nczonline.net/blog/2012/12/11/are-your-mixins-ecmascript-5-compatible
-	 * @param {String} name
-	 * @param {object} value
-	 * @param @optional {boolean} override Disable collision detection
-	 */
-	mixin : function ( name, value, override ) {
-		if ( this.prototype [ name ] === undefined || override ) {
-			this.prototype [ name ] = value;
-			gui.Class.descendantsAndSelf ( this, function ( C ) {
-				var s = C.__super__; 
-				if ( s !== null ) {
-					gui.Super.stubOne ( s, C.prototype, name );
-				}
-			});
-		} else {
-			console.error ( "Addin naming collision in " + this + ": " + name );
-		}
 	}
 
 }, function ( name, method ) {
@@ -1997,7 +2048,6 @@ gui.Object.each ({
 
 
 /**
- * # gui.Arguments
  * Function argument type checking studio.
  */
 gui.Arguments = {
@@ -2094,7 +2144,6 @@ gui.Arguments = {
 
 
 /**
- * # gui.Interface
  * Checks an object for required methods and properties.
  */
 gui.Interface = {
@@ -2137,179 +2186,6 @@ gui.Interface = {
 
 
 /**
- * # gui.Super
- * Det er bare super.
- * @param {function} constructor
- */
-gui.Super = function Super ( constructor ) {
-	gui.Super.stubAll ( this, constructor.prototype );
-};
-
-gui.Super.prototype = Object.create ( null );
-
-
-// Static .......................................................................
-
-gui.Object.each ({ // generating static methods
-
-	/**
-	 * Instance of gui.Class which is now invoking _super()
-	 * @type {object}
-	 */
-	subject : null,
-
-	/**
-	 * Declare all method stubs on {gui.Super} instance.
-	 * @param {gui.Super} target
-	 * @param {object} proto
-	 */
-	stubAll : function ( target, proto ) {
-		gui.Object.methods ( proto ).forEach ( function ( method ) {
-			gui.Super.stubOne ( target, proto, method );
-		}, this );
-	},
-
-	/**
-	 * Declare single method stub on {gui.Super} instance.
-	 * @param {gui.Super} target
-	 * @param {object} proto
-	 * @param {String} method Name of the method
-	 */
-	stubOne : function ( target, proto, method ) {
-		var func = target [ method ] = function () {
-			return proto [ method ].apply ( gui.Super.subject, arguments );
-		};
-		func.displayName = method;
-	},
-
-	/**
-	 * Stamp all properties from object onto prototype while overloading methods.
-	 * @param {function} superconstructor
-	 * @param {function} constructor
-	 * @param {object} object
-	 */
-	stamp : function ( superconstructor, constructor, object ) {
-		"use strict";
-		var prop = null, proto = constructor.prototype;
-		if ( gui.Type.isObject ( object )) {
-			Object.keys ( object ).forEach ( function ( key ) {
-				prop = Object.getOwnPropertyDescriptor ( object, key );
-				switch ( gui.Type.of ( prop.value )) {
-					case "function" : // inject _super support into method type properties.
-						if ( !gui.Type.isConstructor ( prop.value )) {
-							prop = gui.Super._function ( object, key, prop, superconstructor );
-						}
-						break;
-					case "object" : // setup getter-and-setter type declarations
-						var o = prop.value;
-						if ( o.getter || o.setter ) {
-							if ( Object.keys ( o ).every ( function ( k ) {
-								return k === "getter" || k === "setter";
-							})) {
-								prop = gui.Super._property ( key, o, constructor );
-							}
-						}
-						break;
-				}
-				// stamp the property
-				Object.defineProperty ( proto, key, prop );
-				// methods specials
-				// @todo not like this! If *not* a function, the property will 
-				// now be accessed and fire the getter function we just declared!
-				if ( gui.Type.isFunction ( proto [ key ])) {
-					// update console display name (@todo does it work?)
-					Object.defineProperty ( proto [ key ], "displayName", {
-						enumerable : false,
-						configurable : true,
-						get : function () {
-							return key;
-						}
-					});
-					// normalize toString() for debugging
-					// @todo Find the hat char for that regexp
-					proto [ key ].toString = function () {
-						var tostring = object [ key ].toString ();
-						tostring = tostring.replace ( /\t/g, "  " );
-						return gui.Super._DISCLAIMER + tostring;
-					};
-				}
-		  });
-		}
-	},
-
-
-	// Private static .......................................................
-
-	/**
-	 * Prepended to the result of calling 
-	 * toString() on a modified function.
-	 * @type {String}
-	 */
-	_DISCLAIMER : "/**\n" +
-		"  * Method was overloaded by the framework. \n" +
-		"  * This is an approximation of the code :) \n" +
-		"  */\n",
-
-	/**
-	 * Compute property descriptor for function type definition.
-	 * @param {object} object
-	 * @param {String} key
-	 * @param {object} prop
-	 * @param {function} superconstructor
-	 * @returns {object}
-	 */
-	_function : function ( object, key, prop, superconstructor ) {
-		if ( !prop.value.__data__ ) { // @todo hmm...
-			prop.value = function () {
-				var sub = gui.Super.subject;
-				gui.Super.subject = this;
-				this._super = superconstructor.__super__;
-				var result = object [ key ].apply ( this, arguments );
-				gui.Super.subject = sub;
-				return result;
-			};
-		}
-		return prop;
-	},
-
-	 /**
-	 * Compute property descriptor for getter-setter type definition.
-	 * @param {String} key
-	 * @param {object} o
-	 * @param {function} constructor
-	 * @returns {object}
-	 */
-	_property : function ( key, o, constructor ) {
-		"use strict";
-		[ "getter", "setter" ].forEach ( function ( what ) {
-			var d, p = constructor.prototype;
-			while ( p && !gui.Type.isDefined ( o [ what ])) {
-				p = Object.getPrototypeOf ( p );
-				d = Object.getOwnPropertyDescriptor ( p, key );
-				if ( d ) {
-					o [ what ] = d [ what === "getter" ? "get" : "set" ];
-				}
-			}
-		});
-		return {
-			enumerable : true,
-			configurable : true,
-			get : o.getter || function () {
-				throw new Error ( constructor + " Getting a property that has only a setter: " + key );
-			},
-			set : o.setter || function () {
-				throw new Error ( constructor + " Setting a property that has only a getter: " + key );
-			}
-		};
-	}
-
-}, function ( name, value ) {
-	gui.Super [ name ] = value;
-});
-
-
-/**
- * # gui.Combo
  * From Raganwalds "Method Combinators".
  * @see https://github.com/raganwald/method-combinators/blob/master/README-JS.md
  * @see https://github.com/raganwald/homoiconic/blob/master/2012/09/precondition-and-postcondition.md
@@ -2414,7 +2290,159 @@ gui.Combo = { // @todo gui.Deco would perhaps fit better for some of these....
 
 
 /**
- * #gui.Position
+ * Det er bare super.
+ * @param {function} C
+ */
+gui.Super = function Super ( C ) {
+	gui.Super.generateStubs ( this, C.prototype );
+};
+
+gui.Super.prototype = Object.create ( null );
+
+
+// Static .......................................................................
+
+gui.Object.each ({ // generating static methods
+
+	/**
+	 * Instance of gui.Class which is now invoking _super()
+	 * @type {object}
+	 */
+	__subject__ : null,
+
+	/**
+	 * Identification.
+	 * @returns {String}
+	 */
+	toString : function () {
+		return "[function gui.Super]";
+	},
+
+	/**
+	 * Declare all method stubs on {gui.Super} instance.
+	 * @param {gui.Super} suber
+	 * @param {object} proto
+	 */
+	generateStubs : function ( suber, proto ) {
+		gui.Object.methods ( proto ).forEach ( function ( name ) {
+			gui.Super.generateStub ( suber, proto, name );
+		}, this );
+	},
+
+	/**
+	 * Declare single method stub on {gui.Super} instance.
+	 * @param {gui.Super} suber
+	 * @param {object} proto
+	 * @param {String} name Method name
+	 */
+	generateStub : function ( suber, proto, name ) {
+		var func = suber [ name ] = function () {
+			return proto [ name ].apply ( gui.Super.__subject__, arguments );
+		};
+		func.displayName = name;
+	},
+
+	/**
+	 * Stamp all properties from protos onto prototype 
+	 * while decorating methods for `_super` support.
+	 * @param {function} SuperC
+	 * @param {object} proto
+	 * @param {object} object
+	 */
+	stamp : function ( SuperC, proto, protos ) {
+		var combo = this._decorator ( SuperC );
+		gui.Object.each ( protos, function ( key, base ) {
+			if ( gui.Type.isMethod ( base )) {
+				proto [ key ] = combo ( base );
+				proto [ key ].toString = function () {
+					var original = base.toString ().replace ( /\t/g, "  " );
+					return gui.Super._DISCLAIMER + original;
+				};
+			} else {
+				var prop = Object.getOwnPropertyDescriptor ( protos, key );
+				if ( gui.Type.isObject ( prop.value )) {
+					var o = prop.value;
+					if ( o.getter || o.setter ) {
+						if ( Object.keys ( o ).every ( function ( k ) {
+							return k === "getter" || k === "setter";
+						})) {
+							prop = gui.Super._property ( key, o, proto );
+						}
+					}
+				}
+				Object.defineProperty ( proto, key, prop );
+			}
+		}, this );
+	},
+
+
+	// Private static .......................................................
+
+	/**
+	 * Prepended to the result of calling 
+	 * toString() on a modified function.
+	 * @type {String}
+	 */
+	_DISCLAIMER : "/**\n" +
+		"  * Method was overloaded by the framework. \n" +
+		"  * This is an approximation of the code :) \n" +
+		"  */\n",
+
+		/**
+	 * Get tricky decorator.
+	 * @param {function} SuperC
+	 * @returns {function}
+	 */
+	_decorator : function ( SuperC ) {
+		return function ( base ) {
+			return function () {
+				var sub = gui.Super.__subject__;
+				gui.Super.__subject__ = this;
+				this._super = SuperC.__super__;
+				var result = base.apply ( this, arguments );
+				gui.Super.__subject__ = sub;
+				return result;
+			};
+		};
+	},
+
+	 /**
+	 * Compute property descriptor for getter-setter type definition.
+	 * @param {String} key
+	 * @param {object} o
+	 * @param {function} C
+	 * @returns {object}
+	 */
+	_property : function ( key, o, proto ) {
+		"use strict";
+		[ "getter", "setter" ].forEach ( function ( what ) {
+			var d;
+			while ( proto && !gui.Type.isDefined ( o [ what ])) {
+				proto = Object.getPrototypeOf ( proto );
+				d = Object.getOwnPropertyDescriptor ( proto, key );
+				if ( d ) {
+					o [ what ] = d [ what === "getter" ? "get" : "set" ];
+				}
+			}
+		});
+		return {
+			enumerable : true,
+			configurable : true,
+			get : o.getter || function () {
+				throw new Error ( this + " getting a property that has only a setter: " + key );
+			},
+			set : o.setter || function () {
+				throw new Error ( this + " setting a property that has only a getter: " + key );
+			}
+		};
+	}
+
+}, function ( name, value ) {
+	gui.Super [ name ] = value;
+});
+
+
+/**
  * Something that has position.
  * @param {number} x
  * @param {number} y
@@ -2470,7 +2498,6 @@ gui.Position.isEqual = function ( p1, p2 ) {
 
 
 /**
- * #gui.Dimension
  * Something that has width and height.
  * @param {number} w
  * @param {number} h
@@ -2518,7 +2545,6 @@ gui.Dimension.isEqual = function ( dim1, dim2 ) {
 
 
 /**
- * #gui.Geometry
  * Something that has position and width and height.
  * @param {number} x
  * @param {number} y
@@ -2613,7 +2639,6 @@ gui.Geometry.hitTest = function ( geo1, geo2 ) {
 
 
 /**
- * # The heading
  * Encapsulates a callback for future use.
  */
 gui.Then = function Then () {};
@@ -2671,7 +2696,6 @@ gui.Then.prototype = {
 
 
 /**
- * # gui.HTMLParser
  * Parse HTML string to DOM node(s) in given document context. 
  * Adapted from https://github.com/petermichaux/arbutus
  * @todo High level awareness of HTMLparser elements. Plugin ui.SpiritDOM and ui.Spirit.parse should know about added historic HTML chrome and strip when inserted.
@@ -2787,7 +2811,6 @@ gui.HTMLParser._fixes = new Map ();
 
 
 /**
- * # gui.DOMSerializer
  * Serialize DOM element to XHTML string.
  * @todo work on the HTML without XML...
  */
@@ -2827,7 +2850,6 @@ gui.DOMSerializer.prototype = {
 
 
 /**
- * # gui.FileLoader
  * We load a text file from the server. This might be used instead 
  * of a XMLHttpRequest to cache the result and save repeated lookups.
  * @todo custom protocol handlers to load from localstorage
@@ -2976,7 +2998,7 @@ gui.FileLoader = gui.Class.create ( "gui.FileLoader", Object.prototype, {
 
 
 /**
- * # gui.BlobLoader
+ * Blob file loader. Work in progress.
  */
 gui.BlobLoader = {
 
@@ -3014,7 +3036,6 @@ gui.BlobLoader = {
 
 
 /**
- * # gui.EventSummary
  * Provides convenient access to an events originating 
  * window, document and spirit of the document element. 
  * @todo Fire this onmousemove only if has listeners!
@@ -3085,7 +3106,6 @@ gui.EventSummary.prototype = {
 
 
 /**
- * # gui.Crawler
  * Crawling the DOM ascending or descending.
  * @todo method <code>descendSub</code> to skip start element (and something similar for ascend)
  * @param @optional {String} type
@@ -3306,7 +3326,6 @@ gui.Crawler.STOP = 1;
 
 
 /**
- * # gui.Request
  * Simplistic XMLHttpRequest wrapper. 
  * Work in progress, lot's to do here.
  * @param @optional {String} url
@@ -3477,7 +3496,6 @@ gui.Request.prototype = {
 
 
 /**
- * # gui.Spirit
  * Base constructor for all spirits
  */
 gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
@@ -3801,14 +3819,17 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	 * Null all props.
 	 */
 	__null__ : function () {
-		var element = this.element;
-		if ( element ) {
+		var myelm = this.element;
+		var debug = this.window.gui.debug;
+		var ident = this.toString ();
+		if ( myelm ) {
 			try {
-				element.spirit = null;
+				myelm.spirit = null;
 			} catch ( denied ) {} // explorer may deny permission in frames
 		}
 		Object.keys ( this ).forEach ( function ( prop ) {
-			Object.defineProperty ( this, prop, gui.Spirit.DENIED );
+			var desc = debug ? gui.Spirit.denial ( ident, prop ) : gui.Spirit.DENIED;
+			Object.defineProperty ( this, prop, desc );
 		}, this );
 	}
 
@@ -3832,9 +3853,9 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	infuse : function () {
 		var C = gui.Class.extend.apply ( this, arguments );
 		C.__plugins__ = gui.Object.copy ( this.__plugins__ );
-		var breakdown = gui.Class.breakdown ( arguments );
+		var b = gui.Class.breakdown ( arguments );
 		gui.Object.each ( C.__plugins__, function ( prefix, plugin ) {
-			var def = breakdown.extension [ prefix ];			
+			var def = b.protos [ prefix ];			
 			switch ( gui.Type.of ( def )) {
 				case "object" :
 					var mutant = plugin.extend ( def );
@@ -3979,7 +4000,26 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	},
 
 	/**
-	 * User to access property post destruction, report that the spirit was terminated. 
+	 * Custom property access denial for debug mode.
+	 * @param {String} name
+	 * @param {String} prop
+	 */
+	denial : function ( name, prop ) {
+		return {
+			enumerable : true,
+			configurable : true,
+			get : function DENIED () {
+				throw new Error ( gui.Spirit.DENIAL + ": " + name + ":" + prop );
+			},
+			set : function DENIED () {
+				throw new Error ( gui.Spirit.DENIAL + ": " + name + ":" + prop );
+			}
+		};	
+	},
+
+	/**
+	 * Standard propety access denial: User to access property 
+	 * post destruction, report that the spirit was terminated. 
 	 */
 	DENIED : {
 		enumerable : true,
@@ -4002,7 +4042,6 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 
 
 /**
- * # gui.Plugin
  * Base class for all spirit plugins.
  * @todo "context" should be required in constructor
  * @todo Rename "gui.Plugin"
@@ -4118,7 +4157,6 @@ gui.Plugin = gui.Class.create ( "gui.Plugin", Object.prototype, {
 
 
 /**
- * # gui.Tracker
  * Comment goes here.
  * @extends {gui.Plugin}
  */
@@ -4313,7 +4351,6 @@ gui.Tracker = gui.Plugin.extend ( "gui.Tracker", {
 
 
 /**
- * # gui.Life
  * SpiritLife is a non-bubbling event type that covers the life cycle of a spirit.
  * @see {gui.LifePlugin}
  * @param {gui.Spirit} target
@@ -4347,7 +4384,6 @@ gui.Life.prototype = {
 
 
 /**
- * # gui.LifePlugin
  * Tracking spirit life cycle events.
  * @todo Support optional data argument
  * @extends {gui.Tracker}
@@ -4555,7 +4591,6 @@ gui.LifePlugin = gui.Tracker.extend ( "gui.LifePlugin", {
 
 
 /**
- * # gui.ConfigPlugin
  * Configures a spirit by attribute parsing.
  * @extends {gui.Plugin}
  */
@@ -4653,8 +4688,7 @@ gui.ConfigPlugin = gui.Plugin.extend ( "gui.ConfigPlugin", {
 
 
 /**
- * # gui.Action
- * SpiritAction.
+ * Spirit action.
  * @param {gui.Spirit} target
  * @param {String} type
  * @param @optional {object} data
@@ -4851,7 +4885,6 @@ gui.Action.parse = function ( msg ) {
 
 
  /**
- * # gui.ActionPlugin
  * Tracking actions.
  * @extends {gui.Tracker}
  */
@@ -5070,7 +5103,6 @@ gui.ActionPlugin = gui.Tracker.extend ( "gui.ActionPlugin", {
 
 
 /**
- * # gui.IActionHandler
  * Interface ActionHandler.
  */
 gui.IActionHandler = {
@@ -5092,7 +5124,6 @@ gui.IActionHandler = {
 
 
 /**
- * # gui.AttPlugin
  * Methods to read and write DOM attributes.
  * @extends {gui.Tracker}
  */
@@ -5277,7 +5308,6 @@ gui.AttPlugin = gui.Plugin.extend ( "gui.AttPlugin", {
 
 
 /**
- * # gui.BoxPlugin
  * Spirit box object. Note that these are all properties, not methods. 
  * @extends {gui.Plugin}
  * @todo Support globalX, globalY, screenX, screenY
@@ -5381,7 +5411,6 @@ Object.defineProperties ( gui.BoxPlugin.prototype, {
 
 
 /**
- * # gui.Broadcast
  * @todo "one" and "oneGlobal" methods...
  * @param {Spirit} target
  * @param {String} type
@@ -5658,7 +5687,6 @@ gui.Broadcast._dispatch = function ( target, type, data, sig ) {
 
 
 /**
- * # gui.BroadcastPlugin
  * Tracking broadcasts.
  * @extends {gui.Tracker}
  */
@@ -5803,7 +5831,6 @@ gui.BroadcastPlugin = gui.Tracker.extend ( "gui.BroadcastPlugin", {
 
 
 /**
- * # gui.IBroadcastHandler
  * Interface BroadcastHandler.
  */
 gui.IBroadcastHandler = {
@@ -5825,7 +5852,6 @@ gui.IBroadcastHandler = {
 
 
 /**
- * # gui.CSSPlugin
  * Spirit styling studio.
  * @extends {gui.Plugin}
  */
@@ -6273,7 +6299,6 @@ gui.CSSPlugin = gui.Plugin.extend ( "gui.CSSPlugin", {
 
 
 /**
- * # gui.DOMPlugin
  * DOM query and manipulation.
  * @extends {gui.Plugin}
  * @todo implement missing stuff
@@ -7039,7 +7064,6 @@ gui.Object.each ({
 
 
 /**
- * # gui.EventPlugin
  * Tracking DOM events.
  * @todo Throw an error on remove not added!
  * @todo Static interface for general consumption.
@@ -7123,13 +7147,30 @@ gui.EventPlugin = gui.Tracker.extend ( "gui.EventPlugin", {
 			}
 		}, this );
 		return this;
+	},
+
+
+	// PRIVATE ..........................................................
+
+	/**
+	 * Remove event listeners.
+	 * @overwrites {gui.Tracker#_cleanup}
+	 * @param {String} type
+	 * @param {Array<object>} checks
+	 */
+	_cleanup : function ( type, checks ) {
+		if ( this._removechecks ( type, checks )) {
+			var target = checks [ 0 ];
+			var handler = checks [ 1 ];
+			var capture = checks [ 2 ];
+			target.removeEventListener ( type, handler, capture );
+		}
 	}
 
 });
 
 
 /**
- * # gui.IEventHandler
  * Interface EventHandler. This is a real DOM interface, it's used for native event 
  * handling. We usually choose to forward the event to the spirits `onevent` method.
  * @see http://www.w3.org/TR/DOM-Level-3-Events/#interface-EventListener
@@ -7153,7 +7194,6 @@ gui.IEventHandler = {
 
 
 /**
- * # gui.Tick
  * Ticks are used for timed events. 
  * @todo Global versus local ticks
  * @todo Tick.push
@@ -7436,8 +7476,7 @@ gui.Tick._dispatch = function ( type, time, sig ) {
 };
 
 
-/** 
- * # gui.TickPlugin
+/**
  * Tracking timed events.
  * @todo Global timed events.
  * @extends {gui.Tracker}
@@ -7585,7 +7624,6 @@ gui.TickPlugin = gui.Tracker.extend ( "gui.TickPlugin", {
 
 
 /**
- * # gui.ITickHandler
  * Interface TickHandler.
  */
 gui.ITickHandler = {
@@ -7607,7 +7645,6 @@ gui.ITickHandler = {
 
 
 /**
- * # gui.Tween
  * Tweening away.
  * @param {String} type
  * @param @optional {object} data
@@ -7690,7 +7727,6 @@ gui.Tween.dispatchGlobal = function ( type, data ){
 
 
 /**
- * # gui.TweenPlugin
  * Tracking tweens.
  * @extends {gui.Tracker}
  */
@@ -7843,7 +7879,6 @@ gui.TweenPlugin = gui.Tracker.extend ( "gui.TweenPlugin", {
 
 
 /**
- * # gui.TransitionPlugin
  * Experimental CSS transitioning plugin. Work in progress.
  * @extends {gui.Plugin}
  * @todo Just add the transitonend listener on construct?
@@ -8063,7 +8098,6 @@ gui.TransitionPlugin = gui.Plugin.extend ( "gui.TransitionPlugin", {
 
 
 /**
- * # gui.Transition
  * Details for ended CSS transition.
  * @param {String} propertyName
  * @param {number} elapsedTime
@@ -8093,7 +8127,6 @@ gui.Transition.prototype = {
 
 
 /**
- * # gui.AttentionPlugin
  * Work in progress keyboard TAB manager.
  * @extends {gui.Tracker}
  * @todo Get this out of here
@@ -8445,8 +8478,7 @@ gui.AttentionPlugin = gui.Plugin.extend ( "gui.AttentionPlugin", {
 
 
 /**
- * # Module "core"
- * Injects methods into {gui.Spirit} and such stuff.
+ * Injects methods into {gui.Spirit} and such.
  */
 gui.module ( "core", {
 
@@ -8539,7 +8571,6 @@ gui.module ( "core", {
 
 
 /**
- * # gui.Client
  * Questionable browser identity and feature detection. Note that Chrome on iOS 
  * identifies itself as Safari (it basically is, so that shouldn't cause concern).
  * @todo Load earlier by not using gui.Broadcast?
@@ -8791,7 +8822,7 @@ gui.Client = ( new function Client () {
 
 
 /**
- * # gui.DocumentSpirit
+ * Spirit of the root HTML element.
  * @extends {gui.Spirit}
  * Spirit of the HTML element.
  */
@@ -9164,10 +9195,9 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 
 
 /**
- * # gui.WindowSpirit
- * @extends {gui.Spirit}
  * Spirit of the window.
  * @todo use this name?
+ * @extends {gui.Spirit}
  */
 gui.WindowSpirit = gui.Spirit.infuse ( "gui.WindowSpirit", {
 
@@ -9342,9 +9372,8 @@ gui.WindowSpirit = gui.Spirit.infuse ( "gui.WindowSpirit", {
 
 
 /**
- * # gui.IframeSpirit
- * @extends {gui.Spirit}
  * Spirit of the iframe.
+ * @extends {gui.Spirit}
  */
 gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
 
@@ -9517,9 +9546,8 @@ gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
 
 
 /**
- * # gui.StyleSheetSpirit
+ *Spirit of the stylesheet. To be refactored.
  * @extends {gui.Spirit}
- * Spirit of the stylesheet.
  */
 gui.StyleSheetSpirit = gui.Spirit.infuse ( "gui.StyleSheetSpirit", {
 
@@ -9661,7 +9689,6 @@ gui.StyleSheetSpirit = gui.Spirit.infuse ( "gui.StyleSheetSpirit", {
 
 
 /**
- * # gui.ActionSpirit
  * @extends {gui.Spirit}
  * @deprecated
  * Spirit of the button-like element.
@@ -9698,10 +9725,9 @@ gui.ActionSpirit = gui.Spirit.infuse ( "gui.ActionSpirit", {
 
 
  /**
- * # gui.CoverSpirit
- * @extends {gui.Spirit}
  * Spirit of the cover. Use it to cover stuff up. Note that the cover should 
  * be fitted with a background-color in CSS in order to actually cover stuff.
+ * @extends {gui.Spirit}
  */
 gui.CoverSpirit = gui.Spirit.infuse ( "gui.CoverSpirit", {
 
@@ -9786,7 +9812,6 @@ gui.CoverSpirit = gui.Spirit.infuse ( "gui.CoverSpirit", {
 
 
 /**
- * # Module "jquery"
  * Do what Spiritual does by overloading JQuery methods instead of native DOM methods.
  * @todo (Angular special) handle function replaceWith, "a special jqLite.replaceWith, which can replace items which have no parents"
  * @todo Henrik says "$(iframe.contentDocument).remove() før man skifter URL eller fjerner iframen" (jQuery.cache og jQuery.fragments)
@@ -10199,8 +10224,7 @@ gui.module ( "jquery", {
 });
 
 
-/** 
- * # gui.DOMChanger
+/**
  * Spiritualizing documents by overloading DOM methods.
  */
 gui.DOMChanger = {
@@ -10528,7 +10552,6 @@ gui.DOMChanger = {
 
 
 /**
- * # gui.DOMCombos
  * This is where it gets interesting.
  * @todo Standard DOM exceptions for missing arguments and so on.
  * @todo insertAdjecantHTML
@@ -10641,7 +10664,7 @@ gui.DOMCombos = {
 		 */
 		var suspending = combo.around ( function ( action ) {
 			return gui.Observer.suspend ( this, function () {
-				return action.apply ( this, arguments );
+				return action ();
 			}, this );
 		});
 
@@ -10790,7 +10813,6 @@ gui.DOMCombos = {
 
 
 /**
- * # gui.DOMPatcher
  * Patching bad WebKit support for overloading DOM getters and setters, 
  * specifically innerHTML, outerHTML and textContent.This operation is 
  * very time consuming, so let's pray for the related bug to fix soon.
@@ -10896,7 +10918,6 @@ gui.DOMPatcher = {
 
 
 /**
- * # gui.Observer
  * Monitors a document for unsolicitated DOM changes in development mode.
  */
 gui.Observer = {
@@ -11056,7 +11077,6 @@ gui.Observer = {
 
 
 /**
- * # gui.Guide
  * The spirit guide crawls the document while channeling 
  * spirits into DOM elements that matches CSS selectors.
  */
