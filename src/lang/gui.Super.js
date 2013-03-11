@@ -8,23 +8,6 @@ gui.Super = function Super ( C ) {
 
 gui.Super.prototype = Object.create ( null );
 
-/*
-( function () {
-	var subject = null;
-	gui.Super.decorate = function ( func, SuperC ) {
-		return function () {
-			var sub = subject;
-			subject = this;
-			this._super = SuperC.__super__;
-			alert ( func )
-			var result = func.apply ( this, arguments );
-			subject = sub;
-			return result;
-		}
-	}
-	gui.Super.__subject__ = subject;
-}());
-*/
 
 // Static .......................................................................
 
@@ -69,14 +52,18 @@ gui.Object.each ({ // generating static methods
 	},
 
 	/*
-	stamp_xxx : function ( SuperC, C, protos ) {
-		var proto = C.prototype;
-		gui.Object.each ( protos, function ( key, value ) {
-			if ( gui.Type.isMethod ( value )) {
-				proto [ key ] = this.decorate ( value, SuperC );
-			}
-		}, this );
-	},
+	_a : gui.Combo.before ( function ( SuperC ) {
+		gui.Super.__superduper__ = SuperC.__super__;
+	}),
+
+	_b :	gui.Combo.around ( function ( base ) {
+		var sub = gui.Super.__subject__;
+		gui.Super.__subject__ = this;
+		this._super = gui.Super__superduper__;
+		var result = base ();
+		gui.Super.__subject__ = sub;
+		return result;
+	}),
 	*/
 
 	/**
@@ -85,19 +72,29 @@ gui.Object.each ({ // generating static methods
 	 * @param {function} C
 	 * @param {object} object
 	 */
-	stamp : function ( SuperC, C, object ) {
-		"use strict";
+	stamp : function ( SuperC, C, protos ) {
 
-		// this.stamp_xxx ( SuperC, C, object );
+		var decorate = gui.Combo.around ( function ( base ) {
+			var sub = gui.Super.__subject__;
+			gui.Super.__subject__ = this;
+			this._super = SuperC.__super__;
+			var result = base ();
+			gui.Super.__subject__ = sub;
+			return result;
+		});
 
-		var prop = null, proto = C.prototype;
-		if ( gui.Type.isObject ( object )) {
-			Object.keys ( object ).forEach ( function ( key ) {
-				prop = Object.getOwnPropertyDescriptor ( object, key );
-				if ( gui.Type.isMethod ( prop.value )) {
-					prop = gui.Super._function ( object, key, prop, SuperC );
-					// prop = null;
-				} else if ( gui.Type.isObject ( prop.value )) {
+		var proto = C.prototype;
+		gui.Object.each ( protos, function ( key, base ) {
+			if ( gui.Type.isMethod ( base )) {
+				proto [ key ] = decorate ( base );
+				proto [ key ].toString = function () {
+					var tostring = base.toString ();
+					tostring = tostring.replace ( /\t/g, "  " );
+					return gui.Super._DISCLAIMER + tostring;
+				};
+			} else {
+				var prop = Object.getOwnPropertyDescriptor ( protos, key );
+				if ( gui.Type.isObject ( prop.value )) {
 					var o = prop.value;
 					if ( o.getter || o.setter ) {
 						if ( Object.keys ( o ).every ( function ( k ) {
@@ -107,32 +104,9 @@ gui.Object.each ({ // generating static methods
 						}
 					}
 				}
-				// stamp the property
-				if ( prop ) {
-					Object.defineProperty ( proto, key, prop );
-					// methods specials
-					// @todo not like this! If *not* a function, the property will 
-					// now be accessed and fire the getter function we just declared!
-					if ( gui.Type.isFunction ( proto [ key ])) {
-						// update console display name (@todo does it work?)
-						Object.defineProperty ( proto [ key ], "displayName", {
-							enumerable : false,
-							configurable : true,
-							get : function () {
-								return key;
-							}
-						});
-						// normalize toString() for debugging
-						// @todo Find the hat char for that regexp
-						proto [ key ].toString = function () {
-							var tostring = object [ key ].toString ();
-							tostring = tostring.replace ( /\t/g, "  " );
-							return gui.Super._DISCLAIMER + tostring;
-						};
-					}
-				}
-		  });
-		}
+				Object.defineProperty ( proto, key, prop );
+			}
+		}, this );
 	},
 
 
@@ -147,28 +121,6 @@ gui.Object.each ({ // generating static methods
 		"  * Method was overloaded by the framework. \n" +
 		"  * This is an approximation of the code :) \n" +
 		"  */\n",
-
-	/**
-	 * Compute property descriptor for function type definition.
-	 * @param {object} object
-	 * @param {String} key
-	 * @param {object} prop
-	 * @param {function} SuperC
-	 * @returns {object}
-	 */
-	_function : function ( object, key, prop, SuperC ) {
-		if ( !prop.value.__data__ ) { // @todo hmm...
-			prop.value = function () {
-				var sub = gui.Super.__subject__;
-				gui.Super.__subject__ = this;
-				this._super = SuperC.__super__;
-				var result = object [ key ].apply ( this, arguments );
-				gui.Super.__subject__ = sub;
-				return result;
-			};
-		}
-		return prop;
-	},
 
 	 /**
 	 * Compute property descriptor for getter-setter type definition.

@@ -111,7 +111,7 @@ gui.DOMCombos = {
 		 */
 		var suspending = combo.around ( function ( action ) {
 			return gui.Observer.suspend ( this, function () {
-				return action.apply ( this, arguments );
+				return action ();
 			}, this );
 		});
 

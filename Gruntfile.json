@@ -12,8 +12,8 @@
 	"src/lang/gui.Class.js",
 	"src/lang/gui.Arguments.js",
 	"src/lang/gui.Interface.js",
-	"src/lang/gui.Super.js",
 	"src/lang/gui.Combo.js",
+	"src/lang/gui.Super.js",
 
 	"src/abstract/gui.Position.js",
 	"src/abstract/gui.Dimension.js",
