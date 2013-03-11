@@ -129,7 +129,8 @@ gui.Class = {
 		gui.Object.each ( C.__recurring__, function ( key, val ) {
 			C [ key ] = val;
 		});
-		gui.Super.stamp ( SuperC, C.prototype, protos );
+		gui.Accessor.support ( C, protos ); // @todo what about base?
+		gui.Super.support ( SuperC, C, protos );
 		this._name ( C, name );
 		return this._profiling ( C );
 	},

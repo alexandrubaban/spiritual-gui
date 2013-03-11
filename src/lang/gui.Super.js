@@ -52,13 +52,14 @@ gui.Object.each ({ // generating static methods
 	},
 
 	/**
-	 * Stamp all properties from protos onto prototype 
-	 * while decorating methods for `_super` support.
+	 * Transfer methods from protos to proto 
+	 * while decorating for `_super` support.
 	 * @param {function} SuperC
-	 * @param {object} proto
-	 * @param {object} object
+	 * @param {object} C
+	 * @param {object} protos
 	 */
-	stamp : function ( SuperC, proto, protos ) {
+	support : function ( SuperC, C, protos ) {
+		var proto = C.prototype;
 		var combo = this._decorator ( SuperC );
 		gui.Object.each ( protos, function ( key, base ) {
 			if ( gui.Type.isMethod ( base )) {
@@ -67,19 +68,6 @@ gui.Object.each ({ // generating static methods
 					var original = base.toString ().replace ( /\t/g, "  " );
 					return gui.Super._DISCLAIMER + original;
 				};
-			} else {
-				var prop = Object.getOwnPropertyDescriptor ( protos, key );
-				if ( gui.Type.isObject ( prop.value )) {
-					var o = prop.value;
-					if ( o.getter || o.setter ) {
-						if ( Object.keys ( o ).every ( function ( k ) {
-							return k === "getter" || k === "setter";
-						})) {
-							prop = gui.Super._property ( key, o, proto );
-						}
-					}
-				}
-				Object.defineProperty ( proto, key, prop );
 			}
 		}, this );
 	},
@@ -112,37 +100,6 @@ gui.Object.each ({ // generating static methods
 				gui.Super.__subject__ = sub;
 				return result;
 			};
-		};
-	},
-
-	 /**
-	 * Compute property descriptor for getter-setter type definition.
-	 * @param {String} key
-	 * @param {object} o
-	 * @param {function} C
-	 * @returns {object}
-	 */
-	_property : function ( key, o, proto ) {
-		"use strict";
-		[ "getter", "setter" ].forEach ( function ( what ) {
-			var d;
-			while ( proto && !gui.Type.isDefined ( o [ what ])) {
-				proto = Object.getPrototypeOf ( proto );
-				d = Object.getOwnPropertyDescriptor ( proto, key );
-				if ( d ) {
-					o [ what ] = d [ what === "getter" ? "get" : "set" ];
-				}
-			}
-		});
-		return {
-			enumerable : true,
-			configurable : true,
-			get : o.getter || function () {
-				throw new Error ( this + " getting a property that has only a setter: " + key );
-			},
-			set : o.setter || function () {
-				throw new Error ( this + " setting a property that has only a getter: " + key );
-			}
 		};
 	}
 
