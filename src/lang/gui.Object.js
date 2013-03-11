@@ -114,10 +114,8 @@ gui.Object = {
 	methods : function ( object ) {
 		var result = [];
 		for ( var def in object ) {
-			if ( gui.Type.isFunction ( object [ def ])) {
-				if ( !gui.Type.isConstructor ( def )) {
-					result.push ( def );
-				}
+			if ( gui.Type.isMethod ( object [ def ])) {
+				result.push ( def );
 			}
 		}
 		return result;

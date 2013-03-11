@@ -29,68 +29,43 @@ gui.Object.each ({ // generating static methods
 
 	/**
 	 * Declare all method stubs on {gui.Super} instance.
-	 * @param {gui.Super} instance
+	 * @param {gui.Super} suber
 	 * @param {object} proto
 	 */
-	generateStubs : function ( instance, proto ) {
-		gui.Object.methods ( proto ).forEach ( function ( method ) {
-			gui.Super.generateStub ( instance, proto, method );
+	generateStubs : function ( suber, proto ) {
+		gui.Object.methods ( proto ).forEach ( function ( name ) {
+			gui.Super.generateStub ( suber, proto, name );
 		}, this );
 	},
 
 	/**
 	 * Declare single method stub on {gui.Super} instance.
-	 * @param {gui.Super} instance
+	 * @param {gui.Super} suber
 	 * @param {object} proto
 	 * @param {String} name Method name
 	 */
-	generateStub : function ( instance, proto, name ) {
-		var func = instance [ name ] = function () {
+	generateStub : function ( suber, proto, name ) {
+		var func = suber [ name ] = function () {
 			return proto [ name ].apply ( gui.Super.__subject__, arguments );
 		};
 		func.displayName = name;
 	},
 
-	/*
-	_a : gui.Combo.before ( function ( SuperC ) {
-		gui.Super.__superduper__ = SuperC.__super__;
-	}),
-
-	_b :	gui.Combo.around ( function ( base ) {
-		var sub = gui.Super.__subject__;
-		gui.Super.__subject__ = this;
-		this._super = gui.Super__superduper__;
-		var result = base ();
-		gui.Super.__subject__ = sub;
-		return result;
-	}),
-	*/
-
 	/**
-	 * Stamp all properties from object onto prototype while overloading methods.
+	 * Stamp all properties from protos onto prototype 
+	 * while decorating methods for `_super` support.
 	 * @param {function} SuperC
-	 * @param {function} C
+	 * @param {object} proto
 	 * @param {object} object
 	 */
-	stamp : function ( SuperC, C, protos ) {
-
-		var decorate = gui.Combo.around ( function ( base ) {
-			var sub = gui.Super.__subject__;
-			gui.Super.__subject__ = this;
-			this._super = SuperC.__super__;
-			var result = base ();
-			gui.Super.__subject__ = sub;
-			return result;
-		});
-
-		var proto = C.prototype;
+	stamp : function ( SuperC, proto, protos ) {
+		var combo = this._decorator ( SuperC );
 		gui.Object.each ( protos, function ( key, base ) {
 			if ( gui.Type.isMethod ( base )) {
-				proto [ key ] = decorate ( base );
+				proto [ key ] = combo ( base );
 				proto [ key ].toString = function () {
-					var tostring = base.toString ();
-					tostring = tostring.replace ( /\t/g, "  " );
-					return gui.Super._DISCLAIMER + tostring;
+					original = base.toString ().replace ( /\t/g, "  " );
+					return gui.Super._DISCLAIMER + original;
 				};
 			} else {
 				var prop = Object.getOwnPropertyDescriptor ( protos, key );
@@ -100,7 +75,7 @@ gui.Object.each ({ // generating static methods
 						if ( Object.keys ( o ).every ( function ( k ) {
 							return k === "getter" || k === "setter";
 						})) {
-							prop = gui.Super._property ( key, o, C );
+							prop = gui.Super._property ( key, o, proto );
 						}
 					}
 				}
@@ -122,6 +97,24 @@ gui.Object.each ({ // generating static methods
 		"  * This is an approximation of the code :) \n" +
 		"  */\n",
 
+		/**
+	 * Get tricky decorator.
+	 * @param {function} SuperC
+	 * @returns {function}
+	 */
+	_decorator : function ( SuperC ) {
+		return function ( base ) {
+			return function () {
+				var sub = gui.Super.__subject__;
+				gui.Super.__subject__ = this;
+				this._super = SuperC.__super__;
+				var result = base.apply ( this, arguments );
+				gui.Super.__subject__ = sub;
+				return result;
+			};
+		};
+	},
+
 	 /**
 	 * Compute property descriptor for getter-setter type definition.
 	 * @param {String} key
@@ -129,13 +122,13 @@ gui.Object.each ({ // generating static methods
 	 * @param {function} C
 	 * @returns {object}
 	 */
-	_property : function ( key, o, C ) {
+	_property : function ( key, o, proto ) {
 		"use strict";
 		[ "getter", "setter" ].forEach ( function ( what ) {
-			var d, p = C.prototype;
-			while ( p && !gui.Type.isDefined ( o [ what ])) {
-				p = Object.getPrototypeOf ( p );
-				d = Object.getOwnPropertyDescriptor ( p, key );
+			var d;
+			while ( proto && !gui.Type.isDefined ( o [ what ])) {
+				proto = Object.getPrototypeOf ( proto );
+				d = Object.getOwnPropertyDescriptor ( proto, key );
 				if ( d ) {
 					o [ what ] = d [ what === "getter" ? "get" : "set" ];
 				}
