@@ -11,7 +11,7 @@
 	"src/lang/gui.Function.js",
 	"src/lang/gui.Class.js",
 	"src/lang/gui.Arguments.js",
-	"src/lang/gui.Accessor.js",
+	"src/lang/gui.Accessors.js",
 	"src/lang/gui.Interface.js",
 	"src/lang/gui.Combo.js",
 	"src/lang/gui.Super.js",
