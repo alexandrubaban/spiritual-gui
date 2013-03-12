@@ -299,7 +299,8 @@ gui.module ( "jquery", {
 						return old.call ( this, things );
 					}, this );
 					if ( b.dom ) {
-						var els = Array.map ( gui.Type.list ( things ), function ( thing ) {
+						things = gui.Array.toArray ( things );
+						var els = Array.map ( things, function ( thing ) {
 							return thing && thing instanceof gui.Spirit ? thing.element : thing;
 						});
 						els.forEach ( function ( el ) {

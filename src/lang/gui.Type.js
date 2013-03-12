@@ -129,32 +129,7 @@ gui.Type = {
 		return result;
 	},
 
-	/**
-	 * Resolve single argument into an array with one 
-	 * or more entries. Strings to be split at spaces.
-	 * @param {object} arg
-	 * @returns {Array<object>}
-	 */
-	list : function ( arg ) {
-		var list = null;
-		switch ( this.of ( arg )) {
-			case "array" :
-				list = arg;
-				break;
-			case "string" :
-				list = arg.split ( " " );
-				break;
-			case "nodelist" :
-			case "arguments" :
-				list = Array.prototype.slice.call ( arg );
-				break;
-			default :
-				list = [ arg ];
-				break;
-		}
-		return list;
-	},
-
+	
 	// Private ...........................................................
 
 	/**

@@ -3,10 +3,10 @@
  * @see https://github.com/raganwald/method-combinators/blob/master/README-JS.md
  * @see https://github.com/raganwald/homoiconic/blob/master/2012/09/precondition-and-postcondition.md
  */
-gui.Combo = { // @todo gui.Deco would perhaps fit better for some of these....
+gui.Combo = {
 
 	/**
-	 * Decorate before.
+	 * Decorate function before.
 	 * @param {function} decoration
 	 * @returns {function}
 	 */
@@ -20,7 +20,7 @@ gui.Combo = { // @todo gui.Deco would perhaps fit better for some of these....
 	},
 
 	/**
-	 * Decorate after.
+	 * Decorate function after.
 	 * @param {function} decoration
 	 * @returns {function}
 	 */
@@ -35,7 +35,7 @@ gui.Combo = { // @todo gui.Deco would perhaps fit better for some of these....
 	},
 
 	/**
-	 * Decorate around.
+	 * Decorate function around.
 	 * @param {function} decoration
 	 * @returns {function}
 	 */
@@ -55,7 +55,7 @@ gui.Combo = { // @todo gui.Deco would perhaps fit better for some of these....
 	},
 
 	/**
-	 * Decorate provided. Note that we added support for an otherwise otherwise.
+	 * Decorate function provided with support for an otherwise operation.
 	 * @param {function} condition
 	 */
 	provided : function ( condition ) {
@@ -71,16 +71,10 @@ gui.Combo = { // @todo gui.Deco would perhaps fit better for some of these....
 	},
 
 	/**
-	 * Output the input.
-	 * @param {object} subject
-	 * @return {object}
-	 */
-	identity : function ( subject ) {
-		return subject;
-	},
-
-	/**
-	 * Make function return "this" if otherwise it would return undefined.
+	 * Make function return `this` if otherwise it would return `undefined`. 
+	 * Variant of the `fluent` combinator which would always returns `this`. 
+	 * We (will) use this extensively to ensure API consistancy, but we might 
+	 * remove it for a theoretical performance gain once we have a test suite.
 	 * @param {function} base
 	 * @returns {function}
 	 */
@@ -91,6 +85,15 @@ gui.Combo = { // @todo gui.Deco would perhaps fit better for some of these....
 		};
 	},
 
+	/**
+	 * Simply output the input. Wonder what it could be.
+	 * @param {object} subject
+	 * @return {object}
+	 */
+	identity : function ( subject ) {
+		return subject;
+	},
+
 
 	// Private ..........................................................
 
@@ -99,4 +102,5 @@ gui.Combo = { // @todo gui.Deco would perhaps fit better for some of these....
 	 * @type {function}
 	 */
 	_slice : [].slice
+	
 };
