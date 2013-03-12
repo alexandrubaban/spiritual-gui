@@ -1402,32 +1402,7 @@ gui.Type = {
 		return result;
 	},
 
-	/**
-	 * Resolve single argument into an array with one 
-	 * or more entries. Strings to be split at spaces.
-	 * @param {object} arg
-	 * @returns {Array<object>}
-	 */
-	list : function ( arg ) {
-		var list = null;
-		switch ( this.of ( arg )) {
-			case "array" :
-				list = arg;
-				break;
-			case "string" :
-				list = arg.split ( " " );
-				break;
-			case "nodelist" :
-			case "arguments" :
-				list = Array.prototype.slice.call ( arg );
-				break;
-			default :
-				list = [ arg ];
-				break;
-		}
-		return list;
-	},
-
+	
 	// Private ...........................................................
 
 	/**
@@ -1634,6 +1609,34 @@ gui.Array = {
 	remove : function ( array, from, to ) {
 		array.splice ( from, !to || 1 + to - from + ( ! ( to < 0 ^ from >= 0 ) && ( to < 0 || -1 ) * array.length ));
 		return array.length;
+	},
+
+	/**
+	 * Resolve single argument into an array with one or more 
+	 * entries. Mostly because we use this setup quite often.
+	 * 
+	 * 1. Strings to be split at spaces. 
+	 * 2. Array-like objects transformed to real arrays. 
+	 * 3. Other objects are pushed into a one entry array.
+	 * 
+	 * @see {gui.Object#toArray} for array-like conversion
+	 * @param {object} arg
+	 * @returns {Array<object>} Always returns an array
+	 */
+	toArray : function ( arg ) {
+		var list;
+		switch ( gui.Type.of ( arg )) {
+			case "array" :
+				list = arg;
+				break;
+			case "string" :
+				list = arg.split ( " " );
+				break;
+			default :
+				list = gui.Object.toArray ( arg );
+				break;
+		}
+		return list.length ? list : [ arg ];
 	}
 };
 
@@ -1812,7 +1815,8 @@ gui.Class = {
 		gui.Object.each ( C.__recurring__, function ( key, val ) {
 			C [ key ] = val;
 		});
-		gui.Super.stamp ( SuperC, C.prototype, protos );
+		gui.Accessors.support ( C, protos ); // @todo what about base?
+		gui.Super.support ( SuperC, C, protos );
 		this._name ( C, name );
 		return this._profiling ( C );
 	},
@@ -2053,6 +2057,45 @@ gui.Object.each ({
 gui.Arguments = {
 
 	/**
+	 * Forgiving arguments matcher. 
+	 * Ignores action if no match.
+	 */
+	provided : function ( /* type1,type2,type3... */ ) {
+		var types = gui.Object.toArray ( arguments );
+		return function ( action ) {
+			return function () {
+				if ( gui.Arguments._match ( arguments, types )) {
+					return action.apply ( this, arguments );
+				}
+			};
+		};
+	},
+
+	/**
+	 * Revengeful arguments validator. 
+	 * Throws an exception if no match.
+	 */
+	confirmed : function ( /* type1,type2,type3... */ ) {
+		var types = gui.Object.toArray ( arguments );
+		return function ( action ) {
+			return function () {
+				if ( gui.Arguments._validate ( arguments, types )) {
+					return action.apply ( this, arguments );
+				}
+			};
+		};
+	},
+
+
+	// Private ...........................................................
+	
+	/**
+	 * Validating mode?
+	 * @type {boolean}
+	 */
+	_validating : false,
+
+	/**
 	 * Use this to check the runtime signature of a function call: 
 	 * gui.Arguments.match ( arguments, "string", "number" ); 
 	 * Note that some args may be omitted and still pass the test, 
@@ -2060,42 +2103,25 @@ gui.Arguments = {
 	 * Note that `gui.Type.of` may return different xbrowser results 
 	 * for certain exotic objects. Use the pipe char to compensate: 
 	 * gui.Arguments.match ( arguments, "window|domwindow" );
-	 * @param {object} args Array or array-like object
 	 * @returns {boolean}
 	 */
-	match : function () {
-		var list = Array.prototype.slice.call ( arguments );
-		var args = list.shift ();
-		if ( gui.Type.isArguments ( args )) {
-			return list.every ( function ( test, index ) {
-				return this._matches ( test, args [ index ], index );
-			}, this );
-		} else {
-			throw new Error ( "Expected an Arguments object" );
-		}
+	_match : function ( args, types ) {
+		return types.every ( function ( type, index ) {
+			return this._matches ( type, args [ index ], index );
+		}, this );
 	},
 
 	/**
 	 * Strict type-checking facility to throw exceptions on failure. 
 	 * @todo at some point, return true unless in developement mode.
-	 * @param {object} args Array-like 
 	 * @returns {boolean}
 	 */
-	validate : function () {
-		this._validate = true;
-		var is = this.match.apply ( this, arguments );
-		this._validate = false;
+	_validate : function ( args, types ) {
+		this._validating = true;
+		var is = this._match ( args, types );
+		this._validating = false;
 		return is;
 	},
-
-
-	// Private ...........................................................
-
-	/**
-	 * Validating mode?
-	 * @type {boolean}
-	 */
-	_validate : false,
 
 	/**
 	 * Extract expected type of (optional) argument.
@@ -2121,7 +2147,7 @@ gui.Arguments = {
 			|| ( !needs && input === "undefined" ) 
 			|| ( !needs && split.indexOf ( "*" ) >-1 ) 
 			|| split.indexOf ( input ) >-1 );
-		if ( !match && this._validate ) {
+		if ( !match && this._validating ) {
 			this._error ( index, xpect, input );
 		}
 		return match;
@@ -2139,6 +2165,122 @@ gui.Arguments = {
 			"Expected " + xpect + 
 			", got " + input
 		);
+	}
+};
+
+
+/**
+ * Assisting {gui.Class} with property cloning plus getters and setters stuff.
+ */
+gui.Accessors = {
+	
+	/**
+	 * Copy non-method properties from configuration object to class 
+	 * prototype. Property will be modified to a getter or setter if:
+	 * 
+	 * 1) The property value is an object
+	 * 2) It has only one or both properties "getter" and "setter"
+	 * 3) These are both functions
+	 * 
+	 * @param {function} C gui.Class constructor
+	 * @param {object} protos Prototype extensions
+	 */
+	support : function ( C, protos ) {
+		this._accessors ( protos, C.prototype );
+	},
+
+
+	// Private .....................................................
+
+	/**
+	 * Copy properties from definitions object to function prototype.
+	 * @param {object} protos Source
+	 * @param {object} proto Target
+	 */
+	_accessors : function ( protos, proto ) {
+		Object.keys ( protos ).forEach ( function ( key ) {
+			var desc = Object.getOwnPropertyDescriptor ( protos, key );
+			desc = this._accessor ( proto, key, desc );
+			Object.defineProperty ( proto, key, desc );
+		}, this );
+	},
+
+	/**
+	 * Copy single property to function prototype.
+	 * @param {object} proto
+	 * @param {String} key
+	 * @param {object} desc
+	 * @returns {object}
+	 */
+	_accessor : function ( proto, key, desc ) {
+		var val = desc.value;
+		if ( gui.Type.isObject ( val )) {
+			if ( val.getter || val.setter ) {
+				if ( this._isactive ( val )) {
+					desc = this._activeaccessor ( proto, key, val );
+				}
+			}
+		}
+		return desc;
+	},
+
+	/**
+	 * Object is getter-setter definition?
+	 * @param {object} obj
+	 * @returns {boolean}
+	 */
+	_isactive : function ( obj ) {
+		return Object.keys ( obj ).every ( function ( key ) {
+			var is = false;
+			switch ( key ) {
+				case "getter" :
+				case "setter" :
+					is = gui.Type.isFunction ( obj [ key ]);
+					break;
+			}
+			return is;
+		});
+	},
+
+	/**
+	 * Compute property descriptor for getter-setter 
+	 * type definition and assign it to the prototype.
+	 * @param {object} proto
+	 * @param {String} key
+	 * @param {object} def
+	 * @returns {defect}
+	 */
+	_activeaccessor : function ( proto, key, def ) {
+		var desc;
+		[ "getter", "setter" ].forEach ( function ( name, set ) {
+			while ( proto && !gui.Type.isDefined ( def [ name ])) {
+				proto = Object.getPrototypeOf ( proto );
+				desc = Object.getOwnPropertyDescriptor ( proto, key );
+				if ( desc ) {
+					def [ name ] = desc [ set ? "set" : "get" ];
+				}
+			}
+		});
+		return {
+			enumerable : true,
+			configurable : true,
+			get : def.getter || this._NOGETTER,
+			set : def.setter || this._NOSETTER
+		};
+	},
+
+	/**
+	 * Bad getter.
+	 */
+	_NOGETTER : function () {
+		throw new Error ( "Getting a property that has only a setter" );
+	},
+
+	/**
+	 * Bad setter.
+	 */
+	_NOSETTER : function () {
+		throw new Error ( "Setting a property that has only a getter" );
 	}
 };
 
@@ -2190,10 +2332,10 @@ gui.Interface = {
  * @see https://github.com/raganwald/method-combinators/blob/master/README-JS.md
  * @see https://github.com/raganwald/homoiconic/blob/master/2012/09/precondition-and-postcondition.md
  */
-gui.Combo = { // @todo gui.Deco would perhaps fit better for some of these....
+gui.Combo = {
 
 	/**
-	 * Decorate before.
+	 * Decorate function before.
 	 * @param {function} decoration
 	 * @returns {function}
 	 */
@@ -2207,7 +2349,7 @@ gui.Combo = { // @todo gui.Deco would perhaps fit better for some of these....
 	},
 
 	/**
-	 * Decorate after.
+	 * Decorate function after.
 	 * @param {function} decoration
 	 * @returns {function}
 	 */
@@ -2222,7 +2364,7 @@ gui.Combo = { // @todo gui.Deco would perhaps fit better for some of these....
 	},
 
 	/**
-	 * Decorate around.
+	 * Decorate function around.
 	 * @param {function} decoration
 	 * @returns {function}
 	 */
@@ -2242,7 +2384,7 @@ gui.Combo = { // @todo gui.Deco would perhaps fit better for some of these....
 	},
 
 	/**
-	 * Decorate provided. Note that we added support for an otherwise otherwise.
+	 * Decorate function provided with support for an otherwise operation.
 	 * @param {function} condition
 	 */
 	provided : function ( condition ) {
@@ -2258,16 +2400,10 @@ gui.Combo = { // @todo gui.Deco would perhaps fit better for some of these....
 	},
 
 	/**
-	 * Output the input.
-	 * @param {object} subject
-	 * @return {object}
-	 */
-	identity : function ( subject ) {
-		return subject;
-	},
-
-	/**
-	 * Make function return "this" if otherwise it would return undefined.
+	 * Make function return `this` if otherwise it would return `undefined`. 
+	 * Variant of the `fluent` combinator which would always returns `this`. 
+	 * We (will) use this extensively to ensure API consistancy, but we might 
+	 * remove it for a theoretical performance gain once we have a test suite.
 	 * @param {function} base
 	 * @returns {function}
 	 */
@@ -2278,6 +2414,15 @@ gui.Combo = { // @todo gui.Deco would perhaps fit better for some of these....
 		};
 	},
 
+	/**
+	 * Simply output the input. Wonder what it could be.
+	 * @param {object} subject
+	 * @return {object}
+	 */
+	identity : function ( subject ) {
+		return subject;
+	},
+
 
 	// Private ..........................................................
 
@@ -2286,6 +2431,7 @@ gui.Combo = { // @todo gui.Deco would perhaps fit better for some of these....
 	 * @type {function}
 	 */
 	_slice : [].slice
+	
 };
 
 
@@ -2343,13 +2489,14 @@ gui.Object.each ({ // generating static methods
 	},
 
 	/**
-	 * Stamp all properties from protos onto prototype 
-	 * while decorating methods for `_super` support.
+	 * Transfer methods from protos to proto 
+	 * while decorating for `_super` support.
 	 * @param {function} SuperC
-	 * @param {object} proto
-	 * @param {object} object
+	 * @param {object} C
+	 * @param {object} protos
 	 */
-	stamp : function ( SuperC, proto, protos ) {
+	support : function ( SuperC, C, protos ) {
+		var proto = C.prototype;
 		var combo = this._decorator ( SuperC );
 		gui.Object.each ( protos, function ( key, base ) {
 			if ( gui.Type.isMethod ( base )) {
@@ -2358,19 +2505,6 @@ gui.Object.each ({ // generating static methods
 					var original = base.toString ().replace ( /\t/g, "  " );
 					return gui.Super._DISCLAIMER + original;
 				};
-			} else {
-				var prop = Object.getOwnPropertyDescriptor ( protos, key );
-				if ( gui.Type.isObject ( prop.value )) {
-					var o = prop.value;
-					if ( o.getter || o.setter ) {
-						if ( Object.keys ( o ).every ( function ( k ) {
-							return k === "getter" || k === "setter";
-						})) {
-							prop = gui.Super._property ( key, o, proto );
-						}
-					}
-				}
-				Object.defineProperty ( proto, key, prop );
 			}
 		}, this );
 	},
@@ -2403,37 +2537,6 @@ gui.Object.each ({ // generating static methods
 				gui.Super.__subject__ = sub;
 				return result;
 			};
-		};
-	},
-
-	 /**
-	 * Compute property descriptor for getter-setter type definition.
-	 * @param {String} key
-	 * @param {object} o
-	 * @param {function} C
-	 * @returns {object}
-	 */
-	_property : function ( key, o, proto ) {
-		"use strict";
-		[ "getter", "setter" ].forEach ( function ( what ) {
-			var d;
-			while ( proto && !gui.Type.isDefined ( o [ what ])) {
-				proto = Object.getPrototypeOf ( proto );
-				d = Object.getOwnPropertyDescriptor ( proto, key );
-				if ( d ) {
-					o [ what ] = d [ what === "getter" ? "get" : "set" ];
-				}
-			}
-		});
-		return {
-			enumerable : true,
-			configurable : true,
-			get : o.getter || function () {
-				throw new Error ( this + " getting a property that has only a setter: " + key );
-			},
-			set : o.setter || function () {
-				throw new Error ( this + " setting a property that has only a getter: " + key );
-			}
 		};
 	}
 
@@ -4884,222 +4987,228 @@ gui.Action.parse = function ( msg ) {
 };
 
 
- /**
+/** 
  * Tracking actions.
- * @extends {gui.Tracker}
+ * @using gui.Arguments#confirmed
+ * @using gui.Combo#chained
  */
-gui.ActionPlugin = gui.Tracker.extend ( "gui.ActionPlugin", {
+( function using ( confirmed, chained ) {
 
 	/**
-	 * Free slot for spirit to define any single type of action to dispatch. 
-	 * @type {String}
+	 * @extends {gui.Tracker}
 	 */
-	type : null,
+	gui.ActionPlugin = gui.Tracker.extend ( "gui.ActionPlugin", {
 
-	/**
-	 * Free slot for spirit to define any single type of data to dispatch.
-	 * @type {Object}
-	 */
-	data : null,
+		/**
+		 * Free slot for spirit to define any single type of action to dispatch. 
+		 * @type {String}
+		 */
+		type : null,
 
-	/**
-	 * Add one or more action handlers.
-	 * @param {array|string} arg
-	 * @param @optional {object|function} handler
-	 * @returns {gui.ActionPlugin}
-	 */
-	add : function ( arg, handler ) {
-		if ( gui.Arguments.validate ( arguments, "array|string", "(object|function)" )) {
-			handler = handler ? handler : this.spirit;
-			if ( gui.Interface.validate ( gui.IActionHandler, handler )) {
-				this._breakdown ( arg ).forEach ( function ( type ) {
-					this._addchecks ( type, [ handler, this._global ]);
-				}, this );
-			}
-		}
-		return this;
-	},
+		/**
+		 * Free slot for spirit to define any single type of data to dispatch.
+		 * @type {Object}
+		 */
+		data : null,
 
-	/**
-	 * Remove one or more action handlers.
-	 * @param {object} arg
-	 * @param @optional {object} handler
-	 * @returns {gui.ActionPlugin}
-	 */
-	remove : function ( arg, handler ) {
-		if ( gui.Arguments.validate ( arguments, "array|string", "(object|function)" )) {
-			handler = handler ? handler : this.spirit;
-			if ( gui.Interface.validate ( gui.IActionHandler, handler )) {
-				this._breakdown ( arg ).forEach ( function ( type ) {
-					this._removechecks ( type, [ handler, this._global ]);
-				}, this );
-			}
-		}
-		return this;
-	},
-
-	/**
-	 * Add global action handler(s).
-	 * @param {object} arg
-	 * @param @optional {object} handler
-	 * @returns {gui.ActionPlugin}
-	 */
-	addGlobal : function ( arg, handler ) {
-		return this._globalize ( function () {
-			return this.add ( arg, handler );
-		});
-	},
-
-	/**
-	 * Remove global action handler(s).
-	 * @param {object} arg
-	 * @param @optional {object} handler
-	 * @returns {gui.ActionPlugin}
-	 */
-	removeGlobal : function ( arg, handler ) {
-		return this._globalize ( function () {
-			return this.remove ( arg, handler );
-		});
-	},
-
-	/**
-	 * Dispatch type(s) ascending by default.
-	 * @alias {gui.ActionPlugin#ascend}
-	 * @param {String} type
-	 * @param @optional {object} data
-	 * @param @optional {String} direction "ascend" or "descend"
-	 * @returns {gui.Action}
-	 */
-	dispatch : function ( type, data, direction ) {
-		if ( gui.Arguments.validate ( arguments, "string", "(*)", "(string)" )) {
-			return gui.Action.dispatch ( 
-				this.spirit, 
-				type, 
-				data, 
-				direction || "ascend",
-				this._global 
-			);
-		}
-	},
-
-	/**
-	 * Dispatch type(s) ascending.
-	 * @alias {gui.ActionPlugin#dispatch}
-	 * @param {object} arg
-	 * @param @optional {object} data
-	 * @returns {gui.Action}
-	 */
-	ascend : function ( arg, data ) {
-		return this.dispatch ( arg, data, "ascend" );
-	},
-
-	/**
-	 * Dispatch type(s) descending.
-	 * @alias {gui.ActionPlugin#dispatch}
-	 * @param {object} arg
-	 * @param @optional {object} data
-	 * @returns {gui.Action}
-	 */
-	descend : function ( arg, data ) {
-		return this.dispatch ( arg, data, "descend" );
-	},
-
-	/**
-	 * Dispatch type(s) globally (ascending).
-	 * @param {object} arg
-	 * @param @optional {object} data
-	 * @param @optional {String} direction
-	 * @returns {gui.Action}
-	 */
-	dispatchGlobal : function ( arg, data ) {
-		return this._globalize ( function () {
-			return this.dispatch ( arg, data );
-		});
-	},
-
-	/**
-	 * Dispatch type(s) globally ascending.
-	 * @param {object} arg
-	 * @param @optional {object} data
-	 * @returns {gui.Action}
-	 */
-	ascendGlobal : function ( arg, data ) {
-		return this._globalize ( function () {
-			return this.ascend ( arg, data );
-		});
-	},
-
-	/**
-	 * Dispatch type(s) globally descending.
-	 * @param {object} arg
-	 * @param @optional {object} data
-	 * @returns {gui.Action}
-	 */
-	descendGlobal : function ( arg, data ) {
-		return this._globalize ( function () {
-			return this.descend ( arg, data );
-		});
-	},
-
-	/**
-	 * Handle action. If it matches listeners, the action will be 
-	 * delegated to the spirit. Called by `gui.Action` crawler.
-	 * @see {gui.Action#dispatch}
-	 * @param {gui.Action} action
-	 */
-	handleAction : function ( action ) {
-		var list = this._xxx [ action.type ];
-		if ( list ) {
-			list.forEach ( function ( checks ) {
-				var handler = checks [ 0 ];
-				var matches = checks [ 1 ] === action.global;
-				if ( matches && handler !== action.target ) {
-					handler.onaction ( action );
+		/**
+		 * Add one or more action handlers.
+		 * @param {array|string} arg
+		 * @param @optional {object|function} handler
+		 * @returns {gui.ActionPlugin}
+		 */
+		add : confirmed ( "array|string", "(object|function)" ) (
+			chained ( function ( arg, handler ) {
+				handler = handler ? handler : this.spirit;
+				if ( gui.Interface.validate ( gui.IActionHandler, handler )) {
+					this._breakdown ( arg ).forEach ( function ( type ) {
+						this._addchecks ( type, [ handler, this._global ]);
+					}, this );
 				}
+			})
+		),
+
+		/**
+		 * Remove one or more action handlers.
+		 * @param {object} arg
+		 * @param @optional {object} handler
+		 * @returns {gui.ActionPlugin}
+		 */
+		remove : confirmed ( "array|string", "(object|function)" ) (
+			chained ( function ( arg, handler ) {
+				handler = handler ? handler : this.spirit;
+				if ( gui.Interface.validate ( gui.IActionHandler, handler )) {
+					this._breakdown ( arg ).forEach ( function ( type ) {
+						this._removechecks ( type, [ handler, this._global ]);
+					}, this );
+				}
+			})
+		),
+
+		/**
+		 * Add global action handler(s).
+		 * @param {object} arg
+		 * @param @optional {object} handler
+		 * @returns {gui.ActionPlugin}
+		 */
+		addGlobal : function ( arg, handler ) {
+			return this._globalize ( function () {
+				return this.add ( arg, handler );
 			});
-		}
-	},
+		},
+
+		/**
+		 * Remove global action handler(s).
+		 * @param {object} arg
+		 * @param @optional {object} handler
+		 * @returns {gui.ActionPlugin}
+		 */
+		removeGlobal : function ( arg, handler ) {
+			return this._globalize ( function () {
+				return this.remove ( arg, handler );
+			});
+		},
+
+		/**
+		 * Dispatch type(s) ascending by default.
+		 * @alias {gui.ActionPlugin#ascend}
+		 * @param {String} type
+		 * @param @optional {object} data
+		 * @param @optional {String} direction "ascend" or "descend"
+		 * @returns {gui.Action}
+		 */
+		dispatch : confirmed ( "string", "(*)", "(string)" ) (
+			function ( type, data, direction ) {
+				return gui.Action.dispatch ( 
+					this.spirit, 
+					type, 
+					data, 
+					direction || "ascend",
+					this._global 
+				);
+			}
+		),
+
+		/**
+		 * Dispatch type(s) ascending.
+		 * @alias {gui.ActionPlugin#dispatch}
+		 * @param {object} arg
+		 * @param @optional {object} data
+		 * @returns {gui.Action}
+		 */
+		ascend : function ( arg, data ) {
+			return this.dispatch ( arg, data, "ascend" );
+		},
+
+		/**
+		 * Dispatch type(s) descending.
+		 * @alias {gui.ActionPlugin#dispatch}
+		 * @param {object} arg
+		 * @param @optional {object} data
+		 * @returns {gui.Action}
+		 */
+		descend : function ( arg, data ) {
+			return this.dispatch ( arg, data, "descend" );
+		},
+
+		/**
+		 * Dispatch type(s) globally (ascending).
+		 * @param {object} arg
+		 * @param @optional {object} data
+		 * @param @optional {String} direction
+		 * @returns {gui.Action}
+		 */
+		dispatchGlobal : function ( arg, data ) {
+			return this._globalize ( function () {
+				return this.dispatch ( arg, data );
+			});
+		},
+
+		/**
+		 * Dispatch type(s) globally ascending.
+		 * @param {object} arg
+		 * @param @optional {object} data
+		 * @returns {gui.Action}
+		 */
+		ascendGlobal : function ( arg, data ) {
+			return this._globalize ( function () {
+				return this.ascend ( arg, data );
+			});
+		},
+
+		/**
+		 * Dispatch type(s) globally descending.
+		 * @param {object} arg
+		 * @param @optional {object} data
+		 * @returns {gui.Action}
+		 */
+		descendGlobal : function ( arg, data ) {
+			return this._globalize ( function () {
+				return this.descend ( arg, data );
+			});
+		},
+
+		/**
+		 * Handle action. If it matches listeners, the action will be 
+		 * delegated to the spirit. Called by `gui.Action` crawler.
+		 * @see {gui.Action#dispatch}
+		 * @param {gui.Action} action
+		 */
+		handleAction : function ( action ) {
+			var list = this._xxx [ action.type ];
+			if ( list ) {
+				list.forEach ( function ( checks ) {
+					var handler = checks [ 0 ];
+					var matches = checks [ 1 ] === action.global;
+					if ( matches && handler !== action.target ) {
+						handler.onaction ( action );
+					}
+				});
+			}
+		},
 
 
-	// Private ....................................................
+		// Private ....................................................
 
-	/**
-	 * Global mode?
-	 * @type {boolean}
-	 */
-	_global : false,
+		/**
+		 * Global mode?
+		 * @type {boolean}
+		 */
+		_global : false,
 
-	/**
-	 * Execute operation in global mode.
-	 * @param {function} operation
-	 * @returns {object}
-	 */
-	_globalize : function ( operation ) {
-		this._global = true;
-		var res = operation.call ( this );
-		this._global = false;
-		return res;
-	},
+		/**
+		 * Execute operation in global mode.
+		 * @param {function} operation
+		 * @returns {object}
+		 */
+		_globalize : function ( operation ) {
+			this._global = true;
+			var res = operation.call ( this );
+			this._global = false;
+			return res;
+		},
 
-	/**
-	 * Remove delegated handlers. 
-	 * @todo verify that this works
-	 * @overwrites {gui.Tracker#_cleanup}
-	 * @param {String} type
-	 * @param {Array<object>} checks
-	 */
-	_cleanup : function ( type, checks ) {
-		if ( this._removechecks ( type, checks )) {
-			var handler = checks [ 0 ], global = checks [ 1 ];
-			if ( global ) {
-				this.removeGlobal ( type, handler );
-			} else {
-				this.remove ( type, handler );
+		/**
+		 * Remove delegated handlers. 
+		 * @todo verify that this works
+		 * @overwrites {gui.Tracker#_cleanup}
+		 * @param {String} type
+		 * @param {Array<object>} checks
+		 */
+		_cleanup : function ( type, checks ) {
+			if ( this._removechecks ( type, checks )) {
+				var handler = checks [ 0 ], global = checks [ 1 ];
+				if ( global ) {
+					this.removeGlobal ( type, handler );
+				} else {
+					this.remove ( type, handler );
+				}
 			}
 		}
-	}
 
-});
+	});
+
+}( gui.Arguments.confirmed, gui.Combo.chained ));
 
 
 /**
@@ -5410,280 +5519,288 @@ Object.defineProperties ( gui.BoxPlugin.prototype, {
 });
 
 
-/**
+/** 
+ * Broadcast instance.
  * @todo "one" and "oneGlobal" methods...
- * @param {Spirit} target
- * @param {String} type
- * @param {object} data
- * @param {boolean} global
+ * @using gui.Arguments#confirmed
  */
-gui.Broadcast = function ( target, type, data, global ) {
-	
-	this.target = target;
-	this.type = type;
-	this.data = data;
-	this.isGlobal = global;
-	this.signatures = [];
-};
-
-gui.Broadcast.prototype = {
+( function using ( confirmed ) {
 
 	/**
-	 * Broadcast target.
-	 * @type {gui.Spirit}
+	 * @param {Spirit} target
+	 * @param {String} type
+	 * @param {object} data
+	 * @param {boolean} global
 	 */
-	target : null,
+	gui.Broadcast = function ( target, type, data, global ) {
+		
+		this.target = target;
+		this.type = type;
+		this.data = data;
+		this.isGlobal = global;
+		this.signatures = [];
+	};
+
+	gui.Broadcast.prototype = {
+
+		/**
+		 * Broadcast target.
+		 * @type {gui.Spirit}
+		 */
+		target : null,
+
+		/**
+		 * Broadcast type.
+		 * @type {String}
+		 */
+		type : null,
+
+		/**
+		 * Broadcast data.
+		 * @type {object}
+		 */
+		data : null,
+
+		/**
+		 * Global broadcast?
+		 * @todo rename "global"
+		 * @type {boolean}
+		 */
+		isGlobal : false,
+
+		/**
+		 * Experimental...
+		 * @type {Array<String>}
+		 */
+		signatures : null,
+
+		/**
+		 * Identification
+		 * @returns {String}
+		 */
+		toString : function () {	
+			return "[object gui.Broadcast]";
+		}
+	};
+
+
+	// Static .........................................................
 
 	/**
-	 * Broadcast type.
-	 * @type {String}
+	 * Tracking global handlers (mapping broadcast types to list of handlers).
+	 * @type {Map<String,<Array<object>>}
 	 */
-	type : null,
+	gui.Broadcast._globals = Object.create ( null );
 
 	/**
-	 * Broadcast data.
-	 * @type {object}
+	 * Tracking local handlers (mapping gui.signatures to broadcast types to list of handlers).
+	 * @type {Map<String,Map<String,Array<object>>>}
 	 */
-	data : null,
+	gui.Broadcast._locals = Object.create ( null );
 
 	/**
-	 * Global broadcast?
-	 * @todo rename "global"
-	 * @type {boolean}
+	 * mapcribe handler to message.
+	 * @param {object} message String or array of strings
+	 * @param {object} handler Implements BroadcastListener
+	 * @param @optional {String} sig
 	 */
-	isGlobal : false,
+	gui.Broadcast.add = function ( message, handler, sig ) {
+	 return	this._add ( message, handler, sig || gui.signature );
+	};
 
 	/**
-	 * Experimental...
-	 * @type {Array<String>}
+	 * Unmapcribe handler from broadcast.
+	 * @param {object} message String or array of strings
+	 * @param {object} handler
+	 * @param @optional {String} sig
 	 */
-	signatures : null,
+	gui.Broadcast.remove = function ( message, handler, sig ) {
+		return this._remove ( message, handler, sig || gui.signature );
+	};
 
 	/**
-	 * Identification
+	 * Publish broadcast in local window scope.
+	 * @todo queue for incoming dispatch (finish current message first).
+	 * @param {Spirit} target
+	 * @param {String} type
+	 * @param {object} data
+	 * @param {String} sig
+	 * @returns {gui.Broadcast}
+	 */
+	gui.Broadcast.dispatch = function ( target, type, data, sig ) {
+		return this._dispatch ( target, type, data, sig || gui.signature );
+	};
+
+	/**
+	 * mapcribe handler to message globally.
+	 * @param {object} message String or array of strings
+	 * @param {object} handler Implements BroadcastListener
+	 */
+	gui.Broadcast.addGlobal = function ( message, handler ) {
+		return this._add ( message, handler );
+	};
+
+	/**
+	 * Unmapcribe handler from global broadcast.
+	 * @param {object} message String or array of strings
+	 * @param {object} handler
+	 */
+	gui.Broadcast.removeGlobal = function ( message, handler ) {
+		return this._remove ( message, handler );
+	};
+
+	/**
+	 * Dispatch broadcast in global scope (all windows).
+	 * @todo queue for incoming dispatch (finish current first).
+	 * @todo Handle remote domain iframes ;)
+	 * @param {Spirit} target
+	 * @param {String} type
+	 * @param {object} data
+	 */
+	gui.Broadcast.dispatchGlobal = function ( target, type, data ) {
+		return this._dispatch ( target, type, data );
+	};
+
+	/**
+	 * Encode broadcast to be posted xdomain.
+	 * @param {gui.Broacast} b
 	 * @returns {String}
 	 */
-	toString : function () {	
-		return "[object gui.Broadcast]";
-	}
-};
+	gui.Broadcast.stringify = function ( b ) {
+		var prefix = "spiritual-broadcast:";
+		return prefix + ( function () {
+			b.target = null;
+			b.data = ( function ( d ) {
+				if ( gui.Type.isComplex ( d )) {
+					if ( gui.Type.isFunction ( d.stringify )) {
+						d = d.stringify ();
+					} else {
+						try {
+							JSON.stringify ( d );
+						} catch ( jsonexception ) {
+							d = null;
+						}
+					}
+				}
+				return d;
+			}( b.data ));
+			return JSON.stringify ( b );
+		}());
+	};
 
+	/**
+	 * Decode broadcast posted from xdomain and return a broadcast-like object.
+	 * @param {String} msg
+	 * @returns {object}
+	 */
+	gui.Broadcast.parse = function ( msg ) {
+		var prefix = "spiritual-broadcast:";
+		if ( msg.startsWith ( prefix )) {
+			return JSON.parse ( msg.split ( prefix )[ 1 ]);
+		}
+	};
 
-// Static .........................................................
+	// PRIVATE ...................................................................................
 
-/**
- * Tracking global handlers (mapping broadcast types to list of handlers).
- * @type {Map<String,<Array<object>>}
- */
-gui.Broadcast._globals = Object.create ( null );
-
-/**
- * Tracking local handlers (mapping gui.signatures to broadcast types to list of handlers).
- * @type {Map<String,Map<String,Array<object>>>}
- */
-gui.Broadcast._locals = Object.create ( null );
-
-/**
- * mapcribe handler to message.
- * @param {object} message String or array of strings
- * @param {object} handler Implements BroadcastListener
- * @param @optional {String} sig
- */
-gui.Broadcast.add = function ( message, handler, sig ) {
- return	this._add ( message, handler, sig || gui.signature );
-};
-
-/**
- * Unmapcribe handler from broadcast.
- * @param {object} message String or array of strings
- * @param {object} handler
- * @param @optional {String} sig
- */
-gui.Broadcast.remove = function ( message, handler, sig ) {
-	return this._remove ( message, handler, sig || gui.signature );
-};
-
-/**
- * Publish broadcast in local window scope.
- * @todo queue for incoming dispatch (finish current message first).
- * @param {Spirit} target
- * @param {String} type
- * @param {object} data
- * @param {String} sig
- * @returns {gui.Broadcast}
- */
-gui.Broadcast.dispatch = function ( target, type, data, sig ) {
-	return this._dispatch ( target, type, data, sig || gui.signature );
-};
-
-/**
- * mapcribe handler to message globally.
- * @param {object} message String or array of strings
- * @param {object} handler Implements BroadcastListener
- */
-gui.Broadcast.addGlobal = function ( message, handler ) {
-	return this._add ( message, handler );
-};
-
-/**
- * Unmapcribe handler from global broadcast.
- * @param {object} message String or array of strings
- * @param {object} handler
- */
-gui.Broadcast.removeGlobal = function ( message, handler ) {
-	return this._remove ( message, handler );
-};
-
-/**
- * Dispatch broadcast in global scope (all windows).
- * @todo queue for incoming dispatch (finish current first).
- * @todo Handle remote domain iframes ;)
- * @param {Spirit} target
- * @param {String} type
- * @param {object} data
- */
-gui.Broadcast.dispatchGlobal = function ( target, type, data ) {
-	return this._dispatch ( target, type, data );
-};
-
-/**
- * Encode broadcast to be posted xdomain.
- * @param {gui.Broacast} b
- * @returns {String}
- */
-gui.Broadcast.stringify = function ( b ) {
-	var prefix = "spiritual-broadcast:";
-	return prefix + ( function () {
-		b.target = null;
-		b.data = ( function ( d ) {
-			if ( gui.Type.isComplex ( d )) {
-				if ( gui.Type.isFunction ( d.stringify )) {
-					d = d.stringify ();
+	/**
+	 * mapcribe handler to message(s).
+	 * @param {Array<string>|string} type
+	 * @param {object|function} handler Implements BroadcastListener
+	 * @param @optional {String} sig
+	 * @returns {function}
+	 */
+	gui.Broadcast._add = confirmed ( "array|string", "object|function", "(string)" ) (
+		function ( type, handler, sig ) {
+			if ( gui.Interface.validate ( gui.IBroadcastHandler, handler )) {
+				if ( gui.Type.isArray ( type )) {
+					type.forEach ( function ( t ) {
+						this._add ( t, handler, sig );
+					}, this );
 				} else {
-					try {
-						JSON.stringify ( d );
-					} catch ( jsonexception ) {
-						d = null;
+					var map;
+					if ( sig ) {
+						map = this._locals [ sig ];
+						if ( !map ) {
+							map = this._locals [ sig ] = Object.create ( null ); 
+						}
+					} else {
+						map = this._globals;
+					}
+					if ( !map [ type ]) {
+						map [ type ] = [];
+					}
+					var array = map [ type ];
+					if ( array.indexOf ( handler ) === -1 ) {
+						array.push ( handler );
 					}
 				}
 			}
-			return d;
-		}( b.data ));
-		return JSON.stringify ( b );
-	}());
-};
+			return this;
+		}
+	);
 
-/**
- * Decode broadcast posted from xdomain and return a broadcast-like object.
- * @param {String} msg
- * @returns {object}
- */
-gui.Broadcast.parse = function ( msg ) {
-	var prefix = "spiritual-broadcast:";
-	if ( msg.startsWith ( prefix )) {
-		return JSON.parse ( msg.split ( prefix )[ 1 ]);
-	}
-};
-
-// PRIVATE ...................................................................................
-
-/**
- * mapcribe handler to message(s).
- * @param {Array<string>|string} type
- * @param {object|function} handler Implements BroadcastListener
- * @param @optional {String} sig
- * @returns {function}
- */
-gui.Broadcast._add = function ( type, handler, sig ) {
-	if ( gui.Arguments.validate ( arguments, "array|string", "object|function", "(string)" )) {
+	/**
+	 * Hello.
+	 * @param {object} message String or array of strings
+	 * @param {object} handler
+	 * @param @optional {String} sig
+	 * @returns {function}
+	 */
+	gui.Broadcast._remove = function ( message, handler, sig ) {
 		if ( gui.Interface.validate ( gui.IBroadcastHandler, handler )) {
-			if ( gui.Type.isArray ( type )) {
-				type.forEach ( function ( t ) {
-					this._add ( t, handler, sig );
+			if ( gui.Type.isArray ( message )) {
+				message.forEach ( function ( msg ) {
+					this._remove ( msg, handler, sig );
 				}, this );
 			} else {
-				var map;
-				if ( sig ) {
-					map = this._locals [ sig ];
-					if ( !map ) {
-						map = this._locals [ sig ] = Object.create ( null ); 
+				var index, array = ( function ( locals, globals) {
+					if ( sig ) {
+						if ( locals [ sig ]) {
+							return locals [ sig ][ message ];
+						}
+					} else {
+						return globals [ message ];
 					}
-				} else {
-					map = this._globals;
-				}
-				if ( !map [ type ]) {
-					map [ type ] = [];
-				}
-				var array = map [ type ];
-				if ( array.indexOf ( handler ) === -1 ) {
-					array.push ( handler );
+				}( this._locals, this._globals ));
+				if ( array ) {
+					index = array.indexOf ( handler );
+					if ( index > -1 ) {
+						gui.Array.remove ( array, index );
+					}
 				}
 			}
 		}
-	}
-	return this;
-};
+		return this;
+	};
 
-/**
- * Hello.
- * @param {object} message String or array of strings
- * @param {object} handler
- * @param @optional {String} sig
- * @returns {function}
- */
-gui.Broadcast._remove = function ( message, handler, sig ) {
-	if ( gui.Interface.validate ( gui.IBroadcastHandler, handler )) {
-		if ( gui.Type.isArray ( message )) {
-			message.forEach ( function ( msg ) {
-				this._remove ( msg, handler, sig );
-			}, this );
-		} else {
-			var index, array = ( function ( locals, globals) {
-				if ( sig ) {
-					if ( locals [ sig ]) {
-						return locals [ sig ][ message ];
-					}
-				} else {
-					return globals [ message ];
-				}
-			}( this._locals, this._globals ));
-			if ( array ) {
-				index = array.indexOf ( handler );
-				if ( index > -1 ) {
-					gui.Array.remove ( array, index );
-				}
+	/**
+	 * Hello.
+	 * @param {Spirit} target
+	 * @param {String} type
+	 * @param {object} data
+	 * @param @optional {String} sig
+	 */
+	gui.Broadcast._dispatch = function ( target, type, data, sig ) {
+		var global = !gui.Type.isString ( sig );
+		var map = global ? this._globals : this._locals [ sig ];
+		var b = new gui.Broadcast ( target, type, data, global );
+		if ( map ) {
+			var handlers = map [ type ];
+			if ( handlers ) {
+				handlers.slice ().forEach ( function ( handler ) {
+					handler.onbroadcast ( b );
+				});
 			}
 		}
-	}
-	return this;
-};
+		if ( global ) {
+			var root = document.documentElement.spirit;
+			if ( root ) { // no spirit before DOMContentLoaded
+				root.propagateBroadcast ( b );
+			}
+		}
+	};
 
-/**
- * Hello.
- * @param {Spirit} target
- * @param {String} type
- * @param {object} data
- * @param @optional {String} sig
- */
-gui.Broadcast._dispatch = function ( target, type, data, sig ) {
-	var global = !gui.Type.isString ( sig );
-	var map = global ? this._globals : this._locals [ sig ];
-	var b = new gui.Broadcast ( target, type, data, global );
-	if ( map ) {
-		var handlers = map [ type ];
-		if ( handlers ) {
-			handlers.slice ().forEach ( function ( handler ) {
-				handler.onbroadcast ( b );
-			});
-		}
-	}
-	if ( global ) {
-		var root = document.documentElement.spirit;
-		if ( root ) { // no spirit before DOMContentLoaded
-			root.propagateBroadcast ( b );
-		}
-	}
-};
+}( gui.Arguments.confirmed ));
 
 
 /**
@@ -6300,539 +6417,278 @@ gui.CSSPlugin = gui.Plugin.extend ( "gui.CSSPlugin", {
 
 /**
  * DOM query and manipulation.
- * @extends {gui.Plugin}
  * @todo implement missing stuff
  * @todo performance for all this
+ * @using {gui.Combo#chained}
  */
-gui.DOMPlugin = gui.Plugin.extend ( "gui.DOMPlugin", {
+( function using ( chained ) {
 
 	/**
-	 * Set or get element id.
-	 * @param @optional {String} id
-	 * @returns {String|gui.DOMPlugin}
+	 * @extends {gui.Plugin}
 	 */
-	id : gui.Combo.chained ( function ( id ) {
-		if ( id ) {
-			this.spirit.element.id = id;
-		} else {
-			return this.spirit.element.id || null;
-		}
-	}),
- 
-	/**
-	 * Get spirit element tagname or create an element of given tagname. 
-	 * @param @optional {String} name If present, create an element
-	 * @param @optional {String} text If present, also append a text node
-	 * @todo Third argument for namespace? Investigate general XML-ness.
-	 */
-	tag : function ( name, text ) {
-		var res = null;
-		var doc = this.spirit.document;
-		var elm = this.spirit.element;
-		if ( name ) {
-			res = doc.createElement ( name );
+	gui.DOMPlugin = gui.Plugin.extend ( "gui.DOMPlugin", {
 
-			// @todo "text" > "child" and let gui.DOMPlugin handle the rest....
-			if ( gui.Type.isString ( text )) {
-				res.appendChild ( 
-					doc.createTextNode ( text )
-				);
-			}
-		} else {
-			res = elm.localName;
-		}
-		return res;
-	},
-
-	/**
-	 * Get or set element title (tooltip).
-	 * @param @optional {String} title
-	 * @returns {String}
-	 */
-	title : gui.Combo.chained ( function ( title ) {
-		var element = this.spirit.element;
-		if ( gui.Type.isDefined ( title )) {
-			element.title = title ? title : "";
-		} else {
-			return element.title;
-		}
-	}),
-
-	/**
-	 * Is positioned in page DOM? Otherwise plausible 
-	 * createElement or documentFragment scenario.
-	 * @returns {boolean}
-	 */
-	embedded : function () {
-		return gui.DOMPlugin.embedded ( this.spirit.element );
-	},
-
-	/**
-	 * Get or set element markup.
-	 * @param @optional {String} html
-	 * @param @optional {String} position Insert adjecant HTML
-	 * @returns {String|gui.DOMPlugin}
-	 */
-	html : gui.Combo.chained ( function ( html, position ) {
-		var element = this.spirit.element;
-		if ( gui.Type.isString ( html )) {
-			if ( position ) {
-				element.insertAdjacentHTML ( position, html ); // @todo static + spiritualize!
+		/**
+		 * Set or get element id.
+		 * @param @optional {String} id
+		 * @returns {String|gui.DOMPlugin}
+		 */
+		id : chained ( function ( id ) {
+			if ( id ) {
+				this.spirit.element.id = id;
 			} else {
-				gui.DOMPlugin.html ( element, html );
-			}			
-		} else {
-			return element.innerHTML;
+				return this.spirit.element.id || null;
+			}
+		}),
+	 
+		/**
+		 * Get spirit element tagname or create an element of given tagname. 
+		 * @param @optional {String} name If present, create an element
+		 * @param @optional {String} text If present, also append a text node
+		 * @todo Third argument for namespace? Investigate general XML-ness.
+		 */
+		tag : function ( name, text ) {
+			var res = null;
+			var doc = this.spirit.document;
+			var elm = this.spirit.element;
+			if ( name ) {
+				res = doc.createElement ( name );
+
+				// @todo "text" > "child" and let gui.DOMPlugin handle the rest....
+				if ( gui.Type.isString ( text )) {
+					res.appendChild ( 
+						doc.createTextNode ( text )
+					);
+				}
+			} else {
+				res = elm.localName;
+			}
+			return res;
+		},
+
+		/**
+		 * Get or set element title (tooltip).
+		 * @param @optional {String} title
+		 * @returns {String|gui.DOMPlugin}
+		 */
+		title : chained ( function ( title ) {
+			var element = this.spirit.element;
+			if ( gui.Type.isDefined ( title )) {
+				element.title = title ? title : "";
+			} else {
+				return element.title;
+			}
+		}),
+
+		/**
+		 * Is positioned in page DOM? Otherwise plausible 
+		 * createElement or documentFragment scenario.
+		 * @returns {boolean}
+		 */
+		embedded : function () {
+			return gui.DOMPlugin.embedded ( this.spirit.element );
+		},
+
+		/**
+		 * Get or set element markup.
+		 * @param @optional {String} html
+		 * @param @optional {String} position Insert adjecant HTML
+		 * @returns {String|gui.DOMPlugin}
+		 */
+		html : chained ( function ( html, position ) {
+			var element = this.spirit.element;
+			if ( gui.Type.isString ( html )) {
+				if ( position ) {
+					element.insertAdjacentHTML ( position, html ); // @todo static + spiritualize!
+				} else {
+					gui.DOMPlugin.html ( element, html );
+				}			
+			} else {
+				return element.innerHTML;
+			}
+		}),
+
+		/**
+		 * Empty spirit subtree.
+		 * @returns {gui.DOMPlugin}
+		 */
+		empty : chained ( function () {
+			this.html ( "" );
+		}),
+
+		/**
+		 * Get or set element textContent.
+		 * @param @optional {String} text
+		 * @returns {String|gui.DOMPlugin}
+		 */
+		text : chained ( function ( text ) {
+			var elm = this.spirit.element;
+			if ( gui.Type.isString ( text )) {
+				elm.textContent = text;
+				return this;
+			}
+			return elm.textContent;
+		}),
+
+		/**
+		 * Clone spirit element.
+		 * @return {Element}
+		 */
+		clone : function () {
+			return this.spirit.element.cloneNode ( true );
+		},
+
+		/**
+		 * Show spirit element, recursively informing descendants.
+		 * @returns {gui.DOMPlugin}
+		 */
+		show : chained ( function () {
+			this.spirit.css.remove("_gui-invisible");
+			this.spirit.visible ();
+		}),
+
+		/**
+		 * Hide spirit element, recursively informing descendants.
+		 * @returns {gui.DOMPlugin}
+		 */
+		hide : chained ( function () {
+			this.spirit.css.add("_gui-invisible");
+			this.spirit.invisible ();
+		}),
+		
+		
+		// Private .....................................................................
+
+		/**
+		 * @todo Explain custom `this` keyword in selector.
+		 * @param {String} selector
+		 * @returns {String}
+		 */
+		_qualify : function ( selector ) {
+			return gui.DOMPlugin._qualify ( selector, this.spirit.element );
 		}
-	}),
+		
+		
+	}, {}, { // Static ...............................................................
 
-	/**
-	 * Empty spirit subtree.
-	 * @returns {gui.Spirit}
-	 */
-	empty : gui.Combo.chained ( function () {
-		return this.html ( "" );
-	}),
+		/**
+		 * Match custom "this" keyword in CSS selector. We use this to start 
+		 * selector expressions with "this>*" to find immediate child, but 
+		 * maybe we should look into the spec for something instead. The goal 
+		 * here is to the make lookup indenpendant of the spirits tagname.
+		 * @type {RegExp}
+		 */
+		_thiskeyword : /^this|,this/g, // /^this\W|,this\W|^this$/g
 
-	/**
-	 * Get or set element textContent.
-	 * @param @optional {String} text
-	 * @returns {String|gui.DOMPlugin}
-	 */
-	text : gui.Combo.chained ( function ( text ) {
-		var elm = this.spirit.element;
-		if ( gui.Type.isString ( text )) {
-			elm.textContent = text;
-			return this;
-		}
-		return elm.textContent;
-	}),
-
-	/**
-	 * Clone spirit element.
-	 * @return {Element}
-	 */
-	clone : function () {
-		return this.spirit.element.cloneNode ( true );
-	},
-
-	/**
-	 * Show spirit element, recursively informing descendants.
-	 */
-	show : gui.Combo.chained ( function () {
-		this.spirit.css.remove("_gui-invisible");
-		this.spirit.visible ();
-	}),
-
-	/**
-	 * Hide spirit element, recursively informing descendants.
-	 */
-	hide : gui.Combo.chained ( function () {
-		this.spirit.css.add("_gui-invisible");
-		this.spirit.invisible ();
-	}),
-	
-	
-	// Private .....................................................................
-
-	/**
-	 * @todo Explain custom `this` keyword in selector.
-	 * @param {String} selector
-	 * @returns {String}
-	 */
-	_qualify : function ( selector ) {
-		return gui.DOMPlugin._qualify ( selector, this.spirit.element );
-	}
-	
-	
-}, {}, { // Static ...............................................................
-
-	/**
-	 * Match custom "this" keyword in CSS selector. We use this to start 
-	 * selector expressions with "this>*" to find immediate child, but 
-	 * maybe we should look into the spec for something instead. The goal 
-	 * here is to the make lookup indenpendant of the spirits tagname.
-	 * @type {RegExp}
-	 */
-	_thiskeyword : /^this|,this/g, // /^this\W|,this\W|^this$/g
-
-	/**
-	 * Spiritual-aware innerHTML with special setup for WebKit.
-	 * Parse markup to node(s)
-	 * Detach spirits and remove old nodes
-	 * Append new nodes and spiritualize spirits
-	 * @param {Element} element
-	 * @param @optional {String} markup
-	 */
-	html : function ( element, markup ) {
-		var guide = gui.Guide;
-		if ( element.nodeType === Node.ELEMENT_NODE ) {
-			if ( gui.Type.isString ( markup )) {
-				var nodes = new gui.HTMLParser ( 
-					element.ownerDocument 
-				).parse ( markup, element );
-				guide.materializeSub ( element );
-				guide.suspend ( function () {
-					gui.Observer.suspend ( element, function () {
-						while ( element.firstChild ) {
-							element.removeChild ( element.firstChild );
-						}
-						nodes.forEach ( function ( node ) {
-							element.appendChild ( node );
+		/**
+		 * Spiritual-aware innerHTML with special setup for WebKit.
+		 * Parse markup to node(s)
+		 * Detach spirits and remove old nodes
+		 * Append new nodes and spiritualize spirits
+		 * @param {Element} element
+		 * @param @optional {String} markup
+		 */
+		html : function ( element, markup ) {
+			var guide = gui.Guide;
+			if ( element.nodeType === Node.ELEMENT_NODE ) {
+				if ( gui.Type.isString ( markup )) {
+					var nodes = new gui.HTMLParser ( 
+						element.ownerDocument 
+					).parse ( markup, element );
+					guide.materializeSub ( element );
+					guide.suspend ( function () {
+						gui.Observer.suspend ( element, function () {
+							while ( element.firstChild ) {
+								element.removeChild ( element.firstChild );
+							}
+							nodes.forEach ( function ( node ) {
+								element.appendChild ( node );
+							});
 						});
 					});
-				});
-				guide.spiritualizeSub ( element );
+					guide.spiritualizeSub ( element );
+				}
+			} else {
+				// throw new TypeError ();
 			}
-		} else {
-			// throw new TypeError ();
-		}
-		return element.innerHTML; // @todo skip this step on setter
-	},
+			return element.innerHTML; // @todo skip this step on setter
+		},
 
-	/**
-	 * Spiritual-aware outerHTML, special setup for WebKit.
-	 * @todo can outerHTML carry multiple nodes???
-	 * @param {Element} element
-	 * @param @optional {String} markup
-	 */
-	outerHtml : function ( element, markup ) {
-		var res = element.outerHTML;
-		var guide = gui.Guide;
-		if ( element.nodeType ) {
-			if ( gui.Type.isString ( markup )) {
-				var nodes = new gui.HTMLParser ( 
-					element.ownerDocument 
-				).parse ( markup, element );
-				var parent = element.parentNode;
-				guide.materialize ( element );
-				guide.suspend ( function () {
-					gui.Observer.suspend ( parent, function () {
-						while ( nodes.length ) {
-							parent.insertBefore ( nodes.pop (), element );
-						}
-						parent.removeChild ( element );
+		/**
+		 * Spiritual-aware outerHTML, special setup for WebKit.
+		 * @todo can outerHTML carry multiple nodes???
+		 * @param {Element} element
+		 * @param @optional {String} markup
+		 */
+		outerHtml : function ( element, markup ) {
+			var res = element.outerHTML;
+			var guide = gui.Guide;
+			if ( element.nodeType ) {
+				if ( gui.Type.isString ( markup )) {
+					var nodes = new gui.HTMLParser ( 
+						element.ownerDocument 
+					).parse ( markup, element );
+					var parent = element.parentNode;
+					guide.materialize ( element );
+					guide.suspend ( function () {
+						gui.Observer.suspend ( parent, function () {
+							while ( nodes.length ) {
+								parent.insertBefore ( nodes.pop (), element );
+							}
+							parent.removeChild ( element );
+						});
 					});
-				});
-				guide.spiritualizeSub ( parent ); // @todo optimize
-				res = element; // bad API design goes here...
-			}
-		} else {
-			throw new TypeError ();
-		}
-		return res; // @todo skip this step on setter
-	},
-
-	/**
-	 * Get ordinal position of element within container.
-	 * @param {Element} element
-	 * @returns {number}
-	 */
-	ordinal : function ( element ) {
-		var result = 0; 
-		var node = element.parentNode.firstElementChild;
-		while ( node !== null ) {
-			if ( node === element ) {
-				break;
+					guide.spiritualizeSub ( parent ); // @todo optimize
+					res = element; // bad API design goes here...
+				}
 			} else {
-				node = node.nextElementSibling;
-				result ++;
+				throw new TypeError ();
 			}
-		}
-		return result;
-	},
+			return res; // @todo skip this step on setter
+		},
 
-	/**
-	 * Is node in found in page DOM? Otherwise probable createElement scenario.
-	 * @todo comprehend https://developer.mozilla.org/en/JavaScript/Reference/Operators/Bitwise_Operators#Example:_Flags_and_bitmasks
-	 * @param {Element} element
-	 * @returns {boolean}
-	 */
-	embedded : function ( node ) {
-		node = node instanceof gui.Spirit ? node.element : node;
-		var check = Node.DOCUMENT_POSITION_CONTAINS + Node.DOCUMENT_POSITION_PRECEDING;
-		return node.compareDocumentPosition ( node.ownerDocument ) === check;
-	},
-
-	/**
-	 * Get list of all elements that matches a selector.
-	 * Optional type argument filters to spirits of type.
-	 * @param {Node} node
-	 * @param {String} selector
-	 * @param @optional {function} type
-	 * @returns {Array<object>} List of Element or gui.Spirit
-	 */
-	qall : function ( node, selector, type ) {
-		selector = gui.DOMPlugin._qualify ( selector, node );
-		var result = gui.Type.list ( node.querySelectorAll ( selector ));
-		if ( type ) {
-			result = result.filter ( function ( el )  {
-				return el.spirit && el.spirit instanceof type;
-			}).map ( function ( el ) {
-				return el.spirit;
-			});
-		}
-		return result;
-	},
-
-	/**
-	 * Replace proprietary "this" keyword in CSS selector with element nodename.
-	 * @todo There was something about a "scope" or similar keyword in CSS4??? 
-	 * @param {String} selector
-	 * @param {Node} node
-	 * @returns {String}
-	 */
-	_qualify : function ( selector, node ) {
-		var result = selector.trim ();
-		switch ( node.nodeType ) {
-			case Node.ELEMENT_NODE :
-				result = selector.replace ( gui.DOMPlugin._thiskeyword, node.localName );
-				break;
-			case Node.DOCUMENT_NODE :
-				// @todo use ":root" for something?
-				break;
-		}
-		return result;
-	}
-		
-});
-
-
-/**
- * DOM query methods accept a CSS selector and an optional spirit constructor 
- * as arguments. They return a spirit, an element or an array of either.
- */
-gui.Object.each ({
-
-	/**
-	 * Get first descendant element matching selector. Optional type argument returns 
-	 * spirit for first element to be associated to spirit of this type. Note that 
-	 * this may not be the first element to match the selector. Also note that type 
-	 * performs slower than betting on <code>this.dom.q ( "tagname" ).spirit</code>
-	 * @param {String} selector
-	 * @param @optional {function} type Spirit constructor (eg. gui.Spirit)
-	 * @returns {Element|gui.Spirit}
-	 */
-	q : function ( selector, type ) {	
-		var result = null;
-		selector = this._qualify ( selector );
-		if ( type ) {
-			result = this.qall ( selector, type )[ 0 ] || null;
-		} else {
-			result = this.spirit.element.querySelector ( selector );
-		}
-		return result;
-	},
-
-	/**
-	 * Get list of all descendant elements that matches a selector. Optional type  
-	 * arguments returns instead all associated spirits to match the given type.
-	 * @param {String} selector
-	 * @param @optional {function} type Spirit constructor
-	 * @returns {Array<Element|gui.Spirit>}
-	 */
-	qall : function ( selector, type ) {
-		selector = this._qualify ( selector );
-		return gui.DOMPlugin.qall ( this.spirit.element, selector, type );
-	},
-
-	/**
-	 * Same as q, but scoped from the document root. Use wisely.
-	 * @param {String} selector
-	 * @param @optional {function} type Spirit constructor
-	 * returns {Element|gui.Spirit}
-	 */
-	qdoc : function ( selector, type ) {
-		var root = this.spirit.document.documentElement;
-		return root.spirit.dom.q.apply ( root.spirit.dom, arguments );
-	},
-
-	/**
-	 * Same as qall, but scoped from the document root. Use wisely.
-	 * @param {String} selector
-	 * @param @optional {function} type Spirit constructor
-	 * @returns {Array<Element|gui.Spirit>}
-	 */
-	qdocall : function ( selector, type ) {
-		var root = this.spirit.document.documentElement;
-		return root.spirit.dom.qall.apply ( root.spirit.dom, arguments );
-	}
-
-	/**
-	 * Adding methods to gui.DOMPlugin.prototype
-	 * @param {String} name
-	 * @param {function} method
-	 */
-}, function mixin ( name, method ) {
-	gui.DOMPlugin.mixin ( name, function () {
-		var selector = arguments [ 0 ], type = arguments [ 1 ];
-		if ( gui.Type.isString ( selector )) {
-			if ( arguments.length === 1 || gui.Type.isFunction ( type )) {
-				return method.apply ( this, arguments );
-			} else {
-				type = gui.Type.of ( type );
-				throw new TypeError ( "Unknown spirit for query: " + name + "(" + selector + "," + type + ")" );
-			}
-		} else {
-			throw new TypeError ( "Bad selector for query: " + name + "(" + selector + ")" );
-		}
-	});
-});
-
-/**
- * DOM navigation methods accept an optional spirit constructor as 
- * argument. They return a spirit, an element or an array of either.
- */
-gui.Object.each ({
-
-	/**
-	 * Next element or next spirit of given type.
-	 * @param @optional {function} type Spirit constructor
-	 * @returns {Element|gui.Spirit}
-	 */
-	next : function ( type ) {	
-		var result = null, 
-			spirit = null,
-			el = this.spirit.element;
-		if ( type ) {
-			while (( el = el.nextElementSibling ) !== null ) {
-				spirit = el.spirit;
-				if ( spirit !== null && spirit instanceof type ) {
-					result = spirit;
+		/**
+		 * Get ordinal position of element within container.
+		 * @param {Element} element
+		 * @returns {number}
+		 */
+		ordinal : function ( element ) {
+			var result = 0; 
+			var node = element.parentNode.firstElementChild;
+			while ( node !== null ) {
+				if ( node === element ) {
 					break;
+				} else {
+					node = node.nextElementSibling;
+					result ++;
 				}
 			}
-		} else {
-			result = el.nextElementSibling;
-		}
-		return result;
-	},
+			return result;
+		},
 
-	/**
-	 * Previous element or previous spirit of given type.
-	 * @param @optional {function} type Spirit constructor
-	 * @returns {Element|gui.Spirit}
-	 */
-	previous : function ( type ) {
-		var result = null,
-			spirit = null,
-			el = this.spirit.element;
-		if ( type ) {
-			while (( el = el.previousElementSibling ) !== null ) {
-				spirit = el.spirit;
-				if ( spirit !== null && spirit instanceof type ) {
-					result = spirit;
-					break;
-				}
-			}
-		} else {
-			result = el.previousElementSibling;
-		}
-		return result;
-	},
+		/**
+		 * Is node in found in page DOM? Otherwise probable createElement scenario.
+		 * @todo comprehend https://developer.mozilla.org/en/JavaScript/Reference/Operators/Bitwise_Operators#Example:_Flags_and_bitmasks
+		 * @param {Element} element
+		 * @returns {boolean}
+		 */
+		embedded : function ( node ) {
+			node = node instanceof gui.Spirit ? node.element : node;
+			var check = Node.DOCUMENT_POSITION_CONTAINS + Node.DOCUMENT_POSITION_PRECEDING;
+			return node.compareDocumentPosition ( node.ownerDocument ) === check;
+		},
 
-	/**
-	 * First element or first spirit of type.
-	 * @param @optional {function} type Spirit constructor
-	 * @returns {Element|gui.Spirit}
-	 */
-	first : function ( type ) {
-		var result = null,
-			spirit = null,
-			el = this.spirit.element.firstElementChild;
-		if ( type ) {
-			while ( result === null && el !== null ) {
-				spirit = el.spirit;
-				if ( spirit !== null && spirit instanceof type ) {
-					result = spirit;
-				}
-				el = el.nextElementSibling;
-			}
-		} else {
-			result = el; 
-		}
-		return result;
-	},
-
-	/**
-	 * Last element or last spirit of type.
-	 * @param @optional {function} type Spirit constructor
-	 * @returns {Element|gui.Spirit}
-	 */
-	last : function ( type ) {
-		var result = null,
-			spirit = null,
-			el = this.spirit.element.lastElementChild;
-		if ( type ) {
-			while ( result === null && el !== null ) {
-				spirit = el.spirit;
-				if ( spirit !== null && spirit instanceof type ) {
-					result = spirit;
-				}
-				el = el.previoustElementSibling;
-			}
-		} else {
-			result = el; 
-		}
-		return result;
-	},
-
-	/**
-	 * Parent parent or parent spirit of type.
-	 * @param @optional {function} type Spirit constructor
-	 * @returns {Element|gui.Spirit}
-	 */
-	parent : function ( type ) {
-		var result = this.spirit.element.parentNode;
-		if ( type ) {
-			var spirit = result.spirit;
-			if ( spirit && spirit instanceof type ) {
-				result = spirit;
-			} else {
-				result = null;
-			}
-		}
-		return result;
-	},
-
-	/**
-	 * Child element or child spirit of type.
-	 * @param @optional {function} type Spirit constructor
-	 * @returns {Element|gui.Spirit}
-	 */
-	child : function ( type ) {
-		var result = null,
-			spirit = null,
-			el = this.spirit.element.firstElementChild;
-		if ( el && type ) {
-			while ( el !== null && result === null ) {
-				spirit = el.spirit;
-				if ( spirit && spirit instanceof type ) {
-					result = spirit;
-				}
-				el = el.nextElementSibling;
-			}
-		} else {
-			result = el;
-		}
-		return result;
-	},
-
-	/**
-	 * Children elements or children spirits of type.
-	 * @todo just use this.element.children :)
-	 * @param @optional {function} type Spirit constructor
-	 * @returns {Array<Element|gui.Spirit>}
-	 */
-	children : function ( type ) {
-		var result = [],
-			me = this.spirit.element,
-			el = me.firstElementChild;
-		if ( el ) {
-			while ( el !== null ) {
-				result.push ( el );
-				el = el.nextElementSibling; 
-			}
+		/**
+		 * Get list of all elements that matches a selector.
+		 * Optional type argument filters to spirits of type.
+		 * @param {Node} node
+		 * @param {String} selector
+		 * @param @optional {function} type
+		 * @returns {Array<object>} List of Element or gui.Spirit
+		 */
+		qall : function ( node, selector, type ) {
+			selector = gui.DOMPlugin._qualify ( selector, node );
+			var result = gui.Array.toArray ( node.querySelectorAll ( selector ));
 			if ( type ) {
 				result = result.filter ( function ( el )  {
 					return el.spirit && el.spirit instanceof type;
@@ -6840,227 +6696,497 @@ gui.Object.each ({
 					return el.spirit;
 				});
 			}
+			return result;
+		},
+
+		/**
+		 * Replace proprietary "this" keyword in CSS selector with element nodename.
+		 * @todo There was something about a "scope" or similar keyword in CSS4??? 
+		 * @param {String} selector
+		 * @param {Node} node
+		 * @returns {String}
+		 */
+		_qualify : function ( selector, node ) {
+			var result = selector.trim ();
+			switch ( node.nodeType ) {
+				case Node.ELEMENT_NODE :
+					result = selector.replace ( gui.DOMPlugin._thiskeyword, node.localName );
+					break;
+				case Node.DOCUMENT_NODE :
+					// @todo use ":root" for something?
+					break;
+			}
+			return result;
 		}
-		return result;
-	},
+			
+	});
+
 
 	/**
-	 * First ancestor element (parent!) or first ancestor spirit of type.
-	 * @param @optional {function} type Spirit constructor
-	 * @returns {Element|gui.Spirit}
+	 * DOM query methods accept a CSS selector and an optional spirit constructor 
+	 * as arguments. They return a spirit, an element or an array of either.
 	 */
-	ancestor : function ( type ) {
-		var result = this.parent ();
-		if ( type ) {
-			result = null;
-			new gui.Crawler ().ascend ( this.spirit.element, {
-				handleSpirit : function ( spirit ) {
-					if ( spirit instanceof type ) {
+	gui.Object.each ({
+
+		/**
+		 * Get first descendant element matching selector. Optional type argument returns 
+		 * spirit for first element to be associated to spirit of this type. Note that 
+		 * this may not be the first element to match the selector. Also note that type 
+		 * performs slower than betting on <code>this.dom.q ( "tagname" ).spirit</code>
+		 * @param {String} selector
+		 * @param @optional {function} type Spirit constructor (eg. gui.Spirit)
+		 * @returns {Element|gui.Spirit}
+		 */
+		q : function ( selector, type ) {	
+			var result = null;
+			selector = this._qualify ( selector );
+			if ( type ) {
+				result = this.qall ( selector, type )[ 0 ] || null;
+			} else {
+				result = this.spirit.element.querySelector ( selector );
+			}
+			return result;
+		},
+
+		/**
+		 * Get list of all descendant elements that matches a selector. Optional type  
+		 * arguments returns instead all associated spirits to match the given type.
+		 * @param {String} selector
+		 * @param @optional {function} type Spirit constructor
+		 * @returns {Array<Element|gui.Spirit>}
+		 */
+		qall : function ( selector, type ) {
+			selector = this._qualify ( selector );
+			return gui.DOMPlugin.qall ( this.spirit.element, selector, type );
+		},
+
+		/**
+		 * Same as q, but scoped from the document root. Use wisely.
+		 * @param {String} selector
+		 * @param @optional {function} type Spirit constructor
+		 * returns {Element|gui.Spirit}
+		 */
+		qdoc : function ( selector, type ) {
+			var root = this.spirit.document.documentElement;
+			return root.spirit.dom.q.apply ( root.spirit.dom, arguments );
+		},
+
+		/**
+		 * Same as qall, but scoped from the document root. Use wisely.
+		 * @param {String} selector
+		 * @param @optional {function} type Spirit constructor
+		 * @returns {Array<Element|gui.Spirit>}
+		 */
+		qdocall : function ( selector, type ) {
+			var root = this.spirit.document.documentElement;
+			return root.spirit.dom.qall.apply ( root.spirit.dom, arguments );
+		}
+
+		/**
+		 * Adding methods to gui.DOMPlugin.prototype
+		 * @param {String} name
+		 * @param {function} method
+		 */
+	}, function mixin ( name, method ) {
+		gui.DOMPlugin.mixin ( name, function () {
+			var selector = arguments [ 0 ], type = arguments [ 1 ];
+			if ( gui.Type.isString ( selector )) {
+				if ( arguments.length === 1 || gui.Type.isFunction ( type )) {
+					return method.apply ( this, arguments );
+				} else {
+					type = gui.Type.of ( type );
+					throw new TypeError ( "Unknown spirit for query: " + name + "(" + selector + "," + type + ")" );
+				}
+			} else {
+				throw new TypeError ( "Bad selector for query: " + name + "(" + selector + ")" );
+			}
+		});
+	});
+
+	/**
+	 * DOM navigation methods accept an optional spirit constructor as 
+	 * argument. They return a spirit, an element or an array of either.
+	 */
+	gui.Object.each ({
+
+		/**
+		 * Next element or next spirit of given type.
+		 * @param @optional {function} type Spirit constructor
+		 * @returns {Element|gui.Spirit}
+		 */
+		next : function ( type ) {	
+			var result = null, 
+				spirit = null,
+				el = this.spirit.element;
+			if ( type ) {
+				while (( el = el.nextElementSibling ) !== null ) {
+					spirit = el.spirit;
+					if ( spirit !== null && spirit instanceof type ) {
 						result = spirit;
-						return gui.Crawler.STOP;
+						break;
 					}
 				}
-			});
-		}
-		return result;
-	},
+			} else {
+				result = el.nextElementSibling;
+			}
+			return result;
+		},
 
-	/**
-	 * First ancestor elements or ancestor spirits of type.
-	 * @param @optional {function} type Spirit constructor
-	 * @returns {Array<Element|gui.Spirit>}
-	 */
-	ancestors : function ( type ) {
-		var result = [];
-		var crawler = new gui.Crawler ();
-		if ( type ) {	
-			crawler.ascend ( this.element, {
-				handleSpirit : function ( spirit ) {
-					if ( spirit instanceof type ) {
-						result.push ( spirit );
+		/**
+		 * Previous element or previous spirit of given type.
+		 * @param @optional {function} type Spirit constructor
+		 * @returns {Element|gui.Spirit}
+		 */
+		previous : function ( type ) {
+			var result = null,
+				spirit = null,
+				el = this.spirit.element;
+			if ( type ) {
+				while (( el = el.previousElementSibling ) !== null ) {
+					spirit = el.spirit;
+					if ( spirit !== null && spirit instanceof type ) {
+						result = spirit;
+						break;
 					}
 				}
-			});
-		} else {
-			crawler.ascend ( this.element, {
-				handleElement : function ( el ) {
+			} else {
+				result = el.previousElementSibling;
+			}
+			return result;
+		},
+
+		/**
+		 * First element or first spirit of type.
+		 * @param @optional {function} type Spirit constructor
+		 * @returns {Element|gui.Spirit}
+		 */
+		first : function ( type ) {
+			var result = null,
+				spirit = null,
+				el = this.spirit.element.firstElementChild;
+			if ( type ) {
+				while ( result === null && el !== null ) {
+					spirit = el.spirit;
+					if ( spirit !== null && spirit instanceof type ) {
+						result = spirit;
+					}
+					el = el.nextElementSibling;
+				}
+			} else {
+				result = el; 
+			}
+			return result;
+		},
+
+		/**
+		 * Last element or last spirit of type.
+		 * @param @optional {function} type Spirit constructor
+		 * @returns {Element|gui.Spirit}
+		 */
+		last : function ( type ) {
+			var result = null,
+				spirit = null,
+				el = this.spirit.element.lastElementChild;
+			if ( type ) {
+				while ( result === null && el !== null ) {
+					spirit = el.spirit;
+					if ( spirit !== null && spirit instanceof type ) {
+						result = spirit;
+					}
+					el = el.previoustElementSibling;
+				}
+			} else {
+				result = el; 
+			}
+			return result;
+		},
+
+		/**
+		 * Parent parent or parent spirit of type.
+		 * @param @optional {function} type Spirit constructor
+		 * @returns {Element|gui.Spirit}
+		 */
+		parent : function ( type ) {
+			var result = this.spirit.element.parentNode;
+			if ( type ) {
+				var spirit = result.spirit;
+				if ( spirit && spirit instanceof type ) {
+					result = spirit;
+				} else {
+					result = null;
+				}
+			}
+			return result;
+		},
+
+		/**
+		 * Child element or child spirit of type.
+		 * @param @optional {function} type Spirit constructor
+		 * @returns {Element|gui.Spirit}
+		 */
+		child : function ( type ) {
+			var result = null,
+				spirit = null,
+				el = this.spirit.element.firstElementChild;
+			if ( el && type ) {
+				while ( el !== null && result === null ) {
+					spirit = el.spirit;
+					if ( spirit && spirit instanceof type ) {
+						result = spirit;
+					}
+					el = el.nextElementSibling;
+				}
+			} else {
+				result = el;
+			}
+			return result;
+		},
+
+		/**
+		 * Children elements or children spirits of type.
+		 * @todo just use this.element.children :)
+		 * @param @optional {function} type Spirit constructor
+		 * @returns {Array<Element|gui.Spirit>}
+		 */
+		children : function ( type ) {
+			var result = [],
+				me = this.spirit.element,
+				el = me.firstElementChild;
+			if ( el ) {
+				while ( el !== null ) {
 					result.push ( el );
+					el = el.nextElementSibling; 
 				}
-			});
-		}
-		return result;
-	},
+				if ( type ) {
+					result = result.filter ( function ( el )  {
+						return el.spirit && el.spirit instanceof type;
+					}).map ( function ( el ) {
+						return el.spirit;
+					});
+				}
+			}
+			return result;
+		},
 
-	/**
-	 * First descendant element (first child!) first descendant spirit of type.
-	 * @param @optional {function} type Spirit constructor
-	 * @returns {Element|gui.Spirit}
-	 */
-	descendant : function ( type ) {
-		var result = this.child ();
-		var me = this.spirit.element;
-		if ( type ) {
-			new gui.Crawler ().descend ( me, {
-				handleSpirit : function ( spirit ) {
-					if ( spirit instanceof type ) {
-						if ( spirit.element !== me ) {
+		/**
+		 * First ancestor element (parent!) or first ancestor spirit of type.
+		 * @param @optional {function} type Spirit constructor
+		 * @returns {Element|gui.Spirit}
+		 */
+		ancestor : function ( type ) {
+			var result = this.parent ();
+			if ( type ) {
+				result = null;
+				new gui.Crawler ().ascend ( this.spirit.element, {
+					handleSpirit : function ( spirit ) {
+						if ( spirit instanceof type ) {
 							result = spirit;
 							return gui.Crawler.STOP;
 						}
 					}
-				}
-			});
-		}
-		return result;
-	},
+				});
+			}
+			return result;
+		},
 
-	/**
-	 * All descendant elements or all descendant spirits of type.
-	 * @param @optional {function} type Spirit constructor
-	 * @returns {Array<Element|gui.Spirit>}
-	 */
-	descendants : function ( type ) {
-		var result = [];
-		var me = this.spirit.element;
-		new gui.Crawler ().descend ( me, {
-			handleElement : function ( element ) {
-				if ( !type && element !== me ) {
-					result.push ( element );
-				}
-			},
-			handleSpirit : function ( spirit ) {
-				if ( type && spirit instanceof type ) {
-					if ( spirit.element !== me ) {
-						result.push ( spirit );
+		/**
+		 * First ancestor elements or ancestor spirits of type.
+		 * @param @optional {function} type Spirit constructor
+		 * @returns {Array<Element|gui.Spirit>}
+		 */
+		ancestors : function ( type ) {
+			var result = [];
+			var crawler = new gui.Crawler ();
+			if ( type ) {	
+				crawler.ascend ( this.element, {
+					handleSpirit : function ( spirit ) {
+						if ( spirit instanceof type ) {
+							result.push ( spirit );
+						}
+					}
+				});
+			} else {
+				crawler.ascend ( this.element, {
+					handleElement : function ( el ) {
+						result.push ( el );
+					}
+				});
+			}
+			return result;
+		},
+
+		/**
+		 * First descendant element (first child!) first descendant spirit of type.
+		 * @param @optional {function} type Spirit constructor
+		 * @returns {Element|gui.Spirit}
+		 */
+		descendant : function ( type ) {
+			var result = this.child ();
+			var me = this.spirit.element;
+			if ( type ) {
+				new gui.Crawler ().descend ( me, {
+					handleSpirit : function ( spirit ) {
+						if ( spirit instanceof type ) {
+							if ( spirit.element !== me ) {
+								result = spirit;
+								return gui.Crawler.STOP;
+							}
+						}
+					}
+				});
+			}
+			return result;
+		},
+
+		/**
+		 * All descendant elements or all descendant spirits of type.
+		 * @param @optional {function} type Spirit constructor
+		 * @returns {Array<Element|gui.Spirit>}
+		 */
+		descendants : function ( type ) {
+			var result = [];
+			var me = this.spirit.element;
+			new gui.Crawler ().descend ( me, {
+				handleElement : function ( element ) {
+					if ( !type && element !== me ) {
+						result.push ( element );
+					}
+				},
+				handleSpirit : function ( spirit ) {
+					if ( type && spirit instanceof type ) {
+						if ( spirit.element !== me ) {
+							result.push ( spirit );
+						}
 					}
 				}
+			});
+			return result;
+		}
+
+		/**
+		 * Adding methods to gui.DOMPlugin.prototype
+		 * @param {String} name
+		 * @param {function} method
+		 */
+	}, function mixin ( name, method ) {
+		gui.DOMPlugin.mixin ( name, function ( type ) {
+			if ( !gui.Type.isDefined ( type ) || gui.Type.isFunction ( type )) {
+				return method.apply ( this, arguments );
+			} else {
+				throw new TypeError ( 
+					"Unknown spirit for query: " + name + 
+					"(" + gui.Type.of ( type ) + ")" 
+				);
 			}
 		});
-		return result;
-	}
-
-	/**
-	 * Adding methods to gui.DOMPlugin.prototype
-	 * @param {String} name
-	 * @param {function} method
-	 */
-},  function mixin ( name, method ) {
-	gui.DOMPlugin.mixin ( name, function ( type ) {
-		if ( !gui.Type.isDefined ( type ) || gui.Type.isFunction ( type )) {
-			return method.apply ( this, arguments );
-		} else {
-			throw new TypeError ( 
-				"Unknown spirit for query: " + name + 
-				"(" + gui.Type.of ( type ) + ")" 
-			);
-		}
 	});
-});
 
-
-/**
- * DOM insertion methods accept one argument: one spirit OR one element OR an array of either or both. 
- * The input argument is returned as given. This allows for the following one-liner to be constructed: 
- * this.something = this.dom.append ( gui.SomeThingSpirit.summon ( this.document )); // imagine 15 more
- * @todo Go for compliance with DOM4 method matches (something about textnoding string arguments)
- */
-gui.Object.each ({
 
 	/**
-	 * Append spirit OR element OR array of either.
-	 * @param {object} things Complicated argument
-	 * @returns {object} Returns the argument
+	 * DOM insertion methods accept one argument: one spirit OR one element OR an array of either or both. 
+	 * The input argument is returned as given. This allows for the following one-liner to be constructed: 
+	 * this.something = this.dom.append ( gui.SomeThingSpirit.summon ( this.document )); // imagine 15 more
+	 * @todo Go for compliance with DOM4 method matches (something about textnoding string arguments)
 	 */
-	append : function ( things ) {
-		var els = things, element = this.spirit.element;
-		els.forEach ( function ( el ) {
-			element.appendChild ( el );
-		});
-	},
+	gui.Object.each ({
 
-	/**
-	 * Prepend spirit OR element OR array of either.
-	 * @param {object} things Complicated argument
-	 * @returns {object} Returns the argument
-	 */
-	prepend : function ( things ) {
-		var els = things, element = this.spirit.element, first = element.firstChild;
-		els.reverse ().forEach ( function ( el ) {
-			element.insertBefore ( el, first );
-		});
-	},
+		/**
+		 * Append spirit OR element OR array of either.
+		 * @param {object} things Complicated argument
+		 * @returns {object} Returns the argument
+		 */
+		append : function ( things ) {
+			var els = things, element = this.spirit.element;
+			els.forEach ( function ( el ) {
+				element.appendChild ( el );
+			});
+		},
 
-	/**
-	 * Insert spirit OR element OR array of either before this spirit.
-	 * @param {object} things Complicated argument
-	 * @returns {object} Returns the argument
-	 */
-	before : function ( things ) {
-		var els = things, target = this.spirit.element, parent = target.parentNode;
-		els.reverse ().forEach ( function ( el ) {
-			parent.insertBefore ( el, target );
-		});
-	},
+		/**
+		 * Prepend spirit OR element OR array of either.
+		 * @param {object} things Complicated argument
+		 * @returns {object} Returns the argument
+		 */
+		prepend : function ( things ) {
+			var els = things, element = this.spirit.element, first = element.firstChild;
+			els.reverse ().forEach ( function ( el ) {
+				element.insertBefore ( el, first );
+			});
+		},
 
-	/**
-	 * Insert spirit OR element OR array of either after this spirit.
-	 * @param {object} things Complicated argument
-	 * @returns {object} Returns the argument
-	 */
-	after : function ( things ) {
-		var els = things, target = this.spirit.element, parent = target.parentNode;
-		els.forEach ( function ( el ) {
-			parent.insertBefore ( el, target.nextSibling );
-		});
-	},
+		/**
+		 * Insert spirit OR element OR array of either before this spirit.
+		 * @param {object} things Complicated argument
+		 * @returns {object} Returns the argument
+		 */
+		before : function ( things ) {
+			var els = things, target = this.spirit.element, parent = target.parentNode;
+			els.reverse ().forEach ( function ( el ) {
+				parent.insertBefore ( el, target );
+			});
+		},
 
-	/**
-	 * Removing this spirit from it's parent container. Note that this will 
-	 * schedule destruction of the spirit unless it gets reinserted somewhere. 
-	 * Also note that this method is called on the spirit, not on the parent.
-	 * @returns {object} Returns the argument
-	 */
-	remove : function () {
-		var parent = this.spirit.element.parentNode;
-		parent.removeChild ( this.spirit.element );
-	},
+		/**
+		 * Insert spirit OR element OR array of either after this spirit.
+		 * @param {object} things Complicated argument
+		 * @returns {object} Returns the argument
+		 */
+		after : function ( things ) {
+			var els = things, target = this.spirit.element, parent = target.parentNode;
+			els.forEach ( function ( el ) {
+				parent.insertBefore ( el, target.nextSibling );
+			});
+		},
 
-	/**
-	 * Replace the spirit with something else. This may nuke the spirit.
-	 * Note that this method is called on the spirit, not on the parent.
-	 * @param {object} things Complicated argument. 
-	 * @returns {object} Returns the argument
-	 */
-	replace : function ( things ) {
-		this.after ( things );
-		this.remove ();
-	}
+		/**
+		 * Removing this spirit from it's parent container. Note that this will 
+		 * schedule destruction of the spirit unless it gets reinserted somewhere. 
+		 * Also note that this method is called on the spirit, not on the parent.
+		 * @returns {object} Returns the argument
+		 */
+		remove : function () {
+			var parent = this.spirit.element.parentNode;
+			parent.removeChild ( this.spirit.element );
+		},
 
-	/**
-	 * Adding methods to gui.DOMPlugin.prototype. These methods come highly overloaded.
-	 * 
-	 * 1. Convert input to array of one or more elements
-	 * 2. Confirm array of elements
-	 * 3. Invoke the method
-	 * 4. Return the input
-	 * @param {String} name
-	 * @param {function} method
-	 */
-}, function mixin ( name, method ) {
-	gui.DOMPlugin.mixin ( name, function ( things ) {
-		var elms = Array.map ( gui.Type.list ( things ), function ( thing ) {
-			return thing && thing instanceof gui.Spirit ? thing.element : thing;
-		});
-		if ( elms.every ( function ( elm ) { 
-			return gui.Type.isNumber ( elm.nodeType );
-		})) {
-			method.call ( this, elms );
-			return things;
-		} else {
-			throw new TypeError ( "Bad input for method: " + name + "(" + things + ")" );	
+		/**
+		 * Replace the spirit with something else. This may nuke the spirit.
+		 * Note that this method is called on the spirit, not on the parent.
+		 * @param {object} things Complicated argument. 
+		 * @returns {object} Returns the argument
+		 */
+		replace : function ( things ) {
+			this.after ( things );
+			this.remove ();
 		}
+
+		/**
+		 * Adding methods to gui.DOMPlugin.prototype. These methods come highly overloaded.
+		 * 
+		 * 1. Convert input to array of one or more elements
+		 * 2. Confirm array of elements
+		 * 3. Invoke the method
+		 * 4. Return the input
+		 * @param {String} name
+		 * @param {function} method
+		 */
+	}, function mixin ( name, method ) {
+		gui.DOMPlugin.mixin ( name, function ( things ) {
+			var elms = Array.map ( gui.Array.toArray ( things ), function ( thing ) {
+				return thing && thing instanceof gui.Spirit ? thing.element : thing;
+			});
+			if ( elms.every ( function ( elm ) { 
+				return gui.Type.isNumber ( elm.nodeType );
+			})) {
+				method.call ( this, elms );
+				return things;
+			} else {
+				throw new TypeError ( "Bad input for method: " + name + "(" + things + ")" );	
+			}
+		});
 	});
-});
+
+}( gui.Combo.chained ));
 
 
 /**
@@ -7193,287 +7319,292 @@ gui.IEventHandler = {
 };
 
 
-/**
+/** 
  * Ticks are used for timed events. 
  * @todo Global versus local ticks
  * @todo Tick.push
- * @param {Spirit} target
- * @param {String} type
- * @param {object} data
+ * @using gui.Arguments#confirmed
  */
-gui.Tick = function ( type ) {
-	this.type = type;
-};
-
-gui.Tick.prototype = {
+( function using ( confirmed ) {
 
 	/**
-	 * Tick type.
-	 * @type {String}
+	 * @param {String} type
 	 */
-	type : null,
+	gui.Tick = function ( type ) {
+		this.type = type;
+	};
+
+	gui.Tick.prototype = {
+
+		/**
+		 * Tick type.
+		 * @type {String}
+		 */
+		type : null,
+
+		/**
+		 * Identification.
+		 * @returns {String}
+		 */
+		toString : function () {
+			return "[object gui.Tick]";
+		}
+	};
+
+
+	// Static .........................................................................
 
 	/**
 	 * Identification.
 	 * @returns {String}
 	 */
-	toString : function () {
-		return "[object gui.Tick]";
-	}
-};
+	gui.Tick.toString = function () {
+		return "[function gui.Tick]";
+	};
 
+	/**
+	 * Hello.
+	 */
+	gui.Tick._global = {
+		types : Object.create ( null ),
+		handlers : Object.create ( null )
+	};
 
-// Static .........................................................................
+	/**
+	 * Hej.
+	 */
+	gui.Tick._local = Object.create ( null );
 
-/**
- * Identification.
- * @returns {String}
- */
-gui.Tick.toString = function () {
-	return "[function gui.Tick]";
-};
-
-/**
- * Hello.
- */
-gui.Tick._global = {
-	types : Object.create ( null ),
-	handlers : Object.create ( null )
-};
-
-/**
- * Hej.
- */
-gui.Tick._local = Object.create ( null );
-
-/**
- * Add handler for tick.
- * @param {object} type String or array of strings
- * @param {object} handler
- * @param @optional {boolean} one Remove handler after on tick of this type?
- * @returns {function}
- */
-gui.Tick.add = function ( type, handler, sig ) {
-	if ( gui.Arguments.validate ( arguments, "string|array", "object|function", "string" )) {
-		return this._add ( type, handler, false, sig || gui.signature );
-	}
-};
-
-/**
- * Add auto-removing handler for tick.
- * @param {object} type String or array of strings
- * @param {object} handler
- * @returns {function}
- */
-gui.Tick.one = function ( type, handler, sig ) {
-	if ( gui.Arguments.validate ( arguments, "string|array", "object|function", "string" )) {
-		return this._add ( type, handler, true, sig || gui.signature );
-	}
-};
-
-/**
- * Schedule action for next available execution stack.
- * @param {function} action
- * @param @optional {object} thisp
- */
-gui.Tick.next = function ( action, thisp ) {
-	setImmediate ( function () {
-		action.call ( thisp );
-	});
-};
-
-/**
- * Remove handler for tick.
- * @param {object} type String or array of strings
- * @param {object} handler
- * @returns {function}
- */
-gui.Tick.remove = function ( type, handler, sig ) {
-	if ( !sig ) {
-		console.error ( "SIG REQUIRED for tick of type: " + type );
-	}
-	return this._remove ( type, handler, sig );
-};
-
-/**
- * Start repeated tick of given type.
- * @param {String} type Tick type
- * @param {number} time Time in milliseconds
- * @returns {function}
- */
-gui.Tick.start = function ( type, time ) {
-	console.error ( "@todo gui.Tick.start" );
-};
-
-/**
- * Stop repeated tick of specified type.
- * @param {String} type Tick type
- * @returns {function}
- */
-gui.Tick.stop = function ( type ) {
-	console.error ( "@todo gui.Tick#stop" );
-};
-
-/**
- * Dispatch tick now or in specified time. Omit time to 
- * dispatch now. Zero resolves to next available thread.
- * @param {String} type
- * @param @optional {number} time
- * @returns {gui.Tick}
- */
-gui.Tick.dispatch = function ( type, time, sig ) {
-	if ( !sig ) {
-		console.error ( "SIG REQUIRED for tick of type: " + type );
-	}
-	return this._dispatch ( type, time, sig );
-};
-
-/**
- * Add handler for tick.
- * @param {object} type String or array of strings
- * @param {object} handler
- * @returns {function}
- */
-gui.Tick.addGlobal = function ( type, handler ) {
-	if ( gui.Arguments.validate ( arguments, "string|array", "object|function" )) {
-		return this._add ( type, handler, false, null );
-	}
-};
-
-/**
- * Add self-removing handler for tick.
- * @param {object} type String or array of strings
- * @param {object} handler
- * @returns {function}
- */
-gui.Tick.oneGlobal = function ( type, handler ) {
-	return this.add ( type, handler, true, null );
-};
-
-/**
- * Remove handler for tick.
- * @param {object} type String or array of strings
- * @param {object} handler
- * @returns {function}
- */
-gui.Tick.removeGlobal = function ( type, handler ) {
-	return this._remove ( type, handler, null );
-};
-
-/**
- * Dispatch tick now or in specified time. Omit time to 
- * dispatch now. Zero resolves to next available thread.
- * @param {String} type
- * @param @optional {number} time
- * @returns {gui.Tick}
- */
-gui.Tick.dispatchGlobal = function ( type, time ) {
-	return this._dispatch ( type, time, null );
-};
-
-
-// Private static .....................................................
-
-/**
- * Hello.
- */
-gui.Tick._add = function ( type, handler, one, sig ) {
-	if ( gui.Type.isArray ( type )) {
-		type.forEach ( function ( t ) {
-			this._add ( t, handler, one, sig );
-		}, this );
-	} else {
-		var list, index;
-		var map = sig ? this._local [ sig ] : this._global;
-		if ( !map ) {
-			map = this._local [ sig ] = {
-				types : Object.create ( null ),
-				handlers : Object.create ( null )
-			};
+	/**
+	 * Add handler for tick.
+	 * @param {object} type String or array of strings
+	 * @param {object} handler
+	 * @param @optional {boolean} one Remove handler after on tick of this type?
+	 * @returns {function}
+	 */
+	gui.Tick.add = confirmed ( "string|array", "object|function", "(string)" ) (
+		function ( type, handler, sig ) {
+			return this._add ( type, handler, false, sig || gui.signature );
 		}
-		list = map.handlers [ type ];
-		if ( !list ) {
-			list = map.handlers [ type ] = [];
-		}
-		index = list.indexOf ( handler );
-		if ( index < 0 ) {
-			index = list.push ( handler ) - 1;
-		}
-		/*
-		 * @todo
-		 * Adding a property to an array will 
-		 * make it slower in Firefox. Fit it!
-		 */
-		if ( one ) {
-			list._one = list._one || Object.create ( null );
-			list._one [ index ] = true;
-		}
-	}
-	return this;
-};
+	);
 
-/**
- * Hello.
- */
-gui.Tick._remove = function ( type, handler, sig ) {
-	if ( gui.Type.isArray ( type )) {
-		type.forEach ( function ( t ) {
-			this.remove ( t, handler, sig );
-		}, this );
-	} else {
-		var map = sig ? this._local [ sig] : this._global;
-		var list = map.handlers [ type ];
-		if ( list ) {
-			var index = list.indexOf ( handler );
-			if ( gui.Array.remove ( list, index ) === 0 ) {
-				delete map.handlers [ type ];
+	/**
+	 * Add auto-removing handler for tick.
+	 * @param {object} type String or array of strings
+	 * @param {object} handler
+	 * @returns {function}
+	 */
+	gui.Tick.one = confirmed ( "string|array", "object|function", "(string)" ) (
+		function ( type, handler, sig ) {
+			return this._add ( type, handler, true, sig || gui.signature );
+		}
+	);
+
+	/**
+	 * Schedule action for next available execution stack.
+	 * @param {function} action
+	 * @param @optional {object} thisp
+	 */
+	gui.Tick.next = function ( action, thisp ) {
+		setImmediate ( function () {
+			action.call ( thisp );
+		});
+	};
+
+	/**
+	 * Remove handler for tick.
+	 * @param {object} type String or array of strings
+	 * @param {object} handler
+	 * @returns {function}
+	 */
+	gui.Tick.remove = function ( type, handler, sig ) {
+		if ( !sig ) {
+			console.error ( "SIG REQUIRED for tick of type: " + type );
+		}
+		return this._remove ( type, handler, sig );
+	};
+
+	/**
+	 * Start repeated tick of given type.
+	 * @param {String} type Tick type
+	 * @param {number} time Time in milliseconds
+	 * @returns {function}
+	 */
+	gui.Tick.start = function ( type, time ) {
+		console.error ( "@todo gui.Tick.start" );
+	};
+
+	/**
+	 * Stop repeated tick of specified type.
+	 * @param {String} type Tick type
+	 * @returns {function}
+	 */
+	gui.Tick.stop = function ( type ) {
+		console.error ( "@todo gui.Tick#stop" );
+	};
+
+	/**
+	 * Dispatch tick now or in specified time. Omit time to 
+	 * dispatch now. Zero resolves to next available thread.
+	 * @param {String} type
+	 * @param @optional {number} time
+	 * @returns {gui.Tick}
+	 */
+	gui.Tick.dispatch = function ( type, time, sig ) {
+		if ( !sig ) {
+			console.error ( "SIG REQUIRED for tick of type: " + type );
+		}
+		return this._dispatch ( type, time, sig );
+	};
+
+	/**
+	 * Add handler for tick.
+	 * @param {object} type String or array of strings
+	 * @param {object} handler
+	 * @returns {function}
+	 */
+	gui.Tick.addGlobal = confirmed ( "string|array", "object|function" ) (
+		function ( type, handler ) {
+			return this._add ( type, handler, false, null );
+		}
+	);
+
+	/**
+	 * Add self-removing handler for tick.
+	 * @param {object} type String or array of strings
+	 * @param {object} handler
+	 * @returns {function}
+	 */
+	gui.Tick.oneGlobal = function ( type, handler ) {
+		return this.add ( type, handler, true, null );
+	};
+
+	/**
+	 * Remove handler for tick.
+	 * @param {object} type String or array of strings
+	 * @param {object} handler
+	 * @returns {function}
+	 */
+	gui.Tick.removeGlobal = function ( type, handler ) {
+		return this._remove ( type, handler, null );
+	};
+
+	/**
+	 * Dispatch tick now or in specified time. Omit time to 
+	 * dispatch now. Zero resolves to next available thread.
+	 * @param {String} type
+	 * @param @optional {number} time
+	 * @returns {gui.Tick}
+	 */
+	gui.Tick.dispatchGlobal = function ( type, time ) {
+		return this._dispatch ( type, time, null );
+	};
+
+
+	// Private static .....................................................
+
+	/**
+	 * Hello.
+	 */
+	gui.Tick._add = function ( type, handler, one, sig ) {
+		if ( gui.Type.isArray ( type )) {
+			type.forEach ( function ( t ) {
+				this._add ( t, handler, one, sig );
+			}, this );
+		} else {
+			var list, index;
+			var map = sig ? this._local [ sig ] : this._global;
+			if ( !map ) {
+				map = this._local [ sig ] = {
+					types : Object.create ( null ),
+					handlers : Object.create ( null )
+				};
+			}
+			list = map.handlers [ type ];
+			if ( !list ) {
+				list = map.handlers [ type ] = [];
+			}
+			index = list.indexOf ( handler );
+			if ( index < 0 ) {
+				index = list.push ( handler ) - 1;
+			}
+			/*
+			 * @todo
+			 * Adding a property to an array will 
+			 * make it slower in Firefox. Fit it!
+			 */
+			if ( one ) {
+				list._one = list._one || Object.create ( null );
+				list._one [ index ] = true;
 			}
 		}
-	}
-	return this;
-};
+		return this;
+	};
 
-/**
- * Hofmeister remix.
- * @todo refactor to default to zero somehow...
- */
-gui.Tick._dispatch = function ( type, time, sig ) {
-	var map = sig ? this._local [ sig ] : this._global;
-	var types = map.types;
-	var tick = new gui.Tick ( type );
-	if ( !gui.Type.isDefined ( time )) {	
-		var list = map.handlers [ type ];
-		if ( list ) {
-			list.slice ().forEach ( function ( handler, i ) {
-				try {
-					handler.ontick ( tick );
-				} catch ( exception ) { // @todo figure out how destructed spirits should behave while we loop
-					if ( exception.message !== gui.Spirit.DENIAL ) {
-						throw new Error ( exception.message );
-					}
-				}
-				if ( list._one && list._one [ i ]) {
-					delete list._one [ i ];
-				}
-			});
-		}
-	} else if ( !types [ type ]) {
-		var that = this, id = null;
-		if ( time === 0 ) {
-			id = setImmediate ( function () {
-				that._dispatch ( type, undefined, sig );
-				delete types [ type ];
-			});
+	/**
+	 * Hello.
+	 */
+	gui.Tick._remove = function ( type, handler, sig ) {
+		if ( gui.Type.isArray ( type )) {
+			type.forEach ( function ( t ) {
+				this.remove ( t, handler, sig );
+			}, this );
 		} else {
-			id = setTimeout ( function () {
-				that._dispatch ( type, undefined, sig );
-				delete types [ type ];
-			}, time );
-		}	
-		types [ type ] = id;
-	}
-	return tick;
-};
+			var map = sig ? this._local [ sig] : this._global;
+			var list = map.handlers [ type ];
+			if ( list ) {
+				var index = list.indexOf ( handler );
+				if ( gui.Array.remove ( list, index ) === 0 ) {
+					delete map.handlers [ type ];
+				}
+			}
+		}
+		return this;
+	};
+
+	/**
+	 * Hofmeister remix.
+	 * @todo refactor to default to zero somehow...
+	 */
+	gui.Tick._dispatch = function ( type, time, sig ) {
+		var map = sig ? this._local [ sig ] : this._global;
+		var types = map.types;
+		var tick = new gui.Tick ( type );
+		if ( !gui.Type.isDefined ( time )) {	
+			var list = map.handlers [ type ];
+			if ( list ) {
+				list.slice ().forEach ( function ( handler, i ) {
+					//try {
+						handler.ontick ( tick );
+					// } catch ( exception ) { // @todo figure out how destructed spirits should behave while we loop
+					// 	if ( exception.message !== gui.Spirit.DENIAL ) {
+					// 		throw new Error ( exception.message );
+					// 	}
+					// }
+					// if ( list._one && list._one [ i ]) {
+					// 	delete list._one [ i ];
+					// }
+				});
+			}
+		} else if ( !types [ type ]) {
+			var that = this, id = null;
+			if ( time === 0 ) {
+				id = setImmediate ( function () {
+					that._dispatch ( type, undefined, sig );
+					delete types [ type ];
+				});
+			} else {
+				id = setTimeout ( function () {
+					that._dispatch ( type, undefined, sig );
+					delete types [ type ];
+				}, time );
+			}	
+			types [ type ] = id;
+		}
+		return tick;
+	};
+
+}( gui.Arguments.confirmed ));
 
 
 /**
@@ -10112,7 +10243,8 @@ gui.module ( "jquery", {
 						return old.call ( this, things );
 					}, this );
 					if ( b.dom ) {
-						var els = Array.map ( gui.Type.list ( things ), function ( thing ) {
+						things = gui.Array.toArray ( things );
+						var els = Array.map ( things, function ( thing ) {
 							return thing && thing instanceof gui.Spirit ? thing.element : thing;
 						});
 						els.forEach ( function ( el ) {
