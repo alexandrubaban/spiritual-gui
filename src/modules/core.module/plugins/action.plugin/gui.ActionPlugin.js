@@ -1,13 +1,11 @@
 /** 
- * Tracking actions.
- * @using gui.Arguments#confirmed
- * @using gui.Combo#chained
+ * ActionPlugin.
+ * @extends {gui.Tracker}
+ * @using {gui.Arguments#confirmed}
+ * @using {gui.Combo#chained}
  */
 ( function using ( confirmed, chained ) {
-
-	/**
-	 * @extends {gui.Tracker}
-	 */
+	
 	gui.ActionPlugin = gui.Tracker.extend ( "gui.ActionPlugin", {
 
 		/**

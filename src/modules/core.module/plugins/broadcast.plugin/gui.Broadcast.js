@@ -1,11 +1,12 @@
 /** 
  * Broadcast instance.
- * @todo "one" and "oneGlobal" methods...
  * @using gui.Arguments#confirmed
  */
 ( function using ( confirmed ) {
 
 	/**
+	 * Broadcast constructor.
+	 * @todo "one" and "oneGlobal" methods...
 	 * @param {Spirit} target
 	 * @param {String} type
 	 * @param {object} data
@@ -182,7 +183,7 @@
 	// PRIVATE ...................................................................................
 
 	/**
-	 * mapcribe handler to message(s).
+	 * Subscribe handler to message(s).
 	 * @param {Array<string>|string} type
 	 * @param {object|function} handler Implements BroadcastListener
 	 * @param @optional {String} sig
