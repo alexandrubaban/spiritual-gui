@@ -1,5 +1,4 @@
-/** 
- * # gui.DOMChanger
+/**
  * Spiritualizing documents by overloading DOM methods.
  */
 gui.DOMChanger = {

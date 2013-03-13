@@ -1,5 +1,4 @@
 /**
- * # gui.Type
  * Type checking studio. All checks are string based not to cause 
  * confusion when checking the types of objects in another window.
  */
@@ -65,6 +64,15 @@ gui.Type = {
 	},
 
 	/**
+	 * Is likely a method?
+	 * @param {object} o
+	 * @return {boolean}
+	 */
+	isMethod : function ( o ) {
+		return this.isFunction ( o ) && !this.isConstructor ( o );
+	},
+
+	/**
 	 * Is spirit instance?
 	 * @returns {boolean}
 	 */
@@ -121,32 +129,7 @@ gui.Type = {
 		return result;
 	},
 
-	/**
-	 * Resolve single argument into an array with one 
-	 * or more entries. Strings to be split at spaces.
-	 * @param {object} arg
-	 * @returns {Array<object>}
-	 */
-	list : function ( arg ) {
-		var list = null;
-		switch ( this.of ( arg )) {
-			case "array" :
-				list = arg;
-				break;
-			case "string" :
-				list = arg.split ( " " );
-				break;
-			case "nodelist" :
-			case "arguments" :
-				list = Array.prototype.slice.call ( arg );
-				break;
-			default :
-				list = [ arg ];
-				break;
-		}
-		return list;
-	},
-
+	
 	// Private ...........................................................
 
 	/**

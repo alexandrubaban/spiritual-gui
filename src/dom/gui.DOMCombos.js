@@ -1,5 +1,4 @@
 /**
- * # gui.DOMCombos
  * This is where it gets interesting.
  * @todo Standard DOM exceptions for missing arguments and so on.
  * @todo insertAdjecantHTML
@@ -31,7 +30,7 @@ gui.DOMCombos = {
 	 */
 	_create : function () {
 
-		var combo = gui.Combinator;
+		var combo = gui.Combo;
 		var guide = gui.Guide;
 		
 		/**
@@ -112,7 +111,7 @@ gui.DOMCombos = {
 		 */
 		var suspending = combo.around ( function ( action ) {
 			return gui.Observer.suspend ( this, function () {
-				return action.apply ( this, arguments );
+				return action ();
 			}, this );
 		});
 

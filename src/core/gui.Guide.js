@@ -1,5 +1,4 @@
 /**
- * # gui.Guide
  * The spirit guide crawls the document while channeling 
  * spirits into DOM elements that matches CSS selectors.
  */

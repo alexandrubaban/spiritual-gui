@@ -1,5 +1,4 @@
 /**
- * # gui.ConfigPlugin
  * Configures a spirit by attribute parsing.
  * @extends {gui.Plugin}
  */

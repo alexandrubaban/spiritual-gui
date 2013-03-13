@@ -1,8 +1,7 @@
 /**
- * # gui.Spirit
  * Base constructor for all spirits
  */
-gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
+gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 
 	/**
 	 * Spirit DOM element.
@@ -349,17 +348,17 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	
 	/**
 	 * Extends spirit and plugins (mutating plugins) plus updates getters/setters.
-	 * @param {object} expando 
+	 * @param {object} extension 
 	 * @param {object} recurring 
 	 * @param {object} statics 
 	 * @returns {gui.Spirit}
 	 */
 	infuse : function () {
-		var C = gui.Exemplar.extend.apply ( this, arguments );
+		var C = gui.Class.extend.apply ( this, arguments );
 		C.__plugins__ = gui.Object.copy ( this.__plugins__ );
-		var breakdown = gui.Exemplar.breakdown ( arguments );
+		var b = gui.Class.breakdown ( arguments );
 		gui.Object.each ( C.__plugins__, function ( prefix, plugin ) {
-			var def = breakdown.expando [ prefix ];			
+			var def = b.protos [ prefix ];			
 			switch ( gui.Type.of ( def )) {
 				case "object" :
 					var mutant = plugin.extend ( def );
@@ -434,7 +433,7 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 			if ( !plugins [ prefix ] || override ) {
 				plugins [ prefix ] = plugin;
 				proto.prefix = null;
-				gui.Exemplar.children ( this, function ( child ) {
+				gui.Class.children ( this, function ( child ) {
 					child.plugin ( prefix, plugin, override ); // recurses to descendants
 				});
 			}

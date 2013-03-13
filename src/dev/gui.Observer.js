@@ -1,5 +1,4 @@
 /**
- * # gui.Observer
  * Monitors a document for unsolicitated DOM changes in development mode.
  */
 gui.Observer = {

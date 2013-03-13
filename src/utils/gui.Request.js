@@ -1,5 +1,4 @@
 /**
- * # gui.Request
  * Simplistic XMLHttpRequest wrapper. 
  * Work in progress, lot's to do here.
  * @param @optional {String} url

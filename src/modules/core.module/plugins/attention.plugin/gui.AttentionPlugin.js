@@ -1,5 +1,4 @@
 /**
- * # gui.AttentionPlugin
  * Work in progress keyboard TAB manager.
  * @extends {gui.Tracker}
  * @todo Get this out of here

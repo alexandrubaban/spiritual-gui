@@ -1,5 +1,4 @@
 /**
- * # gui.Tracker
  * Comment goes here.
  * @extends {gui.Plugin}
  */
@@ -23,8 +22,10 @@ gui.Tracker = gui.Plugin.extend ( "gui.Tracker", {
 	 */
 	onconstruct : function () {
 		this._super.onconstruct ();
-		this._sig = this.spirit.window.gui.signature;
 		this._xxx = Object.create ( null );
+		if ( this.spirit ) {
+			this._sig = this.spirit.window.gui.signature;
+		}
 	},
 
 	/**
@@ -98,7 +99,7 @@ gui.Tracker = gui.Plugin.extend ( "gui.Tracker", {
 	},
 
 	/**
-	 * Can remove type of given checks?
+	 * Can remove type of given checks? If so, do it now.
 	 * @param {String} type
 	 * @param {Array<object>} checks
 	 * @returns {boolean}
@@ -109,11 +110,10 @@ gui.Tracker = gui.Plugin.extend ( "gui.Tracker", {
 		if ( list ) {
 			var index = this._checksindex ( list, checks );
 			if ( index > -1 ) {
-				list.remove ( index );
-				if ( list.length === 0 ) {
+				result = true;
+				if ( gui.Array.remove ( list, index ) === 0 ) {
 					delete this._xxx [ type ];
 				}
-				result = true;
 			}
 		}
 		return result;

@@ -1,5 +1,4 @@
 /**
- * # gui.TweenPlugin
  * Tracking tweens.
  * @extends {gui.Tracker}
  */

@@ -1,5 +1,4 @@
 /**
- * # gui.KeyMaster
  * Generating keys for unique key purposes.
  */
 gui.KeyMaster = {

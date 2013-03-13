@@ -1,5 +1,4 @@
 /**
- * # gui.SpiritualAid
  * Polyfilling missing features from ES5 and selected features from ES6. 
  * Some of these are implemented weakly and should be used with caution 
  * (See Map, Set and WeakMap).
@@ -80,9 +79,9 @@ gui.SpiritualAid = {
 	 */
 	_arrays : function ( win ) {
 		this._extend ( win.Array.prototype, {
-			remove : function remove ( from, to ) {
-				this.splice ( from, !to || 1 + to - from + ( ! ( to < 0 ^ from >= 0 ) && ( to < 0 || -1 ) * this.length ));
-				return this.length;
+			remove : function remove ( from, to ) { 
+				console.warn ( "Array.prototype.remove is deprecated. Use gui.Array.remove(array,from,to);" );
+				return gui.Array.remove ( this, from, to ); // (gui.Array not parsed yet) 
 			}
 		});
 		this._extend ( win.Array, {

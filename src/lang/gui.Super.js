@@ -1,11 +1,9 @@
 /**
- * # gui.Super
  * Det er bare super.
- * @param {function} constructor
+ * @param {function} C
  */
-gui.Super = function Super ( constructor ) {
-	"use strict";
-	gui.Super.stubAll ( this, constructor.prototype );
+gui.Super = function Super ( C ) {
+	gui.Super.generateStubs ( this, C.prototype );
 };
 
 gui.Super.prototype = Object.create ( null );
@@ -13,149 +11,98 @@ gui.Super.prototype = Object.create ( null );
 
 // Static .......................................................................
 
-/**
- * Instance of an i.Exemplar subclass (now invoking _super).
- * @type {object}
- */
-gui.Super.subject = null;
+gui.Object.each ({ // generating static methods
 
-/**
- * Prepended to the result of calling 
- * toString() on a modified function.
- * @type {String}
- */
-gui.Super.disclaimer = "/**\n" +
-	"  * Method was overloaded by the framework. \n" +
-	"  * This is an approximation of the code :) \n" +
-	"  */\n";
+	/**
+	 * Instance of gui.Class which is now invoking _super()
+	 * @type {object}
+	 */
+	__subject__ : null,
 
-/**
- * Declare all method stubs on {gui.Super} instance.
- * @param {gui.Super} target
- * @param {object} proto
- */
-gui.Super.stubAll = function ( target, proto ) {
-	gui.Object.methods ( proto ).forEach ( function ( method ) {
-		gui.Super.stubOne ( target, proto, method );
-	}, this );
-};
+	/**
+	 * Identification.
+	 * @returns {String}
+	 */
+	toString : function () {
+		return "[function gui.Super]";
+	},
 
-/**
- * Declare single method stub on {gui.Super} instance.
- * @param {gui.Super} target
- * @param {object} proto
- * @param {String} method Name of the method
- */
-gui.Super.stubOne = function ( target, proto, method ) {
-	var func = target [ method ] = function () {
-		return proto [ method ].apply ( gui.Super.subject, arguments );
-	};
-	func.displayName = method;
-};
+	/**
+	 * Declare all method stubs on {gui.Super} instance.
+	 * @param {gui.Super} suber
+	 * @param {object} proto
+	 */
+	generateStubs : function ( suber, proto ) {
+		gui.Object.methods ( proto ).forEach ( function ( name ) {
+			gui.Super.generateStub ( suber, proto, name );
+		}, this );
+	},
 
-/**
- * Stamp all properties from object onto prototype while overloading methods.
- * @param {function} superconstructor
- * @param {function} constructor
- * @param {object} object
- */
-gui.Super.stamp = function ( superconstructor, constructor, object ) {
-	"use strict";
-	var prop = null, proto = constructor.prototype;
-	if ( gui.Type.isObject ( object )) {
-		Object.keys ( object ).forEach ( function ( key ) {
-			prop = Object.getOwnPropertyDescriptor ( object, key );
-			switch ( gui.Type.of ( prop.value )) {
-				case "function" : // inject _super support into method type properties.
-					if ( !gui.Type.isConstructor ( prop.value )) {
-						prop = gui.Super._function ( object, key, prop, superconstructor );
-					}
-					break;
-				case "object" : // setup getter-and-setter type declarations
-					var o = prop.value;
-					if ( o.getter || o.setter ) {
-						if ( Object.keys ( o ).every ( function ( k ) {
-							return k === "getter" || k === "setter";
-						})) {
-							prop = gui.Super._property ( key, o, constructor );
-						}
-					}
-					break;
-			}
-			// stamp the property
-			Object.defineProperty ( proto, key, prop );
-			// methods specials
-			// @todo not like this! If *not* a function, the property will now be accessed and fire the getter function we just declared!
-			if ( gui.Type.isFunction ( proto [ key ])) {
-				// update console display name (@todo does it work?)
-				Object.defineProperty ( proto [ key ], "displayName", {
-					enumerable : false,
-					configurable : true,
-					get : function () {
-						return key;
-					}
-				});
-				// normalize toString() for debugging
-				// @todo Find the hat char for that regexp
+	/**
+	 * Declare single method stub on {gui.Super} instance.
+	 * @param {gui.Super} suber
+	 * @param {object} proto
+	 * @param {String} name Method name
+	 */
+	generateStub : function ( suber, proto, name ) {
+		var func = suber [ name ] = function () {
+			return proto [ name ].apply ( gui.Super.__subject__, arguments );
+		};
+		func.displayName = name;
+	},
+
+	/**
+	 * Transfer methods from protos to proto 
+	 * while decorating for `_super` support.
+	 * @param {function} SuperC
+	 * @param {object} C
+	 * @param {object} protos
+	 */
+	support : function ( SuperC, C, protos ) {
+		var proto = C.prototype;
+		var combo = this._decorator ( SuperC );
+		gui.Object.each ( protos, function ( key, base ) {
+			if ( gui.Type.isMethod ( base )) {
+				proto [ key ] = combo ( base );
 				proto [ key ].toString = function () {
-					var tostring = object [ key ].toString ();
-					tostring = tostring.replace ( /\t/g, "  " );
-					return gui.Super.disclaimer + tostring;
+					var original = base.toString ().replace ( /\t/g, "  " );
+					return gui.Super._DISCLAIMER + original;
 				};
 			}
-	  });
-	}
-};
+		}, this );
+	},
 
-/**
- * Compute property descriptor for function type definition.
- * @param {object} object
- * @param {String} key
- * @param {object} prop
- * @param {function} superconstructor
- * @returns {object}
- */
-gui.Super._function = function ( object, key, prop, superconstructor ) {
-	if ( !prop.value.__data__ ) { // @todo hmm...
-		prop.value = function () {
-			var sub = gui.Super.subject;
-			gui.Super.subject = this;
-			this._super = superconstructor.__super__;
-			var result = object [ key ].apply ( this, arguments );
-			gui.Super.subject = sub;
-			return result;
+
+	// Private static .......................................................
+
+	/**
+	 * Prepended to the result of calling 
+	 * toString() on a modified function.
+	 * @type {String}
+	 */
+	_DISCLAIMER : "/**\n" +
+		"  * Method was overloaded by the framework. \n" +
+		"  * This is an approximation of the code :) \n" +
+		"  */\n",
+
+		/**
+	 * Get tricky decorator.
+	 * @param {function} SuperC
+	 * @returns {function}
+	 */
+	_decorator : function ( SuperC ) {
+		return function ( base ) {
+			return function () {
+				var sub = gui.Super.__subject__;
+				gui.Super.__subject__ = this;
+				this._super = SuperC.__super__;
+				var result = base.apply ( this, arguments );
+				gui.Super.__subject__ = sub;
+				return result;
+			};
 		};
 	}
-	return prop;
-};
 
- /**
- * Compute property descriptor for getter-setter type definition.
- * @param {String} key
- * @param {object} o
- * @param {function} constructor
- * @returns {object}
- */
-gui.Super._property = function ( key, o, constructor ) {
-	"use strict";
-	[ "getter", "setter" ].forEach ( function ( what ) {
-		var d, p = constructor.prototype;
-		while ( p && !gui.Type.isDefined ( o [ what ])) {
-			p = Object.getPrototypeOf ( p );
-			d = Object.getOwnPropertyDescriptor ( p, key );
-			if ( d ) {
-				o [ what ] = d [ what === "getter" ? "get" : "set" ];
-			}
-		}
-	});
-	return {
-		enumerable : true,
-		configurable : true,
-		get : o.getter || function () {
-			throw new Error ( constructor + " Getting a property that has only a setter: " + key );
-		},
-		set : o.setter || function () {
-			throw new Error ( constructor + " Setting a property that has only a getter: " + key );
-		}
-	};
-};
+}, function ( name, value ) {
+	gui.Super [ name ] = value;
+});

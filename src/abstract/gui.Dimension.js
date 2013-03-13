@@ -1,5 +1,4 @@
 /**
- * #gui.Dimension
  * Something that has width and height.
  * @param {number} w
  * @param {number} h

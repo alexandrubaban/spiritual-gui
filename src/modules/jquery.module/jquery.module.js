@@ -1,5 +1,4 @@
 /**
- * # Module "jquery"
  * Do what Spiritual does by overloading JQuery methods instead of native DOM methods.
  * @todo (Angular special) handle function replaceWith, "a special jqLite.replaceWith, which can replace items which have no parents"
  * @todo Henrik says "$(iframe.contentDocument).remove() før man skifter URL eller fjerner iframen" (jQuery.cache og jQuery.fragments)
@@ -300,7 +299,8 @@ gui.module ( "jquery", {
 						return old.call ( this, things );
 					}, this );
 					if ( b.dom ) {
-						var els = Array.map ( gui.Type.list ( things ), function ( thing ) {
+						things = gui.Array.toArray ( things );
+						var els = Array.map ( things, function ( thing ) {
 							return thing && thing instanceof gui.Spirit ? thing.element : thing;
 						});
 						els.forEach ( function ( el ) {

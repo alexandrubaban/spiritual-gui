@@ -1,5 +1,4 @@
-/** 
- * # gui.TickPlugin
+/**
  * Tracking timed events.
  * @todo Global timed events.
  * @extends {gui.Tracker}

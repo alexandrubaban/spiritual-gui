@@ -1,5 +1,4 @@
 /**
- * # gui.LifePlugin
  * Tracking spirit life cycle events.
  * @todo Support optional data argument
  * @extends {gui.Tracker}

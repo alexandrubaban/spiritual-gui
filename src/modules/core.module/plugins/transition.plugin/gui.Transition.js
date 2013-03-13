@@ -1,5 +1,4 @@
 /**
- * # gui.Transition
  * Details for ended CSS transition.
  * @param {String} propertyName
  * @param {number} elapsedTime

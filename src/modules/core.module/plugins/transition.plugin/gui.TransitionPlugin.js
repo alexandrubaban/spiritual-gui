@@ -1,5 +1,4 @@
 /**
- * # gui.TransitionPlugin
  * Experimental CSS transitioning plugin. Work in progress.
  * @extends {gui.Plugin}
  * @todo Just add the transitonend listener on construct?

@@ -1,5 +1,5 @@
 /**
- * # gui.DocumentSpirit
+ * Spirit of the root HTML element.
  * @extends {gui.Spirit}
  * Spirit of the HTML element.
  */

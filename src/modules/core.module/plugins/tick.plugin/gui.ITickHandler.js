@@ -1,5 +1,4 @@
 /**
- * # gui.ITickHandler
  * Interface TickHandler.
  */
 gui.ITickHandler = {
