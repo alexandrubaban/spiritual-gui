@@ -79,7 +79,7 @@ gui.Guide = {
 
 	/**
 	 * Possess element and descendants.
-	 * @todo Jump detached spirit if matching id (!)
+	 * @TODO Jump detached spirit if matching id (!)
 	 * @param {Element} elm
 	 */
 	spiritualize : function ( elm ) {
@@ -138,7 +138,7 @@ gui.Guide = {
 		spirit.document = element.ownerDocument;
 		spirit.window = spirit.document.defaultView;
 		spirit.signature = spirit.window.gui.signature;
-		// @todo weakmap for this stunt
+		// @TODO weakmap for this stunt
 		element.spirit = spirit;
 		if ( !spirit.life || spirit.life.constructed ) {
 			spirit.onconstruct ();
@@ -201,8 +201,8 @@ gui.Guide = {
 
 	/**
 	 * Fires on document.DOMContentLoaded.
-	 * @todo gui.Observer crashes with JQuery when both do stuff on DOMContentLoaded
-	 * @todo (can't setImmedeate to bypass JQuery, we risk onload being fired first)
+	 * @TODO gui.Observer crashes with JQuery when both do stuff on DOMContentLoaded
+	 * @TODO (can't setImmedeate to bypass JQuery, we risk onload being fired first)
 	 * @see http://stackoverflow.com/questions/11406515/domnodeinserted-behaves-weird-when-performing-dom-manipulation-on-body
 	 * @param {gui.EventSummary} sum
 	 */
@@ -229,7 +229,7 @@ gui.Guide = {
 
 	/**
 	 * Fires on window.unload
-	 * @todo handle disposal in {gui.Spiritual} (no crawling)
+	 * @TODO handle disposal in {gui.Spiritual} (no crawling)
 	 * @param {gui.EventSummary} sum
 	 */
 	_unload : function ( sum ) {
@@ -404,8 +404,8 @@ gui.Guide = {
 
 	/**
 	 * If possible, construct and return spirit for element.
-	 * @todo what's this? http://code.google.com/p/chromium/issues/detail?id=20773
-	 * @todo what's this? http://forum.jquery.com/topic/elem-ownerdocument-defaultview-breaks-when-elem-iframe-document
+	 * @TODO what's this? http://code.google.com/p/chromium/issues/detail?id=20773
+	 * @TODO what's this? http://forum.jquery.com/topic/elem-ownerdocument-defaultview-breaks-when-elem-iframe-document
 	 * @param {Element} element
 	 * @returns {Spirit} or null
 	 */
@@ -423,7 +423,7 @@ gui.Guide = {
 
 	/**
 	 * Spirit is invisible? 
-	 * @todo only test for this if something is indeed invisible. 
+	 * @TODO only test for this if something is indeed invisible. 
 	 * Consider maintaining this via crawlers.
 	 * @param {gui.Spirit} spirit
 	 * @returns {boolean}

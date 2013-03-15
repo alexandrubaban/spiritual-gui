@@ -1,6 +1,6 @@
 /**
  * Tracking timed events.
- * @todo Global timed events.
+ * @TODO Global timed events.
  * @extends {gui.Tracker}
  */
 gui.TickPlugin = gui.Tracker.extend ( "gui.TickPlugin", {
@@ -26,7 +26,7 @@ gui.TickPlugin = gui.Tracker.extend ( "gui.TickPlugin", {
 
 	/**
 	 * Add handler for single tick of given type(s).
-	 * @todo This on ALL trackers :)
+	 * @TODO This on ALL trackers :)
 	 * @param {object} arg
 	 * @param @optional {object} handler
 	 * @returns {gui.TickPlugin}

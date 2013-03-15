@@ -12,7 +12,7 @@ gui.ConfigPlugin = gui.Plugin.extend ( "gui.ConfigPlugin", {
 
 	/**
 	 * Configure spirit by DOM attributes.
-	 * @todo reconfigure scenario
+	 * @TODO reconfigure scenario
 	 */
 	onconstruct : function () {
 		this.spirit.att.all ().forEach ( function ( att ) {

@@ -29,8 +29,8 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	
 	/**
 	 * Matches the property `signature` of the local `gui` object.
-	 * @todo rename this property
-	 * @todo perhapse deprecate?
+	 * @TODO rename this property
+	 * @TODO perhapse deprecate?
 	 * @type {String}
 	 */
 	signature : null,
@@ -68,7 +68,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	 * @deprecated
 	 * `onconfigure` gets callend immediately after construction. This 
 	 * instructs the spirit to parse configuration attributes in markup. 
-	 * @todo Explain this
+	 * @TODO Explain this
 	 */
 	onconfigure : function () {
 		//this.config.configure ();
@@ -90,7 +90,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	 * - the spirit element is attached to the DOM
 	 * - the element is already in DOM when the page loads and the spirit gets injected by the framework
 	 */
-	onattach : function () { // @todo Check if spirit matchesselector gui.CLASS_INVISIBLE + " *"
+	onattach : function () { // @TODO Check if spirit matchesselector gui.CLASS_INVISIBLE + " *"
 		this.window.gui.inside ( this );
 		this.life.goattach ();
 	},
@@ -193,7 +193,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	/**
 	 * Terminate the spirit and remove the element (optionally keep it). 
 	 * @param {boolean} keep True to leave the element on stage.
-	 * @todo Terrible boolean trap in this API
+	 * @TODO Terrible boolean trap in this API
 	 */
 	dispose : function ( keep ) {
 		if ( !keep ) {
@@ -311,7 +311,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 					try {
 						that.__null__ ();
 					} catch ( exception ) {
-						// @todo why sometimes gui.Spirit.DENIED?
+						// @TODO why sometimes gui.Spirit.DENIED?
 					}
 				}
 			}, this.signature ).dispatch ( tick, 0, this.signature );
@@ -405,15 +405,15 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	
 	/**
 	 * Parse HTML string to DOM element in given document context. 
-	 * @todo This should be either powerful or removed from core.
-	 * @todo parent element awareness when inserted in document :)
+	 * @TODO This should be either powerful or removed from core.
+	 * @TODO parent element awareness when inserted in document :)
 	 * @param {Document} doc
 	 * @param {String} html
 	 * @returns {Element}
 	 */
 	parse : function ( doc, html ) {
 		if ( doc.nodeType === Node.DOCUMENT_NODE ) {
-			return new gui.HTMLParser ( doc ).parse ( html )[ 0 ]; // @todo parseOne?
+			return new gui.HTMLParser ( doc ).parse ( html )[ 0 ]; // @TODO parseOne?
 		} else {
 			throw new TypeError ( this + ".parse() expects a Document" );
 		}

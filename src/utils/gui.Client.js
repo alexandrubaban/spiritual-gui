@@ -1,8 +1,8 @@
 /**
  * Questionable browser identity and feature detection. Note that Chrome on iOS 
  * identifies itself as Safari (it basically is, so that shouldn't cause concern).
- * @todo Load earlier by not using gui.Broadcast?
- * @todo Lazycompute properties when requested.
+ * @TODO Load earlier by not using gui.Broadcast?
+ * @TODO Lazycompute properties when requested.
  */
 gui.Client = ( new function Client () {
 
@@ -52,7 +52,7 @@ gui.Client = ( new function Client () {
 
 	/**
 	 * Has touch support? Note that desktop Chrome has this.
-	 * @todo Investigate this in desktop IE10.
+	 * @TODO Investigate this in desktop IE10.
 	 * @type {boolean}
 	 */
 	this.hasTouch = ( window.ontouchstart !== undefined || this.isChrome );
@@ -65,7 +65,7 @@ gui.Client = ( new function Client () {
 
 	/**
 	 * Is mobile device? Not to be confused with this.hasTouch
-	 * @todo gui.Observerice entity?
+	 * @TODO gui.Observerice entity?
 	 * @type {boolean}
 	 */
 	this.isMobile = ( function () {
@@ -141,7 +141,7 @@ gui.Client = ( new function Client () {
 	 * document height. We could in theory discriminate between browsers here, 
 	 * but we won't. WebKit sucks more at this and Safari on iOS is dead to me.
 	 * @see https://code.google.com/p/chromium/issues/detail?id=35980
-	 * @todo Now Firefox started to suck really bad. What to do?
+	 * @TODO Now Firefox started to suck really bad. What to do?
 	 * @type {number}
 	 */
 	this.STABLETIME = 200;
@@ -182,7 +182,7 @@ gui.Client = ( new function Client () {
 	};
 
 	/**
-	 * @todo Probably move this out of here?
+	 * @TODO Probably move this out of here?
 	 */
 	function extras () {
 		var win = window,

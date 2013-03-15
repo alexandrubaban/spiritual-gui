@@ -19,7 +19,7 @@ gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
 			return this.element ? this.element.contentWindow : null;
 		},
 		setter : function () {
-			// @todo Or else the getter malfunctions!
+			// @TODO Or else the getter malfunctions!
 		}
 	},
 
@@ -32,7 +32,7 @@ gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
 			return this.element ? this.element.contentDocument : null;
 		},
 		setter : function () {
-			// @todo Or else the getter malfunctions!
+			// @TODO Or else the getter malfunctions!
 		}
 	},
 
@@ -77,7 +77,7 @@ gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
 	/**
 	 * Handle posted message, scanning for ascending actions. 
 	 * Descending actions are handled by the documentspirit.
-	 * @todo Don't claim this as action target!
+	 * @TODO Don't claim this as action target!
 	 * @see {gui.DocumentSpirit._onmessage}
 	 * @param {String} msg
 	 */
@@ -97,7 +97,7 @@ gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
 
 	/**
 	 * Summon spirit.
-	 * @todo why does spirit.src method fail strangely just now? using iframe.src instead...
+	 * @TODO why does spirit.src method fail strangely just now? using iframe.src instead...
 	 * @param {Document} doc
 	 * @param @optional {String} src
 	 * @returns {gui.IframeSpirit}

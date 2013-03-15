@@ -6,7 +6,7 @@ window.gui = {
 
 	/**
 	 * Spiritual version. Hardcoded for now.
-	 * @todo Deprecate or generate buildtime.
+	 * @TODO Deprecate or generate buildtime.
 	 * @type {String}
 	 */
 	version : "0.0.5",
@@ -37,7 +37,7 @@ window.gui = {
 
 	/**
 	 * Global broadcasts
-	 * @todo harmonize some naming with action types
+	 * @TODO harmonize some naming with action types
 	 */
 	BROADCAST_KICKSTART : "gui-broadcast-kickstart",
 	BROADCAST_DOMCONTENT : "gui-broadcast-document-domcontentloaded",
@@ -135,7 +135,7 @@ window.gui = {
 
 	/**
 	 * Device orientation.
-	 * @todo Get this out of here, create gui.Device or something
+	 * @TODO Get this out of here, create gui.Device or something
 	 */
 	orientation : 0,
 	ORIENTATION_PORTRAIT : 0,

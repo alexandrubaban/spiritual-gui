@@ -1,7 +1,7 @@
 /** 
  * Ticks are used for timed events. 
- * @todo Global versus local ticks
- * @todo Tick.push
+ * @TODO Global versus local ticks
+ * @TODO Tick.push
  * @using gui.Arguments#confirmed
  */
 ( function using ( confirmed ) {
@@ -110,7 +110,7 @@
 	 * @returns {function}
 	 */
 	gui.Tick.start = function ( type, time ) {
-		console.error ( "@todo gui.Tick.start" );
+		console.error ( "@TODO gui.Tick.start" );
 	};
 
 	/**
@@ -119,7 +119,7 @@
 	 * @returns {function}
 	 */
 	gui.Tick.stop = function ( type ) {
-		console.error ( "@todo gui.Tick#stop" );
+		console.error ( "@TODO gui.Tick#stop" );
 	};
 
 	/**
@@ -208,7 +208,7 @@
 				index = list.push ( handler ) - 1;
 			}
 			/*
-			 * @todo
+			 * @TODO
 			 * Adding a property to an array will 
 			 * make it slower in Firefox. Fit it!
 			 */
@@ -243,7 +243,7 @@
 
 	/**
 	 * Hofmeister remix.
-	 * @todo refactor to default to zero somehow...
+	 * @TODO refactor to default to zero somehow...
 	 */
 	gui.Tick._dispatch = function ( type, time, sig ) {
 		var map = sig ? this._local [ sig ] : this._global;
@@ -255,7 +255,7 @@
 				list.slice ().forEach ( function ( handler, i ) {
 					//try {
 						handler.ontick ( tick );
-					// } catch ( exception ) { // @todo figure out how destructed spirits should behave while we loop
+					// } catch ( exception ) { // @TODO figure out how destructed spirits should behave while we loop
 					// 	if ( exception.message !== gui.Spirit.DENIAL ) {
 					// 		throw new Error ( exception.message );
 					// 	}

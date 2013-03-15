@@ -1,10 +1,10 @@
 /**
  * Work in progress keyboard TAB manager.
  * @extends {gui.Tracker}
- * @todo Get this out of here
- * @todo Nested attention traps (conflicts with missing focusin in FF?)
- * @todo Empty queue when user moves escapes (all) attention traps?
- * @todo More life cycle hookins (hide, show, detach, exit)
+ * @TODO Get this out of here
+ * @TODO Nested attention traps (conflicts with missing focusin in FF?)
+ * @TODO Empty queue when user moves escapes (all) attention traps?
+ * @TODO More life cycle hookins (hide, show, detach, exit)
  */
 gui.AttentionPlugin = gui.Plugin.extend ( "gui.AttentionPlugin", {
 
@@ -38,7 +38,7 @@ gui.AttentionPlugin = gui.Plugin.extend ( "gui.AttentionPlugin", {
 
 	/**
 	 * Blur anything that might be focused.
-	 * @todo definitely not like this...
+	 * @TODO definitely not like this...
 	 * @returns {gui.AttentionPlugin}
 	 */
 	blur : function () { 
@@ -138,7 +138,7 @@ gui.AttentionPlugin = gui.Plugin.extend ( "gui.AttentionPlugin", {
 
 	/**
 	 * Listen for all sorts of stuff going on.
-	 * @todo use focusin and focusout for IE/Opera?
+	 * @TODO use focusin and focusout for IE/Opera?
 	 */
 	_listen : function () {
 		var elm = this.spirit.element;
@@ -150,8 +150,8 @@ gui.AttentionPlugin = gui.Plugin.extend ( "gui.AttentionPlugin", {
 
 	/**
 	 * Insert hidden input at position.
-	 * @todo how to *keep* inputs at first and last position?
-	 * @todo removeEventListener on dispose perhaps
+	 * @TODO how to *keep* inputs at first and last position?
+	 * @TODO removeEventListener on dispose perhaps
 	 * @param {String} pos
 	 * @returns {Element}
 	 */
@@ -300,7 +300,7 @@ gui.AttentionPlugin = gui.Plugin.extend ( "gui.AttentionPlugin", {
 
 	/**
 	 * Get next in line.
-	 * @todo continue until next is not hidden.
+	 * @TODO continue until next is not hidden.
 	 * @returns {String}
 	 */
 	_next : function () {

@@ -20,7 +20,7 @@ gui.Type = {
 
 	/**
 	 * Is object defined?
-	 * @todo unlimited arguments support
+	 * @TODO unlimited arguments support
 	 * @param {object} o
 	 * @returns {boolean}
 	 */
@@ -92,8 +92,8 @@ gui.Type = {
 
 	/**
 	 * Is constructor for a Spirit?
-	 * @todo Why can't isConstructor be used here?
-	 * @todo something more reliable than "portals".
+	 * @TODO Why can't isConstructor be used here?
+	 * @TODO something more reliable than "portals".
 	 * @param {function} what
 	 * @returns {boolean}
 	 */
@@ -104,7 +104,7 @@ gui.Type = {
 	/**
 	 * Autocast string to an inferred type. "123" will 
 	 * return a number, "false" will return a boolean.
-	 * @todo move to gui.Type :)
+	 * @TODO move to gui.Type :)
 	 * @param {String} string
 	 * @returns {object}
 	 */

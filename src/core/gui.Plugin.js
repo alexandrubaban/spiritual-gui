@@ -1,8 +1,8 @@
 /**
  * Base class for all spirit plugins.
- * @todo "context" should be required in constructor
- * @todo Rename "gui.Plugin"
- * @todo Rename *all* plugins to gui.SomethingPlugin :)
+ * @TODO "context" should be required in constructor
+ * @TODO Rename "gui.Plugin"
+ * @TODO Rename *all* plugins to gui.SomethingPlugin :)
  */
 gui.Plugin = gui.Class.create ( "gui.Plugin", Object.prototype, {
 

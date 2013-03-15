@@ -6,7 +6,7 @@
 
 	/**
 	 * Broadcast constructor.
-	 * @todo "one" and "oneGlobal" methods...
+	 * @TODO "one" and "oneGlobal" methods...
 	 * @param {Spirit} target
 	 * @param {String} type
 	 * @param {object} data
@@ -43,7 +43,7 @@
 
 		/**
 		 * Global broadcast?
-		 * @todo rename "global"
+		 * @TODO rename "global"
 		 * @type {boolean}
 		 */
 		isGlobal : false,
@@ -100,7 +100,7 @@
 
 	/**
 	 * Publish broadcast in local window scope.
-	 * @todo queue for incoming dispatch (finish current message first).
+	 * @TODO queue for incoming dispatch (finish current message first).
 	 * @param {Spirit} target
 	 * @param {String} type
 	 * @param {object} data
@@ -131,8 +131,8 @@
 
 	/**
 	 * Dispatch broadcast in global scope (all windows).
-	 * @todo queue for incoming dispatch (finish current first).
-	 * @todo Handle remote domain iframes ;)
+	 * @TODO queue for incoming dispatch (finish current first).
+	 * @TODO Handle remote domain iframes ;)
 	 * @param {Spirit} target
 	 * @param {String} type
 	 * @param {object} data

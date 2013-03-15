@@ -25,7 +25,7 @@ gui.CoverSpirit = gui.Spirit.infuse ( "gui.CoverSpirit", {
 
 	/**
 	 * Show and fade to no opacity.
-	 * @todo promises goes here
+	 * @TODO promises goes here
 	 * @param {number} duration in ms
 	 * @returns {object} then method
 	 */
@@ -46,7 +46,7 @@ gui.CoverSpirit = gui.Spirit.infuse ( "gui.CoverSpirit", {
 
 	/**
 	 * Fade to full opacity and hide.
-	 * @todo promises goes here
+	 * @TODO promises goes here
 	 * @param {number} duration in ms
 	 * @returns {Object} then method
 	 */

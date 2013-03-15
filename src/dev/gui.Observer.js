@@ -87,7 +87,7 @@ gui.Observer = {
 	/**
 	 * Is suspended? Minimize what overhead there might 
 	 * be on connecting and disconnecting the observer.
-	 * @todo do we need to track this for each window?
+	 * @TODO do we need to track this for each window?
 	 * @type {number}
 	 */
 	_suspend : 0,

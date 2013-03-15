@@ -1,9 +1,9 @@
 /**
  * This fellow allow us to create a newable constructor that can be 'subclassed' via an extend method. 
  * Instances of the "class" may use a special `_super` method to overload members of the "superclass".
- * @todo Evaluate static stuff first so that proto can declare vals as static props 
- * @todo Check if static stuff shadows recurring static (vice versa) and warn about it.
- * @todo It's possible for a prototype to be a prototype, investigate this inception
+ * @TODO Evaluate static stuff first so that proto can declare vals as static props 
+ * @TODO Check if static stuff shadows recurring static (vice versa) and warn about it.
+ * @TODO It's possible for a prototype to be a prototype, investigate this inception
  */
 gui.Class = {
 
@@ -57,6 +57,7 @@ gui.Class = {
 	
 	/**
 	 * Breakdown arguments for base exemplar only (has one extra argument).
+	 * @TODO Something in gui.Arguments instead.
 	 * @see {gui.Class#breakdown}
 	 * @param {Arguments} args
 	 * @returns {object}
@@ -76,6 +77,7 @@ gui.Class = {
 	 * Break down class constructor arguments. We want to make the string (naming) 
 	 * argument optional, but we still want to keep is as first argument, so the 
 	 * other arguments must be identified by whether or not it's present. 
+	 * @TODO Something in gui.Arguments instead.
 	 * @param {Arguments} args
 	 * @returns {object}
 	 */
@@ -90,7 +92,7 @@ gui.Class = {
 	},
 
 	/**
-	 * @todo comments here!
+	 * @TODO comments here!
 	 * @param {object} proto Prototype of superconstructor
 	 * @param {String} name Constructor name (for debug).
 	 * @returns {function}
@@ -130,7 +132,7 @@ gui.Class = {
 		gui.Object.each ( C.__recurring__, function ( key, val ) {
 			C [ key ] = val;
 		});
-		gui.Accessors.support ( C, protos ); // @todo what about base?
+		gui.Accessors.support ( C, protos ); // @TODO what about base?
 		gui.Super.support ( SuperC, C, protos );
 		this._name ( C, name );
 		return this._profiling ( C );
@@ -203,8 +205,8 @@ gui.Class = {
 
 	/**
 	 * Constructor body common to all exemplars.
-	 * @todo Return new this if not called with new keyword
-	 * @todo Why doesn't all this stuff work???????????????
+	 * @TODO Return new this if not called with new keyword
+	 * @TODO Why doesn't all this stuff work???????????????
 	 * @type {String}
 	 */
 	_body : "" +
@@ -236,7 +238,7 @@ gui.Object.each ({
 	/**
 	 * Mixin something on prototype while checking for naming collision.
 	 * This method is called on the class constructor: MyClass.mixin()
-	 * @todo http://www.nczonline.net/blog/2012/12/11/are-your-mixins-ecmascript-5-compatible
+	 * @TODO http://www.nczonline.net/blog/2012/12/11/are-your-mixins-ecmascript-5-compatible
 	 * @param {String} name
 	 * @param {object} value
 	 * @param @optional {boolean} override Disable collision detection

@@ -35,7 +35,7 @@ gui.SpiritualAid = {
 			var def = whit [ key ];				
 			if ( what [ key ] === undefined ) {
 				if ( def.get && def.set ) {
-					 // @todo look at element.dataset polyfill (iOS?)
+					 // @TODO look at element.dataset polyfill (iOS?)
 				} else {
 					what [ key ] = def;
 				}
@@ -153,8 +153,8 @@ gui.SpiritualAid = {
 
 	/**
 	 * ES6 `Map` and `Set` are polyfilled as simple sugar and should only be used with primitive keys. 
-	 * @todo investigate support for Object.getPrototypeOf(win)
-	 * @todo credit whatever source we grabbed WeakMap from (?)
+	 * @TODO investigate support for Object.getPrototypeOf(win)
+	 * @TODO credit whatever source we grabbed WeakMap from (?)
 	 * @param {Window} win
 	 */
 	_globals : function ( win ) {
@@ -210,7 +210,7 @@ gui.SpiritualAid = {
 				};
 				return Set;
 			})(),
-			WeakMap : ( function () { // @todo clean this up
+			WeakMap : ( function () { // @TODO clean this up
 				function WeakMap () {
 						var keys = [], values = [];
 						function del(key) {
@@ -257,8 +257,8 @@ gui.SpiritualAid = {
 
 	/**
 	 * Patching cheap DHTML effects with super-simplistic polyfills.
-	 * @todo cancelAnimationFrame
-	 * @todo use MessageChannel (@http://www.nonblocking.io/2011/06/windownexttick.html) pending moz bug#677638
+	 * @TODO cancelAnimationFrame
+	 * @TODO use MessageChannel (@http://www.nonblocking.io/2011/06/windownexttick.html) pending moz bug#677638
 	 * @param [Window} win
 	 */
 	_effects : function ( win ) {
