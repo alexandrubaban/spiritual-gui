@@ -97,6 +97,7 @@ gui.Class = {
 	 */
 	_createclass : function ( SuperC, proto, name ) {
 		var C = gui.Function.create ( name, null, this._body );
+		C.$classid = gui.KeyMaster.generateKey ( "class" );
 		C.prototype = Object.create ( proto || null );
 		C.prototype.constructor = C;
 		this._internals ( C, SuperC );
@@ -166,7 +167,6 @@ gui.Class = {
 		C.__subclasses__ = [];
 		C.__superclass__ = SuperC || null;
 		C.__recurring__ = SuperC ? gui.Object.copy ( SuperC.__recurring__ ) : Object.create ( null );
-		C.__indexident__ = gui.KeyMaster.generateKey ( "class" );
 		if ( SuperC ) {
 			SuperC.__subclasses__.push ( C );
 		}
@@ -207,9 +207,11 @@ gui.Class = {
 	 * @todo Why doesn't all this stuff work???????????????
 	 * @type {String}
 	 */
-	_body : "var constructor = this.__construct__ || this.onconstruct;" +
-		"if ( gui.Type.isFunction ( constructor )) {" +
-			"constructor.apply ( this, arguments );" +
+	_body : "" +
+	  "this.$instanceid = gui.KeyMaster.generateKey ( \"id\" );\n" +
+		"var constructor = this.__construct__ || this.onconstruct;\n" +
+		"if ( gui.Type.isFunction ( constructor )) {\n" +
+			"constructor.apply ( this, arguments );\n" +
 		"}"
 };
 
