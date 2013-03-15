@@ -208,7 +208,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	/**
 	 * Secret constructor. Doesn't do much.
 	 */
-	__construct__ : function () {},
+	$onconstruct : function () {},
 
 	/**
 	 * Mapping lazy plugins to prefixes.

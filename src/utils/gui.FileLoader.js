@@ -91,7 +91,7 @@ gui.FileLoader = gui.Class.create ( "gui.FileLoader", Object.prototype, {
 	},
 	
 
-	// Secret .........................................................
+	// Secrets ..........................................................
 
 	/**
 	 * Secret constructor.
@@ -99,7 +99,7 @@ gui.FileLoader = gui.Class.create ( "gui.FileLoader", Object.prototype, {
 	 * @param {Window} window
 	 * @param {function} handler
 	 */
-	__construct__ : function ( doc ) {
+	$onconstruct : function ( doc ) {
 		if ( doc && doc.nodeType === Node.DOCUMENT_NODE ) {
 			this.onconstruct ( doc );
 		} else {

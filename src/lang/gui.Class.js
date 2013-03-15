@@ -209,7 +209,7 @@ gui.Class = {
 	 */
 	_body : "" +
 	  "this.$instanceid = gui.KeyMaster.generateKey ( \"id\" );\n" +
-		"var constructor = this.__construct__ || this.onconstruct;\n" +
+		"var constructor = this.$onconstruct || this.onconstruct;\n" +
 		"if ( gui.Type.isFunction ( constructor )) {\n" +
 			"constructor.apply ( this, arguments );\n" +
 		"}"

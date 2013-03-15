@@ -48,7 +48,7 @@ gui.Plugin = gui.Class.create ( "gui.Plugin", Object.prototype, {
 	 * then we are maybe inside a Web Worker.
 	 * @param {gui.Spirit} spirit
 	 */
-	__construct__ : function ( spirit ) {
+	$onconstruct : function ( spirit ) {
 		this.spirit = spirit || null;
 		this.context = spirit ? spirit.window : null;
 	},
