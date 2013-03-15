@@ -756,7 +756,7 @@ gui.Spiritual.prototype = {
 	},
 
 	/**
-	 * Get spirit for argument (argument expected to be a `spiritkey` for now).
+	 * Get spirit for argument (argument expected to be a `$instanceid` for now).
 	 * @todo fuzzy resolver to accept elements and queryselectors
 	 * @param {object} arg
 	 * @returns {gui.Spirit}
@@ -1022,7 +1022,7 @@ gui.Spiritual.prototype = {
 	 */
 	destruct : function ( spirit ) {
 		var all = this._spirits;
-		var key = spirit.spiritkey;
+		var key = spirit.$instanceid;
 		delete all.inside [ key ];
 		delete all.outside [ key ];
 	},
@@ -1037,7 +1037,7 @@ gui.Spiritual.prototype = {
 	 */
 	inside : function ( spirit ) {
 		var all = this._spirits;
-		var key = spirit.spiritkey;
+		var key = spirit.$instanceid;
 		if ( !all.inside [ key ]) {
 			if ( all.outside [ key ]) {
 				delete all.outside [ key ];
@@ -1053,7 +1053,7 @@ gui.Spiritual.prototype = {
 	 */
 	outside : function ( spirit ) {
 		var all = this._spirits;
-		var key = spirit.spiritkey;
+		var key = spirit.$instanceid;
 		if ( !all.outside [ key ]) {
 			if ( all.inside [ key ]) {
 				delete all.inside [ key ];
@@ -1148,7 +1148,7 @@ gui.Spiritual.prototype = {
 	_modules : null,
 
 	/**
-	 * Tracking spirits by spiritkey (detached spirits are subject to destruction).
+	 * Tracking spirits by $instanceid (detached spirits are subject to destruction).
 	 * @type {Map<String,Map<String,gui.Spirit>>}
 	 */
 	_spirits : null,
@@ -1167,7 +1167,7 @@ gui.Spiritual.prototype = {
 	_construct : function ( win ) {
 		// patching features
 		this._spiritualaid.polyfill ( win );		
-		// compute signature (possibly identical to spiritkey of hosting iframe spirit)
+		// compute signature (possibly identical to $instanceid of hosting iframe spirit)
 		this.signature = ( function () {
 			var sig, url = location.href;
 			var key = "spiritual-signature"; // ouch, must remain configurable!
@@ -3625,7 +3625,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	 * Unique key for this spirit instance.
 	 * @type {String}
 	 */
-	spiritkey : null,
+	$instanceid : null,
 	
 	/**
 	 * Matches the property `signature` of the local `gui` object.
@@ -4844,7 +4844,7 @@ gui.Action.prototype = {
 	 * Used when posting actions xdomain. Matches an iframespirit key.
 	 * @type {String}
 	 */
-	spiritkey : null,
+	$instanceid : null,
 
 	/**
 	 * Is action consumed?
@@ -4969,7 +4969,7 @@ gui.Action.stringify = function ( a, key ) {
 			}
 			return d;
 		}( a.data ));
-		a.spiritkey = key || null;
+		a.$instanceid = key || null;
 		return JSON.stringify ( a );
 	}());
 };
@@ -4988,15 +4988,13 @@ gui.Action.parse = function ( msg ) {
 
 
 /** 
- * Tracking actions.
- * @using gui.Arguments#confirmed
- * @using gui.Combo#chained
+ * ActionPlugin.
+ * @extends {gui.Tracker}
+ * @using {gui.Arguments#confirmed}
+ * @using {gui.Combo#chained}
  */
 ( function using ( confirmed, chained ) {
-
-	/**
-	 * @extends {gui.Tracker}
-	 */
+	
 	gui.ActionPlugin = gui.Tracker.extend ( "gui.ActionPlugin", {
 
 		/**
@@ -5521,12 +5519,13 @@ Object.defineProperties ( gui.BoxPlugin.prototype, {
 
 /** 
  * Broadcast instance.
- * @todo "one" and "oneGlobal" methods...
  * @using gui.Arguments#confirmed
  */
 ( function using ( confirmed ) {
 
 	/**
+	 * Broadcast constructor.
+	 * @todo "one" and "oneGlobal" methods...
 	 * @param {Spirit} target
 	 * @param {String} type
 	 * @param {object} data
@@ -5703,7 +5702,7 @@ Object.defineProperties ( gui.BoxPlugin.prototype, {
 	// PRIVATE ...................................................................................
 
 	/**
-	 * mapcribe handler to message(s).
+	 * Subscribe handler to message(s).
 	 * @param {Array<string>|string} type
 	 * @param {object|function} handler Implements BroadcastListener
 	 * @param @optional {String} sig
@@ -8303,7 +8302,7 @@ gui.AttentionPlugin = gui.Plugin.extend ( "gui.AttentionPlugin", {
 	blur : function () { 
 		gui.Broadcast.dispatchGlobal ( null,
 			gui.BROADCAST_ATTENTION_OFF,
-			this.spirit.spiritkey
+			this.spirit.$instanceid
 		);
 		if ( this._focused ) {
 			if ( this._latest ) {
@@ -8336,7 +8335,7 @@ gui.AttentionPlugin = gui.Plugin.extend ( "gui.AttentionPlugin", {
 	 */
 	onbroadcast : function ( b ) {
 		if ( b.type === gui.BROADCAST_ATTENTION_GO ) {
-			if ( b.data === this.spirit.spiritkey ) {
+			if ( b.data === this.spirit.$instanceid ) {
 				this.focus ();
 			}
 		}
@@ -8352,7 +8351,7 @@ gui.AttentionPlugin = gui.Plugin.extend ( "gui.AttentionPlugin", {
 				gui.Broadcast.removeGlobal ( gui.BROADCAST_ATTENTION_GO, this );
 				gui.Broadcast.dispatchGlobal ( null,
 					gui.BROADCAST_ATTENTION_OFF,
-					this.spirit.spiritkey
+					this.spirit.$instanceid
 				);
 				break;
 		}
@@ -8534,7 +8533,7 @@ gui.AttentionPlugin = gui.Plugin.extend ( "gui.AttentionPlugin", {
 	_didcatch : function () {
 		gui.Broadcast.dispatchGlobal ( null,
 			gui.BROADCAST_ATTENTION_ON,
-			this.spirit.spiritkey
+			this.spirit.$instanceid
 		);
 	},
 
@@ -8545,7 +8544,7 @@ gui.AttentionPlugin = gui.Plugin.extend ( "gui.AttentionPlugin", {
 		this._flag = false;
 		gui.Broadcast.dispatchGlobal ( null,
 			gui.BROADCAST_ATTENTION_OFF,
-			this.spirit.spiritkey
+			this.spirit.$instanceid
 		);
 	}
 
@@ -9566,7 +9565,7 @@ gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
 	src : function ( src ) {
 		if ( gui.Type.isString ( src )) {
 			if ( gui.IframeSpirit.isExternal ( src )) {
-				src = gui.IframeSpirit.sign ( src, this.document, this.spiritkey );
+				src = gui.IframeSpirit.sign ( src, this.document, this.$instanceid );
 				this.external = true;
 			}
 			this.element.src = src;
@@ -9589,7 +9588,7 @@ gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
 		if ( this.external && msg.startsWith ( "spiritual-action:" )) {
 			var a = gui.Action.parse ( msg );
 			if ( a.direction === gui.Action.ASCEND ) {
-				if ( a.spiritkey === this.spiritkey ) {
+				if ( a.$instanceid === this.$instanceid ) {
 					this.action.ascendGlobal ( a.type, a.data );
 				}
 			}
@@ -9612,7 +9611,7 @@ gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
 		spirit.css.add ( "gui-iframe" );
 		if ( src ) {
 			if ( gui.IframeSpirit.isExternal ( src )) { // should be moved to src() method!!!!!
-				src = this.sign ( src, doc, spirit.spiritkey );
+				src = this.sign ( src, doc, spirit.$instanceid );
 				spirit.external = true;
 			}
 		} else {
@@ -11347,7 +11346,7 @@ gui.Guide = {
 		spirit.element = element;
 		spirit.document = element.ownerDocument;
 		spirit.window = spirit.document.defaultView;
-		spirit.spiritkey = gui.KeyMaster.generateKey ();
+		spirit.$instanceid = gui.KeyMaster.generateKey ();
 		spirit.signature = spirit.window.gui.signature;
 		// @todo weakmap for this stunt
 		element.spirit = spirit;
