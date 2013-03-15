@@ -62,7 +62,7 @@ gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
 	src : function ( src ) {
 		if ( gui.Type.isString ( src )) {
 			if ( gui.IframeSpirit.isExternal ( src )) {
-				src = gui.IframeSpirit.sign ( src, this.document, this.spiritkey );
+				src = gui.IframeSpirit.sign ( src, this.document, this.$instanceid );
 				this.external = true;
 			}
 			this.element.src = src;
@@ -85,7 +85,7 @@ gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
 		if ( this.external && msg.startsWith ( "spiritual-action:" )) {
 			var a = gui.Action.parse ( msg );
 			if ( a.direction === gui.Action.ASCEND ) {
-				if ( a.spiritkey === this.spiritkey ) {
+				if ( a.$instanceid === this.$instanceid ) {
 					this.action.ascendGlobal ( a.type, a.data );
 				}
 			}
@@ -108,7 +108,7 @@ gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
 		spirit.css.add ( "gui-iframe" );
 		if ( src ) {
 			if ( gui.IframeSpirit.isExternal ( src )) { // should be moved to src() method!!!!!
-				src = this.sign ( src, doc, spirit.spiritkey );
+				src = this.sign ( src, doc, spirit.$instanceid );
 				spirit.external = true;
 			}
 		} else {

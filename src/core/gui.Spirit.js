@@ -25,7 +25,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	 * Unique key for this spirit instance.
 	 * @type {String}
 	 */
-	spiritkey : null,
+	$instanceid : null,
 	
 	/**
 	 * Matches the property `signature` of the local `gui` object.

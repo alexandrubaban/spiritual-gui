@@ -44,7 +44,7 @@ gui.AttentionPlugin = gui.Plugin.extend ( "gui.AttentionPlugin", {
 	blur : function () { 
 		gui.Broadcast.dispatchGlobal ( null,
 			gui.BROADCAST_ATTENTION_OFF,
-			this.spirit.spiritkey
+			this.spirit.$instanceid
 		);
 		if ( this._focused ) {
 			if ( this._latest ) {
@@ -77,7 +77,7 @@ gui.AttentionPlugin = gui.Plugin.extend ( "gui.AttentionPlugin", {
 	 */
 	onbroadcast : function ( b ) {
 		if ( b.type === gui.BROADCAST_ATTENTION_GO ) {
-			if ( b.data === this.spirit.spiritkey ) {
+			if ( b.data === this.spirit.$instanceid ) {
 				this.focus ();
 			}
 		}
@@ -93,7 +93,7 @@ gui.AttentionPlugin = gui.Plugin.extend ( "gui.AttentionPlugin", {
 				gui.Broadcast.removeGlobal ( gui.BROADCAST_ATTENTION_GO, this );
 				gui.Broadcast.dispatchGlobal ( null,
 					gui.BROADCAST_ATTENTION_OFF,
-					this.spirit.spiritkey
+					this.spirit.$instanceid
 				);
 				break;
 		}
@@ -275,7 +275,7 @@ gui.AttentionPlugin = gui.Plugin.extend ( "gui.AttentionPlugin", {
 	_didcatch : function () {
 		gui.Broadcast.dispatchGlobal ( null,
 			gui.BROADCAST_ATTENTION_ON,
-			this.spirit.spiritkey
+			this.spirit.$instanceid
 		);
 	},
 
@@ -286,7 +286,7 @@ gui.AttentionPlugin = gui.Plugin.extend ( "gui.AttentionPlugin", {
 		this._flag = false;
 		gui.Broadcast.dispatchGlobal ( null,
 			gui.BROADCAST_ATTENTION_OFF,
-			this.spirit.spiritkey
+			this.spirit.$instanceid
 		);
 	}
 

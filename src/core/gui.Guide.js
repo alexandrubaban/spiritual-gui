@@ -137,7 +137,7 @@ gui.Guide = {
 		spirit.element = element;
 		spirit.document = element.ownerDocument;
 		spirit.window = spirit.document.defaultView;
-		spirit.spiritkey = gui.KeyMaster.generateKey ();
+		spirit.$instanceid = gui.KeyMaster.generateKey ();
 		spirit.signature = spirit.window.gui.signature;
 		// @todo weakmap for this stunt
 		element.spirit = spirit;

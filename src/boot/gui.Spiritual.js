@@ -99,7 +99,7 @@ gui.Spiritual.prototype = {
 	},
 
 	/**
-	 * Get spirit for argument (argument expected to be a `spiritkey` for now).
+	 * Get spirit for argument (argument expected to be a `$instanceid` for now).
 	 * @todo fuzzy resolver to accept elements and queryselectors
 	 * @param {object} arg
 	 * @returns {gui.Spirit}
@@ -365,7 +365,7 @@ gui.Spiritual.prototype = {
 	 */
 	destruct : function ( spirit ) {
 		var all = this._spirits;
-		var key = spirit.spiritkey;
+		var key = spirit.$instanceid;
 		delete all.inside [ key ];
 		delete all.outside [ key ];
 	},
@@ -380,7 +380,7 @@ gui.Spiritual.prototype = {
 	 */
 	inside : function ( spirit ) {
 		var all = this._spirits;
-		var key = spirit.spiritkey;
+		var key = spirit.$instanceid;
 		if ( !all.inside [ key ]) {
 			if ( all.outside [ key ]) {
 				delete all.outside [ key ];
@@ -396,7 +396,7 @@ gui.Spiritual.prototype = {
 	 */
 	outside : function ( spirit ) {
 		var all = this._spirits;
-		var key = spirit.spiritkey;
+		var key = spirit.$instanceid;
 		if ( !all.outside [ key ]) {
 			if ( all.inside [ key ]) {
 				delete all.inside [ key ];
@@ -491,7 +491,7 @@ gui.Spiritual.prototype = {
 	_modules : null,
 
 	/**
-	 * Tracking spirits by spiritkey (detached spirits are subject to destruction).
+	 * Tracking spirits by $instanceid (detached spirits are subject to destruction).
 	 * @type {Map<String,Map<String,gui.Spirit>>}
 	 */
 	_spirits : null,
@@ -510,7 +510,7 @@ gui.Spiritual.prototype = {
 	_construct : function ( win ) {
 		// patching features
 		this._spiritualaid.polyfill ( win );		
-		// compute signature (possibly identical to spiritkey of hosting iframe spirit)
+		// compute signature (possibly identical to $instanceid of hosting iframe spirit)
 		this.signature = ( function () {
 			var sig, url = location.href;
 			var key = "spiritual-signature"; // ouch, must remain configurable!

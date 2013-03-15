@@ -52,7 +52,7 @@ gui.Action.prototype = {
 	 * Used when posting actions xdomain. Matches an iframespirit key.
 	 * @type {String}
 	 */
-	spiritkey : null,
+	$instanceid : null,
 
 	/**
 	 * Is action consumed?
@@ -177,7 +177,7 @@ gui.Action.stringify = function ( a, key ) {
 			}
 			return d;
 		}( a.data ));
-		a.spiritkey = key || null;
+		a.$instanceid = key || null;
 		return JSON.stringify ( a );
 	}());
 };
