@@ -71,7 +71,7 @@ gui.StyleSheetSpirit = gui.Spirit.infuse ( "gui.StyleSheetSpirit", {
 
 	/**
 	 * Parse CSS, channeling Spirits to selectors.
-	 * @todo more tolerant parsing algorithm!
+	 * @TODO more tolerant parsing algorithm!
 	 * @param {String} text (valid CSS syntax!) 
 	 */
 	_parse : function ( text ) {

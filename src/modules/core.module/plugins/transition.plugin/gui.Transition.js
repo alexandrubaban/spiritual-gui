@@ -12,8 +12,8 @@ gui.Transition.prototype = {
 
 	/**
 	 * Property that finished transitioning ("width","height").
-	 * @todo un-camelcase this to CSS syntax.
-	 * @todo adjust vendor prefix to "beta".
+	 * @TODO un-camelcase this to CSS syntax.
+	 * @TODO adjust vendor prefix to "beta".
 	 * @type {String}
 	 */
 	type : null,

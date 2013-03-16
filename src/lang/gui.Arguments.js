@@ -60,7 +60,7 @@ gui.Arguments = {
 
 	/**
 	 * Strict type-checking facility to throw exceptions on failure. 
-	 * @todo at some point, return true unless in developement mode.
+	 * @TODO at some point, return true unless in developement mode.
 	 * @returns {boolean}
 	 */
 	_validate : function ( args, types ) {

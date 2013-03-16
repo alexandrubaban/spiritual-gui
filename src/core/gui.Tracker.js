@@ -29,12 +29,12 @@ gui.Tracker = gui.Plugin.extend ( "gui.Tracker", {
 	},
 
 	/**
-	 * @todo Toggle type(s).
+	 * @TODO Toggle type(s).
 	 * @param {object} arg
 	 * @returns {gui.Tracker}
 	 */
 	toggle : function ( arg, checks ) {
-		console.error ( "@todo SpiritTracker#toggle" );
+		console.error ( "@TODO SpiritTracker#toggle" );
 	},
 
 	/**
@@ -51,7 +51,7 @@ gui.Tracker = gui.Plugin.extend ( "gui.Tracker", {
 	},
 
 	/**
-	 * @todo what? 
+	 * @TODO what? 
 	 */
 	destruct : function () {
 		var type, list;

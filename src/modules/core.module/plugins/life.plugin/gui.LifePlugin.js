@@ -1,6 +1,6 @@
 /**
  * Tracking spirit life cycle events.
- * @todo Support optional data argument
+ * @TODO Support optional data argument
  * @extends {gui.Tracker}
  */
 gui.LifePlugin = gui.Tracker.extend ( "gui.LifePlugin", {
@@ -13,7 +13,7 @@ gui.LifePlugin = gui.Tracker.extend ( "gui.LifePlugin", {
 	constructed : false,
 
 	/**
-	 * @todo EXPERIMENT...
+	 * @TODO EXPERIMENT...
 	 * @type {boolean}
 	 */
 	configured : false,
@@ -120,7 +120,7 @@ gui.LifePlugin = gui.Tracker.extend ( "gui.LifePlugin", {
 
 	/**
 	 * Dispatch type and cleanup handlers for life cycle events that only occurs once.
-	 * @todo support optional data argument
+	 * @TODO support optional data argument
 	 * @param {String} type
 	 */
 	dispatch : function ( type ) {
@@ -145,7 +145,7 @@ gui.LifePlugin = gui.Tracker.extend ( "gui.LifePlugin", {
 	},
 
 	/**
-	 * @todo move declaration to super or something (?)
+	 * @TODO move declaration to super or something (?)
 	 * @type {Map<String,Array<object>}
 	 */
 	_handlers : null

@@ -15,7 +15,7 @@ gui.Function = {
 	 */
 	create : function ( name, params, body, context ) {
 		var F = context ? context.Function : Function;
-		name = this._safe ( name );
+		name = this.safename ( name );
 		params = params ? params.join ( "," ) : "";
 		body = body || "";
 		return new F (
@@ -23,17 +23,15 @@ gui.Function = {
 		)();
 	},
 
-
-	// Private ......................................................................
-
 	/**
-	 * Should someone file a namespaced function name...
+	 * Strip namespaces from name to create valid function name. 
+	 * @TODO Return a safe name no matter what has been input.
 	 * @param {String} name
 	 * @return {String}
 	 */
-	_safe : function ( name ) {
+	safename : function ( name ) {
 		if ( name && name.contains ( "." )) {
-			name = name.substring ( name.lastIndexOf ( "." ) + 1 );
+			name = name.split ( "." ).pop ();
 		}
 		return name || "";
 	}

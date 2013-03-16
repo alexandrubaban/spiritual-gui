@@ -1,15 +1,15 @@
 /**
  * Tracking DOM events.
- * @todo Throw an error on remove not added!
- * @todo Static interface for general consumption.
+ * @TODO Throw an error on remove not added!
+ * @TODO Static interface for general consumption.
  * @extends {gui.Tracker}
  */
 gui.EventPlugin = gui.Tracker.extend ( "gui.EventPlugin", {
 
 	/**
 	 * Add one or more DOM event handlers.
-	 * @todo Don't assume spirit handler
-	 * @todo reverse handler and capture args
+	 * @TODO Don't assume spirit handler
+	 * @TODO reverse handler and capture args
 	 * @param {object} arg String, array or whitespace-separated-string
 	 * @param @optional {object} target Node, Window or XmlHttpRequest. Defaults to spirit element
 	 * @param @optional {object} handler implements EventListener interface, defaults to spirit

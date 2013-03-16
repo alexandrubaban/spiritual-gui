@@ -2,8 +2,8 @@
  * @extends {gui.Spirit}
  * @deprecated
  * Spirit of the button-like element.
- * @todo Support ENTER for onaction.
- * @todo move to some kind of plugin.
+ * @TODO Support ENTER for onaction.
+ * @TODO move to some kind of plugin.
  */
 gui.ActionSpirit = gui.Spirit.infuse ( "gui.ActionSpirit", {
 

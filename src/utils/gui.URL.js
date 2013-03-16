@@ -59,7 +59,7 @@ gui.URL.getParam = function ( url, name ) {
 /**
  * Add or remove (unencoded) querystring parameter from URL. If it 
  * already exists, we'll replace it's (first ancountered) value. 
- * @todo Something simpler
+ * @TODO Something simpler
  * @param {String} url
  * @param {String} name
  * @param {String} value Use null to remove

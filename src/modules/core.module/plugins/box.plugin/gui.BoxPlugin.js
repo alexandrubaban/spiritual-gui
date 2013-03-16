@@ -1,7 +1,7 @@
 /**
  * Spirit box object. Note that these are all properties, not methods. 
  * @extends {gui.Plugin}
- * @todo Support globalX, globalY, screenX, screenY
+ * @TODO Support globalX, globalY, screenX, screenY
  */
 gui.BoxPlugin = gui.Plugin.extend ( "gui.BoxPlugin", {
 	
@@ -59,7 +59,7 @@ Object.defineProperties ( gui.BoxPlugin.prototype, {
 
 	/**
 	 * X relative to the full page (includes scrolling).
-	 * @todo IMPORTANT scrollroot must be local to context
+	 * @TODO IMPORTANT scrollroot must be local to context
 	 * @type {number}
 	 */
 	pageX : {
@@ -70,7 +70,7 @@ Object.defineProperties ( gui.BoxPlugin.prototype, {
 
 	/**
 	 * Y relative to the full page (includes scrolling).
-	 * @todo IMPORTANT scrollroot must be local to context
+	 * @TODO IMPORTANT scrollroot must be local to context
 	 * @type {number}
 	 */
 	pageY : {

@@ -1,7 +1,7 @@
 /**
  * DOM query and manipulation.
- * @todo implement missing stuff
- * @todo performance for all this
+ * @TODO implement missing stuff
+ * @TODO performance for all this
  * @using {gui.Combo#chained}
  */
 ( function using ( chained ) {
@@ -28,7 +28,7 @@
 		 * Get spirit element tagname or create an element of given tagname. 
 		 * @param @optional {String} name If present, create an element
 		 * @param @optional {String} text If present, also append a text node
-		 * @todo Third argument for namespace? Investigate general XML-ness.
+		 * @TODO Third argument for namespace? Investigate general XML-ness.
 		 */
 		tag : function ( name, text ) {
 			var res = null;
@@ -37,7 +37,7 @@
 			if ( name ) {
 				res = doc.createElement ( name );
 
-				// @todo "text" > "child" and let gui.DOMPlugin handle the rest....
+				// @TODO "text" > "child" and let gui.DOMPlugin handle the rest....
 				if ( gui.Type.isString ( text )) {
 					res.appendChild ( 
 						doc.createTextNode ( text )
@@ -82,7 +82,7 @@
 			var element = this.spirit.element;
 			if ( gui.Type.isString ( html )) {
 				if ( position ) {
-					element.insertAdjacentHTML ( position, html ); // @todo static + spiritualize!
+					element.insertAdjacentHTML ( position, html ); // @TODO static + spiritualize!
 				} else {
 					gui.DOMPlugin.html ( element, html );
 				}			
@@ -143,7 +143,7 @@
 		// Private .....................................................................
 
 		/**
-		 * @todo Explain custom `this` keyword in selector.
+		 * @TODO Explain custom `this` keyword in selector.
 		 * @param {String} selector
 		 * @returns {String}
 		 */
@@ -194,12 +194,12 @@
 			} else {
 				// throw new TypeError ();
 			}
-			return element.innerHTML; // @todo skip this step on setter
+			return element.innerHTML; // @TODO skip this step on setter
 		},
 
 		/**
 		 * Spiritual-aware outerHTML, special setup for WebKit.
-		 * @todo can outerHTML carry multiple nodes???
+		 * @TODO can outerHTML carry multiple nodes???
 		 * @param {Element} element
 		 * @param @optional {String} markup
 		 */
@@ -221,13 +221,13 @@
 							parent.removeChild ( element );
 						});
 					});
-					guide.spiritualizeSub ( parent ); // @todo optimize
+					guide.spiritualizeSub ( parent ); // @TODO optimize
 					res = element; // bad API design goes here...
 				}
 			} else {
 				throw new TypeError ();
 			}
-			return res; // @todo skip this step on setter
+			return res; // @TODO skip this step on setter
 		},
 
 		/**
@@ -251,7 +251,7 @@
 
 		/**
 		 * Is node in found in page DOM? Otherwise probable createElement scenario.
-		 * @todo comprehend https://developer.mozilla.org/en/JavaScript/Reference/Operators/Bitwise_Operators#Example:_Flags_and_bitmasks
+		 * @TODO comprehend https://developer.mozilla.org/en/JavaScript/Reference/Operators/Bitwise_Operators#Example:_Flags_and_bitmasks
 		 * @param {Element} element
 		 * @returns {boolean}
 		 */
@@ -284,7 +284,7 @@
 
 		/**
 		 * Replace proprietary "this" keyword in CSS selector with element nodename.
-		 * @todo There was something about a "scope" or similar keyword in CSS4??? 
+		 * @TODO There was something about a "scope" or similar keyword in CSS4??? 
 		 * @param {String} selector
 		 * @param {Node} node
 		 * @returns {String}
@@ -296,7 +296,7 @@
 					result = selector.replace ( gui.DOMPlugin._thiskeyword, node.localName );
 					break;
 				case Node.DOCUMENT_NODE :
-					// @todo use ":root" for something?
+					// @TODO use ":root" for something?
 					break;
 			}
 			return result;
@@ -527,7 +527,7 @@
 
 		/**
 		 * Children elements or children spirits of type.
-		 * @todo just use this.element.children :)
+		 * @TODO just use this.element.children :)
 		 * @param @optional {function} type Spirit constructor
 		 * @returns {Array<Element|gui.Spirit>}
 		 */
@@ -669,7 +669,7 @@
 	 * DOM insertion methods accept one argument: one spirit OR one element OR an array of either or both. 
 	 * The input argument is returned as given. This allows for the following one-liner to be constructed: 
 	 * this.something = this.dom.append ( gui.SomeThingSpirit.summon ( this.document )); // imagine 15 more
-	 * @todo Go for compliance with DOM4 method matches (something about textnoding string arguments)
+	 * @TODO Go for compliance with DOM4 method matches (something about textnoding string arguments)
 	 */
 	gui.Object.each ({
 

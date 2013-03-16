@@ -35,20 +35,20 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 		}
 		/*
 		 * BUG!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-		 * @todo it appears we *must* listen for touch start events
+		 * @TODO it appears we *must* listen for touch start events
 		 * for any spirit to subscribe to touch-end events only!!!!
 		 * @see {gui.SpiritTouch}
 		 */
 		if ( gui.Type.isDefined ( this.touch )) {
 			this.touch.add ( gui.SpiritTouch.FINGER_START );
 		}
-		// @todo iframe hello.
+		// @TODO iframe hello.
 		this.action.dispatchGlobal ( gui.ACTION_DOCUMENT_CONSTRUCT );
 	},
 
 	/**
 	 * Get ready.
-	 * @todo think more about late loading (module loading) scenario...
+	 * @TODO think more about late loading (module loading) scenario...
 	 */
 	onready : function () {
 		this._super.onready ();
@@ -138,7 +138,7 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 				that.action.dispatchGlobal ( gui.ACTION_DOCUMENT_DONE );
 			}, gui.Client.STABLETIME );
 		} else {
-			console.warn ( "@todo loaded twice..." );
+			console.warn ( "@TODO loaded twice..." );
 		}
 	},
 
@@ -183,7 +183,7 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 	 *
 	 * 1. Propagate descending
 	 * 2. Propagate ascending
-	 * @todo Don't post to universal domain "*" let's bypass the iframe spirit for this...
+	 * @TODO Don't post to universal domain "*" let's bypass the iframe spirit for this...
 	 * @param {gui.Broadcast} b
 	 */
 	propagateBroadcast : function ( b ) {
@@ -239,7 +239,7 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 	 * 
 	 * 1. Relay broadcasts
 	 * 2. Relay descending actions
-	 * @todo Don't claim this as action target!
+	 * @TODO Don't claim this as action target!
 	 * @param {String} msg
 	 */
 	_onmessage : function ( msg ) {
@@ -340,7 +340,7 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 	/**
 	 * Intensive resize procedures should subscribe 
 	 * to the resize-end message as broadcasted here.
-	 * @todo prevent multiple simultaneous windows
+	 * @TODO prevent multiple simultaneous windows
 	 */
 	_onresize : function () {
 		this.window.clearTimeout ( this._timeout );
@@ -351,9 +351,9 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 
 	/**
 	 * Device orientation changed.
-	 * @todo Move to touch module?
-	 * @todo Only in top-loaded window :)
-	 * @todo gui.SpiritDevice entity
+	 * @TODO Move to touch module?
+	 * @TODO Only in top-loaded window :)
+	 * @TODO gui.SpiritDevice entity
 	 */
 	_onorientationchange : function () {
 		gui.orientation = window.innerWidth > window.innerHeight ? 1 : 0;

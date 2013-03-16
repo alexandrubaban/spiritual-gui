@@ -1,7 +1,7 @@
 /**
  * Do what Spiritual does by overloading JQuery methods instead of native DOM methods.
- * @todo (Angular special) handle function replaceWith, "a special jqLite.replaceWith, which can replace items which have no parents"
- * @todo Henrik says "$(iframe.contentDocument).remove() før man skifter URL eller fjerner iframen" (jQuery.cache og jQuery.fragments)
+ * @TODO (Angular special) handle function replaceWith, "a special jqLite.replaceWith, which can replace items which have no parents"
+ * @TODO Henrik says "$(iframe.contentDocument).remove() før man skifter URL eller fjerner iframen" (jQuery.cache og jQuery.fragments)
  */
 gui.module ( "jquery", {
 
@@ -100,7 +100,7 @@ gui.module ( "jquery", {
 				this.each ( function ( i, elm ) {
 					if ( elm.spirit ) {
 						if ( val !== undefined || del ) {
-							// @todo spirit.att.__suspend__ ???
+							// @TODO spirit.att.__suspend__ ???
 							elm.spirit.att.set ( nam, val );
 						} else {
 							res = elm.spirit.att.get ( nam );
@@ -253,20 +253,21 @@ gui.module ( "jquery", {
 		// manage invoker subtree.
 		[ "html", "empty", "text" ].forEach ( function ( method ) {
 			var old = plugin [ method ];
-			plugin [ method ] = function ( arg ) {
-				var res, b = breakdown ( this.spirit );
+			plugin [ method ] = function () {
+				var args = arguments, res;
+				var b = breakdown ( this.spirit );
 				if ( b.is$ ) {
 					if ( b.dom ){
 						gui.Guide.materializeSub ( b.elm );
 					}
 					res = gui.Observer.suspend ( b.elm, function () {
-						return old.call ( this, arg );
+						return old.apply ( this, args );
 					}, this );
 					if ( b.dom && method === "html" ) {
 						gui.Guide.spiritualizeSub ( b.elm );
 					}
 				} else {
-					res = old.call ( this, arg );
+					res = old.apply ( this, args );
 				}
 				return res;
 			};
@@ -274,17 +275,18 @@ gui.module ( "jquery", {
 		// manage invoker itself.
 		[ "remove" ].forEach ( function ( method ) {
 			var old = plugin [ method ];
-			plugin [ method ] = function ( arg ) {
-				var res, b = breakdown ( this.spirit );
+			plugin [ method ] = function () {
+				var args = arguments, res;
+				var b = breakdown ( this.spirit );
 				if ( b.is$ ) {
 					if ( b.dom ) {
 						gui.Guide.materialize ( b.elm );
 					}
 					res = gui.Observer.suspend ( b.elm, function () {
-						return old.call ( this, arg );
+						return old.apply ( this, args );
 					}, this );
 				} else {
-					res = old.call ( this, arg );
+					res = old.apply ( this, args );
 				}
 				return res;
 			};

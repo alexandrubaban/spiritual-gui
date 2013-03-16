@@ -199,7 +199,7 @@
 
 		/**
 		 * Remove delegated handlers. 
-		 * @todo verify that this works
+		 * @TODO verify that this works
 		 * @overwrites {gui.Tracker#_cleanup}
 		 * @param {String} type
 		 * @param {Array<object>} checks
