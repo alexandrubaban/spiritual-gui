@@ -254,20 +254,21 @@ gui.module ( "jquery", {
 		// manage invoker subtree.
 		[ "html", "empty", "text" ].forEach ( function ( method ) {
 			var old = plugin [ method ];
-			plugin [ method ] = function ( arg ) {
-				var res, b = breakdown ( this.spirit );
+			plugin [ method ] = function () {
+				var args = arguments, res;
+				var b = breakdown ( this.spirit );
 				if ( b.is$ ) {
 					if ( b.dom ){
 						gui.Guide.materializeSub ( b.elm );
 					}
 					res = gui.Observer.suspend ( b.elm, function () {
-						return old.call ( this, arg );
+						return old.apply ( this, args );
 					}, this );
 					if ( b.dom && method === "html" ) {
 						gui.Guide.spiritualizeSub ( b.elm );
 					}
 				} else {
-					res = old.call ( this, arg );
+					res = old.apply ( this, arg );
 				}
 				return res;
 			};
@@ -275,17 +276,18 @@ gui.module ( "jquery", {
 		// manage invoker itself.
 		[ "remove" ].forEach ( function ( method ) {
 			var old = plugin [ method ];
-			plugin [ method ] = function ( arg ) {
-				var res, b = breakdown ( this.spirit );
+			plugin [ method ] = function () {
+				var args = arguments, res;
+				var b = breakdown ( this.spirit );
 				if ( b.is$ ) {
 					if ( b.dom ) {
 						gui.Guide.materialize ( b.elm );
 					}
 					res = gui.Observer.suspend ( b.elm, function () {
-						return old.call ( this, arg );
+						return old.apply ( this, args );
 					}, this );
 				} else {
-					res = old.call ( this, arg );
+					res = old.apply ( this, args );
 				}
 				return res;
 			};
@@ -300,7 +302,8 @@ gui.module ( "jquery", {
 						return old.call ( this, things );
 					}, this );
 					if ( b.dom ) {
-						var els = Array.map ( gui.Type.list ( things ), function ( thing ) {
+						things = gui.Array.toArray ( things );
+						var els = Array.map ( things, function ( thing ) {
 							return thing && thing instanceof gui.Spirit ? thing.element : thing;
 						});
 						els.forEach ( function ( el ) {
