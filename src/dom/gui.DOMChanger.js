@@ -1,5 +1,4 @@
-/** 
- * # gui.DOMChanger
+/**
  * Spiritualizing documents by overloading DOM methods.
  */
 gui.DOMChanger = {
@@ -28,7 +27,7 @@ gui.DOMChanger = {
 	/**
 	 * Declare "spirit" as a fundamental property of things 
 	 * and extend native DOM methods in given window scope.
-	 * @todo WeakMap<Element,gui.Spirit> in supporting agents
+	 * @TODO WeakMap<Element,gui.Spirit> in supporting agents
 	 * @param {Window} win
 	 */
 	change : function ( win ) {
@@ -84,9 +83,9 @@ gui.DOMChanger = {
 	 * intercept DOM updates. Firefox ignores extending of 
 	 * Element.prototype, we must step down the prototype chain.
 	 * @see https://bugzilla.mozilla.org/show_bug.cgi?id=618379
-	 * @todo Extend DocumentFragment
-	 * @todo Support insertAdjecantHTML
-	 * @todo Support SVG elements
+	 * @TODO Extend DocumentFragment
+	 * @TODO Support insertAdjecantHTML
+	 * @TODO Support SVG elements
 	 * @param {Window} win
 	 * @param {Map<String,function} combos
 	 */
@@ -154,9 +153,9 @@ gui.DOMChanger = {
 	/**
 	 * Overloading prototype methods and properties. If we cannot get an angle on innerHTML, 
 	 * we switch to JQuery mode. This is currently known to happen in Safari on iOS 5.1
-	 * @todo Firefox creates 50-something unique functions here
-	 * @todo Test success runtime (not rely on user agent string).
-	 * @todo inserAdjecantHTML
+	 * @TODO Firefox creates 50-something unique functions here
+	 * @TODO Test success runtime (not rely on user agent string).
+	 * @TODO inserAdjecantHTML
 	 * @param {object} proto
 	 * @param {Window} win
 	 * @param {Map<String,function} combos
@@ -167,7 +166,7 @@ gui.DOMChanger = {
 				this.innerhtml.global = true;
 				break;
 			case "gecko" :
-			case "opera" : // @todo Object.defineProperty supported?
+			case "opera" : // @TODO Object.defineProperty supported?
 				this.innerhtml.global = true;
 				break;
 			case "webkit" :
@@ -205,7 +204,7 @@ gui.DOMChanger = {
 				break;
 		}
 		// Overloading methods? Only in native mode.
-		// @todo insertAdjecantHTML
+		// @TODO insertAdjecantHTML
 		if ( win.gui.mode === gui.MODE_NATIVE ) {
 			var root = win.document.documentElement;
 			gui.Object.each ( combos, function ( name, combo ) {

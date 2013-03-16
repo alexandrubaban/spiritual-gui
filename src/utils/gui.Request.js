@@ -1,5 +1,4 @@
 /**
- * # gui.Request
  * Simplistic XMLHttpRequest wrapper. 
  * Work in progress, lot's to do here.
  * @param @optional {String} url
@@ -91,14 +90,14 @@ gui.Request.prototype = {
 	 * @returns {gui.SpiritRquest}
 	 */
 	header : function ( name, value ) {
-		console.warn ( "@todo request headers" );
+		console.warn ( "@TODO request headers" );
 		return this;
 	},
 
 	/**
 	 * Get stuff.
-	 * @todo Synchronous version
-	 * @todo Unhardcode status
+	 * @TODO Synchronous version
+	 * @TODO Unhardcode status
 	 * @param {function} callback
 	 * @param {object} thisp
 	 */
@@ -133,7 +132,7 @@ gui.Request.prototype = {
 
 	/**
 	 * Expected response type.
-	 * @todo an array?
+	 * @TODO an array?
 	 * @type {String}
 	 */
 	_accept : "text/plain",

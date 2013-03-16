@@ -1,8 +1,7 @@
 /**
- * # Module "jquery"
  * Do what Spiritual does by overloading JQuery methods instead of native DOM methods.
- * @todo (Angular special) handle function replaceWith, "a special jqLite.replaceWith, which can replace items which have no parents"
- * @todo Henrik says "$(iframe.contentDocument).remove() før man skifter URL eller fjerner iframen" (jQuery.cache og jQuery.fragments)
+ * @TODO (Angular special) handle function replaceWith, "a special jqLite.replaceWith, which can replace items which have no parents"
+ * @TODO Henrik says "$(iframe.contentDocument).remove() før man skifter URL eller fjerner iframen" (jQuery.cache og jQuery.fragments)
  */
 gui.module ( "jquery", {
 
@@ -101,7 +100,7 @@ gui.module ( "jquery", {
 				this.each ( function ( i, elm ) {
 					if ( elm.spirit ) {
 						if ( val !== undefined || del ) {
-							// @todo spirit.att.__suspend__ ???
+							// @TODO spirit.att.__suspend__ ???
 							elm.spirit.att.set ( nam, val );
 						} else {
 							res = elm.spirit.att.get ( nam );

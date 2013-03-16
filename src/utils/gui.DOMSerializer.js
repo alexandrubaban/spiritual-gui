@@ -1,7 +1,6 @@
 /**
- * # gui.DOMSerializer
  * Serialize DOM element to XHTML string.
- * @todo work on the HTML without XML...
+ * @TODO work on the HTML without XML...
  */
 gui.DOMSerializer = function DOMSerializer () {};
 	

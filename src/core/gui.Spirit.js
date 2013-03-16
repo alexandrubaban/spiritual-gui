@@ -1,8 +1,7 @@
 /**
- * # gui.Spirit
  * Base constructor for all spirits
  */
-gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
+gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 
 	/**
 	 * Spirit DOM element.
@@ -26,12 +25,12 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	 * Unique key for this spirit instance.
 	 * @type {String}
 	 */
-	spiritkey : null,
+	$instanceid : null,
 	
 	/**
 	 * Matches the property `signature` of the local `gui` object.
-	 * @todo rename this property
-	 * @todo perhapse deprecate?
+	 * @TODO rename this property
+	 * @TODO perhapse deprecate?
 	 * @type {String}
 	 */
 	signature : null,
@@ -69,7 +68,7 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	 * @deprecated
 	 * `onconfigure` gets callend immediately after construction. This 
 	 * instructs the spirit to parse configuration attributes in markup. 
-	 * @todo Explain this
+	 * @TODO Explain this
 	 */
 	onconfigure : function () {
 		//this.config.configure ();
@@ -91,7 +90,7 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	 * - the spirit element is attached to the DOM
 	 * - the element is already in DOM when the page loads and the spirit gets injected by the framework
 	 */
-	onattach : function () { // @todo Check if spirit matchesselector gui.CLASS_INVISIBLE + " *"
+	onattach : function () { // @TODO Check if spirit matchesselector gui.CLASS_INVISIBLE + " *"
 		this.window.gui.inside ( this );
 		this.life.goattach ();
 	},
@@ -194,7 +193,7 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	/**
 	 * Terminate the spirit and remove the element (optionally keep it). 
 	 * @param {boolean} keep True to leave the element on stage.
-	 * @todo Terrible boolean trap in this API
+	 * @TODO Terrible boolean trap in this API
 	 */
 	dispose : function ( keep ) {
 		if ( !keep ) {
@@ -209,7 +208,7 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	/**
 	 * Secret constructor. Doesn't do much.
 	 */
-	__construct__ : function () {},
+	$onconstruct : function () {},
 
 	/**
 	 * Mapping lazy plugins to prefixes.
@@ -312,7 +311,7 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 					try {
 						that.__null__ ();
 					} catch ( exception ) {
-						// @todo why sometimes gui.Spirit.DENIED?
+						// @TODO why sometimes gui.Spirit.DENIED?
 					}
 				}
 			}, this.signature ).dispatch ( tick, 0, this.signature );
@@ -349,17 +348,17 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	
 	/**
 	 * Extends spirit and plugins (mutating plugins) plus updates getters/setters.
-	 * @param {object} expando 
+	 * @param {object} extension 
 	 * @param {object} recurring 
 	 * @param {object} statics 
 	 * @returns {gui.Spirit}
 	 */
 	infuse : function () {
-		var C = gui.Exemplar.extend.apply ( this, arguments );
+		var C = gui.Class.extend.apply ( this, arguments );
 		C.__plugins__ = gui.Object.copy ( this.__plugins__ );
-		var breakdown = gui.Exemplar.breakdown ( arguments );
+		var b = gui.Class.breakdown ( arguments );
 		gui.Object.each ( C.__plugins__, function ( prefix, plugin ) {
-			var def = breakdown.expando [ prefix ];			
+			var def = b.protos [ prefix ];			
 			switch ( gui.Type.of ( def )) {
 				case "object" :
 					var mutant = plugin.extend ( def );
@@ -406,15 +405,15 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	
 	/**
 	 * Parse HTML string to DOM element in given document context. 
-	 * @todo This should be either powerful or removed from core.
-	 * @todo parent element awareness when inserted in document :)
+	 * @TODO This should be either powerful or removed from core.
+	 * @TODO parent element awareness when inserted in document :)
 	 * @param {Document} doc
 	 * @param {String} html
 	 * @returns {Element}
 	 */
 	parse : function ( doc, html ) {
 		if ( doc.nodeType === Node.DOCUMENT_NODE ) {
-			return new gui.HTMLParser ( doc ).parse ( html )[ 0 ]; // @todo parseOne?
+			return new gui.HTMLParser ( doc ).parse ( html )[ 0 ]; // @TODO parseOne?
 		} else {
 			throw new TypeError ( this + ".parse() expects a Document" );
 		}
@@ -434,7 +433,7 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 			if ( !plugins [ prefix ] || override ) {
 				plugins [ prefix ] = plugin;
 				proto.prefix = null;
-				gui.Exemplar.children ( this, function ( child ) {
+				gui.Class.children ( this, function ( child ) {
 					child.plugin ( prefix, plugin, override ); // recurses to descendants
 				});
 			}

@@ -1,6 +1,5 @@
 /**
- * # gui.Action
- * SpiritAction.
+ * Spirit action.
  * @param {gui.Spirit} target
  * @param {String} type
  * @param @optional {object} data
@@ -44,7 +43,7 @@ gui.Action.prototype = {
 
 	/**
 	 * Traverse iframe boundaries?
-	 * @todo cross-domain actions.
+	 * @TODO cross-domain actions.
 	 * @type {boolean}
 	 */
 	global : false,
@@ -53,7 +52,7 @@ gui.Action.prototype = {
 	 * Used when posting actions xdomain. Matches an iframespirit key.
 	 * @type {String}
 	 */
-	spiritkey : null,
+	$instanceid : null,
 
 	/**
 	 * Is action consumed?
@@ -109,9 +108,9 @@ gui.Action.ASCEND = "ascend";
 
 /**
  * Dispatch action. The dispatching spirit will not `onaction()` its own action.
- * @todo Class-like thing to carry all these scoped methods...
- * @todo support custom `gui.Action` as an argument
- * @todo common exemplar for action, broadcast etc?
+ * @TODO Class-like thing to carry all these scoped methods...
+ * @TODO support custom `gui.Action` as an argument
+ * @TODO common exemplar for action, broadcast etc?
  * @param {gui.Spirit} target
  * @param {String} type
  * @param @optional {object} data
@@ -178,7 +177,7 @@ gui.Action.stringify = function ( a, key ) {
 			}
 			return d;
 		}( a.data ));
-		a.spiritkey = key || null;
+		a.$instanceid = key || null;
 		return JSON.stringify ( a );
 	}());
 };

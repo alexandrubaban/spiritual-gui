@@ -1,7 +1,6 @@
 /**
- * # gui.IframeSpirit
- * @extends {gui.Spirit}
  * Spirit of the iframe.
+ * @extends {gui.Spirit}
  */
 gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
 
@@ -20,7 +19,7 @@ gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
 			return this.element ? this.element.contentWindow : null;
 		},
 		setter : function () {
-			// @todo Or else the getter malfunctions!
+			// @TODO Or else the getter malfunctions!
 		}
 	},
 
@@ -33,7 +32,7 @@ gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
 			return this.element ? this.element.contentDocument : null;
 		},
 		setter : function () {
-			// @todo Or else the getter malfunctions!
+			// @TODO Or else the getter malfunctions!
 		}
 	},
 
@@ -63,7 +62,7 @@ gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
 	src : function ( src ) {
 		if ( gui.Type.isString ( src )) {
 			if ( gui.IframeSpirit.isExternal ( src )) {
-				src = gui.IframeSpirit.sign ( src, this.document, this.spiritkey );
+				src = gui.IframeSpirit.sign ( src, this.document, this.$instanceid );
 				this.external = true;
 			}
 			this.element.src = src;
@@ -78,7 +77,7 @@ gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
 	/**
 	 * Handle posted message, scanning for ascending actions. 
 	 * Descending actions are handled by the documentspirit.
-	 * @todo Don't claim this as action target!
+	 * @TODO Don't claim this as action target!
 	 * @see {gui.DocumentSpirit._onmessage}
 	 * @param {String} msg
 	 */
@@ -86,7 +85,7 @@ gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
 		if ( this.external && msg.startsWith ( "spiritual-action:" )) {
 			var a = gui.Action.parse ( msg );
 			if ( a.direction === gui.Action.ASCEND ) {
-				if ( a.spiritkey === this.spiritkey ) {
+				if ( a.$instanceid === this.$instanceid ) {
 					this.action.ascendGlobal ( a.type, a.data );
 				}
 			}
@@ -98,7 +97,7 @@ gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
 
 	/**
 	 * Summon spirit.
-	 * @todo why does spirit.src method fail strangely just now? using iframe.src instead...
+	 * @TODO why does spirit.src method fail strangely just now? using iframe.src instead...
 	 * @param {Document} doc
 	 * @param @optional {String} src
 	 * @returns {gui.IframeSpirit}
@@ -109,7 +108,7 @@ gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
 		spirit.css.add ( "gui-iframe" );
 		if ( src ) {
 			if ( gui.IframeSpirit.isExternal ( src )) { // should be moved to src() method!!!!!
-				src = this.sign ( src, doc, spirit.spiritkey );
+				src = this.sign ( src, doc, spirit.$instanceid );
 				spirit.external = true;
 			}
 		} else {

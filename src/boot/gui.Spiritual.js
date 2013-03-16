@@ -1,5 +1,4 @@
 /**
- * # gui.Spiritual
  * An instance of this thing may be referenced as `gui` inside all windows. 
  * @param {Window} win Window or Worker scope
  */
@@ -19,7 +18,7 @@ gui.Spiritual.prototype = {
 	/**
 	 * Uniquely identifies this instance of `gui.Spiritual` 
 	 * knowing that other instances may exist in iframes.
-	 * @todo rename guikey or windowkey or contextkey
+	 * @TODO rename guikey or windowkey or contextkey
 	 * @type {String}
 	 */
 	signature : null,
@@ -74,7 +73,7 @@ gui.Spiritual.prototype = {
 		if ( this.debug ) {
 			switch ( this.mode ) {
 				case gui.MODE_JQUERY :
-					gui.Tick.next ( function () {  // @todo somehow not conflict with http://stackoverflow.com/questions/11406515/domnodeinserted-behaves-weird-when-performing-dom-manipulation-on-body
+					gui.Tick.next ( function () {  // @TODO somehow not conflict with http://stackoverflow.com/questions/11406515/domnodeinserted-behaves-weird-when-performing-dom-manipulation-on-body
 						gui.Observer.observe ( this.context ); // @idea move all of _step2 to next stack?
 					}, this );
 					break;
@@ -100,8 +99,8 @@ gui.Spiritual.prototype = {
 	},
 
 	/**
-	 * Get spirit for argument (argument expected to be a `spiritkey` for now).
-	 * @todo fuzzy resolver to accept elements and queryselectors
+	 * Get spirit for argument (argument expected to be a `$instanceid` for now).
+	 * @TODO fuzzy resolver to accept elements and queryselectors
 	 * @param {object} arg
 	 * @returns {gui.Spirit}
 	 */
@@ -135,7 +134,7 @@ gui.Spiritual.prototype = {
 		}
 		// modules extend gui.Spirit, use init() to extend subclass
 		var base = this.context.gui.Spirit;
-		// mixins (@todo all sorts of "decorators")
+		// mixins (@TODO all sorts of "decorators")
 		if ( gui.Type.isObject ( module.mixins )) {
 			gui.Object.each ( module.mixins, function ( name, value ) {
 				base.mixin ( name, value );
@@ -222,7 +221,7 @@ gui.Spiritual.prototype = {
 			// portal custom namespaces and members.
 			subgui._spaces = this._spaces.slice ();
 			this._spaces.forEach ( function ( ns ) {
-				 // declare (nested) namespace in external context @todo use gui.Object.assert
+				 // declare (nested) namespace in external context @TODO use gui.Object.assert
 				var external = sub, internal = this.context;
 				ns.split ( "." ).forEach ( function ( part ) {
 				  if ( !gui.Type.isDefined ( external [ part ])) {
@@ -241,7 +240,7 @@ gui.Spiritual.prototype = {
 				});
 			}, this );
 			// Portal modules to initialize the sub context
-			// @todo portal only the relevant init method?
+			// @TODO portal only the relevant init method?
 			gui.Object.each ( this._modules, function ( name, module ) {
 				this._modulelife ( module, subgui.context );
 				subgui._modules [ name ] = module;
@@ -278,7 +277,7 @@ gui.Spiritual.prototype = {
 	 * @returns {object}
 	 */
 	namespace : function ( ns, nsobject ) {	
-		if ( gui.Type.isString ( ns )) { // @todo must it be a string?
+		if ( gui.Type.isString ( ns )) { // @TODO must it be a string?
 			this._spaces.push ( ns );
 		} else {
 			throw new TypeError ( "Expected a string: gui.namespace" );
@@ -307,7 +306,7 @@ gui.Spiritual.prototype = {
 		if ( element.nodeType === Node.ELEMENT_NODE ) {
 			var doc = element.ownerDocument;
 			var win = doc.defaultView;
-			var att = element.getAttribute ( "gui" ); // @todo "data-gui"
+			var att = element.getAttribute ( "gui" ); // @TODO "data-gui"
 			// test for "gui" attribute in markup. "[" accounts for {gui.Spirit#__debug__}
 			if ( gui.Type.isString ( att ) && !att.startsWith ( "[" )) {
 				if ( att !== "" ) { // no spirit for empty string
@@ -349,7 +348,7 @@ gui.Spiritual.prototype = {
 
 	/**
 	 * Log channels to console.
-	 * @todo deprecate this (create gui.Developer).
+	 * @TODO deprecate this (create gui.Developer).
 	 */
 	debugchannels : function () {
 		var out = this._document.location.toString ();
@@ -366,7 +365,7 @@ gui.Spiritual.prototype = {
 	 */
 	destruct : function ( spirit ) {
 		var all = this._spirits;
-		var key = spirit.spiritkey;
+		var key = spirit.$instanceid;
 		delete all.inside [ key ];
 		delete all.outside [ key ];
 	},
@@ -376,12 +375,12 @@ gui.Spiritual.prototype = {
 
 	/**
 	 * Register spirit in document (framework internal method).
-	 * @todo move? rename? 
+	 * @TODO move? rename? 
 	 * @param {gui.Spirit} spirit
 	 */
 	inside : function ( spirit ) {
 		var all = this._spirits;
-		var key = spirit.spiritkey;
+		var key = spirit.$instanceid;
 		if ( !all.inside [ key ]) {
 			if ( all.outside [ key ]) {
 				delete all.outside [ key ];
@@ -392,12 +391,12 @@ gui.Spiritual.prototype = {
 
 	/**
 	 * Register spirit outside document (now scheduled for destruction).
-	 * @todo move? rename?
+	 * @TODO move? rename?
 	 * @param {gui.Spirit} spirit
 	 */
 	outside : function ( spirit ) {
 		var all = this._spirits;
-		var key = spirit.spiritkey;
+		var key = spirit.$instanceid;
 		if ( !all.outside [ key ]) {
 			if ( all.inside [ key ]) {
 				delete all.inside [ key ];
@@ -412,7 +411,7 @@ gui.Spiritual.prototype = {
 	 * @param {gui.Tick} tick
 	 */
 	ontick : function ( tick ) {
-		// @todo do we want to loose track of potential non-exited spirit?
+		// @TODO do we want to loose track of potential non-exited spirit?
 		if ( tick.type === gui.TICK_DESTRUCT_DETACHED ) {
 			gui.Object.each ( this._spirits.outside, function ( key, spirit ) {
 				if ( spirit.onexit () !== false ) { // spirit may prevent destruction
@@ -425,9 +424,9 @@ gui.Spiritual.prototype = {
 
 	/**
 	 * Invoked by the {gui.Guide} on window.unload (synchronized as final event).
-	 * @todo figure out of any of this manual garbage dumping works.
-	 * @todo naming clash with method "destruct"
-	 * @todo Think of more stuff to cleanup here...
+	 * @TODO figure out of any of this manual garbage dumping works.
+	 * @TODO naming clash with method "destruct"
+	 * @TODO Think of more stuff to cleanup here...
 	 */
 	nameDestructAlreadyUsed : function () {
 		gui.Tick.remove ( gui.TICK_DESTRUCT_DETACHED, this, this.signature );
@@ -492,7 +491,7 @@ gui.Spiritual.prototype = {
 	_modules : null,
 
 	/**
-	 * Tracking spirits by spiritkey (detached spirits are subject to destruction).
+	 * Tracking spirits by $instanceid (detached spirits are subject to destruction).
 	 * @type {Map<String,Map<String,gui.Spirit>>}
 	 */
 	_spirits : null,
@@ -511,7 +510,7 @@ gui.Spiritual.prototype = {
 	_construct : function ( win ) {
 		// patching features
 		this._spiritualaid.polyfill ( win );		
-		// compute signature (possibly identical to spiritkey of hosting iframe spirit)
+		// compute signature (possibly identical to $instanceid of hosting iframe spirit)
 		this.signature = ( function () {
 			var sig, url = location.href;
 			var key = "spiritual-signature"; // ouch, must remain configurable!
@@ -603,13 +602,13 @@ gui.Spiritual.prototype = {
 };
 
 /** 
- * @todo comment required to explain this stunt
+ * @TODO comment required to explain this stunt
  */
 Object.keys ( gui ).forEach ( function ( key ) {
 	gui.Spiritual.prototype [ key ] = gui [ key ];
 });
 
 /**
- * @todo comment even more required!
+ * @TODO comment even more required!
  */
 gui = new gui.Spiritual ( window );

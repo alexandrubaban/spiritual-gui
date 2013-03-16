@@ -1,5 +1,4 @@
 /**
- * # gui.Interface
  * Checks an object for required methods and properties.
  */
 gui.Interface = {

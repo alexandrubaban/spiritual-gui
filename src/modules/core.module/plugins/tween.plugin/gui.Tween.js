@@ -1,5 +1,4 @@
 /**
- * # gui.Tween
  * Tweening away.
  * @param {String} type
  * @param @optional {object} data
@@ -40,7 +39,7 @@ gui.Tween.prototype = {
 
 /** 
  * Coordinate a global (cross-frame) animation sequence.
- * @todo Coordinate this more or less cross-domain.
+ * @TODO Coordinate this more or less cross-domain.
  * @param {ui.Animation} animation
  * @returns {gui.Tween} but why?
  */

@@ -1,7 +1,6 @@
 /**
- * # gui.StyleSheetSpirit
+ *Spirit of the stylesheet. To be refactored.
  * @extends {gui.Spirit}
- * Spirit of the stylesheet.
  */
 gui.StyleSheetSpirit = gui.Spirit.infuse ( "gui.StyleSheetSpirit", {
 
@@ -72,7 +71,7 @@ gui.StyleSheetSpirit = gui.Spirit.infuse ( "gui.StyleSheetSpirit", {
 
 	/**
 	 * Parse CSS, channeling Spirits to selectors.
-	 * @todo more tolerant parsing algorithm!
+	 * @TODO more tolerant parsing algorithm!
 	 * @param {String} text (valid CSS syntax!) 
 	 */
 	_parse : function ( text ) {

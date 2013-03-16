@@ -1,8 +1,7 @@
 /**
- * # gui.TransitionPlugin
  * Experimental CSS transitioning plugin. Work in progress.
  * @extends {gui.Plugin}
- * @todo Just add the transitonend listener on construct?
+ * @TODO Just add the transitonend listener on construct?
  */
 gui.TransitionPlugin = gui.Plugin.extend ( "gui.TransitionPlugin", {
 
@@ -136,7 +135,7 @@ gui.TransitionPlugin = gui.Plugin.extend ( "gui.TransitionPlugin", {
 
 	/**
 	 * Default transition duration time milliseconds.
-	 * @todo actually default this
+	 * @TODO actually default this
 	 * @type {number}
 	 */
 	_default: 1000,
@@ -155,10 +154,10 @@ gui.TransitionPlugin = gui.Plugin.extend ( "gui.TransitionPlugin", {
 
 	/**
 	 * Monitor transitions using vendor-prefixed event name.
-	 * @todo confirm VendorTransitionEnd on documentElement
-	 * @todo Firefox is down
-	 * @todo this.duration ( this._default )
-	 * @todo this on static, not per instance
+	 * @TODO confirm VendorTransitionEnd on documentElement
+	 * @TODO Firefox is down
+	 * @TODO this.duration ( this._default )
+	 * @TODO this on static, not per instance
 	 * @returns {gui.TransitionPlugin}
 	 */
 	_init : function () {

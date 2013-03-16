@@ -1,8 +1,7 @@
 /**
- * # gui.EventSummary
  * Provides convenient access to an events originating 
  * window, document and spirit of the document element. 
- * @todo Fire this onmousemove only if has listeners!
+ * @TODO Fire this onmousemove only if has listeners!
  * @param {Event} e
  */
 gui.EventSummary = function ( e ) {

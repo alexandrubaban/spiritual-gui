@@ -1,11 +1,10 @@
 /**
- * # gui.Plugin
  * Base class for all spirit plugins.
- * @todo "context" should be required in constructor
- * @todo Rename "gui.Plugin"
- * @todo Rename *all* plugins to gui.SomethingPlugin :)
+ * @TODO "context" should be required in constructor
+ * @TODO Rename "gui.Plugin"
+ * @TODO Rename *all* plugins to gui.SomethingPlugin :)
  */
-gui.Plugin = gui.Exemplar.create ( "gui.Plugin", Object.prototype, {
+gui.Plugin = gui.Class.create ( "gui.Plugin", Object.prototype, {
 
 	/**
 	 * Associated spirit.
@@ -49,7 +48,7 @@ gui.Plugin = gui.Exemplar.create ( "gui.Plugin", Object.prototype, {
 	 * then we are maybe inside a Web Worker.
 	 * @param {gui.Spirit} spirit
 	 */
-	__construct__ : function ( spirit ) {
+	$onconstruct : function ( spirit ) {
 		this.spirit = spirit || null;
 		this.context = spirit ? spirit.window : null;
 	},

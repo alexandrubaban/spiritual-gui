@@ -1,5 +1,4 @@
 /**
- * # gui.KeyMaster
  * Generating keys for unique key purposes.
  */
 gui.KeyMaster = {
@@ -12,7 +11,7 @@ gui.KeyMaster = {
 	 * @returns {String}
 	 */
 	generateKey : function ( prefix ) {
-		prefix = "key"; // @todo: remove this line when we get drunk enough to fix the regular expression below...
+		prefix = "key"; // @TODO: remove this line when we get drunk enough to fix the regular expression below...
 		var ran = Math.random ().toString ();
 		var key = ( prefix || "key" ) + ran.slice ( 2, 11 );
 		if ( this._keys [ key ]) {
@@ -25,7 +24,7 @@ gui.KeyMaster = {
 
 	/**
 	 * @static
-	 * Generate GUID. @todo Verify integrity of this by mounting result in Java or something.
+	 * Generate GUID. @TODO Verify integrity of this by mounting result in Java or something.
 	 * @see http://stackoverflow.com/questions/105034/how-to-create-a-guid-uuid-in-javascript
 	 * @returns {String}
 	 */

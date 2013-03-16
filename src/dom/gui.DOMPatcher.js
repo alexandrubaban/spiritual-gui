@@ -1,5 +1,4 @@
 /**
- * # gui.DOMPatcher
  * Patching bad WebKit support for overloading DOM getters and setters, 
  * specifically innerHTML, outerHTML and textContent.This operation is 
  * very time consuming, so let's pray for the related bug to fix soon.

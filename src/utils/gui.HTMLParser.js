@@ -1,10 +1,9 @@
 /**
- * # gui.HTMLParser
  * Parse HTML string to DOM node(s) in given document context. 
  * Adapted from https://github.com/petermichaux/arbutus
- * @todo High level awareness of HTMLparser elements. Plugin ui.SpiritDOM and ui.Spirit.parse should know about added historic HTML chrome and strip when inserted.
+ * @TODO High level awareness of HTMLparser elements. Plugin ui.SpiritDOM and ui.Spirit.parse should know about added historic HTML chrome and strip when inserted.
  * @param {Document} doc
- * @todo: make this whole thing static
+ * @TODO: make this whole thing static
  */
 gui.HTMLParser = function HTMLParser ( doc ) {
 	if ( doc && doc.nodeType ) {
@@ -88,7 +87,7 @@ gui.HTMLParser._fixes = new Map ();
 
 /**
  * Populate fixes.
- * @todo "without the option in the next line, the parsed option will always be selected."
+ * @TODO "without the option in the next line, the parsed option will always be selected."
  */
 ( function () {
 	gui.Object.each ({

@@ -1,10 +1,9 @@
 /**
- * # gui.FileLoader
  * We load a text file from the server. This might be used instead 
  * of a XMLHttpRequest to cache the result and save repeated lookups.
- * @todo custom protocol handlers to load from localstorage
+ * @TODO custom protocol handlers to load from localstorage
  */
-gui.FileLoader = gui.Exemplar.create ( "gui.FileLoader", Object.prototype, {
+gui.FileLoader = gui.Class.create ( "gui.FileLoader", Object.prototype, {
 
 	/**
 	 * Construction time again.
@@ -92,7 +91,7 @@ gui.FileLoader = gui.Exemplar.create ( "gui.FileLoader", Object.prototype, {
 	},
 	
 
-	// Secret .........................................................
+	// Secrets ..........................................................
 
 	/**
 	 * Secret constructor.
@@ -100,7 +99,7 @@ gui.FileLoader = gui.Exemplar.create ( "gui.FileLoader", Object.prototype, {
 	 * @param {Window} window
 	 * @param {function} handler
 	 */
-	__construct__ : function ( doc ) {
+	$onconstruct : function ( doc ) {
 		if ( doc && doc.nodeType === Node.DOCUMENT_NODE ) {
 			this.onconstruct ( doc );
 		} else {

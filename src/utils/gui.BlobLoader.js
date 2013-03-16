@@ -1,5 +1,5 @@
 /**
- * # gui.BlobLoader
+ * Blob file loader. Work in progress.
  */
 gui.BlobLoader = {
 

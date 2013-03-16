@@ -1,5 +1,4 @@
 /**
- * # gui.SpiritualAid
  * Polyfilling missing features from ES5 and selected features from ES6. 
  * Some of these are implemented weakly and should be used with caution 
  * (See Map, Set and WeakMap).
@@ -36,7 +35,7 @@ gui.SpiritualAid = {
 			var def = whit [ key ];				
 			if ( what [ key ] === undefined ) {
 				if ( def.get && def.set ) {
-					 // @todo look at element.dataset polyfill (iOS?)
+					 // @TODO look at element.dataset polyfill (iOS?)
 				} else {
 					what [ key ] = def;
 				}
@@ -80,9 +79,9 @@ gui.SpiritualAid = {
 	 */
 	_arrays : function ( win ) {
 		this._extend ( win.Array.prototype, {
-			remove : function remove ( from, to ) {
-				this.splice ( from, !to || 1 + to - from + ( ! ( to < 0 ^ from >= 0 ) && ( to < 0 || -1 ) * this.length ));
-				return this.length;
+			remove : function remove ( from, to ) { 
+				console.warn ( "Array.prototype.remove is deprecated. Use gui.Array.remove(array,from,to);" );
+				return gui.Array.remove ( this, from, to ); // (gui.Array not parsed yet) 
 			}
 		});
 		this._extend ( win.Array, {
@@ -154,8 +153,8 @@ gui.SpiritualAid = {
 
 	/**
 	 * ES6 `Map` and `Set` are polyfilled as simple sugar and should only be used with primitive keys. 
-	 * @todo investigate support for Object.getPrototypeOf(win)
-	 * @todo credit whatever source we grabbed WeakMap from (?)
+	 * @TODO investigate support for Object.getPrototypeOf(win)
+	 * @TODO credit whatever source we grabbed WeakMap from (?)
 	 * @param {Window} win
 	 */
 	_globals : function ( win ) {
@@ -211,7 +210,7 @@ gui.SpiritualAid = {
 				};
 				return Set;
 			})(),
-			WeakMap : ( function () { // @todo clean this up
+			WeakMap : ( function () { // @TODO clean this up
 				function WeakMap () {
 						var keys = [], values = [];
 						function del(key) {
@@ -258,8 +257,8 @@ gui.SpiritualAid = {
 
 	/**
 	 * Patching cheap DHTML effects with super-simplistic polyfills.
-	 * @todo cancelAnimationFrame
-	 * @todo use MessageChannel (@http://www.nonblocking.io/2011/06/windownexttick.html) pending moz bug#677638
+	 * @TODO cancelAnimationFrame
+	 * @TODO use MessageChannel (@http://www.nonblocking.io/2011/06/windownexttick.html) pending moz bug#677638
 	 * @param [Window} win
 	 */
 	_effects : function ( win ) {

@@ -1,5 +1,4 @@
 /**
- * # gui.IBroadcastHandler
  * Interface BroadcastHandler.
  */
 gui.IBroadcastHandler = {

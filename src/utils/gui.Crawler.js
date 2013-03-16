@@ -1,7 +1,6 @@
 /**
- * # gui.Crawler
  * Crawling the DOM ascending or descending.
- * @todo method <code>descendSub</code> to skip start element (and something similar for ascend)
+ * @TODO method <code>descendSub</code> to skip start element (and something similar for ascend)
  * @param @optional {String} type
  */
 gui.Crawler = function ( type ) {
@@ -13,13 +12,13 @@ gui.Crawler.prototype = {
 
 	/**
 	 * Recursion directives.
-	 * @todo skip children, skip element etc
+	 * @TODO skip children, skip element etc
 	 */
 	CONTINUE: 0,
 	STOP : 1,
 
 	/**
-	 * Identifies crawler. @todo spirit support for this!
+	 * Identifies crawler. @TODO spirit support for this!
 	 * @type {String}
 	 */
 	type : null,
@@ -37,7 +36,7 @@ gui.Crawler.prototype = {
 
 	/**
 	 * Crawl DOM ascending.
-	 * @todo ascendGlobal should do the global
+	 * @TODO ascendGlobal should do the global
 	 * @param {Element|gui.Spirit} start
 	 * @param {object} handler
 	 */
@@ -82,8 +81,8 @@ gui.Crawler.prototype = {
 
 	/**
 	 * Crawl DOM descending.
-	 * @todo descendGlobal
-	 * @todo Transcend into iframes.
+	 * @TODO descendGlobal
+	 * @TODO Transcend into iframes.
 	 * @param {object} start Spirit or Element
 	 * @param {object} handler
 	 */
@@ -94,7 +93,7 @@ gui.Crawler.prototype = {
 			elm = elm.documentElement;
 		} else if ( elm.localName === "iframe" ) {
 			if ( this.global ) {
-				console.log ( "@todo descend into iframes" );
+				console.log ( "@TODO descend into iframes" );
 			}
 		}
 		this._descend ( elm, handler, true );
@@ -198,7 +197,7 @@ gui.Crawler.prototype = {
 			key = cut.pop (),
 			uri = cut.join ( "/" );
 		} else {
-			uri = "*"; // @todo
+			uri = "*"; // @TODO
 			key = thiswin.gui.signature;
 		}
 		handler.transcend ( thatwin, uri, key );
@@ -213,7 +212,7 @@ gui.Crawler.DESCENDING = "descending";
 
 /**
  * Bitmask setup supposed to be going on here.
- * @todo SKIP_CHILDREN and TELEPORT_ELSEWEHERE stuff.
+ * @TODO SKIP_CHILDREN and TELEPORT_ELSEWEHERE stuff.
  */
 gui.Crawler.CONTINUE = 0;
 gui.Crawler.STOP = 1;

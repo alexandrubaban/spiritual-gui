@@ -1,5 +1,4 @@
 /**
- * # gui.Type
  * Type checking studio. All checks are string based not to cause 
  * confusion when checking the types of objects in another window.
  */
@@ -21,7 +20,7 @@ gui.Type = {
 
 	/**
 	 * Is object defined?
-	 * @todo unlimited arguments support
+	 * @TODO unlimited arguments support
 	 * @param {object} o
 	 * @returns {boolean}
 	 */
@@ -65,6 +64,15 @@ gui.Type = {
 	},
 
 	/**
+	 * Is likely a method?
+	 * @param {object} o
+	 * @return {boolean}
+	 */
+	isMethod : function ( o ) {
+		return this.isFunction ( o ) && !this.isConstructor ( o );
+	},
+
+	/**
 	 * Is spirit instance?
 	 * @returns {boolean}
 	 */
@@ -84,8 +92,8 @@ gui.Type = {
 
 	/**
 	 * Is constructor for a Spirit?
-	 * @todo Why can't isConstructor be used here?
-	 * @todo something more reliable than "portals".
+	 * @TODO Why can't isConstructor be used here?
+	 * @TODO something more reliable than "portals".
 	 * @param {function} what
 	 * @returns {boolean}
 	 */
@@ -96,7 +104,7 @@ gui.Type = {
 	/**
 	 * Autocast string to an inferred type. "123" will 
 	 * return a number, "false" will return a boolean.
-	 * @todo move to gui.Type :)
+	 * @TODO move to gui.Type :)
 	 * @param {String} string
 	 * @returns {object}
 	 */
@@ -121,32 +129,7 @@ gui.Type = {
 		return result;
 	},
 
-	/**
-	 * Resolve single argument into an array with one 
-	 * or more entries. Strings to be split at spaces.
-	 * @param {object} arg
-	 * @returns {Array<object>}
-	 */
-	list : function ( arg ) {
-		var list = null;
-		switch ( this.of ( arg )) {
-			case "array" :
-				list = arg;
-				break;
-			case "string" :
-				list = arg.split ( " " );
-				break;
-			case "nodelist" :
-			case "arguments" :
-				list = Array.prototype.slice.call ( arg );
-				break;
-			default :
-				list = [ arg ];
-				break;
-		}
-		return list;
-	},
-
+	
 	// Private ...........................................................
 
 	/**

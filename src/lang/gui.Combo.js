@@ -1,13 +1,12 @@
 /**
- * # gui.Combinator
  * From Raganwalds "Method Combinators".
  * @see https://github.com/raganwald/method-combinators/blob/master/README-JS.md
  * @see https://github.com/raganwald/homoiconic/blob/master/2012/09/precondition-and-postcondition.md
  */
-gui.Combinator = {
+gui.Combo = {
 
 	/**
-	 * Decorate before.
+	 * Decorate function before.
 	 * @param {function} decoration
 	 * @returns {function}
 	 */
@@ -21,45 +20,45 @@ gui.Combinator = {
 	},
 
 	/**
-	 * Decorate after.
+	 * Decorate function after.
 	 * @param {function} decoration
 	 * @returns {function}
 	 */
 	after : function ( decoration ) {
 		return function ( base ) {
 			return function () {
-				var __value__ = base.apply ( this, arguments );
+				var result = base.apply ( this, arguments );
 				decoration.apply ( this, arguments );
-				return __value__;
+				return result;
 			};
 		};
 	},
 
 	/**
-	 * Decorate around.
+	 * Decorate function around.
 	 * @param {function} decoration
 	 * @returns {function}
 	 */
 	around : function ( decoration ) {
 		return function ( base ) {
 			return function () {
-				var argv, callback, __value__, that = this, slice = gui.Combinator._slice;
+				var argv, callback, result, that = this, slice = gui.Combo._slice;
 				argv = 1 <= arguments.length ? slice.call ( arguments, 0 ) : [];
-				__value__ = void 0;
+				result = void 0;
 				callback = function () {
-					return __value__ = base.apply ( that, argv );
+					return result = base.apply ( that, argv );
 				};
 				decoration.apply ( this, [ callback ].concat ( argv ));
-				return __value__;
+				return result;
 			};
 		};
 	},
 
 	/**
-	 * Decorate provided. Note that we added support for an otherwise otherwise.
+	 * Decorate function provided with support for an otherwise operation.
 	 * @param {function} condition
 	 */
-	provided : function ( condition ){
+	provided : function ( condition ) {
 		return function ( base, otherwise ) {
 			return function () {
 				if ( condition.apply ( this, arguments )) {
@@ -71,8 +70,37 @@ gui.Combinator = {
 		};
 	},
 
+	/**
+	 * Make function return `this` if otherwise it would return `undefined`. 
+	 * Variant of the `fluent` combinator which would always returns `this`. 
+	 * We (will) use this extensively to ensure API consistancy, but we might 
+	 * remove it for a theoretical performance gain once we have a test suite.
+	 * @param {function} base
+	 * @returns {function}
+	 */
+	chained : function ( base ) {
+		return function () {
+			var result = base.apply ( this, arguments );
+			return result === undefined ? this : result;
+		};
+	},
+
+	/**
+	 * Simply output the input. Wonder what it could be.
+	 * @param {object} subject
+	 * @return {object}
+	 */
+	identity : function ( subject ) {
+		return subject;
+	},
+
 
 	// Private ..........................................................
 
+	/**
+	 * Slice it once and for all.
+	 * @type {function}
+	 */
 	_slice : [].slice
+	
 };

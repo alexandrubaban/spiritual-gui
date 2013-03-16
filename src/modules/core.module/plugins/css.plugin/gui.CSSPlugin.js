@@ -1,5 +1,4 @@
 /**
- * # gui.CSSPlugin
  * Spirit styling studio.
  * @extends {gui.Plugin}
  */
@@ -202,7 +201,7 @@ gui.CSSPlugin = gui.Plugin.extend ( "gui.CSSPlugin", {
 
 	 /**
 	 * Set single element.style property (use style() for multiple)
-	 * @todo also automate shorthands such as "10px 20px 10px 20px"
+	 * @TODO also automate shorthands such as "10px 20px 10px 20px"
 	 * @param {Element}
 	 * @param {String} prop
 	 * @returns {gui.CSSPlugin}
@@ -226,7 +225,7 @@ gui.CSSPlugin = gui.Plugin.extend ( "gui.CSSPlugin", {
 	},
 
 	 /**
-	 * @todo Get element.style property; if this has been set. 
+	 * @TODO Get element.style property; if this has been set. 
 	 * Not to be confused with compute() for computedStyle!!!
 	 * @param {Element}
 	 * @param {String} prop
@@ -316,7 +315,7 @@ gui.CSSPlugin = gui.Plugin.extend ( "gui.CSSPlugin", {
 	/**
 	 * Setter shorthands will autosuffix properties that require units 
 	 * in support of the syntax: this.css.width = 300;  * no method()
-	 * @todo add tons of things to this list
+	 * @TODO add tons of things to this list
 	 * @type {Map<String,String>
 	 */
 	_shorthands : {
@@ -384,7 +383,7 @@ gui.CSSPlugin = gui.Plugin.extend ( "gui.CSSPlugin", {
 					var test = this._camelcase ( prop.replace ( "-beta-", vendor ));
 					if ( element.style [ test ] !== undefined ) {
 						if ( vendors.length > 2 ) {
-							this._vendors = [ "", vendor ]; // @todo at startup
+							this._vendors = [ "", vendor ]; // @TODO at startup
 						}
 						fixt = test;
 						return false;

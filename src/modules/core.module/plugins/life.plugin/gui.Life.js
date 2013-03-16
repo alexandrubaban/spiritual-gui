@@ -1,5 +1,4 @@
 /**
- * # gui.Life
  * SpiritLife is a non-bubbling event type that covers the life cycle of a spirit.
  * @see {gui.LifePlugin}
  * @param {gui.Spirit} target

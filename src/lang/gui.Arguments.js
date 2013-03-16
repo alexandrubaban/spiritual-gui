@@ -1,8 +1,46 @@
 /**
- * # gui.Arguments
  * Function argument type checking studio.
  */
 gui.Arguments = {
+
+	/**
+	 * Forgiving arguments matcher. 
+	 * Ignores action if no match.
+	 */
+	provided : function ( /* type1,type2,type3... */ ) {
+		var types = gui.Object.toArray ( arguments );
+		return function ( action ) {
+			return function () {
+				if ( gui.Arguments._match ( arguments, types )) {
+					return action.apply ( this, arguments );
+				}
+			};
+		};
+	},
+
+	/**
+	 * Revengeful arguments validator. 
+	 * Throws an exception if no match.
+	 */
+	confirmed : function ( /* type1,type2,type3... */ ) {
+		var types = gui.Object.toArray ( arguments );
+		return function ( action ) {
+			return function () {
+				if ( gui.Arguments._validate ( arguments, types )) {
+					return action.apply ( this, arguments );
+				}
+			};
+		};
+	},
+
+
+	// Private ...........................................................
+	
+	/**
+	 * Validating mode?
+	 * @type {boolean}
+	 */
+	_validating : false,
 
 	/**
 	 * Use this to check the runtime signature of a function call: 
@@ -12,42 +50,25 @@ gui.Arguments = {
 	 * Note that `gui.Type.of` may return different xbrowser results 
 	 * for certain exotic objects. Use the pipe char to compensate: 
 	 * gui.Arguments.match ( arguments, "window|domwindow" );
-	 * @param {object} args Array or array-like object
 	 * @returns {boolean}
 	 */
-	match : function () {
-		var list = Array.prototype.slice.call ( arguments );
-		var args = list.shift ();
-		if ( gui.Type.isArguments ( args )) {
-			return list.every ( function ( test, index ) {
-				return this._matches ( test, args [ index ], index );
-			}, this );
-		} else {
-			throw new Error ( "Expected an Arguments object" );
-		}
+	_match : function ( args, types ) {
+		return types.every ( function ( type, index ) {
+			return this._matches ( type, args [ index ], index );
+		}, this );
 	},
 
 	/**
 	 * Strict type-checking facility to throw exceptions on failure. 
-	 * @todo at some point, return true unless in developement mode.
-	 * @param {object} args Array-like 
+	 * @TODO at some point, return true unless in developement mode.
 	 * @returns {boolean}
 	 */
-	validate : function () {
-		this._validate = true;
-		var is = this.match.apply ( this, arguments );
-		this._validate = false;
+	_validate : function ( args, types ) {
+		this._validating = true;
+		var is = this._match ( args, types );
+		this._validating = false;
 		return is;
 	},
-
-
-	// Private ...........................................................
-
-	/**
-	 * Validating mode?
-	 * @type {boolean}
-	 */
-	_validate : false,
 
 	/**
 	 * Extract expected type of (optional) argument.
@@ -73,7 +94,7 @@ gui.Arguments = {
 			|| ( !needs && input === "undefined" ) 
 			|| ( !needs && split.indexOf ( "*" ) >-1 ) 
 			|| split.indexOf ( input ) >-1 );
-		if ( !match && this._validate ) {
+		if ( !match && this._validating ) {
 			this._error ( index, xpect, input );
 		}
 		return match;

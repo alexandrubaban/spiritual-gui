@@ -1,9 +1,8 @@
 /**
- * # gui.DOMCombos
  * This is where it gets interesting.
- * @todo Standard DOM exceptions for missing arguments and so on.
- * @todo insertAdjecantHTML
- * @todo DOM4 methods
+ * @TODO Standard DOM exceptions for missing arguments and so on.
+ * @TODO insertAdjecantHTML
+ * @TODO DOM4 methods
  */
 gui.DOMCombos = {
 
@@ -31,7 +30,7 @@ gui.DOMCombos = {
 	 */
 	_create : function () {
 
-		var combo = gui.Combinator;
+		var combo = gui.Combo;
 		var guide = gui.Guide;
 		
 		/**
@@ -97,7 +96,7 @@ gui.DOMCombos = {
 
 		/**
 		 * Spirit-aware removeattribute.
-		 * @todo use the post combo?
+		 * @TODO use the post combo?
 		 * @param {String} att
 		 */
 		var delAttAfter = combo.after ( function ( att ) {
@@ -112,7 +111,7 @@ gui.DOMCombos = {
 		 */
 		var suspending = combo.around ( function ( action ) {
 			return gui.Observer.suspend ( this, function () {
-				return action.apply ( this, arguments );
+				return action ();
 			}, this );
 		});
 
@@ -133,7 +132,7 @@ gui.DOMCombos = {
 		/**
 		 * Detach `this`.
 		 */
-		var parent = null; // @todo unref this at some point
+		var parent = null; // @TODO unref this at some point
 		var materializeThisBefore = combo.before ( function () {
 			parent = this.parentNode;
 			guide.materialize ( this );
@@ -159,7 +158,7 @@ gui.DOMCombos = {
 
 		/**
 		 * Pretend nothing happened when running in "managed" mode.
-		 * @todo Simply mirror this prop with an internal boolean
+		 * @TODO Simply mirror this prop with an internal boolean
 		 */
 		var ifEnabled = combo.provided ( function () {
 			return this.ownerDocument.defaultView.gui.mode !== gui.MODE_MANAGED;

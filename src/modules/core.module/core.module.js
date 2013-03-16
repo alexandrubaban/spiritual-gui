@@ -1,6 +1,5 @@
 /**
- * # Module "core"
- * Injects methods into {gui.Spirit} and such stuff.
+ * Injects methods into {gui.Spirit} and such.
  */
 gui.module ( "core", {
 
@@ -10,10 +9,10 @@ gui.module ( "core", {
 	channels : [
 		
 		[ "html", "gui.DocumentSpirit" ],
-		[ ".gui-styles", "gui.StyleSheetSpirit" ], // @todo fix or deprecate
+		[ ".gui-styles", "gui.StyleSheetSpirit" ], // @TODO fix or deprecate
 		[ ".gui-iframe", "gui.IframeSpirit" ],
 		[ ".gui-window", "gui.WindowSpirit" ],
-		[ ".gui-action", "gui.ActionSpirit" ], // @todo fix or deprecate
+		[ ".gui-action", "gui.ActionSpirit" ], // @TODO fix or deprecate
 		[ ".gui-cover",  "gui.CoverSpirit" ],
 		[ ".gui-spirit", "gui.Spirit" ]
 	],

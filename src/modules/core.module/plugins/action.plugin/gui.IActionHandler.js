@@ -1,5 +1,4 @@
 /**
- * # gui.IActionHandler
  * Interface ActionHandler.
  */
 gui.IActionHandler = {
