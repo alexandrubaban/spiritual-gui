@@ -152,9 +152,9 @@ gui.Guide = {
 
 	/**
 	 * Dispell spirits from element and descendants. This destructs the spirit (immediately).
-	 * @param {Element} element
+	 * @param {Element|Document} node
 	 */
-	exorcise : function ( element ) {
+	exorcise : function ( node ) {
 		this._collect ( element, false, gui.CRAWLER_DISPOSE ).forEach ( function ( spirit ) {
 			if ( !spirit.life.destructed ) {
 				spirit.ondestruct ( true );
@@ -317,16 +317,14 @@ gui.Guide = {
 	 */
 	_collect : function ( node, skip, id ) {
 		var list = [];
-		if ( node.nodeType === Node.ELEMENT_NODE ) {
-			new gui.Crawler ( id ).descend ( node, {
-			   handleSpirit : function ( spirit ) {
-				   if ( skip && spirit.element === node ) {}
-				   else if ( !spirit.life.destructed ) {
-					   list.push ( spirit );
-				   }
+		new gui.Crawler ( id ).descend ( node, {
+		   handleSpirit : function ( spirit ) {
+			   if ( skip && spirit.element === node ) {}
+			   else if ( !spirit.life.destructed ) {
+				   list.push ( spirit );
 			   }
-			});
-		}
+		   }
+		});
 		return list;
 	},
 
