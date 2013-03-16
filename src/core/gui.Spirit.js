@@ -146,11 +146,11 @@ gui.Spirit = gui.Exemplar.create ( "gui.Spirit", Object.prototype, {
 	 */
 	ondestruct : function ( now ) {
 		this.window.gui.destruct ( this );
-		this.life.godestruct ();
-		this.__debug__ ( false );
 		if ( this.window.gui.debug ) {
-			this.__destruct__ ( now );
+			this.__debug__ ( false );
 		}
+		this.life.godestruct ();
+		this.__destruct__ ( now );
 	},
 	
 	// Handlers .....................................................................
