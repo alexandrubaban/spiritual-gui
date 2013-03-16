@@ -3787,11 +3787,11 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	 */
 	ondestruct : function ( now ) {
 		this.window.gui.destruct ( this );
-		this.life.godestruct ();
-		this.__debug__ ( false );
 		if ( this.window.gui.debug ) {
-			this.__destruct__ ( now );
+			this.__debug__ ( false );
 		}
+		this.life.godestruct ();
+		this.__destruct__ ( now );
 	},
 	
 	// Handlers .....................................................................
@@ -10238,20 +10238,21 @@ gui.module ( "jquery", {
 		// manage invoker subtree.
 		[ "html", "empty", "text" ].forEach ( function ( method ) {
 			var old = plugin [ method ];
-			plugin [ method ] = function ( arg ) {
-				var res, b = breakdown ( this.spirit );
+			plugin [ method ] = function () {
+				var args = arguments, res;
+				var b = breakdown ( this.spirit );
 				if ( b.is$ ) {
 					if ( b.dom ){
 						gui.Guide.materializeSub ( b.elm );
 					}
 					res = gui.Observer.suspend ( b.elm, function () {
-						return old.call ( this, arg );
+						return old.apply ( this, args );
 					}, this );
 					if ( b.dom && method === "html" ) {
 						gui.Guide.spiritualizeSub ( b.elm );
 					}
 				} else {
-					res = old.call ( this, arg );
+					res = old.apply ( this, args );
 				}
 				return res;
 			};
@@ -10259,17 +10260,18 @@ gui.module ( "jquery", {
 		// manage invoker itself.
 		[ "remove" ].forEach ( function ( method ) {
 			var old = plugin [ method ];
-			plugin [ method ] = function ( arg ) {
-				var res, b = breakdown ( this.spirit );
+			plugin [ method ] = function () {
+				var args = arguments, res;
+				var b = breakdown ( this.spirit );
 				if ( b.is$ ) {
 					if ( b.dom ) {
 						gui.Guide.materialize ( b.elm );
 					}
 					res = gui.Observer.suspend ( b.elm, function () {
-						return old.call ( this, arg );
+						return old.apply ( this, args );
 					}, this );
 				} else {
-					res = old.call ( this, arg );
+					res = old.apply ( this, args );
 				}
 				return res;
 			};
@@ -11401,10 +11403,10 @@ gui.Guide = {
 
 	/**
 	 * Dispell spirits from element and descendants. This destructs the spirit (immediately).
-	 * @param {Element} element
+	 * @param {Element|Document} node
 	 */
-	exorcise : function ( element ) {
-		this._collect ( element, false, gui.CRAWLER_DISPOSE ).forEach ( function ( spirit ) {
+	exorcise : function ( node ) {
+		this._collect ( node, false, gui.CRAWLER_DISPOSE ).forEach ( function ( spirit ) {
 			if ( !spirit.life.destructed ) {
 				spirit.ondestruct ( true );
 			}
@@ -11566,16 +11568,14 @@ gui.Guide = {
 	 */
 	_collect : function ( node, skip, id ) {
 		var list = [];
-		if ( node.nodeType === Node.ELEMENT_NODE ) {
-			new gui.Crawler ( id ).descend ( node, {
-			   handleSpirit : function ( spirit ) {
-				   if ( skip && spirit.element === node ) {}
-				   else if ( !spirit.life.destructed ) {
-					   list.push ( spirit );
-				   }
+		new gui.Crawler ( id ).descend ( node, {
+		   handleSpirit : function ( spirit ) {
+			   if ( skip && spirit.element === node ) {}
+			   else if ( !spirit.life.destructed ) {
+				   list.push ( spirit );
 			   }
-			});
-		}
+		   }
+		});
 		return list;
 	},
 
