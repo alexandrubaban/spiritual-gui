@@ -153,7 +153,7 @@ gui.Guide = {
 	 * @param {Element|Document} node
 	 */
 	exorcise : function ( node ) {
-		this._collect ( element, false, gui.CRAWLER_DISPOSE ).forEach ( function ( spirit ) {
+		this._collect ( node, false, gui.CRAWLER_DISPOSE ).forEach ( function ( spirit ) {
 			if ( !spirit.life.destructed ) {
 				spirit.ondestruct ( true );
 			}

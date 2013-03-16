@@ -267,7 +267,7 @@ gui.module ( "jquery", {
 						gui.Guide.spiritualizeSub ( b.elm );
 					}
 				} else {
-					res = old.apply ( this, arg );
+					res = old.apply ( this, args );
 				}
 				return res;
 			};
