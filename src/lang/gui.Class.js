@@ -41,7 +41,13 @@ gui.Class = {
 	},
 	
 
-	// Private ..................................................................
+	// Private ..............................................................................
+
+	/**
+	 * Mapping classes to keys.
+	 * @type {Map<String,gui.Class>}
+	 */
+	_classes : Object.create ( null ),
 
 	/**
 	 * Nameless name.
@@ -50,10 +56,28 @@ gui.Class = {
 	_ANONYMOUS : "Anonymous",
 
 	/**
-	 * Mapping classes to keys.
-	 * @type {Map<String,gui.Class>}
+	 * Compute constructor body string. The $name will be 
+	 * substituted for the class name. Note that if called 
+	 * without the 'new' keyword, the function acts as a 
+	 * shortcut the the MyClass.extend method.
+	 * @type {String}
 	 */
-	_classes : Object.create ( null ),
+	_BODY : ( function ( $name ) {
+		var body = $name.toString ().trim ();
+		return body.slice ( body.indexOf ( "{") + 1, -1 );
+	}(
+		function $name () {
+			if ( this instanceof $name === false ) {
+				return $name.extend.apply ( $name, arguments );
+			} else {
+				this.$instanceid = gui.KeyMaster.generateKey ( "id" );
+				var constructor = this.$onconstruct || this.onconstruct;
+				if ( gui.Type.isFunction ( constructor )) {
+					constructor.apply ( this, arguments );
+				}
+			}
+		}
+	)),
 	
 	/**
 	 * Breakdown arguments for base exemplar only (has one extra argument).
@@ -98,18 +122,23 @@ gui.Class = {
 	 * @returns {function}
 	 */
 	_createclass : function ( SuperC, proto, name ) {
-		var C = gui.Function.create ( name, null, this._body );
+		name = name || gui.Class._ANONYMOUS;
+		var C = gui.Function.create ( name, null, this._namedbody ( name ));
 		C.$classid = gui.KeyMaster.generateKey ( "class" );
 		C.prototype = Object.create ( proto || null );
 		C.prototype.constructor = C;
-		this._internals ( C, SuperC );
-		[ "extend", "mixin" ].forEach ( function ( method ) {
-			C [ method ] = this [ method ];
-		}, this );
-		this._name ( C, name );
+		C = this._internals ( C, SuperC );
+		C = this._interface ( C );
+		C = this._nameclass ( C, name );
 		return C;
 	},
 
+	/**
+	 * Create subclass for given class.
+	 * @param {funciton} SuperC
+	 * @param {Object} args
+	 * @return {function}
+	 */
 	_createsubclass : function ( SuperC, args ) {
 		args = this.breakdown ( args );
 		SuperC.__super__ = SuperC.__super__ || new gui.Super ( SuperC );
@@ -134,7 +163,7 @@ gui.Class = {
 		});
 		gui.Accessors.support ( C, protos ); // @TODO what about base?
 		gui.Super.support ( SuperC, C, protos );
-		this._name ( C, name );
+		C = this._nameclass ( C, name );
 		return this._profiling ( C );
 	},
 
@@ -158,7 +187,7 @@ gui.Class = {
 	},
 
 	/**
-	 * Computing internal class propeties.
+	 * Setup framework internal propeties.
 	 * @param {function} C
 	 * @param @optional {function} superclass
 	 * @param @optional {Map<String,object>} recurring
@@ -176,15 +205,27 @@ gui.Class = {
 	},
 
 	/**
+	 * Setup standard static methods for extension and mixins.
+	 * @param {function} C
+	 * @returns {function}
+	 */
+	_interface : function ( C ) {
+		[ "extend", "mixin" ].forEach ( function ( method ) {
+			C [ method ] = this [ method ];
+		}, this );
+		return C;
+	},
+
+	/**
 	 * Name constructor and instance.
 	 * @param {function} C
 	 * @param {String} name
 	 * @returns {function}
 	 */
-	_name : function ( C, name ) {
+	_nameclass : function ( C, name ) {
 		name = name || gui.Class._ANONYMOUS;
-		this._doname ( C, "function", name );
-		this._doname ( C.prototype, "object", name );
+		this._namedthing ( C, "function", name );
+		this._namedthing ( C.prototype, "object", name );
 		return C;
 	},
 
@@ -194,8 +235,8 @@ gui.Class = {
 	 * @param {String} type
 	 * @param {String} name
 	 */
-	_doname : function ( what, type, name ) {
-		what.displayName = name; // not working :/
+	_namedthing : function ( what, type, name ) {
+		what.displayName = name; // dysfunctional
 		if ( !what.hasOwnProperty ( "toString" )) {
 			what.toString = function toString () {
 				return "[" + type + " " + name + "]";
@@ -204,17 +245,16 @@ gui.Class = {
 	},
 
 	/**
-	 * Constructor body common to all exemplars.
-	 * @TODO Return new this if not called with new keyword
-	 * @TODO Why doesn't all this stuff work???????????????
-	 * @type {String}
+	 * Compute constructor body for class of given name.
+	 * @param  {[type]} name [description]
+	 * @return {[type]}      [description]
 	 */
-	_body : "" +
-	  "this.$instanceid = gui.KeyMaster.generateKey ( \"id\" );\n" +
-		"var constructor = this.$onconstruct || this.onconstruct;\n" +
-		"if ( gui.Type.isFunction ( constructor )) {\n" +
-			"constructor.apply ( this, arguments );\n" +
-		"}"
+	_namedbody : function ( name ) {
+		return this._BODY.replace ( 
+			new RegExp ( "\\$name", "gm" ), 
+			gui.Function.safename ( name )
+		);
+	}
 };
 
 
@@ -247,7 +287,7 @@ gui.Object.each ({
 		if ( !gui.Type.isDefined ( this.prototype [ name ]) || override ) {
 			this.prototype [ name ] = value;
 			gui.Class.descendantsAndSelf ( this, function ( C ) {
-				if ( C.__super__ ) { // mixin added to _super objects as well...
+				if ( C.__super__ ) { // mixed in method gets added to the _super objects...
 					gui.Super.generateStub ( C.__super__, C.prototype, name );
 				}
 			});
