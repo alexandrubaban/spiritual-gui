@@ -352,9 +352,6 @@ gui.CSSPlugin = gui.Plugin.extend ( "gui.CSSPlugin", {
 					vendors.every ( function ( vendor ) {
 						var test = this._camelcase ( part.replace ( "-beta-", vendor ));
 						if ( element.style [ test ] !== undefined ) {
-							if ( vendors.length > 2 ) {
-								this._vendors = [ "", vendor ];
-							}
 							parts.push ( part.replace ( "-beta-", vendor ));
 							return false;
 						}
@@ -382,9 +379,6 @@ gui.CSSPlugin = gui.Plugin.extend ( "gui.CSSPlugin", {
 				vendors.every ( function ( vendor ) {
 					var test = this._camelcase ( prop.replace ( "-beta-", vendor ));
 					if ( element.style [ test ] !== undefined ) {
-						if ( vendors.length > 2 ) {
-							this._vendors = [ "", vendor ]; // @TODO at startup
-						}
 						fixt = test;
 						return false;
 					}
