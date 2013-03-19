@@ -78,12 +78,7 @@ window.gui = {
 	BROADCAST_DRAG_START : "gui-broadcast-drag-start",
 	BROADCAST_DRAG_END : "gui-broadcast-drag-end",
 	BROADCAST_DRAG_DROP : "gui-broadcast-drag-drop",
-	BROADCAST_COMMAND : "gui-broadcast-command",
-	BROADCAST_OUTPUT : "gui-broadcast-output",
-	BROADCAST_INPUT : "gui-broadcast-input",
-	BROADCAST_DATA_PUB : "gui-broadcast-data-pub",
-	BROADCAST_DATA_SUB : "gui-broadcast-data-sub",
-	BROADCAST_SCRIPT_INVOKE : "gui-broadcast-spiritscript-invoke",
+	BROADCAST_COMMAND : "gui-broadcast-command", // ????
 	BROADCAST_ATTENTION_ON : "gui-broadcast-attention-on",
 	BROADCAST_ATTENTION_OFF : "gui-broadcast-attention-off",
 	BROADCAST_ATTENTION_GO : "gui-broadcast-attention-go",
@@ -1480,7 +1475,9 @@ gui.Object = {
   },
 
   /**
-	 * Call function for each key in object with value as argument.
+	 * Call function for each own key in object (exludes 
+	 * prototype stuff) with key and value as arguments.
+	 * @todo Collect and return array of results!
 	 * @param {object} object
 	 * @param {function} func
 	 * @param @optional {object} thisp
@@ -1489,6 +1486,20 @@ gui.Object = {
 		Object.keys ( object ).forEach ( function ( key ) {
 			func.call ( thisp, key, object [ key ]);
 		});
+	},
+
+	 /**
+	 * Call function for all properties in object (including 
+	 * prototype stuff) with key and value as arguments.
+	 * @todo Collect and return array of results!
+	 * @param {object} object
+	 * @param {function} func
+	 * @param @optional {object} thisp
+	 */
+	all : function ( object, func, thisp ) {
+		for ( var key in object ) {
+			func.call ( thisp, key, object [ key ]);
+		}
 	},
 
 	/**

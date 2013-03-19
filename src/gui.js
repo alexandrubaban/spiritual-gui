@@ -70,12 +70,7 @@ window.gui = {
 	BROADCAST_DRAG_START : "gui-broadcast-drag-start",
 	BROADCAST_DRAG_END : "gui-broadcast-drag-end",
 	BROADCAST_DRAG_DROP : "gui-broadcast-drag-drop",
-	BROADCAST_COMMAND : "gui-broadcast-command",
-	BROADCAST_OUTPUT : "gui-broadcast-output",
-	BROADCAST_INPUT : "gui-broadcast-input",
-	BROADCAST_DATA_PUB : "gui-broadcast-data-pub",
-	BROADCAST_DATA_SUB : "gui-broadcast-data-sub",
-	BROADCAST_SCRIPT_INVOKE : "gui-broadcast-spiritscript-invoke",
+	BROADCAST_COMMAND : "gui-broadcast-command", // ????
 	BROADCAST_ATTENTION_ON : "gui-broadcast-attention-on",
 	BROADCAST_ATTENTION_OFF : "gui-broadcast-attention-off",
 	BROADCAST_ATTENTION_GO : "gui-broadcast-attention-go",
