@@ -7,7 +7,7 @@ gui.FlexPlugin = gui.Plugin.extend ( "gui.FlexPlugin", {
 	reflex : function () {
 		var boxes = this._collectboxes ();
 		boxes.forEach ( function ( box ) {
-			box.flexchildren ();
+			box.flex ();
 		});
 	},
 

@@ -3,39 +3,10 @@
  * @param {Element} elm
  */
 gui.FlexBox = function FlexBox ( elm ) {
-	this.element = elm;
-	this.spirit = elm.spirit;
-	this.children = gui.Object.toArray ( elm.children );
-	this.equalheight = this._hasclass ( "equalheight" );
-	if ( this._hasclass ( "vertical" )) {
-		this.orient = "vertical";
-	}
+	this._onconstruct ( elm );
 };
 
 gui.FlexBox.prototype = {
-
-	/**
-	 * Flexbox container.
-	 * @type {Element}
-	 */
-	element : null,
-
-	/**
-	 * Flexed children.
-	 * @type {Array<Element>}
-	 */
-	children : null,
-
-	/**
-	 * Matches horizontal|vertical.
-	 * @type {String}
-	 */
-	orient : "horizontal",
-
-	/**
-	 *
-	 */
-	equalheight : false,
 
 	/**
 	 * Identification.
@@ -46,52 +17,99 @@ gui.FlexBox.prototype = {
 	},
 
 	/**
-	 * Flex children.
+	 * Flex everything.
 	 */
-	flexchildren : function () {
+	flex : function () {
+		this._flexself ();
+		this._flexchildren ();
+		/*
+		if ( this._orient === "horizontal" ) {
+			this._equalheight ();
+		}
+		*/
+	},
+
+
+	// Private ................................................................
+	
+	/**
+	 * Flexbox element.
+	 * @type {Element}
+	 */
+	_element : null,
+
+	/**
+	 * Flexed children.
+	 * @type {Array<Element>}
+	 */
+	_children : null,
+
+	/**
+	 * Matches horizontal|vertical.
+	 * @type {String}
+	 */
+	_orient : "horizontal",
+
+	/**
+	 * Constructor.
+	 * @param {Element} elm
+	 */
+	_onconstruct : function ( elm ) {
+		this._element = elm;
+		this._children = Array.map ( elm.children, function ( child ) {
+			return new gui.FlexChild ( child );
+		});
+		if ( this._hasclass ( "vertical" )) {
+			this._orient = "vertical";
+		}
+	},
+	
+	/**
+	 * Flex the container.
+	 */
+	_flexself : function () {
+		if ( true ) { // @TODO only if not @class="flexN"
+			switch ( this._orient ) {
+				case "vertical" :
+					var above = this._element.parentNode;
+					var avail = above.offsetHeight;
+					var style = this._element.style;
+					style.height = "auto";
+					if ( this._element.offsetHeight < avail ) {
+						style.height = "100%"; //avail + "px";
+					}
+					break;
+			}
+		}
+	},
+
+	/**
+	 * Flex the children.
+	 */
+	_flexchildren : function () {
 		var flexes = this._childflexes ();
 		var factor = this._computefactor ( flexes );
 		if ( flexes.length ) {
 			var unit = 100 / flexes.reduce ( function ( a, b ) {
 				return a + b;
 			});
-			this.children.forEach ( function ( child, i ) {
+			this._children.forEach ( function ( child, i ) {
 				if ( flexes [ i ] > 0 ) {
-					this._setratio ( child, flexes [ i ], unit, factor );
+					var percentage = flexes [ i ] * unit * factor;
+					child.setoffset ( percentage, this._orient );
 				}
 			},this);
-			if ( this.equalheight ) {
-				this._equalheight ();
-			}
 		}
 	},
-
-
-	// Private ................................................................
 	 
 	/**
-	 * Collect child flexes. Unflexed members count as 0.
+	 * Collect child flexes. Unflexed members enter as 0.
 	 * @return {Array<number>}
 	 */
 	_childflexes : function () {
-		return this.children.map ( function ( child ) {
-			return this._getflex ( child );
+		return this._children.map ( function ( child ) {
+			return child.getflex ();
 		},this);
-	},
-
-	/**
-	 * Get flex value for element. We use the flexN classname to indicate this.
-	 * @param {Element} elm
-	 * @return {number}
-	 */
-	_getflex : function ( elm ) {
-		var flex = 0;
-		elm.className.split ( " ").forEach ( function ( name ) {
-			if ( gui.FlexBox._FLEXNAME.test ( name ) && name !== "flexbox" ) { // @TODO regexp to exlude!
-				flex = ( gui.FlexBox._FLEXRATE.exec ( name ) || 1 );
-			}
-		});
-		return gui.Type.cast ( flex );
 	},
 
 	/**
@@ -104,8 +122,8 @@ gui.FlexBox.prototype = {
 		var all, cut, factor = 1;
 		if ( flexes.indexOf ( 0 ) >-1 ) {
 			all = cut = this._getoffset ();
-			this.children.forEach ( function ( child, i ) {
-				cut -= flexes [ i ] ? 0 : this._getoffset ( child );
+			this._children.forEach ( function ( child, i ) {
+				cut -= flexes [ i ] ? 0 : child.getoffset ( this._orient );
 			}, this );
 			factor = cut / all;
 		}
@@ -114,43 +132,32 @@ gui.FlexBox.prototype = {
 
 	/**
 	 * Get width or height of element (depending on flexbox orientation).
-	 * @param @optional {Element} elm Omit for flexbox container element.
 	 * @returns {number} Offset in pixels
 	 */
-	_getoffset : function ( elm ) {
-		elm = elm || this.element;
-		return this.orient === "horizontal" ? 
-			elm.offsetWidth :
-			elm.offsetHeight;
-	},
-
-	/**
-	 * Set percentage width|height of element.
-	 * @param {Element} elm
-	 * @param {number} flex
-	 * @param {number} unit
-	 * @param {number} factor
-	 */
-	_setratio : function ( elm, flex, unit, factor ) {
-		var prop = this.orient === "horizontal" ? "width" : "height";
-		elm.style [ prop ] = flex * unit * factor + "%";
+	_getoffset : function () {
+		var elm = this._element;
+		if ( this._orient === "horizontal" ) {
+			return elm.offsetWidth;
+		} else {
+			return elm.offsetHeight;
+		}
 	},
 
 	/**
 	 * Equalheight (horizontal) children. 
 	 * @TODO: Make it configurable? Use min-height instead?
-	 */
+	 *
 	_equalheight : function () {
 		var off = 0, max = 0;
-		this.children.forEach(function ( child ){
-			child.style.height = "auto"; // while we measure...
-			off = child.offsetHeight;
+		this._children.forEach(function ( child ){
+			off = child.getdefaultoffset ( "vertical" );
 			max = off > max ? off : max;
 		});
-		this.children.forEach ( function ( child ) {
-			child.style.height = max + "px";
+		this._children.forEach ( function ( child ) {
+			child.setheight ( max );
 		});
 	},
+	*/
 
 	/**
 	 * Has classname? Using "horizontal", "vertical", "maxheight" and "equalheight"
@@ -158,22 +165,6 @@ gui.FlexBox.prototype = {
 	 * @returns {String}
 	 */
 	_hasclass : function ( name ) {
-		return gui.CSSPlugin.contains ( this.element, name );
+		return gui.CSSPlugin.contains ( this._element, name );
 	}
 };
-
-
-// Static ............................................................
-
-/**
- * Check for flexN classname.
- * @todo don't match "flexbox"
- * @type {RegExp}
- */
-gui.FlexBox._FLEXNAME = /flex\d*/;
-
-/**
- * Extract N from classname.
- * @type {RegExp}
- */
-gui.FlexBox._FLEXRATE = /\d/;
