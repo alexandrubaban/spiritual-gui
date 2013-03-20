@@ -6,7 +6,8 @@ gui.FlexBox = function FlexBox ( elm ) {
 	this.element = elm;
 	this.spirit = elm.spirit;
 	this.children = gui.Object.toArray ( elm.children );
-	if ( gui.CSSPlugin.contains ( elm, "vertical" )) {
+	this.equalheight = this._hasclass ( "equalheight" );
+	if ( this._hasclass ( "vertical" )) {
 		this.orient = "vertical";
 	}
 };
@@ -32,6 +33,11 @@ gui.FlexBox.prototype = {
 	orient : "horizontal",
 
 	/**
+	 *
+	 */
+	equalheight : false,
+
+	/**
 	 * Identification.
 	 * @returns {String}
 	 */
@@ -54,6 +60,9 @@ gui.FlexBox.prototype = {
 					this._setratio ( child, flexes [ i ], unit, factor );
 				}
 			},this);
+			if ( this.equalheight ) {
+				this._equalheight ();
+			}
 		}
 	},
 
@@ -125,6 +134,31 @@ gui.FlexBox.prototype = {
 	_setratio : function ( elm, flex, unit, factor ) {
 		var prop = this.orient === "horizontal" ? "width" : "height";
 		elm.style [ prop ] = flex * unit * factor + "%";
+	},
+
+	/**
+	 * Equalheight (horizontal) children. 
+	 * @TODO: Make it configurable? Use min-height instead?
+	 */
+	_equalheight : function () {
+		var off = 0, max = 0;
+		this.children.forEach(function ( child ){
+			child.style.height = "auto"; // while we measure...
+			off = child.offsetHeight;
+			max = off > max ? off : max;
+		});
+		this.children.forEach ( function ( child ) {
+			child.style.height = max + "px";
+		});
+	},
+
+	/**
+	 * Has classname? Using "horizontal", "vertical", "maxheight" and "equalheight"
+	 * @param {String} name
+	 * @returns {String}
+	 */
+	_hasclass : function ( name ) {
+		return gui.CSSPlugin.contains ( this.element, name );
 	}
 };
 
