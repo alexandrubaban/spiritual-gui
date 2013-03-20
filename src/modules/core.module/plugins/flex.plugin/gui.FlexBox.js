@@ -22,11 +22,6 @@ gui.FlexBox.prototype = {
 	flex : function () {
 		this._flexself ();
 		this._flexchildren ();
-		/*
-		if ( this._orient === "horizontal" ) {
-			this._equalheight ();
-		}
-		*/
 	},
 
 
@@ -45,10 +40,10 @@ gui.FlexBox.prototype = {
 	_children : null,
 
 	/**
-	 * Matches horizontal|vertical.
-	 * @type {String}
+	 * Vertical flexbox?
+	 * @type {boolean}
 	 */
-	_orient : "horizontal",
+	_vertical : false,
 
 	/**
 	 * Constructor.
@@ -56,29 +51,27 @@ gui.FlexBox.prototype = {
 	 */
 	_onconstruct : function ( elm ) {
 		this._element = elm;
+		this._vertical = gui.CSSPlugin.contains ( this._element, "vertical" );
 		this._children = Array.map ( elm.children, function ( child ) {
 			return new gui.FlexChild ( child );
 		});
-		if ( this._hasclass ( "vertical" )) {
-			this._orient = "vertical";
-		}
 	},
 	
 	/**
-	 * Flex the container.
+	 * Flex the container. Note that container 
+	 * may act as the child of another flexbox. 
+	 * Horizontal box fits to contaienr via CSS.
 	 */
 	_flexself : function () {
-		if ( true ) { // @TODO only if not @class="flexN"
-			switch ( this._orient ) {
-				case "vertical" :
-					var above = this._element.parentNode;
-					var avail = above.offsetHeight;
-					var style = this._element.style;
-					style.height = "auto";
-					if ( this._element.offsetHeight < avail ) {
-						style.height = "100%"; //avail + "px";
-					}
-					break;
+		var elm = this._element;
+		if ( this._vertical ) {
+			var given = elm.style.height;
+			var above = elm.parentNode;
+			var avail = above.offsetHeight;
+			var style = elm.style;
+			style.height = "auto";
+			if ( elm.offsetHeight < avail ) {
+				style.height = given || "100%";
 			}
 		}
 	},
@@ -96,7 +89,7 @@ gui.FlexBox.prototype = {
 			this._children.forEach ( function ( child, i ) {
 				if ( flexes [ i ] > 0 ) {
 					var percentage = flexes [ i ] * unit * factor;
-					child.setoffset ( percentage, this._orient );
+					child.setoffset ( percentage, this._vertical );
 				}
 			},this);
 		}
@@ -113,7 +106,7 @@ gui.FlexBox.prototype = {
 	},
 
 	/**
-	 * Get modifier for percentage widths, 
+	 * Get modifier for percentage widths 
 	 * accounting for fixed width members.
 	 * @param {<Array<number>} flexes
 	 * @return {number} Between 0 and 1
@@ -123,7 +116,7 @@ gui.FlexBox.prototype = {
 		if ( flexes.indexOf ( 0 ) >-1 ) {
 			all = cut = this._getoffset ();
 			this._children.forEach ( function ( child, i ) {
-				cut -= flexes [ i ] ? 0 : child.getoffset ( this._orient );
+				cut -= flexes [ i ] ? 0 : child.getoffset ( this._vertical );
 			}, this );
 			factor = cut / all;
 		}
@@ -136,35 +129,10 @@ gui.FlexBox.prototype = {
 	 */
 	_getoffset : function () {
 		var elm = this._element;
-		if ( this._orient === "horizontal" ) {
-			return elm.offsetWidth;
-		} else {
+		if ( this._vertical ) {
 			return elm.offsetHeight;
+		} else {
+			return elm.offsetWidth;
 		}
-	},
-
-	/**
-	 * Equalheight (horizontal) children. 
-	 * @TODO: Make it configurable? Use min-height instead?
-	 *
-	_equalheight : function () {
-		var off = 0, max = 0;
-		this._children.forEach(function ( child ){
-			off = child.getdefaultoffset ( "vertical" );
-			max = off > max ? off : max;
-		});
-		this._children.forEach ( function ( child ) {
-			child.setheight ( max );
-		});
-	},
-	*/
-
-	/**
-	 * Has classname? Using "horizontal", "vertical", "maxheight" and "equalheight"
-	 * @param {String} name
-	 * @returns {String}
-	 */
-	_hasclass : function ( name ) {
-		return gui.CSSPlugin.contains ( this._element, name );
 	}
 };

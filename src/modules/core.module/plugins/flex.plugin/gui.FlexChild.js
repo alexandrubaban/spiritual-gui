@@ -32,73 +32,27 @@ gui.FlexChild.prototype = {
 
 	/**
 	 * Get width or height of element depending on flexbox orientation.
-	 * @param {String} orient
+	 * @param {boolean} vertical
 	 * @returns {number} Offset in pixels
 	 */
-	getoffset : function ( orient ) {
+	getoffset : function ( vertical ) {
 		var elm = this._element;
-		if ( orient === "horizontal" ) {
-			return elm.offsetWidth;
-		} else {
+		if ( vertical ) {
 			return elm.offsetHeight;
+		} else {
+			return elm.offsetWidth;
 		}
 	},
 
 	/**
 	 * Set percentage width|height of element.
-	 * @param {number} flex
-	 * @param {number} unit
-	 * @param {number} factor
-	 * @param {String} orient
+	 * @param {number} pct
+	 * @param {boolean} vertical
 	 */
-	setoffset : function ( pct, orient ) {
-		var line = orient === "horizontal";
-		var prop = line ? "width" : "height";
-		//var span = this._fit ( pct, orient );
-		//this._element.style [ prop ] = span;
+	setoffset : function ( pct, vertical ) {
+		var prop = vertical ? "height" : "width";
 		this._element.style [ prop ] = pct + "%";
 	},
-
-	/**
-	 * @param {number} pct
-	 * @param {String} orient
-	 *
-	_fit : function ( pct, orient ) {
-		if ( orient === "horizontal" ) {
-			var above = this._element.parentNode;
-			var avail = above.offsetWidth;
-			var width = this.getdefaultoffset ( orient );
-			if ( width > pct * 0.01 * avail ) {
-				alert ( "?" )
-				return width + "px";
-			}
-		}
-		return pct + "%";
-	},
-
-	/**
-	 * Get default height when equalheighting horizontal children.
-	 * @returns {number} Unmanaged height in pixels.
-	 *
-	getdefaultoffset : function ( orient ) {
-		var elm = this._element;
-		if ( orient === "vertical" ) {
-			elm.style.height = "auto";
-			return elm.offsetHeight;
-		} else {
-			elm.style.width = "auto";
-			return elm.offsetWidth;
-		}
-	},
-
-	/**
-	 * Set height when equalheighting horizontal children.
-	 * @param {number} height
-	 *
-	setheight : function ( height ) {
-		this._element.style.height = height + "px";
-	},
-	*/
 
 
 	// Private .........................................................
