@@ -26,16 +26,17 @@ gui.module ( "core", {
 		att : gui.AttPlugin, 
 		attention : gui.AttentionPlugin,
 		box : gui.BoxPlugin,
-		broadcast	: gui.BroadcastPlugin,
+		broadcast : gui.BroadcastPlugin,
 		config : gui.ConfigPlugin,
 		css : gui.CSSPlugin,
-		dom	: gui.DOMPlugin,
-		event	: gui.EventPlugin,
+		dom : gui.DOMPlugin,
+		event : gui.EventPlugin,
+		flex : gui.FlexPlugin,
 		lif : gui.LifePlugin,
 		tick : gui.TickPlugin,
 		tween : gui.TweenPlugin,
 		transition : gui.TransitionPlugin
-	},
+ },
 
 	/**
 	 * Methods added to gui.Spirit.prototype
