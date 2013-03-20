@@ -86,17 +86,13 @@ gui.Crawler.prototype = {
 	 * @param {object} start Spirit or Element
 	 * @param {object} handler
 	 */
-	descend : function ( start, handler ) {
+	descend : function ( start, handler, arg ) {
 		this.direction = gui.Crawler.DESCENDING;
 		var elm = start instanceof gui.Spirit ? start.element : start;
 		if ( elm.nodeType === Node.DOCUMENT_NODE ) {
 			elm = elm.documentElement;
-		} else if ( elm.localName === "iframe" ) {
-			if ( this.global ) {
-				console.log ( "@TODO descend into iframes" );
-			}
 		}
-		this._descend ( elm, handler, true );
+		this._descend ( elm, handler, arg, true );
 	},
 
 
@@ -108,29 +104,32 @@ gui.Crawler.prototype = {
 	 * @param {object} handler
 	 * @param {boolean} start
 	 */
-	_descend : function ( elm, handler, start ) {
-		var win, spirit, directive = this._handleElement ( elm, handler );
+	_descend : function ( elm, handler, arg, start ) {
+		var win, spirit, directive = this._handleElement ( elm, handler, arg );
 		switch ( directive ) {
 			case 0 :
-				if ( elm.childElementCount > 0 ) {
-					this._descend ( elm.firstElementChild, handler, false );
-				} else if ( this.global && elm.localName === "iframe" ) {
-					if (( spirit = elm.spirit )) {
-						if ( spirit.external ) {
-							win = elm.ownerDocument.defaultView;
-							if ( gui.Type.isFunction ( handler.transcend )) {
-								this._transcend ( win, spirit.contentWindow, handler );
+			case 2 :
+				if ( directive !== 2 ) {
+					if ( elm.childElementCount > 0 ) {
+						this._descend ( elm.firstElementChild, handler, arg, false );
+					} else if ( this.global && elm.localName === "iframe" ) {
+						if (( spirit = elm.spirit )) {
+							if ( spirit.external ) {
+								win = elm.ownerDocument.defaultView;
+								if ( gui.Type.isFunction ( handler.transcend )) {
+									this._transcend ( win, spirit.contentWindow, handler );
+								}
+							} else {
+								var root = elm.contentDocument.documentElement;
+								this._descend ( root, handler, arg, false );
 							}
-						} else {
-							var root = elm.contentDocument.documentElement;
-							this._descend ( root, handler, false );
 						}
 					}
 				}
 				if ( !start ) {
 					var next = elm.nextElementSibling;
 					if ( next !== null ) {
-						this._descend ( next, handler, false );
+						this._descend ( next, handler, arg, false );
 					}
 				}
 				break;
@@ -143,7 +142,7 @@ gui.Crawler.prototype = {
 	 * @param {object} handler
 	 * @returns {number} directive
 	 */
-	_handleElement : function ( element, handler ) {
+	_handleElement : function ( element, handler, arg ) {
 		var directive = gui.Crawler.CONTINUE;
 		var spirit = element.spirit;
 		if ( spirit ) {
@@ -152,7 +151,7 @@ gui.Crawler.prototype = {
 		if ( !directive ) {
 			if ( handler ) {
 				if ( gui.Type.isFunction ( handler.handleElement )) {
-					directive = handler.handleElement ( element );
+					directive = handler.handleElement ( element, arg );
 				}
 				switch ( directive ) {
 					case 1 :
@@ -212,7 +211,8 @@ gui.Crawler.DESCENDING = "descending";
 
 /**
  * Bitmask setup supposed to be going on here.
- * @TODO SKIP_CHILDREN and TELEPORT_ELSEWEHERE stuff.
+ * @TODO TELEPORT_ELSEWEHERE stuff.
  */
 gui.Crawler.CONTINUE = 0;
 gui.Crawler.STOP = 1;
+gui.Crawler.SKIP_CHILDREN = 2;

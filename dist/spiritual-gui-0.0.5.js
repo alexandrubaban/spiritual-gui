@@ -2226,13 +2226,59 @@ gui.Arguments = {
  * Assisting {gui.Class} with property cloning plus getters and setters stuff.
  */
 gui.Accessors = {
+
+	/**
+	 * Create getter/setter for object assuming enumerable and configurable.
+	 * @param {object} object The property owner
+	 * @param {string} key The property name
+	 * @param {object} def An object with methods "get" and/or "set"
+	 * @returns {object}
+	 */
+	defineAccessor : function ( object, key, def ) {
+		if ( this._definesAccessor ( def )) {
+			return Object.defineProperty ( object, key, {
+				enumerable : true,
+				configurable : true,
+				get : def.getter,
+				set : def.setter
+			});
+		} else {
+			throw new TypeError ( "Expected getter and/or setter method" );
+		}
+	},
+
+
+	// Private ............................................................
+
+	/**
+	 * Object is getter-setter definition?
+	 * @param {object} obj
+	 * @returns {boolean}
+	 */
+	_definesAccessor : function ( obj ) {
+		return Object.keys ( obj ).every ( function ( key ) {
+			var is = false;
+			switch ( key ) {
+				case "getter" :
+				case "setter" :
+					is = gui.Type.isFunction ( obj [ key ]);
+					break;
+			}
+			return is;
+		});
+	},
+
+
+
+
+
 	
 	/**
 	 * Copy non-method properties from configuration object to class 
 	 * prototype. Property will be modified to a getter or setter if:
 	 * 
 	 * 1) The property value is an object
-	 * 2) It has only one or both properties "getter" and "setter"
+	 * 2) It has (only) one or both properties "getter" and "setter"
 	 * 3) These are both functions
 	 * 
 	 * @param {function} C gui.Class constructor
@@ -3349,17 +3395,13 @@ gui.Crawler.prototype = {
 	 * @param {object} start Spirit or Element
 	 * @param {object} handler
 	 */
-	descend : function ( start, handler ) {
+	descend : function ( start, handler, arg ) {
 		this.direction = gui.Crawler.DESCENDING;
 		var elm = start instanceof gui.Spirit ? start.element : start;
 		if ( elm.nodeType === Node.DOCUMENT_NODE ) {
 			elm = elm.documentElement;
-		} else if ( elm.localName === "iframe" ) {
-			if ( this.global ) {
-				console.log ( "@TODO descend into iframes" );
-			}
 		}
-		this._descend ( elm, handler, true );
+		this._descend ( elm, handler, arg, true );
 	},
 
 
@@ -3371,29 +3413,32 @@ gui.Crawler.prototype = {
 	 * @param {object} handler
 	 * @param {boolean} start
 	 */
-	_descend : function ( elm, handler, start ) {
-		var win, spirit, directive = this._handleElement ( elm, handler );
+	_descend : function ( elm, handler, arg, start ) {
+		var win, spirit, directive = this._handleElement ( elm, handler, arg );
 		switch ( directive ) {
 			case 0 :
-				if ( elm.childElementCount > 0 ) {
-					this._descend ( elm.firstElementChild, handler, false );
-				} else if ( this.global && elm.localName === "iframe" ) {
-					if (( spirit = elm.spirit )) {
-						if ( spirit.external ) {
-							win = elm.ownerDocument.defaultView;
-							if ( gui.Type.isFunction ( handler.transcend )) {
-								this._transcend ( win, spirit.contentWindow, handler );
+			case 2 :
+				if ( directive !== 2 ) {
+					if ( elm.childElementCount > 0 ) {
+						this._descend ( elm.firstElementChild, handler, arg, false );
+					} else if ( this.global && elm.localName === "iframe" ) {
+						if (( spirit = elm.spirit )) {
+							if ( spirit.external ) {
+								win = elm.ownerDocument.defaultView;
+								if ( gui.Type.isFunction ( handler.transcend )) {
+									this._transcend ( win, spirit.contentWindow, handler );
+								}
+							} else {
+								var root = elm.contentDocument.documentElement;
+								this._descend ( root, handler, arg, false );
 							}
-						} else {
-							var root = elm.contentDocument.documentElement;
-							this._descend ( root, handler, false );
 						}
 					}
 				}
 				if ( !start ) {
 					var next = elm.nextElementSibling;
 					if ( next !== null ) {
-						this._descend ( next, handler, false );
+						this._descend ( next, handler, arg, false );
 					}
 				}
 				break;
@@ -3406,7 +3451,7 @@ gui.Crawler.prototype = {
 	 * @param {object} handler
 	 * @returns {number} directive
 	 */
-	_handleElement : function ( element, handler ) {
+	_handleElement : function ( element, handler, arg ) {
 		var directive = gui.Crawler.CONTINUE;
 		var spirit = element.spirit;
 		if ( spirit ) {
@@ -3415,7 +3460,7 @@ gui.Crawler.prototype = {
 		if ( !directive ) {
 			if ( handler ) {
 				if ( gui.Type.isFunction ( handler.handleElement )) {
-					directive = handler.handleElement ( element );
+					directive = handler.handleElement ( element, arg );
 				}
 				switch ( directive ) {
 					case 1 :
@@ -3475,10 +3520,11 @@ gui.Crawler.DESCENDING = "descending";
 
 /**
  * Bitmask setup supposed to be going on here.
- * @TODO SKIP_CHILDREN and TELEPORT_ELSEWEHERE stuff.
+ * @TODO TELEPORT_ELSEWEHERE stuff.
  */
 gui.Crawler.CONTINUE = 0;
 gui.Crawler.STOP = 1;
+gui.Crawler.SKIP_CHILDREN = 2;
 
 
 /**
@@ -7371,6 +7417,187 @@ gui.IEventHandler = {
 };
 
 
+gui.FlexPlugin = gui.Plugin.extend ( "gui.FlexPlugin", {
+
+	/**
+	 * Flex this and descendant flexboxes in document order. As the name suggests, 
+	 * it might be required to call this again if flexboxes get added or removed.
+	 */
+	reflex : function () {
+		var boxes = this._collectboxes ();
+		boxes.forEach ( function ( box ) {
+			box.flexchildren ();
+		});
+	},
+
+
+	// Private ..................................................................
+
+	/**
+	 * @returns {Array<gui.FlexBox>}
+	 */
+	_collectboxes : function () {
+		var boxes = [];
+		new gui.Crawler ( "flexcrawler" ).descend ( this.spirit.element, {
+			handleElement : function ( elm ) {
+				if ( gui.CSSPlugin.contains ( elm, "flexbox" )) {
+					boxes.push ( new gui.FlexBox ( elm ));
+				}
+			}
+		});
+		return boxes;
+	}
+
+});
+
+
+/**
+ * Wraps a flexbox container element.
+ * @param {Element} elm
+ */
+gui.FlexBox = function FlexBox ( elm ) {
+	this.element = elm;
+	this.spirit = elm.spirit;
+	this.children = gui.Object.toArray ( elm.children );
+	if ( gui.CSSPlugin.contains ( elm, "vertical" )) {
+		this.orient = "vertical";
+	}
+};
+
+gui.FlexBox.prototype = {
+
+	/**
+	 * Flexbox container.
+	 * @type {Element}
+	 */
+	element : null,
+
+	/**
+	 * Flexed children.
+	 * @type {Array<Element>}
+	 */
+	children : null,
+
+	/**
+	 * Matches horizontal|vertical.
+	 * @type {String}
+	 */
+	orient : "horizontal",
+
+	/**
+	 * Identification.
+	 * @returns {String}
+	 */
+	toString : function () {
+		return "[object gui.FlexBox]";
+	},
+
+	/**
+	 * Flex children.
+	 */
+	flexchildren : function () {
+		var flexes = this._childflexes ();
+		var factor = this._computefactor ( flexes );
+		if ( flexes.length ) {
+			var unit = 100 / flexes.reduce ( function ( a, b ) {
+				return a + b;
+			});
+			this.children.forEach ( function ( child, i ) {
+				if ( flexes [ i ] > 0 ) {
+					this._setratio ( child, flexes [ i ], unit, factor );
+				}
+			},this);
+		}
+	},
+
+
+	// Private ................................................................
+	 
+	/**
+	 * Collect child flexes. Unflexed members count as 0.
+	 * @return {Array<number>}
+	 */
+	_childflexes : function () {
+		return this.children.map ( function ( child ) {
+			return this._getflex ( child );
+		},this);
+	},
+
+	/**
+	 * Get flex value for element. We use the flexN classname to indicate this.
+	 * @param {Element} elm
+	 * @return {number}
+	 */
+	_getflex : function ( elm ) {
+		var flex = 0;
+		elm.className.split ( " ").forEach ( function ( name ) {
+			if ( gui.FlexBox._FLEXNAME.test ( name ) && name !== "flexbox" ) { // @TODO regexp to exlude!
+				flex = ( gui.FlexBox._FLEXRATE.exec ( name ) || 1 );
+			}
+		});
+		return gui.Type.cast ( flex );
+	},
+
+	/**
+	 * Get modifier for percentage widths, 
+	 * accounting for fixed width members.
+	 * @param {<Array<number>} flexes
+	 * @return {number} Between 0 and 1
+	 */
+	_computefactor : function ( flexes ) {
+		var all, cut, factor = 1;
+		if ( flexes.indexOf ( 0 ) >-1 ) {
+			all = cut = this._getoffset ();
+			this.children.forEach ( function ( child, i ) {
+				cut -= flexes [ i ] ? 0 : this._getoffset ( child );
+			}, this );
+			factor = cut / all;
+		}
+		return factor;
+	},
+
+	/**
+	 * Get width or height of element (depending on flexbox orientation).
+	 * @param @optional {Element} elm Omit for flexbox container element.
+	 * @returns {number} Offset in pixels
+	 */
+	_getoffset : function ( elm ) {
+		elm = elm || this.element;
+		return this.orient === "horizontal" ? 
+			elm.offsetWidth :
+			elm.offsetHeight;
+	},
+
+	/**
+	 * Set percentage width|height of element.
+	 * @param {Element} elm
+	 * @param {number} flex
+	 * @param {number} unit
+	 * @param {number} factor
+	 */
+	_setratio : function ( elm, flex, unit, factor ) {
+		var prop = this.orient === "horizontal" ? "width" : "height";
+		elm.style [ prop ] = flex * unit * factor + "%";
+	}
+};
+
+
+// Static ............................................................
+
+/**
+ * Check for flexN classname.
+ * @todo don't match "flexbox"
+ * @type {RegExp}
+ */
+gui.FlexBox._FLEXNAME = /flex\d*/;
+
+/**
+ * Extract N from classname.
+ * @type {RegExp}
+ */
+gui.FlexBox._FLEXRATE = /\d/;
+
+
 /** 
  * Ticks are used for timed events. 
  * @TODO Global versus local ticks
@@ -8693,6 +8920,7 @@ gui.module ( "core", {
 		css : gui.CSSPlugin,
 		dom	: gui.DOMPlugin,
 		event	: gui.EventPlugin,
+		flex	: gui.FlexPlugin,
 		lif : gui.LifePlugin,
 		tick : gui.TickPlugin,
 		tween : gui.TweenPlugin,
