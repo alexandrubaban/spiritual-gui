@@ -1,3 +1,8 @@
+/**
+ * Facilitate flexbox-like layouts in IE9 
+ * provided a fixed classname structure.
+ * @extends {gui.Plugin}
+ */
 gui.FlexPlugin = gui.Plugin.extend ( "gui.FlexPlugin", {
 
 	/**
@@ -29,4 +34,26 @@ gui.FlexPlugin = gui.Plugin.extend ( "gui.FlexPlugin", {
 		return boxes;
 	}
 
+
+}, { // Static ................................................................
+
+	MODE_NATIVE : "native",
+	MODE_EMULATED : "emulated",
+	MODE_OPTIMIZED : "optimized"
+
 });
+
+/**
+ * @TODO reflex on startup by default...
+ * @TODO nicer interface for this kind of thing
+ */
+( function defaultsettings () {
+	gui.mixin ( "flexmode", "emulated" );
+	gui.mixin ( "reflex", function () {
+		var html = this._document.documentElement;
+		var root = html.spirit;
+		if ( this.flexmode === "emulated" ) {
+			root.flex.reflex ();
+		}
+	});
+}());

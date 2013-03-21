@@ -204,6 +204,31 @@ gui.Spiritual.prototype = {
 	},
 
 	/**
+	 * Mixin something while checking for naming collision.
+	 * @param {String} key
+	 * @param {object} value
+	 * @param @optional {boolean} override
+	 * @returns {object} Returns the mixin value
+	 */
+	mixin : function ( key, value, override ) {
+		var proto = this.constructor.prototype;
+		return gui.Object.mixin ( proto, key, value, override );
+	},
+
+	/**
+	 * Mixin something. Mixins get portalled to descendant iframes.
+	 * @param {String} key
+	 * @param {object} value
+	 * @returns {gui.Spiritual}
+	 *
+	mixin : function ( key, value ) {
+		gui.Object.mixin ( this, key, value );
+		this._mixins [ key ] = value;
+		return this;
+	},
+	*/
+
+	/**
 	 * Portal Spiritual to a parallel window in three easy steps.
 	 * 
 	 * 1. Create a local instance of `gui.Spiritual` (this class) and assign it to the global variable `gui` in remote window.
@@ -239,6 +264,12 @@ gui.Spiritual.prototype = {
 					indexes.push ( i );	
 				});
 			}, this );
+			// portal mixins
+			/*
+			gui.Object.each ( this._mixins, function ( key, value ) {
+				alert ( key );
+			}, this );
+			*/
 			// Portal modules to initialize the sub context
 			// @TODO portal only the relevant init method?
 			gui.Object.each ( this._modules, function ( name, module ) {
@@ -473,6 +504,13 @@ gui.Spiritual.prototype = {
 	_spaces : null,
 
 	/**
+	 * Mixins.
+	 * @type {Map<String,object>}
+	 *
+	_mixins : null,
+	*/
+
+	/**
 	 * Flipped to `true` after `go()`
 	 * @type {boolean}
 	 */
@@ -526,6 +564,7 @@ gui.Spiritual.prototype = {
 		this._document = win.document;
 		this._inlines = Object.create ( null );
 		this._modules = Object.create ( null );
+		//this._mixins = Object.create ( null );
 		this._channels = [];
 		this._spaces = [ "gui" ];
 		this._spirits = {
@@ -574,6 +613,7 @@ gui.Spiritual.prototype = {
 	},
 
 	/**
+	 * @TODO clean this up...
 	 * @param {object} module
 	 * @param {Window} context
 	 */

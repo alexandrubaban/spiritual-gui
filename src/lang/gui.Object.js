@@ -24,6 +24,7 @@ gui.Object = {
 
 	/**
 	 * Extend target with source properties *excluding* prototype stuff.
+	 * @TODO bypass mixin?
 	 * @param {object} target
 	 * @param {object} source
 	 * @returns {object}
@@ -35,6 +36,24 @@ gui.Object = {
     });
     return target;
   },
+
+  /**
+   * Mixin something with collision detection.
+   * @TODO bypass extend?
+   * @param {object]} target
+   * @param {String} key
+   * @param {object} value
+   * @param {boolean} override
+   * @returns {object}
+   */
+  mixin : function ( target, key, value, override ) {
+		if ( !gui.Type.isDefined ( target [ key ]) || override ) {
+			target [ key ] = value; // @TODO: warning when target is gui.Class (super support)
+		} else {
+			console.error ( "Mixin naming collision in " + target + ": " + key );
+		}
+		return target;
+	},
 
   /**
    * Copy object.
