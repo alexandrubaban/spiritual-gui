@@ -51,6 +51,7 @@
 	"src/modules/core.module/plugins/event.plugin/gui.IEventHandler.js",
 	"src/modules/core.module/plugins/flex.plugin/gui.FlexPlugin.js",
 	"src/modules/core.module/plugins/flex.plugin/gui.FlexBox.js",
+	"src/modules/core.module/plugins/flex.plugin/gui.FlexChild.js",
 	"src/modules/core.module/plugins/tick.plugin/gui.Tick.js",
 	"src/modules/core.module/plugins/tick.plugin/gui.TickPlugin.js",
 	"src/modules/core.module/plugins/tick.plugin/gui.ITickHandler.js",

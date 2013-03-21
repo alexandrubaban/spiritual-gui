@@ -17,9 +17,7 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 			var target = this.document;
 			switch ( type ) {
 				case "scroll" :
-				case "resize" :
-					target = this.window;
-					break;
+				case "resize" : // ??????
 				case "popstate" :
 				case "hashchange" :
 					var win = this.window;
@@ -72,7 +70,7 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 			default : // all documents
 				switch ( e.type ) {
 					case "resize" :
-						if ( parent === window ) {
+						if ( top === window ) {
 							this._onresize ();
 						}
 						break;
@@ -275,15 +273,15 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 		"click" : gui.BROADCAST_MOUSECLICK,
 		"mousedown" : gui.BROADCAST_MOUSEDOWN,
 		"mouseup" : gui.BROADCAST_MOUSEUP,
-		"scroll" : gui.BROADCAST_SCROLL,
-		"resize" : gui.BROADCAST_RESIZE,
+		"scroll" : gui.BROADCAST_SCROLL, // top ??????????
+		"resize" : gui.BROADCAST_RESIZE, // top ??????????
 		"touchstart" : gui.BROADCAST_TOUCHSTART,
 		"touchend" : gui.BROADCAST_TOUCHEND,
 		"touchcancel" : gui.BROADCAST_TOUCHCANCEL,
 		"touchleave" : gui.BROADCAST_TOUCHLEAVE,
 		"touchmove" : gui.BROADCAST_TOUCHMOVE,
-		"hashchange" : gui.BROADCAST_HASHCHANGE,
-		"popstate" : gui.BROADCAST_POPSTATE
+		"hashchange" : gui.BROADCAST_HASHCHANGE, // top ??????????
+		"popstate" : gui.BROADCAST_POPSTATE // top ??????????
 		// "mousemove" : gui.BROADCAST_MOUSEMOVE,
 	},
 
@@ -367,5 +365,5 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 	 * Timeout in milliseconds before we decide 
 	 * that user is finished resizing the window.
 	 */
-	TIMEOUT_RESIZE_END : 50
+	TIMEOUT_RESIZE_END : 250
 });

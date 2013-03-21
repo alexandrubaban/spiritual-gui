@@ -292,7 +292,7 @@ gui.Object.each ({
 				}
 			});
 		} else {
-			console.error ( "Addin naming collision in " + this + ": " + name );
+			console.error ( "Mixin naming collision in " + this + ": " + name );
 		}
 	}
 
