@@ -186,14 +186,18 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 	 */
 	propagateBroadcast : function ( b ) {
 		b.signatures.push ( this.signature );
-		var msg = gui.Broadcast.stringify ( b ), win = this.window, parent = win.parent;
-		this.dom.qall ( "iframe", gui.IframeSpirit ).forEach ( function ( iframe ) {
-			if ( iframe.external ) {
-				iframe.contentWindow.postMessage ( msg, "*" );
+		var msg = gui.Broadcast.stringify ( b );
+		var win = this.window;
+		var sup = win.parent;
+		if ( win !== sup ) {
+			this.dom.qall ( "iframe", gui.IframeSpirit ).forEach ( function ( iframe ) {
+				if ( iframe.external ) {
+					iframe.contentWindow.postMessage ( msg, "*" );
+				}
+			});
+			if ( sup !== win ) {
+				sup.postMessage ( msg, "*" );
 			}
-		});
-		if ( parent !== win ) {
-			parent.postMessage ( msg, "*" );
 		}
 	},
 	

@@ -17,6 +17,19 @@ gui.Client = ( new function Client () {
 	this.isGecko = !this.isWebKit && !this.isOpera && agent.contains ( "gecko" );
 
 	/**
+	 * Supports CSS feature?
+	 * @param {String} feature
+	 * @returns {boolean}
+	 */
+	function supports ( feature ) {
+		var root = document.documentElement;
+		var fixt = feature [ 0 ].toUpperCase () + feature.substring ( 1 );
+		return ![ "", "Webkit", "Moz", "O", "ms" ].every ( function ( prefix ) {
+			return root.style [ prefix ? prefix + fixt : feature ] === undefined;
+		});
+	}
+
+	/**
 	 * Agent is one of "webkit" "firefox" "opera" "explorer"
 	 * @type {String}
 	 */
@@ -64,6 +77,13 @@ gui.Client = ( new function Client () {
 	this.hasBlob = ( window.Blob && ( window.URL || window.webkitURL ));
 
 	/**
+	 * @TODO
+	 * Supports the History API?
+	 * @type {boolean}
+	 */
+	this.hasHistory = true;
+
+	/**
 	 * Is mobile device? Not to be confused with this.hasTouch
 	 * @TODO gui.Observerice entity?
 	 * @type {boolean}
@@ -73,39 +93,25 @@ gui.Client = ( new function Client () {
 		return !shortlist.every ( function ( system ) {
 			return !agent.contains ( system );
 		});
-	})();
+	}());
 
 	/**
 	 * Supports CSS transitions?
 	 * @type {boolean}
 	 */
-	this.hasTransitions = ( function () {
-		return ![ 
-			"transition", 
-			"WebkitTransition", 
-			"MozTransition", 
-			"OTransition", 
-			"msTransition" 
-			].every ( function ( test ) {
-				return root.style [ test ] === undefined;
-		});
-	})();
+	this.hasTransitions = supports ( "transition" );
 
 	/**
 	 * Supports CSS 3D transform? (note https://bugzilla.mozilla.org/show_bug.cgi?id=677173)
 	 * @type {boolean}
 	 */
-	this.has3D = ( function () {
-		return ![ 
-			"perspective", 
-			"WebkitPerspective", 
-			"MozPerspective", 
-			"OPerspective", 
-			"msPerspective" 
-			].every ( function ( test ) {
-				return root.style [ test ] === undefined;
-		});
-	})();
+	this.has3D = supports ( "perspective" );
+
+	/**
+	 * Supports flexible box module?
+	 * @type {boolean}
+	 */
+	this.hasFlexBox = supports ( "flex" );
 
 	/**
 	 * Supports requestAnimationFrame somewhat natively?

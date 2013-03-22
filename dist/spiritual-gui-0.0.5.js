@@ -677,9 +677,21 @@ gui.Spiritual.prototype = {
 
 	/**
 	 * Usually the window object. Occasionally a web worker scope.
-	 * @type {Window}
+	 * @type {GlobalScope}
 	 */
 	context : null,
+
+	/**
+	 * Context window (if not in a worker).
+	 * @type {Window}
+	 */
+	window : null,
+
+	/**
+	 * Context document (if not in a worker).
+	 * @type {Document}
+	 */
+	document : null,
 
 	/**
 	 * Spirit management mode. Matches one of 
@@ -765,7 +777,7 @@ gui.Spiritual.prototype = {
 				if ( gui.KeyMaster.isKey ( arg )) {
 					spirit = inside [ arg ] || outside [ arg ] || null;
 				} else {
-					var element = this._document.querySelector ( arg );
+					var element = this.document.querySelector ( arg );
 					spirit = element ? element.spirit : null;
 				}
 				break;
@@ -779,6 +791,7 @@ gui.Spiritual.prototype = {
 	 * Register module.
 	 * @param {String} name
 	 * @param {object} module
+	 * @returns {object}
 	 */
 	module : function ( name, module ) {
 		if ( !gui.Type.isString ( name )) {
@@ -815,6 +828,7 @@ gui.Spiritual.prototype = {
 		}
 		this._modulelife ( module, this.context );
 		this._modules [ name ] = module;
+		return module;
 	},
 
 	/**
@@ -853,6 +867,18 @@ gui.Spiritual.prototype = {
 				klass : klass
 			});
 		}
+	},
+
+	/**
+	 * Mixin prototype property. Checking for naming collision.
+	 * @param {String} key
+	 * @param {object} value
+	 * @param @optional {boolean} override
+	 * @returns {object} Returns the mixin value
+	 */
+	mixin : function ( key, value, override ) {
+		var proto = this.constructor.prototype;
+		return gui.Object.mixin ( proto, key, value, override );
 	},
 
 	/**
@@ -1003,7 +1029,7 @@ gui.Spiritual.prototype = {
 	 * @TODO deprecate this (create gui.Developer).
 	 */
 	debugchannels : function () {
-		var out = this._document.location.toString ();
+		var out = this.document.location.toString ();
 		this._channels.forEach ( function ( channel ) {
 			out += "\n" + channel [ 0 ] + " : " + channel [ 1 ];
 		});
@@ -1085,7 +1111,7 @@ gui.Spiritual.prototype = {
 		[ 
 			"_spiritualaid", 
 			"context", 
-			"_document", 
+			"document", 
 			"_channels", 
 			"_inlines",
 			"_spaces", 
@@ -1098,12 +1124,6 @@ gui.Spiritual.prototype = {
 	
 
 	// Private .................................................................
-
-	/**
-	 * Document context.
-	 * @type {Document}
-	 */
-	_document : null,
 
 	/**
 	 * Lisitng CSS selectors associated to Spirit constructors. 
@@ -1159,9 +1179,9 @@ gui.Spiritual.prototype = {
 	 * Construction time again.
 	 * @param {Window} win
 	 */
-	_construct : function ( win ) {
+	_construct : function ( context ) {
 		// patching features
-		this._spiritualaid.polyfill ( win );		
+		this._spiritualaid.polyfill ( context );		
 		// compute signature (possibly identical to $instanceid of hosting iframe spirit)
 		this.signature = ( function () {
 			var sig, url = location.href;
@@ -1174,8 +1194,9 @@ gui.Spiritual.prototype = {
 		}());
 		
 		// basic setup
-		this.context = win;
-		this._document = win.document;
+		this.context = context;
+		this.window = context.document ? context : null;
+		this.document = context.document || null;
 		this._inlines = Object.create ( null );
 		this._modules = Object.create ( null );
 		this._channels = [];
@@ -1226,6 +1247,7 @@ gui.Spiritual.prototype = {
 	},
 
 	/**
+	 * @TODO clean this up...
 	 * @param {object} module
 	 * @param {Window} context
 	 */
@@ -1454,6 +1476,7 @@ gui.Object = {
 
 	/**
 	 * Extend target with source properties *excluding* prototype stuff.
+	 * @TODO bypass mixin?
 	 * @param {object} target
 	 * @param {object} source
 	 * @returns {object}
@@ -1465,6 +1488,24 @@ gui.Object = {
     });
     return target;
   },
+
+  /**
+   * Mixin something with collision detection.
+   * @TODO bypass extend?
+   * @param {object]} target
+   * @param {String} key
+   * @param {object} value
+   * @param {boolean} override
+   * @returns {object}
+   */
+  mixin : function ( target, key, value, override ) {
+		if ( !gui.Type.isDefined ( target [ key ]) || override ) {
+			target [ key ] = value; // @TODO: warning when target is gui.Class (super support)
+		} else {
+			console.error ( "Mixin naming collision in " + target + ": " + key );
+		}
+		return target;
+	},
 
   /**
    * Copy object.
@@ -1987,7 +2028,7 @@ gui.Object.each ({
 				}
 			});
 		} else {
-			console.error ( "Addin naming collision in " + this + ": " + name );
+			console.error ( "Mixin naming collision in " + this + ": " + name );
 		}
 	}
 
@@ -6420,9 +6461,6 @@ gui.CSSPlugin = gui.Plugin.extend ( "gui.CSSPlugin", {
 					vendors.every ( function ( vendor ) {
 						var test = this._camelcase ( part.replace ( "-beta-", vendor ));
 						if ( element.style [ test ] !== undefined ) {
-							if ( vendors.length > 2 ) {
-								this._vendors = [ "", vendor ];
-							}
 							parts.push ( part.replace ( "-beta-", vendor ));
 							return false;
 						}
@@ -6450,9 +6488,6 @@ gui.CSSPlugin = gui.Plugin.extend ( "gui.CSSPlugin", {
 				vendors.every ( function ( vendor ) {
 					var test = this._camelcase ( prop.replace ( "-beta-", vendor ));
 					if ( element.style [ test ] !== undefined ) {
-						if ( vendors.length > 2 ) {
-							this._vendors = [ "", vendor ]; // @TODO at startup
-						}
 						fixt = test;
 						return false;
 					}
@@ -7415,187 +7450,6 @@ gui.IEventHandler = {
 	 */
 	handleEvent : function ( e ) {}
 };
-
-
-gui.FlexPlugin = gui.Plugin.extend ( "gui.FlexPlugin", {
-
-	/**
-	 * Flex this and descendant flexboxes in document order. As the name suggests, 
-	 * it might be required to call this again if flexboxes get added or removed.
-	 */
-	reflex : function () {
-		var boxes = this._collectboxes ();
-		boxes.forEach ( function ( box ) {
-			box.flexchildren ();
-		});
-	},
-
-
-	// Private ..................................................................
-
-	/**
-	 * @returns {Array<gui.FlexBox>}
-	 */
-	_collectboxes : function () {
-		var boxes = [];
-		new gui.Crawler ( "flexcrawler" ).descend ( this.spirit.element, {
-			handleElement : function ( elm ) {
-				if ( gui.CSSPlugin.contains ( elm, "flexbox" )) {
-					boxes.push ( new gui.FlexBox ( elm ));
-				}
-			}
-		});
-		return boxes;
-	}
-
-});
-
-
-/**
- * Wraps a flexbox container element.
- * @param {Element} elm
- */
-gui.FlexBox = function FlexBox ( elm ) {
-	this.element = elm;
-	this.spirit = elm.spirit;
-	this.children = gui.Object.toArray ( elm.children );
-	if ( gui.CSSPlugin.contains ( elm, "vertical" )) {
-		this.orient = "vertical";
-	}
-};
-
-gui.FlexBox.prototype = {
-
-	/**
-	 * Flexbox container.
-	 * @type {Element}
-	 */
-	element : null,
-
-	/**
-	 * Flexed children.
-	 * @type {Array<Element>}
-	 */
-	children : null,
-
-	/**
-	 * Matches horizontal|vertical.
-	 * @type {String}
-	 */
-	orient : "horizontal",
-
-	/**
-	 * Identification.
-	 * @returns {String}
-	 */
-	toString : function () {
-		return "[object gui.FlexBox]";
-	},
-
-	/**
-	 * Flex children.
-	 */
-	flexchildren : function () {
-		var flexes = this._childflexes ();
-		var factor = this._computefactor ( flexes );
-		if ( flexes.length ) {
-			var unit = 100 / flexes.reduce ( function ( a, b ) {
-				return a + b;
-			});
-			this.children.forEach ( function ( child, i ) {
-				if ( flexes [ i ] > 0 ) {
-					this._setratio ( child, flexes [ i ], unit, factor );
-				}
-			},this);
-		}
-	},
-
-
-	// Private ................................................................
-	 
-	/**
-	 * Collect child flexes. Unflexed members count as 0.
-	 * @return {Array<number>}
-	 */
-	_childflexes : function () {
-		return this.children.map ( function ( child ) {
-			return this._getflex ( child );
-		},this);
-	},
-
-	/**
-	 * Get flex value for element. We use the flexN classname to indicate this.
-	 * @param {Element} elm
-	 * @return {number}
-	 */
-	_getflex : function ( elm ) {
-		var flex = 0;
-		elm.className.split ( " ").forEach ( function ( name ) {
-			if ( gui.FlexBox._FLEXNAME.test ( name ) && name !== "flexbox" ) { // @TODO regexp to exlude!
-				flex = ( gui.FlexBox._FLEXRATE.exec ( name ) || 1 );
-			}
-		});
-		return gui.Type.cast ( flex );
-	},
-
-	/**
-	 * Get modifier for percentage widths, 
-	 * accounting for fixed width members.
-	 * @param {<Array<number>} flexes
-	 * @return {number} Between 0 and 1
-	 */
-	_computefactor : function ( flexes ) {
-		var all, cut, factor = 1;
-		if ( flexes.indexOf ( 0 ) >-1 ) {
-			all = cut = this._getoffset ();
-			this.children.forEach ( function ( child, i ) {
-				cut -= flexes [ i ] ? 0 : this._getoffset ( child );
-			}, this );
-			factor = cut / all;
-		}
-		return factor;
-	},
-
-	/**
-	 * Get width or height of element (depending on flexbox orientation).
-	 * @param @optional {Element} elm Omit for flexbox container element.
-	 * @returns {number} Offset in pixels
-	 */
-	_getoffset : function ( elm ) {
-		elm = elm || this.element;
-		return this.orient === "horizontal" ? 
-			elm.offsetWidth :
-			elm.offsetHeight;
-	},
-
-	/**
-	 * Set percentage width|height of element.
-	 * @param {Element} elm
-	 * @param {number} flex
-	 * @param {number} unit
-	 * @param {number} factor
-	 */
-	_setratio : function ( elm, flex, unit, factor ) {
-		var prop = this.orient === "horizontal" ? "width" : "height";
-		elm.style [ prop ] = flex * unit * factor + "%";
-	}
-};
-
-
-// Static ............................................................
-
-/**
- * Check for flexN classname.
- * @todo don't match "flexbox"
- * @type {RegExp}
- */
-gui.FlexBox._FLEXNAME = /flex\d*/;
-
-/**
- * Extract N from classname.
- * @type {RegExp}
- */
-gui.FlexBox._FLEXRATE = /\d/;
 
 
 /** 
@@ -8915,17 +8769,16 @@ gui.module ( "core", {
 		att : gui.AttPlugin, 
 		attention : gui.AttentionPlugin,
 		box : gui.BoxPlugin,
-		broadcast	: gui.BroadcastPlugin,
+		broadcast : gui.BroadcastPlugin,
 		config : gui.ConfigPlugin,
 		css : gui.CSSPlugin,
-		dom	: gui.DOMPlugin,
-		event	: gui.EventPlugin,
-		flex	: gui.FlexPlugin,
+		dom : gui.DOMPlugin,
+		event : gui.EventPlugin,
 		lif : gui.LifePlugin,
 		tick : gui.TickPlugin,
 		tween : gui.TweenPlugin,
 		transition : gui.TransitionPlugin
-	},
+ },
 
 	/**
 	 * Methods added to gui.Spirit.prototype
@@ -9000,6 +8853,19 @@ gui.Client = ( new function Client () {
 	this.isGecko = !this.isWebKit && !this.isOpera && agent.contains ( "gecko" );
 
 	/**
+	 * Supports CSS feature?
+	 * @param {String} feature
+	 * @returns {boolean}
+	 */
+	function supports ( feature ) {
+		var root = document.documentElement;
+		var fixt = feature [ 0 ].toUpperCase () + feature.substring ( 1 );
+		return ![ "", "Webkit", "Moz", "O", "ms" ].every ( function ( prefix ) {
+			return root.style [ prefix ? prefix + fixt : feature ] === undefined;
+		});
+	}
+
+	/**
 	 * Agent is one of "webkit" "firefox" "opera" "explorer"
 	 * @type {String}
 	 */
@@ -9047,6 +8913,13 @@ gui.Client = ( new function Client () {
 	this.hasBlob = ( window.Blob && ( window.URL || window.webkitURL ));
 
 	/**
+	 * @TODO
+	 * Supports the History API?
+	 * @type {boolean}
+	 */
+	this.hasHistory = true;
+
+	/**
 	 * Is mobile device? Not to be confused with this.hasTouch
 	 * @TODO gui.Observerice entity?
 	 * @type {boolean}
@@ -9056,39 +8929,25 @@ gui.Client = ( new function Client () {
 		return !shortlist.every ( function ( system ) {
 			return !agent.contains ( system );
 		});
-	})();
+	}());
 
 	/**
 	 * Supports CSS transitions?
 	 * @type {boolean}
 	 */
-	this.hasTransitions = ( function () {
-		return ![ 
-			"transition", 
-			"WebkitTransition", 
-			"MozTransition", 
-			"OTransition", 
-			"msTransition" 
-			].every ( function ( test ) {
-				return root.style [ test ] === undefined;
-		});
-	})();
+	this.hasTransitions = supports ( "transition" );
 
 	/**
 	 * Supports CSS 3D transform? (note https://bugzilla.mozilla.org/show_bug.cgi?id=677173)
 	 * @type {boolean}
 	 */
-	this.has3D = ( function () {
-		return ![ 
-			"perspective", 
-			"WebkitPerspective", 
-			"MozPerspective", 
-			"OPerspective", 
-			"msPerspective" 
-			].every ( function ( test ) {
-				return root.style [ test ] === undefined;
-		});
-	})();
+	this.has3D = supports ( "perspective" );
+
+	/**
+	 * Supports flexible box module?
+	 * @type {boolean}
+	 */
+	this.hasFlexBox = supports ( "flex" );
 
 	/**
 	 * Supports requestAnimationFrame somewhat natively?
@@ -9251,9 +9110,7 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 			var target = this.document;
 			switch ( type ) {
 				case "scroll" :
-				case "resize" :
-					target = this.window;
-					break;
+				case "resize" : // ??????
 				case "popstate" :
 				case "hashchange" :
 					var win = this.window;
@@ -9306,7 +9163,7 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 			default : // all documents
 				switch ( e.type ) {
 					case "resize" :
-						if ( parent === window ) {
+						if ( top === window ) {
 							this._onresize ();
 						}
 						break;
@@ -9422,14 +9279,18 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 	 */
 	propagateBroadcast : function ( b ) {
 		b.signatures.push ( this.signature );
-		var msg = gui.Broadcast.stringify ( b ), win = this.window, parent = win.parent;
-		this.dom.qall ( "iframe", gui.IframeSpirit ).forEach ( function ( iframe ) {
-			if ( iframe.external ) {
-				iframe.contentWindow.postMessage ( msg, "*" );
+		var msg = gui.Broadcast.stringify ( b );
+		var win = this.window;
+		var sup = win.parent;
+		if ( win !== sup ) {
+			this.dom.qall ( "iframe", gui.IframeSpirit ).forEach ( function ( iframe ) {
+				if ( iframe.external ) {
+					iframe.contentWindow.postMessage ( msg, "*" );
+				}
+			});
+			if ( sup !== win ) {
+				sup.postMessage ( msg, "*" );
 			}
-		});
-		if ( parent !== win ) {
-			parent.postMessage ( msg, "*" );
 		}
 	},
 	
@@ -9509,15 +9370,15 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 		"click" : gui.BROADCAST_MOUSECLICK,
 		"mousedown" : gui.BROADCAST_MOUSEDOWN,
 		"mouseup" : gui.BROADCAST_MOUSEUP,
-		"scroll" : gui.BROADCAST_SCROLL,
-		"resize" : gui.BROADCAST_RESIZE,
+		"scroll" : gui.BROADCAST_SCROLL, // top ??????????
+		"resize" : gui.BROADCAST_RESIZE, // top ??????????
 		"touchstart" : gui.BROADCAST_TOUCHSTART,
 		"touchend" : gui.BROADCAST_TOUCHEND,
 		"touchcancel" : gui.BROADCAST_TOUCHCANCEL,
 		"touchleave" : gui.BROADCAST_TOUCHLEAVE,
 		"touchmove" : gui.BROADCAST_TOUCHMOVE,
-		"hashchange" : gui.BROADCAST_HASHCHANGE,
-		"popstate" : gui.BROADCAST_POPSTATE
+		"hashchange" : gui.BROADCAST_HASHCHANGE, // top ??????????
+		"popstate" : gui.BROADCAST_POPSTATE // top ??????????
 		// "mousemove" : gui.BROADCAST_MOUSEMOVE,
 	},
 
@@ -9601,7 +9462,7 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 	 * Timeout in milliseconds before we decide 
 	 * that user is finished resizing the window.
 	 */
-	TIMEOUT_RESIZE_END : 50
+	TIMEOUT_RESIZE_END : 250
 });
 
 
@@ -9957,145 +9818,106 @@ gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
 
 
 /**
- *Spirit of the stylesheet. To be refactored.
+ * Spirit of the stylesheet.
+ * @see http://www.quirksmode.org/dom/w3c_css.html
  * @extends {gui.Spirit}
  */
 gui.StyleSheetSpirit = gui.Spirit.infuse ( "gui.StyleSheetSpirit", {
 
 	/**
-	 * Strip lines starting with @ character (for now).
-	 * @type {RegExp}
+	 * Sheet not accessible before we hit the document.
 	 */
-	_ATSTATEMENTS : /\@.+\n/g,
-
-	/**
-	 * Result of parsing CSS - an array of spirit channels.
-	 * @type {Array<Array}
-	 */
-	_channels : null,
-
-	/**
-	 * Constructor action.
-	 */
-	onconstruct : function () {
-		this._super.onconstruct ();
-		this._channels = [];
-		// CSS served external or inline?
-		if ( !this.element.disabled ) {
-			var href = this.element.href;
-			if ( href !== undefined ) {
-				this._parseExternal ( href );
-			} else {
-				this._parse ( this.element.textContent );
-				this.channel ();
-			}
+	onenter : function () {
+		this._super.onenter ();
+		if ( this._rules ) {
+			this.addRules ( this._rules );
+			this._rules = null;
 		}
 	},
 
 	/**
-	 * The CSSStyleSheet API doesn't expose
-	 * custom properties. Let's parse text!
-	 * @param {String} href
+	 * Add rules (by JSON object for now).
+	 * @param {Map<String,object>} rules
 	 */
-	_parseExternal : function ( href ) {
-		/**
-		 * It appears that synchronous requests no longer block 
-		 * the execution thread (!), we need an elaborate setup 
-		 * to momentarily halt the gui.Guide while async 
-		 * requests are returned and parsed. If we are lucky, 
-		 * the browser will have cached the CSS file already.
-		 */
-		this._done ( false );
-		new gui.Request ( href ).get ( function ( status, css ) {
-			if ( status === 200 ) {
-				this._parse ( css );
+	addRules : function ( rules ) {
+		var sheet = this.element.sheet, index = sheet.cssRules.length;
+		gui.Object.each ( rules, function ( selector, declarations ) {
+			sheet.insertRule( selector + this._ruleout ( declarations ), index ++ );
+		}, this );
+	},
+
+	// Private .................................................................
+
+	/**
+	 * CSS ruleset to evaluate when inserted.
+	 * @type {Map<String,object>} declarations
+	 */
+	_rules : null,
+
+	/**
+	 * Convert declarations to rule body.
+	 * @param {Map<String,String>} declarations
+	 * @return {String}
+	 */
+	_ruleout : function ( declarations ) {
+		var body = ""; 
+		gui.Object.each ( declarations, function ( property, value ) {
+			if ( property.contains ( "-beta" )) {
+				throw new Error ( "TODO: -beta-property" );
 			}
-			this._done ( true );
-		}, this );
-	},
-
-	/**
-	 * If not done, instruct gui.Guide to wait for incoming channels.
-	 * Otherwise, when CSS is parsed, let gui.Guide invoke channel method. 
-	 * This ensures that channels are asserted in continuos (markup) order.
-	 * @param {boolean} isDone
-	 */
-	_done : function ( isDone ) {
-		this.broadcast.dispatchGlobal ( isDone ? 
-			gui.BROADCAST_CHANNELS_LOADED : 
-			gui.BROADCAST_LOADING_CHANNELS 
-		);
-	},
-
-	/**
-	 * Parse CSS, channeling Spirits to selectors.
-	 * @TODO more tolerant parsing algorithm!
-	 * @param {String} text (valid CSS syntax!) 
-	 */
-	_parse : function ( text ) {
-		var channels = [];
-		var cssprop = "-ui-spirit";
-		if ( text.indexOf ( cssprop ) >-1 ) {
-			var sane = [];
-			var coms = text.split ( "*/" );
-			coms.forEach ( function ( part ) {				
-				sane.push ( part.split ( "/*" )[ 0 ]);
-			});
-			sane = sane.join ( "" ).replace ( this._ATSTATEMENTS, "" ); // replace ( /\s/g, "" );
-			sane.split ( "}" ).forEach ( function ( part ) {
-				var split = part.split ( "{" );
-				var selector = split [ 0 ];
-				var defs = split [ 1 ];
-				if ( defs ) {
-					defs.split ( ";" ).forEach ( function ( def ) {
-						var last = def.split ( ":" );
-						var prop = last [ 0 ];
-							if ( prop.trim () === cssprop ) {
-								var constructors = last [ 1 ].trim ();
-								constructors.split ( " " ).reverse ().forEach ( function ( constructor ) {
-									channels.push ([ 
-										selector.trim (), 
-										constructor.trim ()
-									]);
-								});
-							}
-					});
-				}
-			});
-			/*
-			 * In CSS, overriding spirits are declared last.
-			 * In JS, they are declared first: Reverse list.
-			 */
-			this._channels = channels.reverse ();
-		}
-	},
-
-	/**
-	 * Assert channels; method isolated to support async setup.
-	 * This method may have been invoked by the gui.Guide
-	 */
-	channel : function () {
-		this._channels.forEach ( function ( channel ) {
-			this.window.gui.channel ( channel [ 0 ], channel [ 1 ]);
-		}, this );
+			body += property + ":" + value + ";";
+		});
+		return "{" + body + "}";
 	}
-	
-	
-}, {
+
+}, { // Static .....................................................
 
 	/**
 	 * Summon spirit.
 	 * @param {Document} doc
-	 * @param {String} href
+	 * @param @optional {String} href
+	 * @param @optional {Map<String,object>} rules
+	 * @param @optional {boolean} disbled
 	 * @returns {gui.StyleSheetSpirit}
 	 */
-	summon : function ( doc, href ) {
+	summon : function ( doc, href, rules, disabled ) {
+		var elm = href ? this._link ( doc, href ) : this._style ( doc );
+		var spirit = this.possess ( elm );
+		elm.className = "gui-stylesheet";
+		if ( rules ) {
+			if ( href ) {
+				elm.addEventListener ( "load", function () {
+					spirit.addRules ( rules );
+				}, false );
+			} else {
+				spirit._rules = rules;
+			}
+		}
+		return spirit;
+	},
+
+
+	// Private static .................................................
+
+	/**
+	 * @returns {HTMLLinkElement}
+	 */
+	_link : function ( doc, href ) {
 		var link = doc.createElement ( "link" );
-		link.className = "gui-styles";
 		link.rel = "stylesheet";
-		link.href = href ? href : "";
-		return this.possess ( link );
+		link.href = href;
+		return link;
+	},
+
+	/**
+	 * @returns {HTMLStyleElement}
+	 */
+	_style : function ( doc ) {
+		var style = doc.createElement ( "style" );
+		style.appendChild ( doc.createTextNode ( "" ));
+		return style;
 	}
+
 });
 
 
@@ -11935,3 +11757,407 @@ gui.Guide = {
 		gui.BROADCAST_KICKSTART
 	], gui.Guide );
 })();
+
+
+/**
+ * Facilitate flexbox-like layouts in IE9 
+ * provided a fixed classname structure.
+ * @extends {gui.Plugin}
+ */
+gui.FlexPlugin = gui.Plugin.extend ( "gui.FlexPlugin", {
+
+	/**
+	 * Flex this and descendant flexboxes in document order. As the name suggests, 
+	 * it might be required to call this again if flexboxes get added or removed.
+	 * @param @optional {Element} elm Flex from this element (or 'this.element')
+	 */
+	reflex : function ( elm ) {
+		elm = elm || this.spirit.element;
+		if ( this.spirit.dom.q ( ".flexbox" )) {
+			var boxes = this._collectboxes ( elm );
+			boxes.forEach ( function ( box ) {
+				box.flex ();
+			});
+		}
+	},
+
+
+	// Private ..................................................................
+
+	/**
+	 * Collect descendant-and-self flexboxes.
+	 * @param @optional {Element} elm
+	 * @returns {Array<gui.FlexBox>}
+	 */
+	_collectboxes : function ( elm ) {
+		var boxes = [];
+		new gui.Crawler ( "flexcrawler" ).descend ( elm, {
+			handleElement : function ( elm ) {
+				if ( gui.CSSPlugin.contains ( elm, "flexbox" )) {
+					boxes.push ( new gui.FlexBox ( elm ));
+				}
+			}
+		});
+		return boxes;
+	}
+
+
+}, { // Static ................................................................
+
+	MODE_NATIVE : "native",
+	MODE_EMULATED : "emulated",
+	MODE_OPTIMIZED : "optimized"
+
+});
+
+
+/*
+var rules = {
+	".flexbox" : {
+			"height" : "100%",
+			"width": "100%",
+			"display": "-beta-flex",
+			"-beta-flex-direction" : "row",
+			"-beta-flex-wrap" : "nowrap"
+	},
+	".flexbox.vertical" : {
+			"-beta-flex-direction" : "column"
+	},
+	".flex, .flexbox > *" : {
+			"-beta-flex" : "1 0 auto",
+			"height" : "auto"
+	}
+};
+
+var i = 0; while ( ++i < 23 ) {
+	rules [ ".flex" + i ] = {
+		"-beta-flex" : i + " 0 auto"
+	}
+}
+
+console.log ( JSON.stringify ( rules, null, "\t" ));
+
+//gui.CSSPlugin.addRules ( document, rules )
+*/
+
+
+/**
+ * Wraps a flexbox container element.
+ * @param {Element} elm
+ */
+gui.FlexBox = function FlexBox ( elm ) {
+	this._onconstruct ( elm );
+};
+
+gui.FlexBox.prototype = {
+
+	/**
+	 * Identification.
+	 * @returns {String}
+	 */
+	toString : function () {
+		return "[object gui.FlexBox]";
+	},
+
+	/**
+	 * Flex everything.
+	 */
+	flex : function () {
+		this._flexself ();
+		this._flexchildren ();
+	},
+
+
+	// Private ................................................................
+	
+	/**
+	 * Flexbox element.
+	 * @type {Element}
+	 */
+	_element : null,
+
+	/**
+	 * Flexed children.
+	 * @type {Array<Element>}
+	 */
+	_children : null,
+
+	/**
+	 * Vertical flexbox?
+	 * @type {boolean}
+	 */
+	_vertical : false,
+
+	/**
+	 * Constructor.
+	 * @param {Element} elm
+	 */
+	_onconstruct : function ( elm ) {
+		this._element = elm;
+		this._vertical = gui.CSSPlugin.contains ( this._element, "vertical" );
+		this._children = Array.map ( elm.children, function ( child ) {
+			return new gui.FlexChild ( child );
+		});
+	},
+	
+	/**
+	 * Flex the container. Note that container 
+	 * may act as the child of another flexbox. 
+	 * Horizontal box fits to contaienr via CSS.
+	 */
+	_flexself : function () {
+		var elm = this._element;
+		if ( this._vertical ) {
+			var given = elm.style.height;
+			var above = elm.parentNode;
+			var avail = above.offsetHeight;
+			var style = elm.style;
+			style.height = "auto";
+			if ( elm.offsetHeight < avail ) {
+				style.height = given || "100%";
+			}
+		}
+	},
+
+	/**
+	 * Flex the children.
+	 */
+	_flexchildren : function () {
+		var flexes = this._childflexes ();
+		var factor = this._computefactor ( flexes );
+		if ( flexes.length ) {
+			var unit = 100 / flexes.reduce ( function ( a, b ) {
+				return a + b;
+			});
+			this._children.forEach ( function ( child, i ) {
+				if ( flexes [ i ] > 0 ) {
+					var percentage = flexes [ i ] * unit * factor;
+					child.setoffset ( percentage, this._vertical );
+				}
+			},this);
+		}
+	},
+	 
+	/**
+	 * Collect child flexes. Unflexed members enter as 0.
+	 * @return {Array<number>}
+	 */
+	_childflexes : function () {
+		return this._children.map ( function ( child ) {
+			return child.getflex ();
+		},this);
+	},
+
+	/**
+	 * Get modifier for percentage widths 
+	 * accounting for fixed width members.
+	 * @param {<Array<number>} flexes
+	 * @return {number} Between 0 and 1
+	 */
+	_computefactor : function ( flexes ) {
+		var all, cut, factor = 1;
+		if ( flexes.indexOf ( 0 ) >-1 ) {
+			all = cut = this._getoffset ();
+			this._children.forEach ( function ( child, i ) {
+				cut -= flexes [ i ] ? 0 : child.getoffset ( this._vertical );
+			}, this );
+			factor = cut / all;
+		}
+		return factor;
+	},
+
+	/**
+	 * Get width or height of element (depending on flexbox orientation).
+	 * @returns {number} Offset in pixels
+	 */
+	_getoffset : function () {
+		var elm = this._element;
+		if ( this._vertical ) {
+			return elm.offsetHeight;
+		} else {
+			return elm.offsetWidth;
+		}
+	}
+};
+
+
+/**
+ * Wraps a flexbox child element.
+ * @param {Element} elm
+ */
+gui.FlexChild = function FlexChild ( elm ) {
+	this._element = elm;
+};
+
+gui.FlexChild.prototype = {
+
+	/**
+	 * Identification.
+	 * @returns {String}
+	 */
+	toString : function () {
+		return "[object gui.FlexBox]";
+	},
+
+	/**
+	 * Get flex value for element. We use the flexN classname to markup this.
+	 * @returns {number}
+	 */
+	getflex : function ( elm ) {
+		var flex = 0;
+		this._element.className.split ( " ").forEach ( function ( name ) {
+			if ( gui.FlexChild._FLEXNAME.test ( name ) && name !== "flexbox" ) { // @TODO regexp to exlude!
+				flex = ( gui.FlexChild._FLEXRATE.exec ( name ) || 1 );
+			}
+		});
+		return gui.Type.cast ( flex );
+	},
+
+	/**
+	 * Get width or height of element depending on flexbox orientation.
+	 * @param {boolean} vertical
+	 * @returns {number} Offset in pixels
+	 */
+	getoffset : function ( vertical ) {
+		var elm = this._element;
+		if ( vertical ) {
+			return elm.offsetHeight;
+		} else {
+			return elm.offsetWidth;
+		}
+	},
+
+	/**
+	 * Set percentage width|height of element.
+	 * @param {number} pct
+	 * @param {boolean} vertical
+	 */
+	setoffset : function ( pct, vertical ) {
+		var prop = vertical ? "height" : "width";
+		this._element.style [ prop ] = pct + "%";
+	},
+
+
+	// Private .........................................................
+		
+	/**
+	 * Flexchild element.
+	 * @type {Element}
+	 */
+	_element : null
+
+};
+
+
+// Static ............................................................
+
+/**
+ * Check for flexN classname.
+ * @todo don't match "flexbox"
+ * @type {RegExp}
+ */
+gui.FlexChild._FLEXNAME = /flex\d*/;
+
+/**
+ * Extract N from classname.
+ * @type {RegExp}
+ */
+gui.FlexChild._FLEXRATE = /\d/;
+
+
+/**
+ * Flex module.
+ */
+gui.module ( "flex", {
+
+	/**
+	 * Emulated ruleset.
+	 */
+	_RULESET_EMULATED : {
+		"flexbox" : {
+			"display" : "block"
+		},
+		".flexbox.vertical > *" : {
+			"display" : "block"
+		},
+		".flexbox:not(.vertical)" : {
+			"display" : "table",
+			"width" : "100%"
+		},
+		".flexbox:not(.vertical) > *" : {
+			"display" : "table-cell"
+		}
+	},
+
+	/**
+	 * Native ruleset.
+	 */
+	_RULESET_NATIVE : ( function ( flex ) {
+		var rules = {
+			".flexbox" : {
+				"height" : "100%",
+				"width": "100%",
+				"display": "-beta-flex",
+				"-beta-flex-direction" : "row",
+				"-beta-flex-wrap" : "nowrap"
+			},
+			".flexbox.vertical" : {
+				"-beta-flex-direction" : "column"
+			},
+			".flex, .flexbox > *" : {
+				"-beta-flex" : "1 0 auto",
+				"height" : "auto"
+			}
+		};
+		while ( ++flex <= 23 ) {
+			rules [ ".flex" + flex ] = {
+				"-beta-flex" : flex + " 0 auto"
+			};
+		}
+		return rules;
+	}( 0 )),
+
+	/** 
+	 * Assign FlexPlugin to the "flex" prefix.
+	 * All spirits may now trigger reflexes.
+	 */
+	plugins : {
+		flex : gui.FlexPlugin
+	},
+
+	/**
+	 * @param {Window} context
+	 */
+	init : function ( context ) {
+		var doc = context.document, rules = this._RULESET_EMULATED;
+		var stylesheet = gui.StyleSheetSpirit.summon ( doc, null, rules );
+		doc.querySelector ( "head" ).appendChild ( stylesheet.element );
+
+		// @TODO standard for this...
+		gui.Broadcast.addGlobal ( gui.BROADCAST_DID_SPIRITUALIZE, {
+			onbroadcast : function ( b ) {
+				if ( b.data === context.gui.signature ) {
+					context.gui.reflex ();
+				}
+			}
+		});
+	}
+	
+});
+
+/**
+ * Mixin global reflex method that flexes everything (at least on startup).
+ * @TODO reflex on startup by default...
+ * @TODO nicer interface for this kind of thing
+ */
+( function defaultsettings () {
+	gui.mixin ( "flexmode", "emulated" );
+	gui.mixin ( "reflex", function () {
+		var node = this.document;
+		var html = node.documentElement;
+		var root = html.spirit;
+		if ( this.flexmode === "emulated" ) {
+			root.flex.reflex ( node.body );
+		}
+	});
+}());

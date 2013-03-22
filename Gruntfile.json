@@ -49,9 +49,6 @@
 	"src/modules/core.module/plugins/dom.plugin/gui.DOMPlugin.js",
 	"src/modules/core.module/plugins/event.plugin/gui.EventPlugin.js",
 	"src/modules/core.module/plugins/event.plugin/gui.IEventHandler.js",
-	"src/modules/core.module/plugins/flex.plugin/gui.FlexPlugin.js",
-	"src/modules/core.module/plugins/flex.plugin/gui.FlexBox.js",
-	"src/modules/core.module/plugins/flex.plugin/gui.FlexChild.js",
 	"src/modules/core.module/plugins/tick.plugin/gui.Tick.js",
 	"src/modules/core.module/plugins/tick.plugin/gui.TickPlugin.js",
 	"src/modules/core.module/plugins/tick.plugin/gui.ITickHandler.js",
@@ -78,5 +75,10 @@
 	"src/dom/gui.DOMPatcher.js",
 
 	"src/dev/gui.Observer.js",
-	"src/core/gui.Guide.js"
+	"src/core/gui.Guide.js",
+
+	"src/modules/flex.module/gui.FlexPlugin.js",
+	"src/modules/flex.module/gui.FlexBox.js",
+	"src/modules/flex.module/gui.FlexChild.js",
+	"src/modules/flex.module/flex.module.js"
 ]
