@@ -157,7 +157,7 @@ gui.CSSPlugin = gui.Plugin.extend ( "gui.CSSPlugin", {
 				var now = element.className.split ( " " );
 				var idx = now.indexOf ( name );
 				if ( idx > -1 ) {
-					now.remove ( idx );
+					gui.Array.remove ( now, idx );
 				}
 				element.className = now.join ( " " );
 			}

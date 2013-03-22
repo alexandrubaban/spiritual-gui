@@ -66,11 +66,36 @@ gui.module ( "flex", {
 		var stylesheet = gui.StyleSheetSpirit.summon ( doc, null, rules );
 		doc.querySelector ( "head" ).appendChild ( stylesheet.element );
 
+		/*
+		alert ( context.gui.hasModule ( "edb" ));
+		if ( context.gui.hasModule ( "edb" )) {
+			alert("HEIL");
+		}
+		*/
+
 		// @TODO standard for this...
 		gui.Broadcast.addGlobal ( gui.BROADCAST_DID_SPIRITUALIZE, {
 			onbroadcast : function ( b ) {
 				if ( b.data === context.gui.signature ) {
-					context.gui.reflex ();
+					if ( context.gui.hasModule ( "edb" )) {
+
+						var proto = edb.ScriptPlugin.prototype;
+						if ( !proto.__flexoverloaded__ ) { // Mein Gott...........
+							proto.__flexoverloaded__ = true; 
+
+							var combo = gui.Combo.after ( function () {
+								if ( this.spirit.window.gui.flexmode === "emulated" ) {
+									this.spirit.flex.reflex ();
+								}
+							});
+
+							var base = proto.write;
+							proto.write = combo ( function () {
+								return base.apply ( this, arguments );
+							});
+
+						}
+					}
 				}
 			}
 		});

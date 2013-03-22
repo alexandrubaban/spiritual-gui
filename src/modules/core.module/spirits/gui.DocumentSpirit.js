@@ -70,11 +70,18 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 			default : // all documents
 				switch ( e.type ) {
 					case "resize" :
-						if ( top === window ) {
-							this._onresize ();
-						}
+						try {
+							if ( parent === window ) { // @TODO: gui.isTop or something...
+								try {
+									this._onresize ();
+								} catch ( normalexception ) {
+									throw ( normalexception );
+								}
+							}
+						} catch ( explorerexception ) {}
 						break;
 					case "load" :
+						e.stopPropagation ();
 						if ( !this._isLoaded ) {
 							this._onload ();
 						}
