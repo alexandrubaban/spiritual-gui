@@ -56,13 +56,12 @@ gui.module ( "flex", {
 	 */
 	plugins : {
 		flex : gui.FlexPlugin
- 	},
+	},
 
- 	/**
- 	 * Init module.
- 	 * @param {Window} context
- 	 */
- 	init : function ( context ) {
+	/**
+	 * @param {Window} context
+	 */
+	init : function ( context ) {
 		var doc = context.document, rules = this._RULESET_EMULATED;
 		var stylesheet = gui.StyleSheetSpirit.summon ( doc, null, rules );
 		doc.querySelector ( "head" ).appendChild ( stylesheet.element );
@@ -74,9 +73,9 @@ gui.module ( "flex", {
 					context.gui.reflex ();
 				}
 			}
-		})
- 	}
-
+		});
+	}
+	
 });
 
 /**

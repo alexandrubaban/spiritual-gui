@@ -30,13 +30,13 @@ gui.Spiritual.prototype = {
 	context : null,
 
 	/**
-	 * Alias for this.context *only if* running on a web page.
+	 * Context window (if not in a worker).
 	 * @type {Window}
 	 */
 	window : null,
 
 	/**
-	 * Associated document *only if* running on a web page.
+	 * Context document (if not in a worker).
 	 * @type {Document}
 	 */
 	document : null,
@@ -474,12 +474,6 @@ gui.Spiritual.prototype = {
 	// Private .................................................................
 
 	/**
-	 * Document context.
-	 * @type {Document}
-	 */
-	document : null,
-
-	/**
 	 * Lisitng CSS selectors associated to Spirit constructors. 
 	 * Order is important: First spirit to match selector is it. 
 	 * Note that each window maintains a version of gui._channels.
@@ -533,9 +527,9 @@ gui.Spiritual.prototype = {
 	 * Construction time again.
 	 * @param {Window} win
 	 */
-	_construct : function ( win ) {
+	_construct : function ( context ) {
 		// patching features
-		this._spiritualaid.polyfill ( win );		
+		this._spiritualaid.polyfill ( context );		
 		// compute signature (possibly identical to $instanceid of hosting iframe spirit)
 		this.signature = ( function () {
 			var sig, url = location.href;
@@ -548,9 +542,9 @@ gui.Spiritual.prototype = {
 		}());
 		
 		// basic setup
-		this.context = win;
-		this.document = win.document || null;
-		this.window = this.document ? win : null,
+		this.context = context;
+		this.window = context.document ? context : null;
+		this.document = context.document || null;
 		this._inlines = Object.create ( null );
 		this._modules = Object.create ( null );
 		this._channels = [];
