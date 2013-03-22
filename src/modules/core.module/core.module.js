@@ -31,7 +31,6 @@ gui.module ( "core", {
 		css : gui.CSSPlugin,
 		dom : gui.DOMPlugin,
 		event : gui.EventPlugin,
-		flex : gui.FlexPlugin,
 		lif : gui.LifePlugin,
 		tick : gui.TickPlugin,
 		tween : gui.TweenPlugin,

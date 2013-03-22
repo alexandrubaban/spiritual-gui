@@ -1,141 +1,102 @@
 /**
- *Spirit of the stylesheet. To be refactored.
+ * Spirit of the stylesheet.
+ * @see http://www.quirksmode.org/dom/w3c_css.html
  * @extends {gui.Spirit}
  */
 gui.StyleSheetSpirit = gui.Spirit.infuse ( "gui.StyleSheetSpirit", {
 
 	/**
-	 * Strip lines starting with @ character (for now).
-	 * @type {RegExp}
+	 * Sheet not accessible before we hit the document.
 	 */
-	_ATSTATEMENTS : /\@.+\n/g,
-
-	/**
-	 * Result of parsing CSS - an array of spirit channels.
-	 * @type {Array<Array}
-	 */
-	_channels : null,
-
-	/**
-	 * Constructor action.
-	 */
-	onconstruct : function () {
-		this._super.onconstruct ();
-		this._channels = [];
-		// CSS served external or inline?
-		if ( !this.element.disabled ) {
-			var href = this.element.href;
-			if ( href !== undefined ) {
-				this._parseExternal ( href );
-			} else {
-				this._parse ( this.element.textContent );
-				this.channel ();
-			}
+	onenter : function () {
+		this._super.onenter ();
+		if ( this._rules ) {
+			this.addRules ( this._rules );
+			this._rules = null;
 		}
 	},
 
 	/**
-	 * The CSSStyleSheet API doesn't expose
-	 * custom properties. Let's parse text!
-	 * @param {String} href
+	 * Add rules (by JSON object for now).
+	 * @param {Map<String,object>} rules
 	 */
-	_parseExternal : function ( href ) {
-		/**
-		 * It appears that synchronous requests no longer block 
-		 * the execution thread (!), we need an elaborate setup 
-		 * to momentarily halt the gui.Guide while async 
-		 * requests are returned and parsed. If we are lucky, 
-		 * the browser will have cached the CSS file already.
-		 */
-		this._done ( false );
-		new gui.Request ( href ).get ( function ( status, css ) {
-			if ( status === 200 ) {
-				this._parse ( css );
+	addRules : function ( rules ) {
+		var sheet = this.element.sheet, index = sheet.cssRules.length;
+		gui.Object.each ( rules, function ( selector, declarations ) {
+			sheet.insertRule( selector + this._ruleout ( declarations ), index ++ );
+		}, this );
+	},
+
+	// Private .................................................................
+
+	/**
+	 * CSS ruleset to evaluate when inserted.
+	 * @type {Map<String,object>} declarations
+	 */
+	_rules : null,
+
+	/**
+	 * Convert declarations to rule body.
+	 * @param {Map<String,String>} declarations
+	 * @return {String}
+	 */
+	_ruleout : function ( declarations ) {
+		var body = ""; 
+		gui.Object.each ( declarations, function ( property, value ) {
+			if ( property.contains ( "-beta" )) {
+				throw new Error ( "TODO: -beta-property" );
 			}
-			this._done ( true );
-		}, this );
-	},
-
-	/**
-	 * If not done, instruct gui.Guide to wait for incoming channels.
-	 * Otherwise, when CSS is parsed, let gui.Guide invoke channel method. 
-	 * This ensures that channels are asserted in continuos (markup) order.
-	 * @param {boolean} isDone
-	 */
-	_done : function ( isDone ) {
-		this.broadcast.dispatchGlobal ( isDone ? 
-			gui.BROADCAST_CHANNELS_LOADED : 
-			gui.BROADCAST_LOADING_CHANNELS 
-		);
-	},
-
-	/**
-	 * Parse CSS, channeling Spirits to selectors.
-	 * @TODO more tolerant parsing algorithm!
-	 * @param {String} text (valid CSS syntax!) 
-	 */
-	_parse : function ( text ) {
-		var channels = [];
-		var cssprop = "-ui-spirit";
-		if ( text.indexOf ( cssprop ) >-1 ) {
-			var sane = [];
-			var coms = text.split ( "*/" );
-			coms.forEach ( function ( part ) {				
-				sane.push ( part.split ( "/*" )[ 0 ]);
-			});
-			sane = sane.join ( "" ).replace ( this._ATSTATEMENTS, "" ); // replace ( /\s/g, "" );
-			sane.split ( "}" ).forEach ( function ( part ) {
-				var split = part.split ( "{" );
-				var selector = split [ 0 ];
-				var defs = split [ 1 ];
-				if ( defs ) {
-					defs.split ( ";" ).forEach ( function ( def ) {
-						var last = def.split ( ":" );
-						var prop = last [ 0 ];
-							if ( prop.trim () === cssprop ) {
-								var constructors = last [ 1 ].trim ();
-								constructors.split ( " " ).reverse ().forEach ( function ( constructor ) {
-									channels.push ([ 
-										selector.trim (), 
-										constructor.trim ()
-									]);
-								});
-							}
-					});
-				}
-			});
-			/*
-			 * In CSS, overriding spirits are declared last.
-			 * In JS, they are declared first: Reverse list.
-			 */
-			this._channels = channels.reverse ();
-		}
-	},
-
-	/**
-	 * Assert channels; method isolated to support async setup.
-	 * This method may have been invoked by the gui.Guide
-	 */
-	channel : function () {
-		this._channels.forEach ( function ( channel ) {
-			this.window.gui.channel ( channel [ 0 ], channel [ 1 ]);
-		}, this );
+			body += property + ":" + value + ";";
+		});
+		return "{" + body + "}";
 	}
-	
-	
-}, {
+
+}, { // Static .....................................................
 
 	/**
 	 * Summon spirit.
 	 * @param {Document} doc
-	 * @param {String} href
+	 * @param @optional {String} href
+	 * @param @optional {Map<String,object>} rules
+	 * @param @optional {boolean} disbled
 	 * @returns {gui.StyleSheetSpirit}
 	 */
-	summon : function ( doc, href ) {
+	summon : function ( doc, href, rules, disabled ) {
+		var elm = href ? this._link ( doc, href ) : this._style ( doc );
+		var spirit = this.possess ( elm );
+		elm.className = "gui-stylesheet";
+		if ( rules ) {
+			if ( href ) {
+				elm.addEventListener ( "load", function () {
+					spirit.addRules ( rules );
+				}, false );
+			} else {
+				spirit._rules = rules;
+			}
+		}
+		return spirit;
+	},
+
+
+	// Private static .................................................
+
+	/**
+	 * @returns {HTMLLinkElement}
+	 */
+	_link : function ( doc, href ) {
 		var link = doc.createElement ( "link" );
-		link.className = "gui-styles";
 		link.rel = "stylesheet";
-		link.href = href ? href : "";
-		return this.possess ( link );
+		link.href = href;
+		return link;
+	},
+
+	/**
+	 * @returns {HTMLStyleElement}
+	 */
+	_style : function ( doc ) {
+		var style = doc.createElement ( "style" );
+		style.appendChild ( doc.createTextNode ( "" ));
+		return style;
 	}
+
 });

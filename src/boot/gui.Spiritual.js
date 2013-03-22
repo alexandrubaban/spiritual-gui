@@ -25,9 +25,21 @@ gui.Spiritual.prototype = {
 
 	/**
 	 * Usually the window object. Occasionally a web worker scope.
-	 * @type {Window}
+	 * @type {GlobalScope}
 	 */
 	context : null,
+
+	/**
+	 * Alias for this.context *only if* running on a web page.
+	 * @type {Window}
+	 */
+	window : null,
+
+	/**
+	 * Associated document *only if* running on a web page.
+	 * @type {Document}
+	 */
+	document : null,
 
 	/**
 	 * Spirit management mode. Matches one of 
@@ -113,7 +125,7 @@ gui.Spiritual.prototype = {
 				if ( gui.KeyMaster.isKey ( arg )) {
 					spirit = inside [ arg ] || outside [ arg ] || null;
 				} else {
-					var element = this._document.querySelector ( arg );
+					var element = this.document.querySelector ( arg );
 					spirit = element ? element.spirit : null;
 				}
 				break;
@@ -127,6 +139,7 @@ gui.Spiritual.prototype = {
 	 * Register module.
 	 * @param {String} name
 	 * @param {object} module
+	 * @returns {object}
 	 */
 	module : function ( name, module ) {
 		if ( !gui.Type.isString ( name )) {
@@ -163,6 +176,7 @@ gui.Spiritual.prototype = {
 		}
 		this._modulelife ( module, this.context );
 		this._modules [ name ] = module;
+		return module;
 	},
 
 	/**
@@ -204,7 +218,7 @@ gui.Spiritual.prototype = {
 	},
 
 	/**
-	 * Mixin something while checking for naming collision.
+	 * Mixin prototype property. Checking for naming collision.
 	 * @param {String} key
 	 * @param {object} value
 	 * @param @optional {boolean} override
@@ -214,19 +228,6 @@ gui.Spiritual.prototype = {
 		var proto = this.constructor.prototype;
 		return gui.Object.mixin ( proto, key, value, override );
 	},
-
-	/**
-	 * Mixin something. Mixins get portalled to descendant iframes.
-	 * @param {String} key
-	 * @param {object} value
-	 * @returns {gui.Spiritual}
-	 *
-	mixin : function ( key, value ) {
-		gui.Object.mixin ( this, key, value );
-		this._mixins [ key ] = value;
-		return this;
-	},
-	*/
 
 	/**
 	 * Portal Spiritual to a parallel window in three easy steps.
@@ -264,12 +265,6 @@ gui.Spiritual.prototype = {
 					indexes.push ( i );	
 				});
 			}, this );
-			// portal mixins
-			/*
-			gui.Object.each ( this._mixins, function ( key, value ) {
-				alert ( key );
-			}, this );
-			*/
 			// Portal modules to initialize the sub context
 			// @TODO portal only the relevant init method?
 			gui.Object.each ( this._modules, function ( name, module ) {
@@ -382,7 +377,7 @@ gui.Spiritual.prototype = {
 	 * @TODO deprecate this (create gui.Developer).
 	 */
 	debugchannels : function () {
-		var out = this._document.location.toString ();
+		var out = this.document.location.toString ();
 		this._channels.forEach ( function ( channel ) {
 			out += "\n" + channel [ 0 ] + " : " + channel [ 1 ];
 		});
@@ -464,7 +459,7 @@ gui.Spiritual.prototype = {
 		[ 
 			"_spiritualaid", 
 			"context", 
-			"_document", 
+			"document", 
 			"_channels", 
 			"_inlines",
 			"_spaces", 
@@ -482,7 +477,7 @@ gui.Spiritual.prototype = {
 	 * Document context.
 	 * @type {Document}
 	 */
-	_document : null,
+	document : null,
 
 	/**
 	 * Lisitng CSS selectors associated to Spirit constructors. 
@@ -502,13 +497,6 @@ gui.Spiritual.prototype = {
 	 * Spaceous.
 	 */
 	_spaces : null,
-
-	/**
-	 * Mixins.
-	 * @type {Map<String,object>}
-	 *
-	_mixins : null,
-	*/
 
 	/**
 	 * Flipped to `true` after `go()`
@@ -561,10 +549,10 @@ gui.Spiritual.prototype = {
 		
 		// basic setup
 		this.context = win;
-		this._document = win.document;
+		this.document = win.document || null;
+		this.window = this.document ? win : null,
 		this._inlines = Object.create ( null );
 		this._modules = Object.create ( null );
-		//this._mixins = Object.create ( null );
 		this._channels = [];
 		this._spaces = [ "gui" ];
 		this._spirits = {
