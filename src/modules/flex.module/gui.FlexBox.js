@@ -43,7 +43,13 @@ gui.FlexBox.prototype = {
 	 * Vertical flexbox?
 	 * @type {boolean}
 	 */
-	_vertical : false,
+	_flexcol : false,
+
+	/**
+	 * Loosen up to contain content.
+	 * @type {Boolean}
+	 */
+	_flexlax : false,
 
 	/**
 	 * Constructor.
@@ -51,24 +57,23 @@ gui.FlexBox.prototype = {
 	 */
 	_onconstruct : function ( elm ) {
 		this._element = elm;
-		this._vertical = gui.CSSPlugin.contains ( this._element, "vertical" );
+		this._flexcol = this._hasclass ( "flexcol" );
+		this._flexlax = this._hasclass ( "flexlax" );
 		this._children = Array.map ( elm.children, function ( child ) {
 			return new gui.FlexChild ( child );
 		});
 	},
 	
 	/**
-	 * Flex the container. Note that container 
-	 * may act as the child of another flexbox. 
-	 * Horizontal box fits to contaienr via CSS.
+	 * Flex the container.
 	 */
 	_flexself : function () {
 		var elm = this._element;
-		if ( this._vertical ) {
-			var given = elm.style.height;
+		if ( this._flexcol ) {
+			var style = elm.style;
+			var given = style.height;
 			var above = elm.parentNode;
 			var avail = above.offsetHeight;
-			var style = elm.style;
 			style.height = "auto";
 			if ( elm.offsetHeight < avail ) {
 				style.height = given || "100%";
@@ -89,7 +94,7 @@ gui.FlexBox.prototype = {
 			this._children.forEach ( function ( child, i ) {
 				if ( flexes [ i ] > 0 ) {
 					var percentage = flexes [ i ] * unit * factor;
-					child.setoffset ( percentage, this._vertical );
+					child.setoffset ( percentage, this._flexcol );
 				}
 			},this);
 		}
@@ -116,7 +121,7 @@ gui.FlexBox.prototype = {
 		if ( flexes.indexOf ( 0 ) >-1 ) {
 			all = cut = this._getoffset ();
 			this._children.forEach ( function ( child, i ) {
-				cut -= flexes [ i ] ? 0 : child.getoffset ( this._vertical );
+				cut -= flexes [ i ] ? 0 : child.getoffset ( this._flexcol );
 			}, this );
 			factor = cut / all;
 		}
@@ -129,10 +134,19 @@ gui.FlexBox.prototype = {
 	 */
 	_getoffset : function () {
 		var elm = this._element;
-		if ( this._vertical ) {
+		if ( this._flexcol ) {
 			return elm.offsetHeight;
 		} else {
 			return elm.offsetWidth;
 		}
+	},
+
+	/**
+	 * Has classname?
+	 * @param {String} name
+	 * @returns {String}
+	 */
+	_hasclass : function ( name ) {
+		return gui.CSSPlugin.contains ( this._element, name );
 	}
 };

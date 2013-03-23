@@ -1,5 +1,5 @@
 /**
- * Injected CSS.
+ * CSS injection manager.
  */
 gui.FlexCSS = {
 
@@ -11,8 +11,8 @@ gui.FlexCSS = {
 	injected : true,
 
 	/**
-	 * Generating 23 unique classnames for *native* flex. 
-	 * Emulated flex extracts the value from the classname.
+	 * Generating 23 unique classnames for native flex only. 
+	 * Emulated flex extracts all values from class attribute.
 	 * @type {number}
 	 */
 	maxflex : 23,
@@ -30,48 +30,61 @@ gui.FlexCSS = {
 	
 /**
  * Emulated ruleset using table layout and JS.
- * @TODO: gui.FLEXMODE_EMULATED instead...
  */
 gui.FlexCSS [ "emulated" ] = {
-	"flexbox" : {
-		"display" : "block"
+	".flexcol" : {
+		"display" : "block",
+		"height" : "100%"
 	},
-	".flexbox.vertical > *" : {
-		"display" : "block"
+	".flexcol:not(.flexlax)" : {
+		"max-height" : "100%"
 	},
-	".flexbox:not(.vertical)" : {
+	".flexcol > *" : {
 		"display" : "table",
 		"width" : "100%"
 	},
-	".flexbox:not(.vertical) > *" : {
+	".flexrow" : {
+		"display" : "block",
+		"table-layout" : "fixed",
+		"width" : "100%"
+	},
+	".flexrow > *" : {
 		"display" : "table-cell"
-	}
+	},
 };
 
 /**
  * Native flexbox classnames.
  */
-gui.FlexCSS [ "native" ] = ( function ( flex ) {
+gui.FlexCSS [ "native" ] = ( function ( n ) {
 	var rules = {
-		".flexbox" : {
-			"height" : "100%",
-			"width": "100%",
+		".flexrow, .flexcol" : {
+			//"height" : "100%",
+			//"width": "100%",
 			"display": "-beta-flex",
 			"-beta-flex-direction" : "row",
 			"-beta-flex-wrap" : "nowrap"
 		},
-		".flexbox.vertical" : {
+		".flexcol" : {
 			"-beta-flex-direction" : "column"
 		},
-		".flex, .flexbox > *" : {
+		".flex, .flexrow > *, .flexcol > *" : {
 			"-beta-flex" : "1 0 auto",
-			"height" : "auto"
+		},
+		
+		".flexrow:not(.flexlax) > *" : {
+			"width" : "0"
+		},
+		/*
+		".flexcol:not(.flexlax) > *" : {
+			"height" : "0"
 		}
+		*/
 	};
 	var max = gui.FlexCSS.maxflex;
-	while ( ++flex <= max ) {
-		rules [ ".flex" + flex ] = {
-			"-beta-flex" : flex + " 0 auto"
+	while ( ++n <= max ) {
+		rules [ ".flex" + n ] = {
+			"-beta-flex" : n + " 0 auto"
 		};
 	}
 	return rules;
