@@ -83,15 +83,12 @@ gui.Spiritual.prototype = {
 	go : function () {
 		this._gone = true;
 		if ( this.debug ) {
-			switch ( this.mode ) {
-				case gui.MODE_JQUERY :
-					gui.Tick.next ( function () {  // @TODO somehow not conflict with http://stackoverflow.com/questions/11406515/domnodeinserted-behaves-weird-when-performing-dom-manipulation-on-body
-						gui.Observer.observe ( this.context ); // @idea move all of _step2 to next stack?
-					}, this );
-					break;
-				default :
-					gui.Observer.observe ( this.context );
-					break;
+			if ( this.mode === gui.MODE_JQUERY ) {
+				gui.Tick.next ( function () {  // @TODO somehow not conflict with http://stackoverflow.com/questions/11406515/domnodeinserted-behaves-weird-when-performing-dom-manipulation-on-body
+					gui.Observer.observe ( this.context ); // @idea move all of _step2 to next stack?
+				}, this );
+			} else {
+				gui.Observer.observe ( this.context );
 			}
 		}
 		switch ( this.mode ) {
@@ -144,38 +141,12 @@ gui.Spiritual.prototype = {
 	module : function ( name, module ) {
 		if ( !gui.Type.isString ( name )) {
 			throw new Error ( "Module requires a name" );
-		}
-		// modules extend gui.Spirit, use init() to extend subclass
-		var base = this.context.gui.Spirit;
-		// mixins (@TODO all sorts of "decorators")
-		if ( gui.Type.isObject ( module.mixins )) {
-			gui.Object.each ( module.mixins, function ( name, value ) {
-				base.mixin ( name, value );
-			}, this );
-		}
-		if ( gui.Type.isObject ( module.addins )) { // TEMP! 
-			throw new Error ( "Deprecated" );
-		}
-		// plugins
-		if ( gui.Type.isObject ( module.plugins )) {
-			gui.Object.each ( module.plugins, function ( prefix, plugin ) {
-				if ( gui.Type.isDefined ( plugin )) {
-					base.plugin ( prefix, plugin );
-				} else {
-					console.error ( "Undefined plugin for prefix: " + prefix );
-				}
-			}, this );
-		}
-		// channels
-		if ( gui.Type.isArray ( module.channels )) {
-			module.channels.forEach ( function ( channel ) {
-				var query = channel [ 0 ];
-				var klass = channel [ 1 ];
-				this.channel ( query, klass );
-			}, this );
+		} else {
+			module = this._modules [ name ] = new ( 
+				gui.Module.extend ( name, module )
+			)( this.context );
 		}
 		this._modulelife ( module, this.context );
-		this._modules [ name ] = module;
 		return module;
 	},
 
@@ -223,11 +194,12 @@ gui.Spiritual.prototype = {
 	 * @param {object} value
 	 * @param @optional {boolean} override
 	 * @returns {object} Returns the mixin value
-	 */
+	 *
 	mixin : function ( key, value, override ) {
 		var proto = this.constructor.prototype;
 		return gui.Object.mixin ( proto, key, value, override );
 	},
+	*/
 
 	/**
 	 * Portal Spiritual to a parallel window in three easy steps.
@@ -268,7 +240,7 @@ gui.Spiritual.prototype = {
 			// Portal modules to initialize the sub context
 			// @TODO portal only the relevant init method?
 			gui.Object.each ( this._modules, function ( name, module ) {
-				this._modulelife ( module, subgui.context );
+				module.$setupcontext ( subgui.context );
 				subgui._modules [ name ] = module;
 			}, this );
 			// Sort channels
@@ -528,6 +500,7 @@ gui.Spiritual.prototype = {
 	 * @param {Window} win
 	 */
 	_construct : function ( context ) {
+
 		// patching features
 		this._spiritualaid.polyfill ( context );		
 		// compute signature (possibly identical to $instanceid of hosting iframe spirit)
@@ -600,26 +573,37 @@ gui.Spiritual.prototype = {
 	 * @param {Window} context
 	 */
 	_modulelife : function ( module, context ) {
-		// invoke init now?
-		if ( gui.Type.isFunction ( module.init )) {
-			module.init ( context );
+		/*
+		var msg1 = gui.BROADCAST_WILL_SPIRITUALIZE;
+		var msg2 = gui.BROADCAST_DID_SPIRITUALIZE;
+		if ( module.oncontextinitialize ) {
+			module.oncontextinitialize ( context );
 		}
-		// invoke ready before document is spiritualized?
-		if ( gui.Type.isFunction ( module.ready )) {
-			gui.Broadcast.addGlobal (
-				gui.BROADCAST_WILL_SPIRITUALIZE, {
-					onbroadcast : function ( b ) {
-						if ( b.data === context.gui.signature ) {
-							module.ready ( context );
-							gui.Broadcast.removeGlobal ( 
-								gui.BROADCAST_WILL_SPIRITUALIZE, 
-								this
-							);
-						}
-					}
+		gui.Broadcast.addGlobal ([
+			msg1, 
+			msg2
+		], { 
+			onbroadcast : function ( b ) {
+				if ( b.data === context.gui.signature ) {
+					gui.Broadcast.removeGlobal ( b.type, this );
+					switch ( b.type ) {
+						case msg1 :
+							if ( gui.Type.isFunction ( module.onbeforespiritualize )) {
+								module.onbeforespiritualize ( context );	
+							}
+							break;
+						case msg2 :
+							if ( gui.Type.isFunction ( module.onafterspiritualize )) {
+								module.onafterspiritualize ( context );	
+							}
+							break;
 				}
-			);
+			}
+		}});
+		if ( module.init || module.ready ) {
+			console.error ( "deprecated" );
 		}
+		*/
 	}
 };
 

@@ -9,7 +9,7 @@ gui.module ( "jquery", {
 	 * Hack Spiritual in top window.
 	 * @param {Window} context
 	 */
-	init : function ( context ) {
+	oncontextinitialize : function ( context ) {
 		if ( context === top ) {
 			this._spiritualdom ();
 		}
@@ -19,7 +19,7 @@ gui.module ( "jquery", {
 	 * Hack JQuery in all windows.
 	 * @param {Window} context
 	 */
-	ready : function ( context ) {
+	onbeforespiritualize : function ( context ) {
 		var root = context.document.documentElement;
 		if ( context.gui.mode === gui.MODE_JQUERY ) {
 			var jq = context.jQuery;

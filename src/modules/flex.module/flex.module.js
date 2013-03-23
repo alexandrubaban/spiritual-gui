@@ -1,121 +1,114 @@
 /**
- * Flex module.
+ * Flexible boxes for IE9.
  */
-gui.module ( "flex", {
+gui.FlexModule = gui.module ( "flex", {
 
-	/**
-	 * Emulated ruleset.
-	 */
-	_RULESET_EMULATED : {
-		"flexbox" : {
-			"display" : "block"
-		},
-		".flexbox.vertical > *" : {
-			"display" : "block"
-		},
-		".flexbox:not(.vertical)" : {
-			"display" : "table",
-			"width" : "100%"
-		},
-		".flexbox:not(.vertical) > *" : {
-			"display" : "table-cell"
-		}
-	},
-
-	/**
-	 * Native ruleset.
-	 */
-	_RULESET_NATIVE : ( function ( flex ) {
-		var rules = {
-			".flexbox" : {
-				"height" : "100%",
-				"width": "100%",
-				"display": "-beta-flex",
-				"-beta-flex-direction" : "row",
-				"-beta-flex-wrap" : "nowrap"
-			},
-			".flexbox.vertical" : {
-				"-beta-flex-direction" : "column"
-			},
-			".flex, .flexbox > *" : {
-				"-beta-flex" : "1 0 auto",
-				"height" : "auto"
-			}
-		};
-		while ( ++flex <= 23 ) {
-			rules [ ".flex" + flex ] = {
-				"-beta-flex" : flex + " 0 auto"
-			};
-		}
-		return rules;
-	}( 0 )),
+	MODE_NATIVE : "native",
+	MODE_EMULATED : "emulated",
+	MODE_OPTIMIZED : "optimized",
 
 	/** 
-	 * Assign FlexPlugin to the "flex" prefix.
-	 * All spirits may now trigger reflexes.
+	 * Assign FlexPlugin to prefix "flex".
 	 */
 	plugins : {
 		flex : gui.FlexPlugin
 	},
 
 	/**
+	 * Properties added to the 'gui' object get copied 
+	 * to portalled iframes automatically, we have to  
+	 * overwrite is subframes for localized flex control.
 	 * @param {Window} context
 	 */
-	init : function ( context ) {
-		var doc = context.document, rules = this._RULESET_EMULATED;
+	oncontextinitialize : function ( context ) {
+		var override = true;
+		gui.Object.mixin ( context.gui, "flex", {
+			mode : "emulated",
+			reflex : function () {
+				var node = context.document;
+				var html = node.documentElement;
+				var root = html.spirit;
+				if ( this.mode === "emulated" ) {
+					root.flex.reflex ( node.body );
+				}	
+			}
+		}, override );
+	},
+
+	/**
+	 * 1. Inject the relevant stylesheet
+	 * 2. Setup to flex on EDBML updates
+	 * @param {Window} context
+	 */
+	onbeforespiritualize : function ( context ) {
+
+		var doc = context.document, rules = gui.FlexModule.RULESET_EMULATED;
 		var stylesheet = gui.StyleSheetSpirit.summon ( doc, null, rules );
 		doc.querySelector ( "head" ).appendChild ( stylesheet.element );
-
-		/*
-		alert ( context.gui.hasModule ( "edb" ));
+		
 		if ( context.gui.hasModule ( "edb" )) {
-			alert("HEIL");
-		}
-		*/
-
-		// @TODO standard for this...
-		gui.Broadcast.addGlobal ( gui.BROADCAST_DID_SPIRITUALIZE, {
-			onbroadcast : function ( b ) {
-				if ( b.data === context.gui.signature ) {
-					if ( context.gui.hasModule ( "edb" )) {
-
-						var proto = edb.ScriptPlugin.prototype;
-						if ( !proto.__flexoverloaded__ ) { // Mein Gott...........
-							proto.__flexoverloaded__ = true; 
-
-							var combo = gui.Combo.after ( function () {
-								if ( this.spirit.window.gui.flexmode === "emulated" ) {
-									this.spirit.flex.reflex ();
-								}
-							});
-
-							var base = proto.write;
-							proto.write = combo ( function () {
-								return base.apply ( this, arguments );
-							});
-
-						}
-					}
+			var proto = context.edb.ScriptPlugin.prototype;
+			gui.Function.decorateAfter ( proto, "write", function () {
+				if ( this.spirit.window.gui.flexmode === "emulated" ) { // check in reflex!
+					this.spirit.flex.reflex ();
 				}
-			}
-		});
-	}
+			});
+		}
+	},
+
+	/**
+	 * Flex everything on startup.
+	 * @param {Window} context
+	 */
+	onafterspiritualize : function ( context ) {
+		context.gui.flex.reflex ();
+	},
 	
 });
 
 /**
- * Mixin global reflex method that flexes everything (at least on startup).
- * @TODO reflex on startup by default...
- * @TODO nicer interface for this kind of thing
+ * Emulated CSS ruleset.
  */
-( function defaultsettings () {
-	gui.mixin ( "flexmode", "emulated" );
-	gui.mixin ( "reflex", function () {
-		var node = this.document;
-		var html = node.documentElement;
-		var root = html.spirit;
-		if ( this.flexmode === "emulated" ) {
-			root.flex.reflex ( node.body );
+gui.FlexModule.RULESET_EMULATED = {
+	"flexbox" : {
+		"display" : "block"
+	},
+	".flexbox.vertical > *" : {
+		"display" : "block"
+	},
+	".flexbox:not(.vertical)" : {
+		"display" : "table",
+		"width" : "100%"
+	},
+	".flexbox:not(.vertical) > *" : {
+		"display" : "table-cell"
+	}
+};
+
+/**
+ * Native CSS ruleset.
+ */
+gui.FlexModule.RULESET_NATIVE = ( function ( flex ) {
+	var rules = {
+		".flexbox" : {
+			"height" : "100%",
+			"width": "100%",
+			"display": "-beta-flex",
+			"-beta-flex-direction" : "row",
+			"-beta-flex-wrap" : "nowrap"
+		},
+		".flexbox.vertical" : {
+			"-beta-flex-direction" : "column"
+		},
+		".flex, .flexbox > *" : {
+			"-beta-flex" : "1 0 auto",
+			"height" : "auto"
 		}
-	});
-}());
+	};
+	while ( ++flex <= 23 ) {
+		rules [ ".flex" + flex ] = {
+			"-beta-flex" : flex + " 0 auto"
+		};
+	}
+	return rules;
+}( 0 ));
