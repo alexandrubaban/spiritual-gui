@@ -1,5 +1,5 @@
 /**
- * Wraps a flexbox child element.
+ * Computer for flexbox child.
  * @param {Element} elm
  */
 gui.FlexChild = function FlexChild ( elm ) {

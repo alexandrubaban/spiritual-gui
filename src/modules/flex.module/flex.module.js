@@ -15,9 +15,8 @@ gui.FlexModule = gui.module ( "flex", {
 	},
 
 	/**
-	 * Properties added to the 'gui' object get copied 
-	 * to portalled iframes automatically, we have to  
-	 * overwrite is subframes for localized flex control.
+	 * Support flex control on the local "gui" object 
+	 * (this must be localized to portalled iframes).
 	 * @param {Window} context
 	 */
 	oncontextinitialize : function ( context ) {
@@ -41,15 +40,11 @@ gui.FlexModule = gui.module ( "flex", {
 	 * @param {Window} context
 	 */
 	onbeforespiritualize : function ( context ) {
-
-		var doc = context.document, rules = gui.FlexModule.RULESET_EMULATED;
-		var stylesheet = gui.StyleSheetSpirit.summon ( doc, null, rules );
-		doc.querySelector ( "head" ).appendChild ( stylesheet.element );
-		
+		gui.FlexCSS.inject ( context, context.gui.flex.mode );
 		if ( context.gui.hasModule ( "edb" )) {
 			var proto = context.edb.ScriptPlugin.prototype;
 			gui.Function.decorateAfter ( proto, "write", function () {
-				if ( this.spirit.window.gui.flexmode === "emulated" ) { // check in reflex!
+				if ( this.spirit.window.gui.flex.mode === "emulated" ) { // check in reflex!
 					this.spirit.flex.reflex ();
 				}
 			});
@@ -61,54 +56,8 @@ gui.FlexModule = gui.module ( "flex", {
 	 * @param {Window} context
 	 */
 	onafterspiritualize : function ( context ) {
+		//alert(context.gui.flex.mode)
 		context.gui.flex.reflex ();
-	},
+	}
 	
 });
-
-/**
- * Emulated CSS ruleset.
- */
-gui.FlexModule.RULESET_EMULATED = {
-	"flexbox" : {
-		"display" : "block"
-	},
-	".flexbox.vertical > *" : {
-		"display" : "block"
-	},
-	".flexbox:not(.vertical)" : {
-		"display" : "table",
-		"width" : "100%"
-	},
-	".flexbox:not(.vertical) > *" : {
-		"display" : "table-cell"
-	}
-};
-
-/**
- * Native CSS ruleset.
- */
-gui.FlexModule.RULESET_NATIVE = ( function ( flex ) {
-	var rules = {
-		".flexbox" : {
-			"height" : "100%",
-			"width": "100%",
-			"display": "-beta-flex",
-			"-beta-flex-direction" : "row",
-			"-beta-flex-wrap" : "nowrap"
-		},
-		".flexbox.vertical" : {
-			"-beta-flex-direction" : "column"
-		},
-		".flex, .flexbox > *" : {
-			"-beta-flex" : "1 0 auto",
-			"height" : "auto"
-		}
-	};
-	while ( ++flex <= 23 ) {
-		rules [ ".flex" + flex ] = {
-			"-beta-flex" : flex + " 0 auto"
-		};
-	}
-	return rules;
-}( 0 ));
