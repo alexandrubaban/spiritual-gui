@@ -90,25 +90,25 @@ gui.FlexCSS [ "native" ] = ( function ( n ) {
 			"-beta-flex-wrap" : "nowrap"
 		},
 		".flexrow" : {
-
+			
 		},
 		".flexcol" : {
 			"-beta-flex-direction" : "column"
 		},
-		".flexrow:not(.flexlax) > *" : {
-			"width" : "0"
+		".flexrow:not(.flexlax) > *" : { // TODO: not fixed
+			"width" : "0%"
 		},
-		".flexcol:not(.flexlax) > *" : {
-			"height" : "100%"
+		".flexcol:not(.flexlax) > *" : { // TODO: not fixed
+			"height" : "0%"
 		},
 		".flex": { // , .flexrow > *, .flexcol > *" 
-			"-beta-flex" : "1 1 auto",
+			"-beta-flex-grow" : "1",
 		}
 	};
 	var max = gui.FlexCSS.maxflex;
 	while ( ++n <= max ) {
 		rules [ ".flex" + n ] = {
-			"-beta-flex" : n + " " + n + " auto"
+			"-beta-flex-grow" : String ( n )
 		};
 	}
 	console.log ( JSON.stringify ( rules, null, "\t" ));
