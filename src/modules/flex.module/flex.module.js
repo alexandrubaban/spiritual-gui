@@ -44,10 +44,10 @@ gui.module ( "flex", {
 	 * @param {Window} context
 	 */
 	onbeforespiritualize : function ( context ) {
-		gui.FlexCSS.inject ( context, context.gui.flexmode );
+		gui.FlexCSS.load ( context, context.gui.flexmode );
 		if ( context.gui.hasModule ( "edb" )) {
-			var proto = context.edb.ScriptPlugin.prototype;
-			gui.Function.decorateAfter ( proto, "write", function () {
+			var script = context.edb.ScriptPlugin.prototype;
+			gui.Function.decorateAfter ( script, "write", function () {
 				if ( this.spirit.window.gui.flexmode === gui.FLEXMODE_EMULATED ) {
 					this.spirit.flex.reflex ();
 				}

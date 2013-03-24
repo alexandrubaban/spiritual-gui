@@ -17,6 +17,20 @@ gui.StyleSheetSpirit = gui.Spirit.infuse ( "gui.StyleSheetSpirit", {
 	},
 
 	/**
+	 * Disable styles.
+	 */
+	disable : function () {
+		this.element.disabled = true;
+	},
+
+	/**
+	 * Enable styles.
+	 */
+	enable : function () {
+		this.element.disabled = false;
+	},
+
+	/**
 	 * Add rules (by JSON object for now).
 	 * @param {Map<String,object>} rules
 	 */
@@ -72,6 +86,9 @@ gui.StyleSheetSpirit = gui.Spirit.infuse ( "gui.StyleSheetSpirit", {
 			} else {
 				spirit._rules = rules;
 			}
+		}
+		if ( disabled ) {
+			spirit.disable ();
 		}
 		return spirit;
 	},

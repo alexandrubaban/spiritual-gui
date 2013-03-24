@@ -20,11 +20,35 @@ gui.FlexCSS = {
 	/**
 	 * Inject stylesheet in context.
 	 * @param {Window} context
+	 * @param {String} mode
 	 */
-	inject : function ( context, mode ) {
-		var doc = context.document, ruleset = this [ mode ];
-		var stylesheet = gui.StyleSheetSpirit.summon ( doc, null, ruleset );
-		doc.querySelector ( "head" ).appendChild ( stylesheet.element );
+	load : function ( context, mode ) {
+		var sheets = this._stylesheets;
+		if ( this._mode ) {
+			sheets [ this._mode ].disable ();
+		}
+		if ( sheets [ mode ]) {
+			sheets [ mode ].enable ();
+		} else {
+			var doc = context.document, ruleset = this [ mode ];
+			var css = sheets [ mode ] = gui.StyleSheetSpirit.summon ( doc, null, ruleset );
+			doc.querySelector ( "head" ).appendChild ( css.element );
+		}
+		this._mode = mode;
+	},
+
+	/**
+	 * @type {String}
+	 */
+	_mode : null,
+
+	/**
+	 * Stylesheets.
+	 * @type {Map<String,gui.StyleSheetSpirit}
+	 */
+	_stylesheets : {
+		"emulated" : null,
+		"native" : null
 	}
 };
 	
@@ -44,7 +68,7 @@ gui.FlexCSS [ "emulated" ] = {
 		"width" : "100%"
 	},
 	".flexrow" : {
-		"display" : "block",
+		"display" : "table",
 		"table-layout" : "fixed",
 		"width" : "100%"
 	},
@@ -59,11 +83,14 @@ gui.FlexCSS [ "emulated" ] = {
 gui.FlexCSS [ "native" ] = ( function ( n ) {
 	var rules = {
 		".flexrow, .flexcol" : {
-			//"height" : "100%",
-			//"width": "100%",
+			"min-width": "100%",
+			"min-height" : "100%",
 			"display": "-beta-flex",
 			"-beta-flex-direction" : "row",
 			"-beta-flex-wrap" : "nowrap"
+		},
+		".flexrow" : {
+
 		},
 		".flexcol" : {
 			"-beta-flex-direction" : "column"
@@ -71,15 +98,12 @@ gui.FlexCSS [ "native" ] = ( function ( n ) {
 		".flex, .flexrow > *, .flexcol > *" : {
 			"-beta-flex" : "1 0 auto",
 		},
-		
 		".flexrow:not(.flexlax) > *" : {
 			"width" : "0"
 		},
-		/*
 		".flexcol:not(.flexlax) > *" : {
-			"height" : "0"
+			"height" : "auto"
 		}
-		*/
 	};
 	var max = gui.FlexCSS.maxflex;
 	while ( ++n <= max ) {
