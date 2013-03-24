@@ -95,21 +95,22 @@ gui.FlexCSS [ "native" ] = ( function ( n ) {
 		".flexcol" : {
 			"-beta-flex-direction" : "column"
 		},
-		".flex, .flexrow > *, .flexcol > *" : {
-			"-beta-flex" : "1 0 auto",
-		},
 		".flexrow:not(.flexlax) > *" : {
 			"width" : "0"
 		},
 		".flexcol:not(.flexlax) > *" : {
-			"height" : "auto"
+			"height" : "100%"
+		},
+		".flex": { // , .flexrow > *, .flexcol > *" 
+			"-beta-flex" : "1 1 auto",
 		}
 	};
 	var max = gui.FlexCSS.maxflex;
 	while ( ++n <= max ) {
 		rules [ ".flex" + n ] = {
-			"-beta-flex" : n + " 0 auto"
+			"-beta-flex" : n + " " + n + " auto"
 		};
 	}
+	console.log ( JSON.stringify ( rules, null, "\t" ));
 	return rules;
 }( 0 ));
