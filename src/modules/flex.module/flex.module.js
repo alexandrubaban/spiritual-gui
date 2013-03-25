@@ -12,7 +12,8 @@ gui.FLEXMODE_OPTIMIZED = "optimized",
 gui.module ( "flex", {
 
 	/** 
-	 * gui.FlexPlugin with flex prefix.
+	 * Setup gui.FlexPlugin for all spirits. 
+	 * Trigger flex using this.flex.reflex()
 	 */
 	plugins : {
 		flex : gui.FlexPlugin
@@ -24,15 +25,20 @@ gui.module ( "flex", {
 	 * @param {Window} context
 	 */
 	oncontextinitialize : function ( context ) {
-
+		var mode = [ 
+			gui.FLEXMODE_OPTIMIZED, 
+			gui.FLEXMODE_NATIVE, 
+			gui.FLEXMODE_EMULATED 
+		];
 		( function scoped () {
-			var flexmode = gui.FLEXMODE_OPTIMIZED;
+			var flexmode = mode [ 0 ];
 			Object.defineProperties ( context.gui, {
 				"flexmode" : {
 					configurable : true,
 					enumerable : false,
 					get : function () {
-						return flexmode;
+						var bestmode = mode [ gui.Client.hasFlexBox ? 1 : 2 ];
+						return flexmode === mode [ 0 ] ? bestmode : flexmode;
 					},
 					set : function ( mode ) {
 						flexmode = mode;
