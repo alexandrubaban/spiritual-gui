@@ -39,6 +39,18 @@ gui.Module = gui.Class.create ( "gui.Module", Object.prototype, {
 	 */
 	onafterspiritualize : function ( context ) {},
 
+	/**
+	 * @TODO support this
+	 * @param {Window} context
+	 */
+	oncontextload : function ( context ) {},
+
+	/**
+	 * @TODO support this
+	 * @param {Window} context
+	 */
+	oncontextunload : function ( context ) {},
+
 
 	// Secrets ........................................................
 

@@ -2,8 +2,6 @@ gui.FLEXMODE_NATIVE = "native";
 gui.FLEXMODE_EMULATED = "emulated";
 gui.FLEXMODE_OPTIMIZED = "optimized",
 
-gui.flexmode = gui.FLEXMODE_OPTIMIZED;
-
 /**
  * Provides a subset of flexible boxes that works in IE9 
  * as long as flex is implemented using a predefined set 
@@ -21,21 +19,40 @@ gui.module ( "flex", {
 	},
 
 	/**
-	 * Support flex control on the local "gui" object 
-	 * (this must be localized to portalled iframes).
-	 * @TODO get a grip on this dilemma
+	 * Setup flex control on the local "gui" object. Note that we  assign non-enumerable properties 
+	 * to prevent the setup from being portalled into subframes (when running a multi-frame setup).
 	 * @param {Window} context
 	 */
 	oncontextinitialize : function ( context ) {
-		var override = true; // fix this!
-		gui.Object.mixin ( context.gui, "reflex", function () {
-			var node = this.document;
-			var body = node.body;
-			var root = node.documentElement;
-			if ( this.flexmode === this.FLEXMODE_EMULATED ) {
-				( body.spirit || root.spirit ).flex.reflex ();
-			}
-		}, override );
+
+		( function scoped () {
+			var flexmode = gui.FLEXMODE_OPTIMIZED;
+			Object.defineProperties ( context.gui, {
+				"flexmode" : {
+					configurable : true,
+					enumerable : false,
+					get : function () {
+						return flexmode;
+					},
+					set : function ( mode ) {
+						flexmode = mode;
+						gui.FlexCSS.load ( context, mode );
+					}
+				},
+				"reflex" : {
+					configurable : true,
+					enumerable : false,
+					value : function () {
+						var node = this.document;
+						var body = node.body;
+						var root = node.documentElement;
+						if ( this.flexmode === this.FLEXMODE_EMULATED ) {
+							( body.spirit || root.spirit ).flex.reflex ();
+						};
+					}
+				}
+			});
+		}());
 	},
 
 	/**
@@ -44,7 +61,9 @@ gui.module ( "flex", {
 	 * @param {Window} context
 	 */
 	onbeforespiritualize : function ( context ) {
-		gui.FlexCSS.load ( context, context.gui.flexmode );
+		if ( gui.FlexCSS.injected ) {
+			gui.FlexCSS.load ( context, context.gui.flexmode );
+		}
 		if ( context.gui.hasModule ( "edb" )) {
 			var script = context.edb.ScriptPlugin.prototype;
 			gui.Function.decorateAfter ( script, "write", function () {
@@ -63,6 +82,12 @@ gui.module ( "flex", {
 		if ( context.gui.flexmode === gui.FLEXMODE_EMULATED ) {
 			context.gui.reflex ();
 		}
-	}
+	},
+
+	/**
+	 * TODO: make gui.FlexCSS forget this context.
+	 * @param {Window} context
+	 */
+	oncontextunload : function ( context ) {}
 	
 });

@@ -146,7 +146,6 @@ gui.Spiritual.prototype = {
 				gui.Module.extend ( name, module )
 			)( this.context );
 		}
-		this._modulelife ( module, this.context );
 		return module;
 	},
 
@@ -565,45 +564,6 @@ gui.Spiritual.prototype = {
 			}
 		}
 		return indexes;
-	},
-
-	/**
-	 * @TODO clean this up...
-	 * @param {object} module
-	 * @param {Window} context
-	 */
-	_modulelife : function ( module, context ) {
-		/*
-		var msg1 = gui.BROADCAST_WILL_SPIRITUALIZE;
-		var msg2 = gui.BROADCAST_DID_SPIRITUALIZE;
-		if ( module.oncontextinitialize ) {
-			module.oncontextinitialize ( context );
-		}
-		gui.Broadcast.addGlobal ([
-			msg1, 
-			msg2
-		], { 
-			onbroadcast : function ( b ) {
-				if ( b.data === context.gui.signature ) {
-					gui.Broadcast.removeGlobal ( b.type, this );
-					switch ( b.type ) {
-						case msg1 :
-							if ( gui.Type.isFunction ( module.onbeforespiritualize )) {
-								module.onbeforespiritualize ( context );	
-							}
-							break;
-						case msg2 :
-							if ( gui.Type.isFunction ( module.onafterspiritualize )) {
-								module.onafterspiritualize ( context );	
-							}
-							break;
-				}
-			}
-		}});
-		if ( module.init || module.ready ) {
-			console.error ( "deprecated" );
-		}
-		*/
 	}
 };
 

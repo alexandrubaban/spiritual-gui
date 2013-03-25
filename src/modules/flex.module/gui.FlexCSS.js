@@ -5,65 +5,73 @@ gui.FlexCSS = {
 
 	/**
 	 * Inject styles on startup? Set this to false if you 
-	 * prefer to manage these things in a real stylesheet.
+	 * prefer to manage these things in a real stylesheet: 
+	 * <meta name="gui.FlexCSS.injected" content="false"/>
 	 * @type {boolean}
 	 */
 	injected : true,
 
 	/**
 	 * Generating 23 unique classnames for native flex only. 
-	 * Emulated flex extracts all values from class attribute.
+	 * Emulated flex JS-reads all values from class attribute.
 	 * @type {number}
 	 */
 	maxflex : 23,
 
 	/**
-	 * Inject stylesheet in context.
+	 * Inject stylesheet in context. For debugging purposes 
+	 * we support a setup to dynically switch the flexmode. 
 	 * @param {Window} context
 	 * @param {String} mode
 	 */
 	load : function ( context, mode ) {
-		var sheets = this._stylesheets;
-		var doc = context.document, ruleset = this [ mode ];
-		var css = sheets [ mode ] = gui.StyleSheetSpirit.summon ( doc, null, ruleset );
-		doc.querySelector ( "head" ).appendChild ( css.element );
-
-		/*
-		var sheets = this._stylesheets;
-		if ( this._mode && ) {
-			sheets [ this._mode ].disable ();
+		var sheets = this._getsheets ( context.gui.signature );
+		if ( sheets && sheets.mode ) {
+			sheets [ sheets.mode ].disable ();
 		}
-		if ( sheets [ mode ]) {
+		if ( sheets && sheets [ mode ]) {
 			sheets [ mode ].enable ();
 		} else {
 			var doc = context.document, ruleset = this [ mode ];
 			var css = sheets [ mode ] = gui.StyleSheetSpirit.summon ( doc, null, ruleset );
 			doc.querySelector ( "head" ).appendChild ( css.element );
 		}
-		this._context = context;
-		this._mode = mode;
-		*/
+		sheets.mode = mode;
 	},
 
-	/**
-	 * @type {String}
-	 */
-	_mode : null,
 
-	_context : null,
+	// Private .......................................................................
+	
+	/**
+	 * Elaborate setup to track stylesheets injected into windows. 
+	 * This allows us to flip the flexmode for debugging purposes. 
+	 * It is only relevant for multi-window setup; we may nuke it.
+	 * @type {Map<String,object>}
+	 */
+	_sheets : Object.create ( null ),
 
 	/**
-	 * Stylesheets.
-	 * @type {Map<String,gui.StyleSheetSpirit}
+	 * Get stylesheet configuration for window.
+	 * @param {String} sig
+	 * @returns {object}
 	 */
-	_stylesheets : {
-		"emulated" : null,
-		"native" : null
+	_getsheets : function ( sig ) {
+		var sheets = this._sheets;
+		if ( !sheets [ sig ]) {
+			sheets [ sig ] = { 
+				"emulated" : null, // {gui.StyleSheetSpirit}
+				"native" : null, // {gui.StyleSheetSpirit}
+				"mode" : null // {String}
+			};
+		}
+		return sheets [ sig ];
 	}
 };
 	
 /**
  * Emulated ruleset using table layout and JS.
+ * @TODO Figure out how we should declare module constants 
+ * first (instead of last) so we can use them around here.
  */
 gui.FlexCSS [ "emulated" ] = {
 	".flexcol" : {
