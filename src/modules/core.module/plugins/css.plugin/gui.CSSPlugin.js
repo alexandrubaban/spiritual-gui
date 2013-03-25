@@ -282,6 +282,7 @@ gui.CSSPlugin = gui.Plugin.extend ( "gui.CSSPlugin", {
 	jsproperty : function ( prop ) {
 		var vendors = this._vendors, fixt = prop;
 		var element = document.documentElement;
+		prop = String ( prop );
 		if ( prop.startsWith ( "-beta-" )) {
 			vendors.every ( function ( vendor ) {
 				var test = this._camelcase ( prop.replace ( "-beta-", vendor ));
@@ -305,6 +306,7 @@ gui.CSSPlugin = gui.Plugin.extend ( "gui.CSSPlugin", {
 	jsvalue : function ( value ) {
 		var vendors = this._vendors;
 		var element = document.documentElement;
+		value = String ( value );
 		if ( value && value.contains ( "-beta-" )) {
 			var parts = [];
 			value.split ( ", " ).forEach ( function ( part ) {

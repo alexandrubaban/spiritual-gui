@@ -70,14 +70,24 @@ gui.FlexBox.prototype = {
 	_flexself : function () {
 		var elm = this._element;
 		if ( this._flexcol ) {
-			var style = elm.style;
-			var given = style.height;
-			var above = elm.parentNode;
-			var avail = above.offsetHeight;
-			style.height = "auto";
-			if ( elm.offsetHeight < avail ) {
-				style.height = given || "100%";
+			if ( this._flexlax ) {
+				this._relaxflex ( elm );
 			}
+		}
+	},
+
+	/**
+	 * Relax flex to determine whether or not to maxheight (own) element.
+	 * @param {Element} elm
+	 */
+	_relaxflex : function ( elm ) {
+		var style = elm.style;
+		var given = style.height;
+		var above = elm.parentNode;
+		var avail = above.offsetHeight;
+		style.height = "auto";
+		if ( elm.offsetHeight < avail ) {
+			style.height = given || "100%";
 		}
 	},
 
@@ -99,7 +109,7 @@ gui.FlexBox.prototype = {
 			},this);
 		}
 	},
-	 
+
 	/**
 	 * Collect child flexes. Unflexed members enter as 0.
 	 * @return {Array<number>}

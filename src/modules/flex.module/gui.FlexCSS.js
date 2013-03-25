@@ -72,62 +72,60 @@ gui.FlexCSS = {
  * Emulated ruleset using table layout and JS.
  * @TODO Figure out how we should declare module constants 
  * first (instead of last) so we can use them around here.
+ * @TODO fons-size-zero trick to eliminate inline spacing...
  */
 gui.FlexCSS [ "emulated" ] = {
-	".flexcol" : {
-		"display" : "block",
-		"height" : "100%"
-	},
-	".flexcol:not(.flexlax)" : {
-		"max-height" : "100%"
-	},
-	".flexcol > *" : {
-		"display" : "table",
-		"width" : "100%"
+	".flexrow, .flexcol" : {
+		"display" : "block"
 	},
 	".flexrow" : {
-		"display" : "table",
-		"table-layout" : "fixed",
 		"width" : "100%"
 	},
+	".flexcol" : {
+		"height" : "100%"
+	},
 	".flexrow > *" : {
+		"display" : "inline-block",
+		"vertical-align" : "top",
+		"max-height" : "100%",
+		"height" : "100%"
+	},
+	".flexcol.flexlax > .flexrow > *" : {
 		"display" : "table-cell"
 	},
+	"flexcol > *" : {
+		"display" : "block",
+		"width" : "100%"
+	}
 };
 
 /**
  * Native flexbox classnames.
  */
-gui.FlexCSS [ "native" ] = ( function ( n ) {
+gui.FlexCSS [ "native" ] = ( function () {
 	var rules = {
 		".flexrow, .flexcol" : {
-			"min-width": "100%",
-			"min-height" : "100%",
 			"display": "-beta-flex",
+			"-beta-flex-wrap" : "nowrap",
 			"-beta-flex-direction" : "row",
-			"-beta-flex-wrap" : "nowrap"
-		},
-		".flexrow" : {
-
+			"min-height" : "100%",
+			"min-width": "100%"
 		},
 		".flexcol" : {
 			"-beta-flex-direction" : "column"
-		},
-		".flexrow:not(.flexlax) > *" : { // TODO: not fixed
-			"width" : "0%"
-		},
-		".flexcol:not(.flexlax) > *" : { // TODO: not fixed
-			"height" : "0%"
-		},
-		".flex": { // , .flexrow > *, .flexcol > *" 
-			"-beta-flex-grow" : "1",
 		}
 	};
-	var max = gui.FlexCSS.maxflex;
-	while ( ++n <= max ) {
-		rules [ ".flex" + n ] = {
-			"-beta-flex-grow" : String ( n )
+	var n = 0, max = gui.FlexCSS.maxflex;
+	while ( n++ <= max ) {
+		rules [ ".flex" + n || "" ] = {
+			"-beta-flex-grow" : n || 1
+		};
+		rules [ ".flexrow:not(.flexlax) > *.flex" + n ] = {
+			"width" : "0%"
+		};
+		rules [ ".flexcol:not(.flexlax) > *.flex" + n ] = {
+			"height" : "0%"
 		};
 	}
 	return rules;
-}( 0 ));
+}());
