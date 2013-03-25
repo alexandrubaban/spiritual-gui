@@ -90,13 +90,18 @@ gui.FlexCSS [ "emulated" ] = {
 		"max-height" : "100%",
 		"height" : "100%"
 	},
-	".flexcol.flexlax > .flexrow > *" : {
-		"display" : "table-cell"
-	},
 	"flexcol > *" : {
 		"display" : "block",
 		"width" : "100%"
-	}
+	},
+	".flexcol.flexlax > .flexrow" : {
+		"display" : "table",
+		"width" : "100%",
+		"height" : "100%"
+	},
+	".flexcol.flexlax > .flexrow > *" : {
+		"display" : "table-cell"
+	},
 };
 
 /**

@@ -70,13 +70,12 @@ gui.FlexChild.prototype = {
 
 /**
  * Check for flexN classname.
- * @todo don't match "flexbox"
  * @type {RegExp}
  */
 gui.FlexChild._FLEXNAME = /^flex\d*$/;
 
 /**
- * Extract N from classname.
+ * Extract N from classname (eg .flex23).
  * @type {RegExp}
  */
 gui.FlexChild._FLEXRATE = /\d/;
