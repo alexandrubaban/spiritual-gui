@@ -24,7 +24,13 @@ gui.FlexCSS = {
 	 */
 	load : function ( context, mode ) {
 		var sheets = this._stylesheets;
-		if ( this._mode ) {
+		var doc = context.document, ruleset = this [ mode ];
+		var css = sheets [ mode ] = gui.StyleSheetSpirit.summon ( doc, null, ruleset );
+		doc.querySelector ( "head" ).appendChild ( css.element );
+
+		/*
+		var sheets = this._stylesheets;
+		if ( this._mode && ) {
 			sheets [ this._mode ].disable ();
 		}
 		if ( sheets [ mode ]) {
@@ -34,13 +40,17 @@ gui.FlexCSS = {
 			var css = sheets [ mode ] = gui.StyleSheetSpirit.summon ( doc, null, ruleset );
 			doc.querySelector ( "head" ).appendChild ( css.element );
 		}
+		this._context = context;
 		this._mode = mode;
+		*/
 	},
 
 	/**
 	 * @type {String}
 	 */
 	_mode : null,
+
+	_context : null,
 
 	/**
 	 * Stylesheets.
@@ -90,7 +100,7 @@ gui.FlexCSS [ "native" ] = ( function ( n ) {
 			"-beta-flex-wrap" : "nowrap"
 		},
 		".flexrow" : {
-			
+
 		},
 		".flexcol" : {
 			"-beta-flex-direction" : "column"
@@ -111,6 +121,5 @@ gui.FlexCSS [ "native" ] = ( function ( n ) {
 			"-beta-flex-grow" : String ( n )
 		};
 	}
-	console.log ( JSON.stringify ( rules, null, "\t" ));
 	return rules;
 }( 0 ));

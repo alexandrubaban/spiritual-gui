@@ -56,21 +56,26 @@ gui.Class = {
 	_ANONYMOUS : "Anonymous",
 
 	/**
-	 * Compute constructor body string. The $name will be 
-	 * substituted for the class name. Note that if called 
-	 * without the 'new' keyword, the function acts as a 
-	 * shortcut the the MyClass.extend method.
+	 * Compute class constructor body (as a string). The $name 
+	 * will be substituted for the class name. Note that if 
+	 * called without the 'new' keyword, the function acts 
+	 * as a shortcut the the MyClass.extend method.
 	 * @type {String}
 	 */
 	_BODY : ( function ( $name ) {
 		var body = $name.toString ().trim ();
-		return body.slice ( body.indexOf ( "{") + 1, -1 );
+		return body.slice ( body.indexOf ( "{" ) + 1, -1 );
 	}(
 		function $name () {
 			if ( this instanceof $name === false ) {
 				return $name.extend.apply ( $name, arguments );
 			} else {
-				this.$instanceid = gui.KeyMaster.generateKey ( "id" );
+				window.Object.defineProperty ( this, "$instanceid", {
+					value: gui.KeyMaster.generateKey ( "instance" ),
+					enumerable : false,
+					configurable: false,
+					writable: false
+				});
 				var constructor = this.$onconstruct || this.onconstruct;
 				if ( gui.Type.isFunction ( constructor )) {
 					constructor.apply ( this, arguments );
@@ -90,10 +95,10 @@ gui.Class = {
 		var named = gui.Type.isString ( args [ 0 ]);
 		return {
 			name : named ? args [ 0 ] : null,
-			proto	: args [ named ? 1 : 0 ] || {},
-			protos : args [ named ? 2 : 1 ] || {},
-			recurring : args [ named ? 3 : 2 ] || {},
-			statics : args [ named ? 4 : 3 ] || {}
+			proto	: args [ named ? 1 : 0 ] || Object.create ( null ),
+			protos : args [ named ? 2 : 1 ] || Object.create ( null ),
+			recurring : args [ named ? 3 : 2 ] || Object.create ( null ),
+			statics : args [ named ? 4 : 3 ] || Object.create ( null )
 		};
 	},
 
@@ -168,7 +173,7 @@ gui.Class = {
 	},
 
 	/**
-	 * Might do something in the profiler, no such luck with stack traces.
+	 * This might do something in the profiler. Not much luck with stack traces.
 	 * @see http://www.alertdebugging.com/2009/04/29/building-a-better-javascript-profiler-with-webkit/
 	 * @see https://code.google.com/p/chromium/issues/detail?id=17356
 	 * @param {function} C
@@ -179,10 +184,10 @@ gui.Class = {
 		[ C, C.prototype ].forEach ( function ( thing ) {
 			gui.Object.each ( thing, function ( key, value ) {
 				if ( gui.Type.isMethod ( value )) {
-					value.displayName = value.displayName || name + "." + key; 
+					this._displayname ( value, name + "." + key );
 				}
-			});
-		});
+			}, this );
+		}, this );
 		return C;
 	},
 
@@ -236,7 +241,7 @@ gui.Class = {
 	 * @param {String} name
 	 */
 	_namedthing : function ( what, type, name ) {
-		what.displayName = name; // dysfunctional
+		this._displayname ( what, name );
 		if ( !what.hasOwnProperty ( "toString" )) {
 			what.toString = function toString () {
 				return "[" + type + " " + name + "]";
@@ -254,7 +259,26 @@ gui.Class = {
 			new RegExp ( "\\$name", "gm" ), 
 			gui.Function.safename ( name )
 		);
+	},
+
+	/**
+	 * Set the elusive displayName property. Doesn't seem to work a lot.
+	 * @param  {[type]} what [description]
+	 * @param  {[type]} name [description]
+	 * @return {[type]}      [description]
+	 */
+	_displayname : function ( thing, name ) {
+		if ( !gui.Type.isDefined ( thing.displayName )) {
+			Object.defineProperty ( thing, "displayName", {
+				enumerable : false,
+				configurable: true,
+				writable: true,
+				value: name
+			});
+		}
+		return thing;
 	}
+
 };
 
 
