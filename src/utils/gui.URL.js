@@ -36,12 +36,30 @@ gui.URL.prototype = {
 // Statics ....................................................................
 
 /**
- * Convert relative path to absolute path.
+ * Convert relative path to absolute path in context of base where base is a document or an absolute path.
+ * @see  http://stackoverflow.com/questions/14780350/convert-relative-path-to-absolute-using-javascript
+ * @param {String|Document} base
  * @param {String} href
  * @returns {String}
  */
-gui.URL.absolute = function ( doc, href ) {
-	return new gui.URL ( doc, href ).href;
+gui.URL.absolute = function ( base, href ) {
+	if ( base.nodeType === Node.DOCUMENT_NODE ) {
+		return new gui.URL ( base, href ).href;
+	} else if ( typeof base === "string" ) { // TODO: load gui.Type first...
+		var stack = base.split ( "/" );
+		var parts = href.split ( "/" );
+		stack.pop();// remove current filename (or empty string) (omit if "base" is the current folder without trailing slash)
+		parts.forEach ( function ( part ) {
+			if ( part !== "." ) {
+				if ( part === ".." ) {
+					stack.pop ();
+				}	else {
+					stack.push ( part );	
+				}
+			}
+		});
+		return stack.join ( "/" );	
+	}
 };
 
 /**
