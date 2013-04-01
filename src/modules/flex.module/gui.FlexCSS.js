@@ -69,19 +69,13 @@ gui.FlexCSS = {
 };
 	
 /**
- * Emulated ruleset using table layout and JS.
- * @TODO Figure out how we should declare module constants 
- * first (instead of last) so we can use them around here.
- * @TODO fons-size-zero trick to eliminate inline spacing...
+ * Emulated ruleset.
+ * @TODO font-size-zero trick to eliminate inline spacing...
  */
 gui.FlexCSS [ "emulated" ] = {
 	".flexrow, .flexcol" : {
-		"display" : "block"
-	},
-	".flexrow" : {
-		"width" : "100%"
-	},
-	".flexcol" : {
+		"display" : "block",
+		"width" : "100%",
 		"height" : "100%"
 	},
 	".flexrow > *" : {
@@ -94,18 +88,16 @@ gui.FlexCSS [ "emulated" ] = {
 		"display" : "block",
 		"width" : "100%"
 	},
-	".flexcol.flexlax > .flexrow" : {
-		"display" : "table",
-		"width" : "100%",
-		"height" : "100%"
+	".flexlax > .flexrow" : {
+		"display" : "table"
 	},
-	".flexcol.flexlax > .flexrow > *" : {
+	".flexlax > .flexrow > *" : {
 		"display" : "table-cell"
-	},
+	}
 };
 
 /**
- * Native flexbox classnames.
+ * Native ruleset.
  */
 gui.FlexCSS [ "native" ] = ( function () {
 	var rules = {
@@ -118,19 +110,35 @@ gui.FlexCSS [ "native" ] = ( function () {
 		},
 		".flexcol" : {
 			"-beta-flex-direction" : "column"
+		},
+		".flexrow:not(.flexlax) > *, .flexcol:not(.flexlax) > *" : {
+			"-beta-flex-basis" : 1
+		},
+		".flexcol:not(.flexlax)" : { // FF?
+			"max-height" : "100%"
+		},
+		".flexrow:not(.flexlax)" : { // FF?
+			"max-width" : "100%"
 		}
 	};
-	var n = 0, max = gui.FlexCSS.maxflex;
-	while ( n++ <= max ) {
-		rules [ ".flex" + n || "" ] = {
-			"-beta-flex-grow" : n || 1
-		};
-		rules [ ".flexrow:not(.flexlax) > *.flex" + n ] = {
-			"width" : "0%"
-		};
-		rules [ ".flexcol:not(.flexlax) > *.flex" + n ] = {
-			"height" : "0%"
-		};
+	/*
+	 * Can't parse 'contains' selector (says DOM exception), 
+	 * so let's just create one billion unique classnames...
+	 */
+	var n = -1, max = gui.FlexCSS.maxflex;
+	while ( ++n <= max ) {
+		( function ( n ) {
+			rules [ ".flex" + n ] = {
+				"-beta-flex-grow" : n || 1,
+			};
+			rules [ ".flexrow:not(.flexlax) > .flex" + n ] = {
+				"width" : "0%"
+			};
+			rules [ ".flexcol:not(.flexlax) > .flex" + n ] = {
+				"height" : "0"
+			};
+		}( n || "" ));
 	}
+	console.log ( JSON.stringify ( rules , null, "\t" ));
 	return rules;
 }());
