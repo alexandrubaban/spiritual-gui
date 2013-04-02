@@ -17,6 +17,20 @@ gui.StyleSheetSpirit = gui.Spirit.infuse ( "gui.StyleSheetSpirit", {
 	},
 
 	/**
+	 * Disable styles.
+	 */
+	disable : function () {
+		this.element.disabled = true;
+	},
+
+	/**
+	 * Enable styles.
+	 */
+	enable : function () {
+		this.element.disabled = false;
+	},
+
+	/**
 	 * Add rules (by JSON object for now).
 	 * @param {Map<String,object>} rules
 	 */
@@ -41,15 +55,15 @@ gui.StyleSheetSpirit = gui.Spirit.infuse ( "gui.StyleSheetSpirit", {
 	 * @return {String}
 	 */
 	_ruleout : function ( declarations ) {
-		var body = ""; 
+		var body = "", plugin = gui.CSSPlugin;
 		gui.Object.each ( declarations, function ( property, value ) {
-			if ( property.contains ( "-beta" )) {
-				throw new Error ( "TODO: -beta-property" );
-			}
-			body += property + ":" + value + ";";
+			body += 
+				plugin.cssproperty ( property ) + ":" +
+				plugin.cssvalue ( value ) + ";";
 		});
 		return "{" + body + "}";
 	}
+
 
 }, { // Static .....................................................
 
@@ -62,9 +76,8 @@ gui.StyleSheetSpirit = gui.Spirit.infuse ( "gui.StyleSheetSpirit", {
 	 * @returns {gui.StyleSheetSpirit}
 	 */
 	summon : function ( doc, href, rules, disabled ) {
-		var elm = href ? this._link ( doc, href ) : this._style ( doc );
+		var elm = href ? this._createlink ( doc, href ) : this._createstyle ( doc );
 		var spirit = this.possess ( elm );
-		elm.className = "gui-stylesheet";
 		if ( rules ) {
 			if ( href ) {
 				elm.addEventListener ( "load", function () {
@@ -74,6 +87,9 @@ gui.StyleSheetSpirit = gui.Spirit.infuse ( "gui.StyleSheetSpirit", {
 				spirit._rules = rules;
 			}
 		}
+		if ( disabled ) {
+			spirit.disable ();
+		}
 		return spirit;
 	},
 
@@ -81,20 +97,24 @@ gui.StyleSheetSpirit = gui.Spirit.infuse ( "gui.StyleSheetSpirit", {
 	// Private static .................................................
 
 	/**
+	 * External styles in LINK element.
 	 * @returns {HTMLLinkElement}
 	 */
-	_link : function ( doc, href ) {
+	_createlink : function ( doc, href ) {
 		var link = doc.createElement ( "link" );
+		link.className = "gui-stylesheet";
 		link.rel = "stylesheet";
 		link.href = href;
 		return link;
 	},
 
 	/**
+	 * Inline styles in STYLE element.
 	 * @returns {HTMLStyleElement}
 	 */
-	_style : function ( doc ) {
+	_createstyle : function ( doc ) {
 		var style = doc.createElement ( "style" );
+		style.className = "gui-stylesheet";
 		style.appendChild ( doc.createTextNode ( "" ));
 		return style;
 	}

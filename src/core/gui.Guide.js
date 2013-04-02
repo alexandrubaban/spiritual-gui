@@ -128,12 +128,17 @@ gui.Guide = {
 
 	/**
 	 * Associate DOM element to Spirit instance.
-	 * @param {Element} element
-	 * @param {function} C spirit constructor
+	 * @param {Element} elm
+	 * @param {function} Spirit constructor
 	 * @returns {Spirit}
 	 */
-	possess : function ( element, C ) {
-		var spirit = new C ();
+	possess : function ( elm, Spirit ) {
+		var doc = elm.ownerDocument;
+		var win = doc.defaultView;
+		var sig = win.gui.signature;
+		return ( elm.spirit = new Spirit ( elm, doc, win, sig ));
+
+		/*
 		spirit.element = element;
 		spirit.document = element.ownerDocument;
 		spirit.window = spirit.document.defaultView;
@@ -146,6 +151,7 @@ gui.Guide = {
 			throw "Constructed twice: " + spirit.toString ();
 		}
 		return spirit;
+		*/
 	},
 
 	/**
@@ -358,7 +364,7 @@ gui.Guide = {
 			});
 			attach.forEach ( function ( spirit ) {
 				if ( !spirit.life.configured ) {
-					spirit.onconfigure ();
+					spirit.onconfigure (); // @TODO deprecated :(
 				}
 				if ( this._invisible ( spirit )) {
 					if ( spirit.life.visible ) {

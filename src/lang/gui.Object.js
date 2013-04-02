@@ -92,6 +92,7 @@ gui.Object = {
 	},
 
 	/**
+	 * @deprecated
 	 * Object has any (own) properties?
 	 * @param {object} object
 	 * @returns {boolean}

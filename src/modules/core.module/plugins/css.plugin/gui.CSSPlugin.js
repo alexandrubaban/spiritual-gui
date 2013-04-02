@@ -157,7 +157,7 @@ gui.CSSPlugin = gui.Plugin.extend ( "gui.CSSPlugin", {
 				var now = element.className.split ( " " );
 				var idx = now.indexOf ( name );
 				if ( idx > -1 ) {
-					now.remove ( idx );
+					gui.Array.remove ( now, idx );
 				}
 				element.className = now.join ( " " );
 			}
@@ -216,8 +216,8 @@ gui.CSSPlugin = gui.Plugin.extend ( "gui.CSSPlugin", {
 				prop = "cssFloat";
 				break;
 			default :
-				value = this._normval ( element, value );
-				prop = this._normprop ( element, prop );
+				value = this.jsvalue ( value );
+				prop = this.jsproperty ( prop );
 				break;
 		}
 		element.style [ prop ] = value;
@@ -232,8 +232,8 @@ gui.CSSPlugin = gui.Plugin.extend ( "gui.CSSPlugin", {
 	 * @returns {String}
 	 */
 	get : function ( element, prop ) {
-		return this._normval ( element.style [
-			this._normprop ( element, prop )
+		return this.jsvalue ( element.style [
+			this.jsproperty ( prop )
 		]);
 	},
 
@@ -260,7 +260,7 @@ gui.CSSPlugin = gui.Plugin.extend ( "gui.CSSPlugin", {
 	compute : function ( thing, prop ) {
 		var element = thing instanceof gui.Spirit ? thing.element : thing;
 		var doc = element.ownerDocument, win = doc.defaultView;
-		prop = this._standardcase ( this._normprop ( element, prop ));
+		prop = this._standardcase ( this.jsproperty ( prop ));
 		return win.getComputedStyle ( element, null ).getPropertyValue ( prop );
 	},
 
@@ -274,6 +274,78 @@ gui.CSSPlugin = gui.Plugin.extend ( "gui.CSSPlugin", {
 		return node [ this._matchmethod ]( selector );
 	},
 
+	/**
+	 * Normalize declaration property for use in element.style scenario.
+	 * @param {String} prop
+	 * @returns {String}
+	 */
+	jsproperty : function ( prop ) {
+		var vendors = this._vendors, fixt = prop;
+		var element = document.documentElement;
+		prop = String ( prop );
+		if ( prop.startsWith ( "-beta-" )) {
+			vendors.every ( function ( vendor ) {
+				var test = this._camelcase ( prop.replace ( "-beta-", vendor ));
+				if ( element.style [ test ] !== undefined ) {
+					fixt = test;
+					return false;
+				}
+				return true;
+			}, this );
+		} else {
+			fixt = this._camelcase ( fixt );
+		}
+		return fixt;
+	},
+
+	/**
+	 * Normalize declaration value for use in element.style scenario.
+	 * @param {String} value
+	 * @returns {String}
+	 */
+	jsvalue : function ( value ) {
+		var vendors = this._vendors;
+		var element = document.documentElement;
+		value = String ( value );
+		if ( value && value.contains ( "-beta-" )) {
+			var parts = [];
+			value.split ( ", " ).forEach ( function ( part ) {
+				if (( part = part.trim ()).startsWith ( "-beta-" )) {
+					vendors.every ( function ( vendor ) {
+						var test = this._camelcase ( part.replace ( "-beta-", vendor ));
+						if ( element.style [ test ] !== undefined ) {
+							parts.push ( part.replace ( "-beta-", vendor ));
+							return false;
+						}
+						return true;
+					 }, this );		
+				} else {
+					parts.push ( part );
+				}
+			}, this );
+			value = parts.join ( "," );
+		}
+		return value;
+	},
+
+	/**
+	 * Normalize declaration property for use in CSS text.
+	 * @param {String} prop
+	 * @returns {String}
+	 */
+	cssproperty : function ( prop ) {
+		return this._standardcase ( this.jsproperty ( prop ));
+	},
+
+	/**
+	 * Normalize declaration value for use in CSS text.
+	 * @param {String} prop
+	 * @returns {String}
+	 */
+	cssvalue : function ( value ) {
+		return this._standardcase ( this.jsvalue ( value ));
+	},
+	
 
 	// Private statics ...................................................................... 
 
@@ -338,58 +410,58 @@ gui.CSSPlugin = gui.Plugin.extend ( "gui.CSSPlugin", {
 		visibility : "@"
 	},
 
-	/**
-	 * Normalize declaration value.
-	 * @param {String} value
-	 * @returns {value}
-	 */
-	_normval : function ( element, value ) {
-		var vendors = this._vendors;
-		if ( value && value.contains ( "-beta-" )) {
-			var parts = [];
-			value.split ( ", " ).forEach ( function ( part ) {
-				if (( part = part.trim ()).startsWith ( "-beta-" )) {
-					vendors.every ( function ( vendor ) {
-						var test = this._camelcase ( part.replace ( "-beta-", vendor ));
-						if ( element.style [ test ] !== undefined ) {
-							parts.push ( part.replace ( "-beta-", vendor ));
-							return false;
-						}
-						return true;
-					 }, this );		
-				} else {
-					parts.push ( part );
-				}
-			}, this );
-			value = parts.join ( "," );
-		}
-		return value;
-	},
+	// /**
+	//  * Normalize declaration value.
+	//  * @param {String} value
+	//  * @returns {value}
+	//  */
+	// _normval : function ( element, value ) {
+	// 	var vendors = this._vendors;
+	// 	if ( value && value.contains ( "-beta-" )) {
+	// 		var parts = [];
+	// 		value.split ( ", " ).forEach ( function ( part ) {
+	// 			if (( part = part.trim ()).startsWith ( "-beta-" )) {
+	// 				vendors.every ( function ( vendor ) {
+	// 					var test = this._camelcase ( part.replace ( "-beta-", vendor ));
+	// 					if ( element.style [ test ] !== undefined ) {
+	// 						parts.push ( part.replace ( "-beta-", vendor ));
+	// 						return false;
+	// 					}
+	// 					return true;
+	// 				 }, this );		
+	// 			} else {
+	// 				parts.push ( part );
+	// 			}
+	// 		}, this );
+	// 		value = parts.join ( "," );
+	// 	}
+	// 	return value;
+	// },
 
-	/**
-	 * Normalize declaration property.
-	 * @param {Element} element
-	 * @param {String} prop
-	 * @returns {String}
-	 */
-	_normprop : function ( element, prop, xxx ) {
-		var vendors = this._vendors, fixt = prop;
-		if ( true ) {
-			if ( prop.startsWith ( "-beta-" )) {
-				vendors.every ( function ( vendor ) {
-					var test = this._camelcase ( prop.replace ( "-beta-", vendor ));
-					if ( element.style [ test ] !== undefined ) {
-						fixt = test;
-						return false;
-					}
-					return true;
-				}, this );
-			} else {
-				fixt = this._camelcase ( fixt );
-			}
-		}
-		return fixt;
-	},
+	// /**
+	//  * Normalize declaration property.
+	//  * @param {Element} element
+	//  * @param {String} prop
+	//  * @returns {String}
+	//  */
+	// _normprop : function ( element, prop ) {
+	// 	var vendors = this._vendors, fixt = prop;
+	// 	if ( true ) {
+	// 		if ( prop.startsWith ( "-beta-" )) {
+	// 			vendors.every ( function ( vendor ) {
+	// 				var test = this._camelcase ( prop.replace ( "-beta-", vendor ));
+	// 				if ( element.style [ test ] !== undefined ) {
+	// 					fixt = test;
+	// 					return false;
+	// 				}
+	// 				return true;
+	// 			}, this );
+	// 		} else {
+	// 			fixt = this._camelcase ( fixt );
+	// 		}
+	// 	}
+	// 	return fixt;
+	// },
 
 	/**
 	 * Lookup vendors "matchesSelector" method.

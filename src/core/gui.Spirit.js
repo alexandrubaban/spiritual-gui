@@ -206,9 +206,19 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	// Secret ....................................................................
 	
 	/**
-	 * Secret constructor. Doesn't do much.
+	 * Secret constructor. The $instanceid is generated standard by the {gui.Class}
+	 * @param {Element} elm
+	 * @param {Document} doc
+	 * @param {Window} win
+	 * @param {String} sig
 	 */
-	$onconstruct : function () {},
+	$onconstruct : function ( elm, doc, win, sig ) {
+		this.element = elm;
+		this.document = doc;
+		this.window = win;
+		this.signature = sig;
+		this.onconstruct ();
+	},
 
 	/**
 	 * Mapping lazy plugins to prefixes.

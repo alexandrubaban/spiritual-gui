@@ -1,5 +1,5 @@
 /**
- * Wraps a flexbox child element.
+ * Computer for flexbox child.
  * @param {Element} elm
  */
 gui.FlexChild = function FlexChild ( elm ) {
@@ -23,7 +23,7 @@ gui.FlexChild.prototype = {
 	getflex : function ( elm ) {
 		var flex = 0;
 		this._element.className.split ( " ").forEach ( function ( name ) {
-			if ( gui.FlexChild._FLEXNAME.test ( name ) && name !== "flexbox" ) { // @TODO regexp to exlude!
+			if ( gui.FlexChild._FLEXNAME.test ( name )) { // @TODO regexp to exlude!
 				flex = ( gui.FlexChild._FLEXRATE.exec ( name ) || 1 );
 			}
 		});
@@ -70,13 +70,12 @@ gui.FlexChild.prototype = {
 
 /**
  * Check for flexN classname.
- * @todo don't match "flexbox"
  * @type {RegExp}
  */
-gui.FlexChild._FLEXNAME = /flex\d*/;
+gui.FlexChild._FLEXNAME = /^flex\d*$/;
 
 /**
- * Extract N from classname.
+ * Extract N from classname (eg .flex23).
  * @type {RegExp}
  */
 gui.FlexChild._FLEXRATE = /\d/;

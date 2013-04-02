@@ -6266,7 +6266,7 @@ gui.CSSPlugin = gui.Plugin.extend ( "gui.CSSPlugin", {
 				var now = element.className.split ( " " );
 				var idx = now.indexOf ( name );
 				if ( idx > -1 ) {
-					now.remove ( idx );
+					gui.Array.remove ( now, idx );
 				}
 				element.className = now.join ( " " );
 			}
@@ -10748,15 +10748,17 @@ gui.DOMChanger = {
 	 * @param {Element} root
 	 */
 	_doie : function ( proto, name, combo ) {
-		var base = Object.getOwnPropertyDescriptor ( proto, name );
-		Object.defineProperty ( proto, name, {
-			get: function () {
-				return base.get.call ( this );
-			},
-			set: combo ( function () {
-				base.apply ( this, arguments );
-			})
-		});
+		if(name!=="textContent"){ // OUCH!
+			var base = Object.getOwnPropertyDescriptor ( proto, name );
+			Object.defineProperty ( proto, name, {
+				get: function () {
+					return base.get.call ( this );
+				},
+				set: combo ( function () {
+					base.apply ( this, arguments );
+				})
+			});
+		}
 	},
 
 	/**

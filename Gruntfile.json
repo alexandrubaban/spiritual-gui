@@ -8,9 +8,9 @@
 	"src/lang/gui.Type.js",
 	"src/lang/gui.Object.js",
 	"src/lang/gui.Array.js",
+	"src/lang/gui.Arguments.js",
 	"src/lang/gui.Function.js",
 	"src/lang/gui.Class.js",
-	"src/lang/gui.Arguments.js",
 	"src/lang/gui.Accessors.js",
 	"src/lang/gui.Interface.js",
 	"src/lang/gui.Combo.js",
@@ -32,6 +32,7 @@
 	"src/core/gui.Spirit.js",
 	"src/core/gui.Plugin.js",
 	"src/core/gui.Tracker.js",
+	"src/core/gui.Module.js",
 
 	"src/modules/core.module/plugins/life.plugin/gui.Life.js",
 	"src/modules/core.module/plugins/life.plugin/gui.LifePlugin.js",
@@ -80,5 +81,6 @@
 	"src/modules/flex.module/gui.FlexPlugin.js",
 	"src/modules/flex.module/gui.FlexBox.js",
 	"src/modules/flex.module/gui.FlexChild.js",
+	"src/modules/flex.module/gui.FlexCSS.js",
 	"src/modules/flex.module/flex.module.js"
 ]

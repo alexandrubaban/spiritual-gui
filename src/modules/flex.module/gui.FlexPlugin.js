@@ -8,12 +8,11 @@ gui.FlexPlugin = gui.Plugin.extend ( "gui.FlexPlugin", {
 	/**
 	 * Flex this and descendant flexboxes in document order. As the name suggests, 
 	 * it might be required to call this again if flexboxes get added or removed.
-	 * @param @optional {Element} elm Flex from this element (or 'this.element')
 	 */
-	reflex : function ( elm ) {
-		elm = elm || this.spirit.element;
-		if ( this.spirit.dom.q ( ".flexbox" )) {
-			var boxes = this._collectboxes ( elm );
+	reflex : function () {
+		var dom = this.spirit.dom;
+		if ( dom.q ( ".flexrow" ) || dom.q ( ".flexcol" )) {
+			var boxes = this._collectboxes ( this.spirit.element );
 			boxes.forEach ( function ( box ) {
 				box.flex ();
 			});
@@ -29,10 +28,10 @@ gui.FlexPlugin = gui.Plugin.extend ( "gui.FlexPlugin", {
 	 * @returns {Array<gui.FlexBox>}
 	 */
 	_collectboxes : function ( elm ) {
-		var boxes = [];
+		var boxes = [], hasclass = gui.CSSPlugin.contains;
 		new gui.Crawler ( "flexcrawler" ).descend ( elm, {
 			handleElement : function ( elm ) {
-				if ( gui.CSSPlugin.contains ( elm, "flexbox" )) {
+				if ( hasclass ( elm, "flexrow" ) || hasclass ( elm, "flexcol" )) {
 					boxes.push ( new gui.FlexBox ( elm ));
 				}
 			}
@@ -41,40 +40,4 @@ gui.FlexPlugin = gui.Plugin.extend ( "gui.FlexPlugin", {
 	}
 
 
-}, { // Static ................................................................
-
-	MODE_NATIVE : "native",
-	MODE_EMULATED : "emulated",
-	MODE_OPTIMIZED : "optimized"
-
 });
-
-
-/*
-var rules = {
-	".flexbox" : {
-			"height" : "100%",
-			"width": "100%",
-			"display": "-beta-flex",
-			"-beta-flex-direction" : "row",
-			"-beta-flex-wrap" : "nowrap"
-	},
-	".flexbox.vertical" : {
-			"-beta-flex-direction" : "column"
-	},
-	".flex, .flexbox > *" : {
-			"-beta-flex" : "1 0 auto",
-			"height" : "auto"
-	}
-};
-
-var i = 0; while ( ++i < 23 ) {
-	rules [ ".flex" + i ] = {
-		"-beta-flex" : i + " 0 auto"
-	}
-}
-
-console.log ( JSON.stringify ( rules, null, "\t" ));
-
-//gui.CSSPlugin.addRules ( document, rules )
-*/

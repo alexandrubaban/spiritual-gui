@@ -1,96 +1,99 @@
+gui.FLEXMODE_NATIVE = "native";
+gui.FLEXMODE_EMULATED = "emulated";
+gui.FLEXMODE_OPTIMIZED = "optimized",
+
 /**
- * Flex module.
+ * Provides a subset of flexible boxes that works in IE9 
+ * as long as flex is implemented using a predefined set 
+ * of classnames: flexrow, flexcol and flexN where N is 
+ * a number to indicate the flexiness of things.
+ * @see {gui.FlexCSS}
  */
 gui.module ( "flex", {
 
-	/**
-	 * Emulated ruleset.
-	 */
-	_RULESET_EMULATED : {
-		"flexbox" : {
-			"display" : "block"
-		},
-		".flexbox.vertical > *" : {
-			"display" : "block"
-		},
-		".flexbox:not(.vertical)" : {
-			"display" : "table",
-			"width" : "100%"
-		},
-		".flexbox:not(.vertical) > *" : {
-			"display" : "table-cell"
-		}
-	},
-
-	/**
-	 * Native ruleset.
-	 */
-	_RULESET_NATIVE : ( function ( flex ) {
-		var rules = {
-			".flexbox" : {
-				"height" : "100%",
-				"width": "100%",
-				"display": "-beta-flex",
-				"-beta-flex-direction" : "row",
-				"-beta-flex-wrap" : "nowrap"
-			},
-			".flexbox.vertical" : {
-				"-beta-flex-direction" : "column"
-			},
-			".flex, .flexbox > *" : {
-				"-beta-flex" : "1 0 auto",
-				"height" : "auto"
-			}
-		};
-		while ( ++flex <= 23 ) {
-			rules [ ".flex" + flex ] = {
-				"-beta-flex" : flex + " 0 auto"
-			};
-		}
-		return rules;
-	}( 0 )),
-
 	/** 
-	 * Assign FlexPlugin to the "flex" prefix.
-	 * All spirits may now trigger reflexes.
+	 * Setup gui.FlexPlugin for all spirits. 
+	 * Trigger flex using this.flex.reflex()
 	 */
 	plugins : {
 		flex : gui.FlexPlugin
 	},
 
 	/**
+	 * Setup flex control on the local "gui" object. Note that we  assign non-enumerable properties 
+	 * to prevent the setup from being portalled into subframes (when running a multi-frame setup).
 	 * @param {Window} context
 	 */
-	init : function ( context ) {
-		var doc = context.document, rules = this._RULESET_EMULATED;
-		var stylesheet = gui.StyleSheetSpirit.summon ( doc, null, rules );
-		doc.querySelector ( "head" ).appendChild ( stylesheet.element );
-
-		// @TODO standard for this...
-		gui.Broadcast.addGlobal ( gui.BROADCAST_DID_SPIRITUALIZE, {
-			onbroadcast : function ( b ) {
-				if ( b.data === context.gui.signature ) {
-					context.gui.reflex ();
+	oncontextinitialize : function ( context ) {
+		var mode = [ 
+			gui.FLEXMODE_OPTIMIZED, 
+			gui.FLEXMODE_NATIVE, 
+			gui.FLEXMODE_EMULATED 
+		];
+		( function scoped () {
+			var flexmode = mode [ 0 ];
+			Object.defineProperties ( context.gui, {
+				"flexmode" : {
+					configurable : true,
+					enumerable : false,
+					get : function () {
+						var bestmode = mode [ gui.Client.hasFlexBox ? 1 : 2 ];
+						return flexmode === mode [ 0 ] ? bestmode : flexmode;
+					},
+					set : function ( mode ) {
+						flexmode = mode;
+						gui.FlexCSS.load ( context, mode );
+					}
+				},
+				"reflex" : {
+					configurable : true,
+					enumerable : false,
+					value : function () {
+						var node = this.document;
+						var body = node.body;
+						var root = node.documentElement;
+						if ( this.flexmode === this.FLEXMODE_EMULATED ) {
+							( body.spirit || root.spirit ).flex.reflex ();
+						};
+					}
 				}
-			}
-		});
-	}
+			});
+		}());
+	},
+
+	/**
+	 * 1. Inject the relevant stylesheet
+	 * 2. Setup to flex on EDBML updates
+	 * @param {Window} context
+	 */
+	onbeforespiritualize : function ( context ) {
+		if ( gui.FlexCSS.injected ) {
+			gui.FlexCSS.load ( context, context.gui.flexmode );
+		}
+		if ( context.gui.hasModule ( "edb" )) {
+			var script = context.edb.ScriptPlugin.prototype;
+			gui.Function.decorateAfter ( script, "write", function () {
+				if ( this.spirit.window.gui.flexmode === gui.FLEXMODE_EMULATED ) {
+					this.spirit.flex.reflex ();
+				}
+			});
+		}
+	},
+
+	/**
+	 * Flex everything on startup.
+	 * @param {Window} context
+	 */
+	onafterspiritualize : function ( context ) {
+		if ( context.gui.flexmode === gui.FLEXMODE_EMULATED ) {
+			context.gui.reflex ();
+		}
+	},
+
+	/**
+	 * TODO: make gui.FlexCSS forget this context.
+	 * @param {Window} context
+	 */
+	oncontextunload : function ( context ) {}
 	
 });
-
-/**
- * Mixin global reflex method that flexes everything (at least on startup).
- * @TODO reflex on startup by default...
- * @TODO nicer interface for this kind of thing
- */
-( function defaultsettings () {
-	gui.mixin ( "flexmode", "emulated" );
-	gui.mixin ( "reflex", function () {
-		var node = this.document;
-		var html = node.documentElement;
-		var root = html.spirit;
-		if ( this.flexmode === "emulated" ) {
-			root.flex.reflex ( node.body );
-		}
-	});
-}());
