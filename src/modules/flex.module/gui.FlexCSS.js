@@ -81,7 +81,7 @@ gui.FlexCSS [ "emulated" ] = {
 	".flexrow > *" : {
 		"display" : "inline-block",
 		"vertical-align" : "top",
-		"max-height" : "100%",
+		//"max-height" : "100%",
 		"height" : "100%"
 	},
 	"flexcol > *" : {
@@ -113,12 +113,6 @@ gui.FlexCSS [ "native" ] = ( function () {
 		},
 		".flexrow:not(.flexlax) > *, .flexcol:not(.flexlax) > *" : {
 			"-beta-flex-basis" : 1
-		},
-		".flexcol:not(.flexlax)" : { // FF?
-			"max-height" : "100%"
-		},
-		".flexrow:not(.flexlax)" : { // FF?
-			"max-width" : "100%"
 		}
 	};
 	/*
@@ -139,6 +133,5 @@ gui.FlexCSS [ "native" ] = ( function () {
 			};
 		}( n || "" ));
 	}
-	console.log ( JSON.stringify ( rules , null, "\t" ));
 	return rules;
 }());
