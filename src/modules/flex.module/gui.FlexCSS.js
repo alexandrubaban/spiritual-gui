@@ -119,19 +119,20 @@ gui.FlexCSS [ "native" ] = ( function () {
 	 * Can't parse 'contains' selector (says DOM exception), 
 	 * so let's just create one billion unique classnames...
 	 */
+	function declare ( n ) {
+		rules [ ".flex" + n ] = {
+			"-beta-flex-grow" : n || 1
+		};
+		rules [ ".flexrow:not(.flexlax) > .flex" + n ] = {
+			"width" : "0%"
+		};
+		rules [ ".flexcol:not(.flexlax) > .flex" + n ] = {
+			"height" : "0"
+		};
+	}
 	var n = -1, max = gui.FlexCSS.maxflex;
 	while ( ++n <= max ) {
-		( function ( n ) {
-			rules [ ".flex" + n ] = {
-				"-beta-flex-grow" : n || 1,
-			};
-			rules [ ".flexrow:not(.flexlax) > .flex" + n ] = {
-				"width" : "0%"
-			};
-			rules [ ".flexcol:not(.flexlax) > .flex" + n ] = {
-				"height" : "0"
-			};
-		}( n || "" ));
+		declare ( n || "" )
 	}
 	return rules;
 }());
