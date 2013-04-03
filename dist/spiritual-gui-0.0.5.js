@@ -184,12 +184,30 @@ gui.URL.prototype = {
 // Statics ....................................................................
 
 /**
- * Convert relative path to absolute path.
+ * Convert relative path to absolute path in context of base where base is a document or an absolute path.
+ * @see  http://stackoverflow.com/questions/14780350/convert-relative-path-to-absolute-using-javascript
+ * @param {String|Document} base
  * @param {String} href
  * @returns {String}
  */
-gui.URL.absolute = function ( doc, href ) {
-	return new gui.URL ( doc, href ).href;
+gui.URL.absolute = function ( base, href ) {
+	if ( base.nodeType === Node.DOCUMENT_NODE ) {
+		return new gui.URL ( base, href ).href;
+	} else if ( typeof base === "string" ) { // TODO: load gui.Type first...
+		var stack = base.split ( "/" );
+		var parts = href.split ( "/" );
+		stack.pop();// remove current filename (or empty string) (omit if "base" is the current folder without trailing slash)
+		parts.forEach ( function ( part ) {
+			if ( part !== "." ) {
+				if ( part === ".." ) {
+					stack.pop ();
+				}	else {
+					stack.push ( part );	
+				}
+			}
+		});
+		return stack.join ( "/" );	
+	}
 };
 
 /**
@@ -735,15 +753,12 @@ gui.Spiritual.prototype = {
 	go : function () {
 		this._gone = true;
 		if ( this.debug ) {
-			switch ( this.mode ) {
-				case gui.MODE_JQUERY :
-					gui.Tick.next ( function () {  // @TODO somehow not conflict with http://stackoverflow.com/questions/11406515/domnodeinserted-behaves-weird-when-performing-dom-manipulation-on-body
-						gui.Observer.observe ( this.context ); // @idea move all of _step2 to next stack?
-					}, this );
-					break;
-				default :
-					gui.Observer.observe ( this.context );
-					break;
+			if ( this.mode === gui.MODE_JQUERY ) {
+				gui.Tick.next ( function () {  // @TODO somehow not conflict with http://stackoverflow.com/questions/11406515/domnodeinserted-behaves-weird-when-performing-dom-manipulation-on-body
+					gui.Observer.observe ( this.context ); // @idea move all of _step2 to next stack?
+				}, this );
+			} else {
+				gui.Observer.observe ( this.context );
 			}
 		}
 		switch ( this.mode ) {
@@ -796,38 +811,11 @@ gui.Spiritual.prototype = {
 	module : function ( name, module ) {
 		if ( !gui.Type.isString ( name )) {
 			throw new Error ( "Module requires a name" );
+		} else {
+			module = this._modules [ name ] = new ( 
+				gui.Module.extend ( name, module )
+			)( this.context );
 		}
-		// modules extend gui.Spirit, use init() to extend subclass
-		var base = this.context.gui.Spirit;
-		// mixins (@TODO all sorts of "decorators")
-		if ( gui.Type.isObject ( module.mixins )) {
-			gui.Object.each ( module.mixins, function ( name, value ) {
-				base.mixin ( name, value );
-			}, this );
-		}
-		if ( gui.Type.isObject ( module.addins )) { // TEMP! 
-			throw new Error ( "Deprecated" );
-		}
-		// plugins
-		if ( gui.Type.isObject ( module.plugins )) {
-			gui.Object.each ( module.plugins, function ( prefix, plugin ) {
-				if ( gui.Type.isDefined ( plugin )) {
-					base.plugin ( prefix, plugin );
-				} else {
-					console.error ( "Undefined plugin for prefix: " + prefix );
-				}
-			}, this );
-		}
-		// channels
-		if ( gui.Type.isArray ( module.channels )) {
-			module.channels.forEach ( function ( channel ) {
-				var query = channel [ 0 ];
-				var klass = channel [ 1 ];
-				this.channel ( query, klass );
-			}, this );
-		}
-		this._modulelife ( module, this.context );
-		this._modules [ name ] = module;
 		return module;
 	},
 
@@ -875,11 +863,12 @@ gui.Spiritual.prototype = {
 	 * @param {object} value
 	 * @param @optional {boolean} override
 	 * @returns {object} Returns the mixin value
-	 */
+	 *
 	mixin : function ( key, value, override ) {
 		var proto = this.constructor.prototype;
 		return gui.Object.mixin ( proto, key, value, override );
 	},
+	*/
 
 	/**
 	 * Portal Spiritual to a parallel window in three easy steps.
@@ -920,7 +909,7 @@ gui.Spiritual.prototype = {
 			// Portal modules to initialize the sub context
 			// @TODO portal only the relevant init method?
 			gui.Object.each ( this._modules, function ( name, module ) {
-				this._modulelife ( module, subgui.context );
+				module.$setupcontext ( subgui.context );
 				subgui._modules [ name ] = module;
 			}, this );
 			// Sort channels
@@ -1180,6 +1169,7 @@ gui.Spiritual.prototype = {
 	 * @param {Window} win
 	 */
 	_construct : function ( context ) {
+
 		// patching features
 		this._spiritualaid.polyfill ( context );		
 		// compute signature (possibly identical to $instanceid of hosting iframe spirit)
@@ -1244,34 +1234,6 @@ gui.Spiritual.prototype = {
 			}
 		}
 		return indexes;
-	},
-
-	/**
-	 * @TODO clean this up...
-	 * @param {object} module
-	 * @param {Window} context
-	 */
-	_modulelife : function ( module, context ) {
-		// invoke init now?
-		if ( gui.Type.isFunction ( module.init )) {
-			module.init ( context );
-		}
-		// invoke ready before document is spiritualized?
-		if ( gui.Type.isFunction ( module.ready )) {
-			gui.Broadcast.addGlobal (
-				gui.BROADCAST_WILL_SPIRITUALIZE, {
-					onbroadcast : function ( b ) {
-						if ( b.data === context.gui.signature ) {
-							module.ready ( context );
-							gui.Broadcast.removeGlobal ( 
-								gui.BROADCAST_WILL_SPIRITUALIZE, 
-								this
-							);
-						}
-					}
-				}
-			);
-		}
 	}
 };
 
@@ -1544,6 +1506,7 @@ gui.Object = {
 	},
 
 	/**
+	 * @deprecated
 	 * Object has any (own) properties?
 	 * @param {object} object
 	 * @returns {boolean}
@@ -1694,6 +1657,124 @@ gui.Array = {
 
 
 /**
+ * Function argument type checking studio.
+ */
+gui.Arguments = {
+
+	/**
+	 * Forgiving arguments matcher. 
+	 * Ignores action if no match.
+	 */
+	provided : function ( /* type1,type2,type3... */ ) {
+		var types = gui.Object.toArray ( arguments );
+		return function ( action ) {
+			return function () {
+				if ( gui.Arguments._match ( arguments, types )) {
+					return action.apply ( this, arguments );
+				}
+			};
+		};
+	},
+
+	/**
+	 * Revengeful arguments validator. 
+	 * Throws an exception if no match.
+	 */
+	confirmed : function ( /* type1,type2,type3... */ ) {
+		var types = gui.Object.toArray ( arguments );
+		return function ( action ) {
+			return function () {
+				if ( gui.Arguments._validate ( arguments, types )) {
+					return action.apply ( this, arguments );
+				}
+			};
+		};
+	},
+
+
+	// Private ...........................................................
+	
+	/**
+	 * Validating mode?
+	 * @type {boolean}
+	 */
+	_validating : false,
+
+	/**
+	 * Use this to check the runtime signature of a function call: 
+	 * gui.Arguments.match ( arguments, "string", "number" ); 
+	 * Note that some args may be omitted and still pass the test, 
+	 * eg. the example would pass if only a single string was given. 
+	 * Note that `gui.Type.of` may return different xbrowser results 
+	 * for certain exotic objects. Use the pipe char to compensate: 
+	 * gui.Arguments.match ( arguments, "window|domwindow" );
+	 * @returns {boolean}
+	 */
+	_match : function ( args, types ) {
+		return types.every ( function ( type, index ) {
+			return this._matches ( type, args [ index ], index );
+		}, this );
+	},
+
+	/**
+	 * Strict type-checking facility to throw exceptions on failure. 
+	 * @TODO at some point, return true unless in developement mode.
+	 * @returns {boolean}
+	 */
+	_validate : function ( args, types ) {
+		this._validating = true;
+		var is = this._match ( args, types );
+		this._validating = false;
+		return is;
+	},
+
+	/**
+	 * Extract expected type of (optional) argument.
+	 * @param {string} xpect
+	 * @param {boolean} optional
+	 */
+	_xtract : function ( xpect, optional ) {
+		return optional ? xpect.slice ( 1, -1 ) : xpect;
+	},
+
+	/**
+	 * Check if argument matches expected type.
+	 * @param {string} xpect
+	 * @param {object} arg
+	 * @param {number} index
+	 * @returns {boolean}
+	 */
+	_matches : function ( xpect, arg, index ) {
+		var needs = !xpect.startsWith ( "(" );
+		var split = this._xtract ( xpect, !needs ).split ( "|" );
+		var input = gui.Type.of ( arg );
+		var match = ( xpect === "*" 
+			|| ( !needs && input === "undefined" ) 
+			|| ( !needs && split.indexOf ( "*" ) >-1 ) 
+			|| split.indexOf ( input ) >-1 );
+		if ( !match && this._validating ) {
+			this._error ( index, xpect, input );
+		}
+		return match;
+	},
+
+	/**
+	 * Report validation error for argument at index.
+	 * @param {number} index
+	 * @param {string} xpect
+	 * @param {string} input
+	 */
+	_error : function ( index, xpect, input ) {
+		console.error ( 
+			"Argument " + index + ": " + 
+			"Expected " + xpect + 
+			", got " + input
+		);
+	}
+};
+
+
+/**
  * Working with functions.
  */
 gui.Function = {
@@ -1719,6 +1800,39 @@ gui.Function = {
 	},
 
 	/**
+	 * Decorate object method before.
+	 * @param {object} target
+	 * @param {String} name
+	 * @param {function} decorator
+	 * @returns {object}
+	 */
+	decorateBefore : function ( target, name, decorator ) {
+		return this._decorate ( "before", target, name, decorator );
+	},
+
+	/**
+	 * Decorate object method after.
+	 * @param {object} target
+	 * @param {String} name
+	 * @param {function} decorator
+	 * @returns {object}
+	 */
+	decorateAfter : function ( target, name, decorator ) {
+		return this._decorate ( "after", target, name, decorator );
+	},
+
+	/**
+	 * @TODO Decorate object method around.
+	 * @param {object} target
+	 * @param {String} name
+	 * @param {function} decorator
+	 * @returns {object}
+	 */
+	decorateAround : function () {
+		throw new Error ( "TODO" );
+	},
+
+	/**
 	 * Strip namespaces from name to create valid function name. 
 	 * @TODO Return a safe name no matter what has been input.
 	 * @param {String} name
@@ -1729,6 +1843,51 @@ gui.Function = {
 			name = name.split ( "." ).pop ();
 		}
 		return name || "";
+	},
+
+
+	// Private ..................................................
+	
+	/**
+	 * Decorate object method
+	 * @param {String} position
+	 * @param {object|function} target
+	 * @param {String} name
+	 * @param {function} decorator
+	 * @returns {object}
+	 */
+	_decorate : gui.Arguments.confirmed ( "string", "object|function", "string", "function" ) ( 
+		function ( position, target, name, decorator ) {
+			var base = target [ name ];
+			var deco = gui.Combo [ position ] ( decorator );
+			if ( !this._decorated ( target, name, decorator )) {
+				target [ name ] = deco ( function () {
+					return base.apply ( this, arguments );
+				});
+			}
+			return target;
+		}
+	),
+
+	/**
+	 * Method was already decorated with something that looks 
+	 * somewhat identical? We need this to bypass a setup where 
+	 * modules in shared frames would redecorate stuff on init.
+	 * @param {object|function} target
+	 * @param {String} name
+	 * @param {function} decorator
+	 * @returns {boolean}
+	 */
+	_decorated : function ( target, name, decorator ) {
+		var result = true;
+		var string = decorator.toString ();
+		var decoed = target.__decorators__ || ( function () {
+			return ( target.__decorators__ = Object.create ( null ));
+		}());
+		if (( result = decoed [ name ] !== string )) {
+			decoed [ name ] = string;
+		}
+		return result;
 	}
 
 };
@@ -1792,21 +1951,26 @@ gui.Class = {
 	_ANONYMOUS : "Anonymous",
 
 	/**
-	 * Compute constructor body string. The $name will be 
-	 * substituted for the class name. Note that if called 
-	 * without the 'new' keyword, the function acts as a 
-	 * shortcut the the MyClass.extend method.
+	 * Compute class constructor body (as a string). The $name 
+	 * will be substituted for the class name. Note that if 
+	 * called without the 'new' keyword, the function acts 
+	 * as a shortcut the the MyClass.extend method.
 	 * @type {String}
 	 */
 	_BODY : ( function ( $name ) {
 		var body = $name.toString ().trim ();
-		return body.slice ( body.indexOf ( "{") + 1, -1 );
+		return body.slice ( body.indexOf ( "{" ) + 1, -1 );
 	}(
 		function $name () {
 			if ( this instanceof $name === false ) {
 				return $name.extend.apply ( $name, arguments );
 			} else {
-				this.$instanceid = gui.KeyMaster.generateKey ( "id" );
+				window.Object.defineProperty ( this, "$instanceid", {
+					value: gui.KeyMaster.generateKey ( "instance" ),
+					enumerable : false,
+					configurable: false,
+					writable: false
+				});
 				var constructor = this.$onconstruct || this.onconstruct;
 				if ( gui.Type.isFunction ( constructor )) {
 					constructor.apply ( this, arguments );
@@ -1826,10 +1990,10 @@ gui.Class = {
 		var named = gui.Type.isString ( args [ 0 ]);
 		return {
 			name : named ? args [ 0 ] : null,
-			proto	: args [ named ? 1 : 0 ] || {},
-			protos : args [ named ? 2 : 1 ] || {},
-			recurring : args [ named ? 3 : 2 ] || {},
-			statics : args [ named ? 4 : 3 ] || {}
+			proto	: args [ named ? 1 : 0 ] || Object.create ( null ),
+			protos : args [ named ? 2 : 1 ] || Object.create ( null ),
+			recurring : args [ named ? 3 : 2 ] || Object.create ( null ),
+			statics : args [ named ? 4 : 3 ] || Object.create ( null )
 		};
 	},
 
@@ -1904,7 +2068,7 @@ gui.Class = {
 	},
 
 	/**
-	 * Might do something in the profiler, no such luck with stack traces.
+	 * This might do something in the profiler. Not much luck with stack traces.
 	 * @see http://www.alertdebugging.com/2009/04/29/building-a-better-javascript-profiler-with-webkit/
 	 * @see https://code.google.com/p/chromium/issues/detail?id=17356
 	 * @param {function} C
@@ -1915,10 +2079,10 @@ gui.Class = {
 		[ C, C.prototype ].forEach ( function ( thing ) {
 			gui.Object.each ( thing, function ( key, value ) {
 				if ( gui.Type.isMethod ( value )) {
-					value.displayName = value.displayName || name + "." + key; 
+					this._displayname ( value, name + "." + key );
 				}
-			});
-		});
+			}, this );
+		}, this );
 		return C;
 	},
 
@@ -1972,7 +2136,7 @@ gui.Class = {
 	 * @param {String} name
 	 */
 	_namedthing : function ( what, type, name ) {
-		what.displayName = name; // dysfunctional
+		this._displayname ( what, name );
 		if ( !what.hasOwnProperty ( "toString" )) {
 			what.toString = function toString () {
 				return "[" + type + " " + name + "]";
@@ -1990,7 +2154,26 @@ gui.Class = {
 			new RegExp ( "\\$name", "gm" ), 
 			gui.Function.safename ( name )
 		);
+	},
+
+	/**
+	 * Set the elusive displayName property. Doesn't seem to work a lot.
+	 * @param  {[type]} what [description]
+	 * @param  {[type]} name [description]
+	 * @return {[type]}      [description]
+	 */
+	_displayname : function ( thing, name ) {
+		if ( !gui.Type.isDefined ( thing.displayName )) {
+			Object.defineProperty ( thing, "displayName", {
+				enumerable : false,
+				configurable: true,
+				writable: true,
+				value: name
+			});
+		}
+		return thing;
 	}
+
 };
 
 
@@ -2143,124 +2326,6 @@ gui.Object.each ({
 }, function ( name, method ) {
 	gui.Class [ name ] = method;
 });
-
-
-/**
- * Function argument type checking studio.
- */
-gui.Arguments = {
-
-	/**
-	 * Forgiving arguments matcher. 
-	 * Ignores action if no match.
-	 */
-	provided : function ( /* type1,type2,type3... */ ) {
-		var types = gui.Object.toArray ( arguments );
-		return function ( action ) {
-			return function () {
-				if ( gui.Arguments._match ( arguments, types )) {
-					return action.apply ( this, arguments );
-				}
-			};
-		};
-	},
-
-	/**
-	 * Revengeful arguments validator. 
-	 * Throws an exception if no match.
-	 */
-	confirmed : function ( /* type1,type2,type3... */ ) {
-		var types = gui.Object.toArray ( arguments );
-		return function ( action ) {
-			return function () {
-				if ( gui.Arguments._validate ( arguments, types )) {
-					return action.apply ( this, arguments );
-				}
-			};
-		};
-	},
-
-
-	// Private ...........................................................
-	
-	/**
-	 * Validating mode?
-	 * @type {boolean}
-	 */
-	_validating : false,
-
-	/**
-	 * Use this to check the runtime signature of a function call: 
-	 * gui.Arguments.match ( arguments, "string", "number" ); 
-	 * Note that some args may be omitted and still pass the test, 
-	 * eg. the example would pass if only a single string was given. 
-	 * Note that `gui.Type.of` may return different xbrowser results 
-	 * for certain exotic objects. Use the pipe char to compensate: 
-	 * gui.Arguments.match ( arguments, "window|domwindow" );
-	 * @returns {boolean}
-	 */
-	_match : function ( args, types ) {
-		return types.every ( function ( type, index ) {
-			return this._matches ( type, args [ index ], index );
-		}, this );
-	},
-
-	/**
-	 * Strict type-checking facility to throw exceptions on failure. 
-	 * @TODO at some point, return true unless in developement mode.
-	 * @returns {boolean}
-	 */
-	_validate : function ( args, types ) {
-		this._validating = true;
-		var is = this._match ( args, types );
-		this._validating = false;
-		return is;
-	},
-
-	/**
-	 * Extract expected type of (optional) argument.
-	 * @param {string} xpect
-	 * @param {boolean} optional
-	 */
-	_xtract : function ( xpect, optional ) {
-		return optional ? xpect.slice ( 1, -1 ) : xpect;
-	},
-
-	/**
-	 * Check if argument matches expected type.
-	 * @param {string} xpect
-	 * @param {object} arg
-	 * @param {number} index
-	 * @returns {boolean}
-	 */
-	_matches : function ( xpect, arg, index ) {
-		var needs = !xpect.startsWith ( "(" );
-		var split = this._xtract ( xpect, !needs ).split ( "|" );
-		var input = gui.Type.of ( arg );
-		var match = ( xpect === "*" 
-			|| ( !needs && input === "undefined" ) 
-			|| ( !needs && split.indexOf ( "*" ) >-1 ) 
-			|| split.indexOf ( input ) >-1 );
-		if ( !match && this._validating ) {
-			this._error ( index, xpect, input );
-		}
-		return match;
-	},
-
-	/**
-	 * Report validation error for argument at index.
-	 * @param {number} index
-	 * @param {string} xpect
-	 * @param {string} input
-	 */
-	_error : function ( index, xpect, input ) {
-		console.error ( 
-			"Argument " + index + ": " + 
-			"Expected " + xpect + 
-			", got " + input
-		);
-	}
-};
 
 
 /**
@@ -3946,9 +4011,19 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	// Secret ....................................................................
 	
 	/**
-	 * Secret constructor. Doesn't do much.
+	 * Secret constructor. The $instanceid is generated standard by the {gui.Class}
+	 * @param {Element} elm
+	 * @param {Document} doc
+	 * @param {Window} win
+	 * @param {String} sig
 	 */
-	$onconstruct : function () {},
+	$onconstruct : function ( elm, doc, win, sig ) {
+		this.element = elm;
+		this.document = doc;
+		this.window = win;
+		this.signature = sig;
+		this.onconstruct ();
+	},
 
 	/**
 	 * Mapping lazy plugins to prefixes.
@@ -4590,6 +4665,134 @@ gui.Tracker = gui.Plugin.extend ( "gui.Tracker", {
 		}
 		return result;
 	}
+});
+
+
+/**
+ * Module base.
+ */
+gui.Module = gui.Class.create ( "gui.Module", Object.prototype, {
+
+	/**
+	 * Plugins for all spirits.
+	 * @type {Map<String,gui.Plugin>}
+	 */
+	plugins : null,
+
+	/**
+	 * Mixins for all spirits.
+	 * @type {Map<String,function>}
+	 */
+	mixins : null,
+
+	/**
+	 * Channeling spirits to CSS selectors.
+	 * @type {Map<Array<Array<String,gui.Spirit>>}
+	 */
+	channels : null,
+
+	/**
+	 * Called immediately. Other modules may not be loaded yet.
+	 * @return {Window} context
+	 */
+	oncontextinitialize : function ( context ) {},
+
+	/**
+	 * Called before spirits kick in.
+	 * @return {Window} context
+	 */
+	onbeforespiritualize : function ( context ) {},
+
+	/**
+	 * Called after spirits kicked in.
+	 * @return {Window} context
+	 */
+	onafterspiritualize : function ( context ) {},
+
+	/**
+	 * @TODO support this
+	 * @param {Window} context
+	 */
+	oncontextload : function ( context ) {},
+
+	/**
+	 * @TODO support this
+	 * @param {Window} context
+	 */
+	oncontextunload : function ( context ) {},
+
+
+	// Secrets ........................................................
+
+	/**
+	 * Secret constructor.
+	 * 
+	 * 1. extend {gui.Spirit} with mixins
+	 * 2. inject plugins for (all) spirits
+	 * 3. channel spirits to CSS selectors
+	 * @param {Window} context
+	 */
+	$onconstruct : function ( context ) {
+		var base = context.gui.Spirit;
+		if ( gui.Type.isObject ( this.mixins )) {
+			gui.Object.each ( this.mixins, function ( name, value ) {
+				base.mixin ( name, value );
+			});
+		}
+		if ( gui.Type.isObject ( this.plugins )) {
+			gui.Object.each ( this.plugins, function ( prefix, plugin ) {
+				if ( gui.Type.isDefined ( plugin )) {
+					base.plugin ( prefix, plugin );
+				} else {
+					console.error ( "Undefined plugin for prefix: " + prefix );
+				}
+			});
+		}
+		if ( gui.Type.isArray ( this.channels )) {
+			this.channels.forEach ( function ( channel ) {
+				var query = channel [ 0 ];
+				var klass = channel [ 1 ];
+				context.gui.channel ( query, klass );
+			}, this );
+		}
+		this.$setupcontext ( context );
+	},
+
+	/**
+	 * Setup that context, once for every context the module has been portalled to.
+	 * @see {gui.Spiritual#portal}
+	 * @param {Window} context
+	 */
+	$setupcontext : function ( context ) {
+		var that = this;
+		var msg1 = gui.BROADCAST_WILL_SPIRITUALIZE;
+		var msg2 = gui.BROADCAST_DID_SPIRITUALIZE;
+		if ( this.oncontextinitialize ) {
+			this.oncontextinitialize ( context );
+		}
+		gui.Broadcast.addGlobal ([
+			msg1, 
+			msg2
+		], { 
+			onbroadcast : function ( b ) {
+				if ( b.data === context.gui.signature ) {
+					gui.Broadcast.removeGlobal ( b.type, this );
+					switch ( b.type ) {
+						case msg1 :
+							if ( gui.Type.isFunction ( that.onbeforespiritualize )) {
+								that.onbeforespiritualize ( context );	
+							}
+							break;
+						case msg2 :
+							if ( gui.Type.isFunction ( that.onafterspiritualize )) {
+								that.onafterspiritualize ( context );	
+							}
+							break;
+				}
+			}
+		}});
+	}
+
 });
 
 
@@ -6325,8 +6528,8 @@ gui.CSSPlugin = gui.Plugin.extend ( "gui.CSSPlugin", {
 				prop = "cssFloat";
 				break;
 			default :
-				value = this._normval ( element, value );
-				prop = this._normprop ( element, prop );
+				value = this.jsvalue ( value );
+				prop = this.jsproperty ( prop );
 				break;
 		}
 		element.style [ prop ] = value;
@@ -6341,8 +6544,8 @@ gui.CSSPlugin = gui.Plugin.extend ( "gui.CSSPlugin", {
 	 * @returns {String}
 	 */
 	get : function ( element, prop ) {
-		return this._normval ( element.style [
-			this._normprop ( element, prop )
+		return this.jsvalue ( element.style [
+			this.jsproperty ( prop )
 		]);
 	},
 
@@ -6369,7 +6572,7 @@ gui.CSSPlugin = gui.Plugin.extend ( "gui.CSSPlugin", {
 	compute : function ( thing, prop ) {
 		var element = thing instanceof gui.Spirit ? thing.element : thing;
 		var doc = element.ownerDocument, win = doc.defaultView;
-		prop = this._standardcase ( this._normprop ( element, prop ));
+		prop = this._standardcase ( this.jsproperty ( prop ));
 		return win.getComputedStyle ( element, null ).getPropertyValue ( prop );
 	},
 
@@ -6383,6 +6586,78 @@ gui.CSSPlugin = gui.Plugin.extend ( "gui.CSSPlugin", {
 		return node [ this._matchmethod ]( selector );
 	},
 
+	/**
+	 * Normalize declaration property for use in element.style scenario.
+	 * @param {String} prop
+	 * @returns {String}
+	 */
+	jsproperty : function ( prop ) {
+		var vendors = this._vendors, fixt = prop;
+		var element = document.documentElement;
+		prop = String ( prop );
+		if ( prop.startsWith ( "-beta-" )) {
+			vendors.every ( function ( vendor ) {
+				var test = this._camelcase ( prop.replace ( "-beta-", vendor ));
+				if ( element.style [ test ] !== undefined ) {
+					fixt = test;
+					return false;
+				}
+				return true;
+			}, this );
+		} else {
+			fixt = this._camelcase ( fixt );
+		}
+		return fixt;
+	},
+
+	/**
+	 * Normalize declaration value for use in element.style scenario.
+	 * @param {String} value
+	 * @returns {String}
+	 */
+	jsvalue : function ( value ) {
+		var vendors = this._vendors;
+		var element = document.documentElement;
+		value = String ( value );
+		if ( value && value.contains ( "-beta-" )) {
+			var parts = [];
+			value.split ( ", " ).forEach ( function ( part ) {
+				if (( part = part.trim ()).startsWith ( "-beta-" )) {
+					vendors.every ( function ( vendor ) {
+						var test = this._camelcase ( part.replace ( "-beta-", vendor ));
+						if ( element.style [ test ] !== undefined ) {
+							parts.push ( part.replace ( "-beta-", vendor ));
+							return false;
+						}
+						return true;
+					 }, this );		
+				} else {
+					parts.push ( part );
+				}
+			}, this );
+			value = parts.join ( "," );
+		}
+		return value;
+	},
+
+	/**
+	 * Normalize declaration property for use in CSS text.
+	 * @param {String} prop
+	 * @returns {String}
+	 */
+	cssproperty : function ( prop ) {
+		return this._standardcase ( this.jsproperty ( prop ));
+	},
+
+	/**
+	 * Normalize declaration value for use in CSS text.
+	 * @param {String} prop
+	 * @returns {String}
+	 */
+	cssvalue : function ( value ) {
+		return this._standardcase ( this.jsvalue ( value ));
+	},
+	
 
 	// Private statics ...................................................................... 
 
@@ -6447,58 +6722,58 @@ gui.CSSPlugin = gui.Plugin.extend ( "gui.CSSPlugin", {
 		visibility : "@"
 	},
 
-	/**
-	 * Normalize declaration value.
-	 * @param {String} value
-	 * @returns {value}
-	 */
-	_normval : function ( element, value ) {
-		var vendors = this._vendors;
-		if ( value && value.contains ( "-beta-" )) {
-			var parts = [];
-			value.split ( ", " ).forEach ( function ( part ) {
-				if (( part = part.trim ()).startsWith ( "-beta-" )) {
-					vendors.every ( function ( vendor ) {
-						var test = this._camelcase ( part.replace ( "-beta-", vendor ));
-						if ( element.style [ test ] !== undefined ) {
-							parts.push ( part.replace ( "-beta-", vendor ));
-							return false;
-						}
-						return true;
-					 }, this );		
-				} else {
-					parts.push ( part );
-				}
-			}, this );
-			value = parts.join ( "," );
-		}
-		return value;
-	},
+	// /**
+	//  * Normalize declaration value.
+	//  * @param {String} value
+	//  * @returns {value}
+	//  */
+	// _normval : function ( element, value ) {
+	// 	var vendors = this._vendors;
+	// 	if ( value && value.contains ( "-beta-" )) {
+	// 		var parts = [];
+	// 		value.split ( ", " ).forEach ( function ( part ) {
+	// 			if (( part = part.trim ()).startsWith ( "-beta-" )) {
+	// 				vendors.every ( function ( vendor ) {
+	// 					var test = this._camelcase ( part.replace ( "-beta-", vendor ));
+	// 					if ( element.style [ test ] !== undefined ) {
+	// 						parts.push ( part.replace ( "-beta-", vendor ));
+	// 						return false;
+	// 					}
+	// 					return true;
+	// 				 }, this );		
+	// 			} else {
+	// 				parts.push ( part );
+	// 			}
+	// 		}, this );
+	// 		value = parts.join ( "," );
+	// 	}
+	// 	return value;
+	// },
 
-	/**
-	 * Normalize declaration property.
-	 * @param {Element} element
-	 * @param {String} prop
-	 * @returns {String}
-	 */
-	_normprop : function ( element, prop, xxx ) {
-		var vendors = this._vendors, fixt = prop;
-		if ( true ) {
-			if ( prop.startsWith ( "-beta-" )) {
-				vendors.every ( function ( vendor ) {
-					var test = this._camelcase ( prop.replace ( "-beta-", vendor ));
-					if ( element.style [ test ] !== undefined ) {
-						fixt = test;
-						return false;
-					}
-					return true;
-				}, this );
-			} else {
-				fixt = this._camelcase ( fixt );
-			}
-		}
-		return fixt;
-	},
+	// /**
+	//  * Normalize declaration property.
+	//  * @param {Element} element
+	//  * @param {String} prop
+	//  * @returns {String}
+	//  */
+	// _normprop : function ( element, prop ) {
+	// 	var vendors = this._vendors, fixt = prop;
+	// 	if ( true ) {
+	// 		if ( prop.startsWith ( "-beta-" )) {
+	// 			vendors.every ( function ( vendor ) {
+	// 				var test = this._camelcase ( prop.replace ( "-beta-", vendor ));
+	// 				if ( element.style [ test ] !== undefined ) {
+	// 					fixt = test;
+	// 					return false;
+	// 				}
+	// 				return true;
+	// 			}, this );
+	// 		} else {
+	// 			fixt = this._camelcase ( fixt );
+	// 		}
+	// 	}
+	// 	return fixt;
+	// },
 
 	/**
 	 * Lookup vendors "matchesSelector" method.
@@ -9163,11 +9438,18 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 			default : // all documents
 				switch ( e.type ) {
 					case "resize" :
-						if ( top === window ) {
-							this._onresize ();
-						}
+						try {
+							if ( parent === window ) { // @TODO: gui.isTop or something...
+								try {
+									this._onresize ();
+								} catch ( normalexception ) {
+									throw ( normalexception );
+								}
+							}
+						} catch ( explorerexception ) {}
 						break;
 					case "load" :
+						e.stopPropagation ();
 						if ( !this._isLoaded ) {
 							this._onload ();
 						}
@@ -9836,6 +10118,20 @@ gui.StyleSheetSpirit = gui.Spirit.infuse ( "gui.StyleSheetSpirit", {
 	},
 
 	/**
+	 * Disable styles.
+	 */
+	disable : function () {
+		this.element.disabled = true;
+	},
+
+	/**
+	 * Enable styles.
+	 */
+	enable : function () {
+		this.element.disabled = false;
+	},
+
+	/**
 	 * Add rules (by JSON object for now).
 	 * @param {Map<String,object>} rules
 	 */
@@ -9860,15 +10156,15 @@ gui.StyleSheetSpirit = gui.Spirit.infuse ( "gui.StyleSheetSpirit", {
 	 * @return {String}
 	 */
 	_ruleout : function ( declarations ) {
-		var body = ""; 
+		var body = "", plugin = gui.CSSPlugin;
 		gui.Object.each ( declarations, function ( property, value ) {
-			if ( property.contains ( "-beta" )) {
-				throw new Error ( "TODO: -beta-property" );
-			}
-			body += property + ":" + value + ";";
+			body += 
+				plugin.cssproperty ( property ) + ":" +
+				plugin.cssvalue ( value ) + ";";
 		});
 		return "{" + body + "}";
 	}
+
 
 }, { // Static .....................................................
 
@@ -9881,9 +10177,8 @@ gui.StyleSheetSpirit = gui.Spirit.infuse ( "gui.StyleSheetSpirit", {
 	 * @returns {gui.StyleSheetSpirit}
 	 */
 	summon : function ( doc, href, rules, disabled ) {
-		var elm = href ? this._link ( doc, href ) : this._style ( doc );
+		var elm = href ? this._createlink ( doc, href ) : this._createstyle ( doc );
 		var spirit = this.possess ( elm );
-		elm.className = "gui-stylesheet";
 		if ( rules ) {
 			if ( href ) {
 				elm.addEventListener ( "load", function () {
@@ -9893,6 +10188,9 @@ gui.StyleSheetSpirit = gui.Spirit.infuse ( "gui.StyleSheetSpirit", {
 				spirit._rules = rules;
 			}
 		}
+		if ( disabled ) {
+			spirit.disable ();
+		}
 		return spirit;
 	},
 
@@ -9900,20 +10198,24 @@ gui.StyleSheetSpirit = gui.Spirit.infuse ( "gui.StyleSheetSpirit", {
 	// Private static .................................................
 
 	/**
+	 * External styles in LINK element.
 	 * @returns {HTMLLinkElement}
 	 */
-	_link : function ( doc, href ) {
+	_createlink : function ( doc, href ) {
 		var link = doc.createElement ( "link" );
+		link.className = "gui-stylesheet";
 		link.rel = "stylesheet";
 		link.href = href;
 		return link;
 	},
 
 	/**
+	 * Inline styles in STYLE element.
 	 * @returns {HTMLStyleElement}
 	 */
-	_style : function ( doc ) {
+	_createstyle : function ( doc ) {
 		var style = doc.createElement ( "style" );
+		style.className = "gui-stylesheet";
 		style.appendChild ( doc.createTextNode ( "" ));
 		return style;
 	}
@@ -10055,7 +10357,7 @@ gui.module ( "jquery", {
 	 * Hack Spiritual in top window.
 	 * @param {Window} context
 	 */
-	init : function ( context ) {
+	oncontextinitialize : function ( context ) {
 		if ( context === top ) {
 			this._spiritualdom ();
 		}
@@ -10065,7 +10367,7 @@ gui.module ( "jquery", {
 	 * Hack JQuery in all windows.
 	 * @param {Window} context
 	 */
-	ready : function ( context ) {
+	onbeforespiritualize : function ( context ) {
 		var root = context.document.documentElement;
 		if ( context.gui.mode === gui.MODE_JQUERY ) {
 			var jq = context.jQuery;
@@ -10748,17 +11050,15 @@ gui.DOMChanger = {
 	 * @param {Element} root
 	 */
 	_doie : function ( proto, name, combo ) {
-		if(name!=="textContent"){ // OUCH!
-			var base = Object.getOwnPropertyDescriptor ( proto, name );
-			Object.defineProperty ( proto, name, {
-				get: function () {
-					return base.get.call ( this );
-				},
-				set: combo ( function () {
-					base.apply ( this, arguments );
-				})
-			});
-		}
+		var base = Object.getOwnPropertyDescriptor ( proto, name );
+		Object.defineProperty ( proto, name, {
+			get: function () {
+				return base.get.call ( this );
+			},
+			set: combo ( function () {
+				base.apply ( this, arguments );
+			})
+		});
 	},
 
 	/**
@@ -11444,12 +11744,17 @@ gui.Guide = {
 
 	/**
 	 * Associate DOM element to Spirit instance.
-	 * @param {Element} element
-	 * @param {function} C spirit constructor
+	 * @param {Element} elm
+	 * @param {function} Spirit constructor
 	 * @returns {Spirit}
 	 */
-	possess : function ( element, C ) {
-		var spirit = new C ();
+	possess : function ( elm, Spirit ) {
+		var doc = elm.ownerDocument;
+		var win = doc.defaultView;
+		var sig = win.gui.signature;
+		return ( elm.spirit = new Spirit ( elm, doc, win, sig ));
+
+		/*
 		spirit.element = element;
 		spirit.document = element.ownerDocument;
 		spirit.window = spirit.document.defaultView;
@@ -11462,6 +11767,7 @@ gui.Guide = {
 			throw "Constructed twice: " + spirit.toString ();
 		}
 		return spirit;
+		*/
 	},
 
 	/**
@@ -11674,7 +11980,7 @@ gui.Guide = {
 			});
 			attach.forEach ( function ( spirit ) {
 				if ( !spirit.life.configured ) {
-					spirit.onconfigure ();
+					spirit.onconfigure (); // @TODO deprecated :(
 				}
 				if ( this._invisible ( spirit )) {
 					if ( spirit.life.visible ) {
@@ -11771,12 +12077,11 @@ gui.FlexPlugin = gui.Plugin.extend ( "gui.FlexPlugin", {
 	/**
 	 * Flex this and descendant flexboxes in document order. As the name suggests, 
 	 * it might be required to call this again if flexboxes get added or removed.
-	 * @param @optional {Element} elm Flex from this element (or 'this.element')
 	 */
-	reflex : function ( elm ) {
-		elm = elm || this.spirit.element;
-		if ( this.spirit.dom.q ( ".flexbox" )) {
-			var boxes = this._collectboxes ( elm );
+	reflex : function () {
+		var dom = this.spirit.dom;
+		if ( dom.q ( ".flexrow" ) || dom.q ( ".flexcol" )) {
+			var boxes = this._collectboxes ( this.spirit.element );
 			boxes.forEach ( function ( box ) {
 				box.flex ();
 			});
@@ -11792,10 +12097,10 @@ gui.FlexPlugin = gui.Plugin.extend ( "gui.FlexPlugin", {
 	 * @returns {Array<gui.FlexBox>}
 	 */
 	_collectboxes : function ( elm ) {
-		var boxes = [];
+		var boxes = [], hasclass = gui.CSSPlugin.contains;
 		new gui.Crawler ( "flexcrawler" ).descend ( elm, {
 			handleElement : function ( elm ) {
-				if ( gui.CSSPlugin.contains ( elm, "flexbox" )) {
+				if ( hasclass ( elm, "flexrow" ) || hasclass ( elm, "flexcol" )) {
 					boxes.push ( new gui.FlexBox ( elm ));
 				}
 			}
@@ -11804,47 +12109,11 @@ gui.FlexPlugin = gui.Plugin.extend ( "gui.FlexPlugin", {
 	}
 
 
-}, { // Static ................................................................
-
-	MODE_NATIVE : "native",
-	MODE_EMULATED : "emulated",
-	MODE_OPTIMIZED : "optimized"
-
 });
 
 
-/*
-var rules = {
-	".flexbox" : {
-			"height" : "100%",
-			"width": "100%",
-			"display": "-beta-flex",
-			"-beta-flex-direction" : "row",
-			"-beta-flex-wrap" : "nowrap"
-	},
-	".flexbox.vertical" : {
-			"-beta-flex-direction" : "column"
-	},
-	".flex, .flexbox > *" : {
-			"-beta-flex" : "1 0 auto",
-			"height" : "auto"
-	}
-};
-
-var i = 0; while ( ++i < 23 ) {
-	rules [ ".flex" + i ] = {
-		"-beta-flex" : i + " 0 auto"
-	}
-}
-
-console.log ( JSON.stringify ( rules, null, "\t" ));
-
-//gui.CSSPlugin.addRules ( document, rules )
-*/
-
-
 /**
- * Wraps a flexbox container element.
+ * Computer for flexbox.
  * @param {Element} elm
  */
 gui.FlexBox = function FlexBox ( elm ) {
@@ -11888,7 +12157,13 @@ gui.FlexBox.prototype = {
 	 * Vertical flexbox?
 	 * @type {boolean}
 	 */
-	_vertical : false,
+	_flexcol : false,
+
+	/**
+	 * Loosen up to contain content.
+	 * @type {Boolean}
+	 */
+	_flexlax : false,
 
 	/**
 	 * Constructor.
@@ -11896,28 +12171,37 @@ gui.FlexBox.prototype = {
 	 */
 	_onconstruct : function ( elm ) {
 		this._element = elm;
-		this._vertical = gui.CSSPlugin.contains ( this._element, "vertical" );
+		this._flexcol = this._hasclass ( "flexcol" );
+		this._flexlax = this._hasclass ( "flexlax" );
 		this._children = Array.map ( elm.children, function ( child ) {
 			return new gui.FlexChild ( child );
 		});
 	},
 	
 	/**
-	 * Flex the container. Note that container 
-	 * may act as the child of another flexbox. 
-	 * Horizontal box fits to contaienr via CSS.
+	 * Flex the container.
 	 */
 	_flexself : function () {
 		var elm = this._element;
-		if ( this._vertical ) {
-			var given = elm.style.height;
-			var above = elm.parentNode;
-			var avail = above.offsetHeight;
-			var style = elm.style;
-			style.height = "auto";
-			if ( elm.offsetHeight < avail ) {
-				style.height = given || "100%";
+		if ( this._flexcol ) {
+			if ( this._flexlax ) {
+				this._relaxflex ( elm );
 			}
+		}
+	},
+
+	/**
+	 * Relax flex to determine whether or not to maxheight (own) element.
+	 * @param {Element} elm
+	 */
+	_relaxflex : function ( elm ) {
+		var style = elm.style;
+		var given = style.height;
+		var above = elm.parentNode;
+		var avail = above.offsetHeight;
+		style.height = "auto";
+		if ( elm.offsetHeight < avail ) {
+			style.height = given || "100%";
 		}
 	},
 
@@ -11934,12 +12218,12 @@ gui.FlexBox.prototype = {
 			this._children.forEach ( function ( child, i ) {
 				if ( flexes [ i ] > 0 ) {
 					var percentage = flexes [ i ] * unit * factor;
-					child.setoffset ( percentage, this._vertical );
+					child.setoffset ( percentage, this._flexcol );
 				}
 			},this);
 		}
 	},
-	 
+
 	/**
 	 * Collect child flexes. Unflexed members enter as 0.
 	 * @return {Array<number>}
@@ -11961,7 +12245,7 @@ gui.FlexBox.prototype = {
 		if ( flexes.indexOf ( 0 ) >-1 ) {
 			all = cut = this._getoffset ();
 			this._children.forEach ( function ( child, i ) {
-				cut -= flexes [ i ] ? 0 : child.getoffset ( this._vertical );
+				cut -= flexes [ i ] ? 0 : child.getoffset ( this._flexcol );
 			}, this );
 			factor = cut / all;
 		}
@@ -11974,17 +12258,26 @@ gui.FlexBox.prototype = {
 	 */
 	_getoffset : function () {
 		var elm = this._element;
-		if ( this._vertical ) {
+		if ( this._flexcol ) {
 			return elm.offsetHeight;
 		} else {
 			return elm.offsetWidth;
 		}
+	},
+
+	/**
+	 * Has classname?
+	 * @param {String} name
+	 * @returns {String}
+	 */
+	_hasclass : function ( name ) {
+		return gui.CSSPlugin.contains ( this._element, name );
 	}
 };
 
 
 /**
- * Wraps a flexbox child element.
+ * Computer for flexbox child.
  * @param {Element} elm
  */
 gui.FlexChild = function FlexChild ( elm ) {
@@ -12008,7 +12301,7 @@ gui.FlexChild.prototype = {
 	getflex : function ( elm ) {
 		var flex = 0;
 		this._element.className.split ( " ").forEach ( function ( name ) {
-			if ( gui.FlexChild._FLEXNAME.test ( name ) && name !== "flexbox" ) { // @TODO regexp to exlude!
+			if ( gui.FlexChild._FLEXNAME.test ( name )) { // @TODO regexp to exlude!
 				flex = ( gui.FlexChild._FLEXRATE.exec ( name ) || 1 );
 			}
 		});
@@ -12055,111 +12348,253 @@ gui.FlexChild.prototype = {
 
 /**
  * Check for flexN classname.
- * @todo don't match "flexbox"
  * @type {RegExp}
  */
-gui.FlexChild._FLEXNAME = /flex\d*/;
+gui.FlexChild._FLEXNAME = /^flex\d*$/;
 
 /**
- * Extract N from classname.
+ * Extract N from classname (eg .flex23).
  * @type {RegExp}
  */
 gui.FlexChild._FLEXRATE = /\d/;
 
 
 /**
- * Flex module.
+ * CSS injection manager.
+ */
+gui.FlexCSS = {
+
+	/**
+	 * Inject styles on startup? Set this to false if you 
+	 * prefer to manage these things in a real stylesheet: 
+	 * <meta name="gui.FlexCSS.injected" content="false"/>
+	 * @type {boolean}
+	 */
+	injected : true,
+
+	/**
+	 * Generating 23 unique classnames for native flex only. 
+	 * Emulated flex JS-reads all values from class attribute.
+	 * @type {number}
+	 */
+	maxflex : 23,
+
+	/**
+	 * Inject stylesheet in context. For debugging purposes 
+	 * we support a setup to dynically switch the flexmode. 
+	 * @param {Window} context
+	 * @param {String} mode
+	 */
+	load : function ( context, mode ) {
+		var sheets = this._getsheets ( context.gui.signature );
+		if ( sheets && sheets.mode ) {
+			sheets [ sheets.mode ].disable ();
+		}
+		if ( sheets && sheets [ mode ]) {
+			sheets [ mode ].enable ();
+		} else {
+			var doc = context.document, ruleset = this [ mode ];
+			var css = sheets [ mode ] = gui.StyleSheetSpirit.summon ( doc, null, ruleset );
+			doc.querySelector ( "head" ).appendChild ( css.element );
+		}
+		sheets.mode = mode;
+	},
+
+
+	// Private .......................................................................
+	
+	/**
+	 * Elaborate setup to track stylesheets injected into windows. 
+	 * This allows us to flip the flexmode for debugging purposes. 
+	 * It is only relevant for multi-window setup; we may nuke it.
+	 * @type {Map<String,object>}
+	 */
+	_sheets : Object.create ( null ),
+
+	/**
+	 * Get stylesheet configuration for window.
+	 * @param {String} sig
+	 * @returns {object}
+	 */
+	_getsheets : function ( sig ) {
+		var sheets = this._sheets;
+		if ( !sheets [ sig ]) {
+			sheets [ sig ] = { 
+				"emulated" : null, // {gui.StyleSheetSpirit}
+				"native" : null, // {gui.StyleSheetSpirit}
+				"mode" : null // {String}
+			};
+		}
+		return sheets [ sig ];
+	}
+};
+	
+/**
+ * Emulated ruleset.
+ * @TODO font-size-zero trick to eliminate inline spacing...
+ */
+gui.FlexCSS [ "emulated" ] = {
+	".flexrow, .flexcol" : {
+		"display" : "block",
+		"width" : "100%",
+		"height" : "100%"
+	},
+	".flexrow > *" : {
+		"display" : "inline-block",
+		"vertical-align" : "top",
+		//"max-height" : "100%",
+		"height" : "100%"
+	},
+	"flexcol > *" : {
+		"display" : "block",
+		"width" : "100%"
+	},
+	".flexlax > .flexrow" : {
+		"display" : "table"
+	},
+	".flexlax > .flexrow > *" : {
+		"display" : "table-cell"
+	}
+};
+
+/**
+ * Native ruleset.
+ */
+gui.FlexCSS [ "native" ] = ( function () {
+	var rules = {
+		".flexrow, .flexcol" : {
+			"display": "-beta-flex",
+			"-beta-flex-wrap" : "nowrap",
+			"-beta-flex-direction" : "row",
+			"min-height" : "100%",
+			"min-width": "100%"
+		},
+		".flexcol" : {
+			"-beta-flex-direction" : "column"
+		},
+		".flexrow:not(.flexlax) > *, .flexcol:not(.flexlax) > *" : {
+			"-beta-flex-basis" : 1
+		}
+	};
+	/*
+	 * Can't parse 'contains' selector (says DOM exception), 
+	 * so let's just create one billion unique classnames...
+	 */
+	function declare ( n ) {
+		rules [ ".flex" + n ] = {
+			"-beta-flex-grow" : n || 1
+		};
+		rules [ ".flexrow:not(.flexlax) > .flex" + n ] = {
+			"width" : "0%"
+		};
+		rules [ ".flexcol:not(.flexlax) > .flex" + n ] = {
+			"height" : "0"
+		};
+	}
+	var n = -1, max = gui.FlexCSS.maxflex;
+	while ( ++n <= max ) {
+		declare ( n || "" );
+	}
+	return rules;
+}());
+
+
+gui.FLEXMODE_NATIVE = "native";
+gui.FLEXMODE_EMULATED = "emulated";
+gui.FLEXMODE_OPTIMIZED = "optimized",
+
+/**
+ * Provides a subset of flexible boxes that works in IE9 
+ * as long as flex is implemented using a predefined set 
+ * of classnames: flexrow, flexcol and flexN where N is 
+ * a number to indicate the flexiness of things.
+ * @see {gui.FlexCSS}
  */
 gui.module ( "flex", {
 
-	/**
-	 * Emulated ruleset.
-	 */
-	_RULESET_EMULATED : {
-		"flexbox" : {
-			"display" : "block"
-		},
-		".flexbox.vertical > *" : {
-			"display" : "block"
-		},
-		".flexbox:not(.vertical)" : {
-			"display" : "table",
-			"width" : "100%"
-		},
-		".flexbox:not(.vertical) > *" : {
-			"display" : "table-cell"
-		}
-	},
-
-	/**
-	 * Native ruleset.
-	 */
-	_RULESET_NATIVE : ( function ( flex ) {
-		var rules = {
-			".flexbox" : {
-				"height" : "100%",
-				"width": "100%",
-				"display": "-beta-flex",
-				"-beta-flex-direction" : "row",
-				"-beta-flex-wrap" : "nowrap"
-			},
-			".flexbox.vertical" : {
-				"-beta-flex-direction" : "column"
-			},
-			".flex, .flexbox > *" : {
-				"-beta-flex" : "1 0 auto",
-				"height" : "auto"
-			}
-		};
-		while ( ++flex <= 23 ) {
-			rules [ ".flex" + flex ] = {
-				"-beta-flex" : flex + " 0 auto"
-			};
-		}
-		return rules;
-	}( 0 )),
-
 	/** 
-	 * Assign FlexPlugin to the "flex" prefix.
-	 * All spirits may now trigger reflexes.
+	 * Setup gui.FlexPlugin for all spirits. 
+	 * Trigger flex using this.flex.reflex()
 	 */
 	plugins : {
 		flex : gui.FlexPlugin
 	},
 
 	/**
+	 * Setup flex control on the local "gui" object. Note that we  assign non-enumerable properties 
+	 * to prevent the setup from being portalled into subframes (when running a multi-frame setup).
 	 * @param {Window} context
 	 */
-	init : function ( context ) {
-		var doc = context.document, rules = this._RULESET_EMULATED;
-		var stylesheet = gui.StyleSheetSpirit.summon ( doc, null, rules );
-		doc.querySelector ( "head" ).appendChild ( stylesheet.element );
-
-		// @TODO standard for this...
-		gui.Broadcast.addGlobal ( gui.BROADCAST_DID_SPIRITUALIZE, {
-			onbroadcast : function ( b ) {
-				if ( b.data === context.gui.signature ) {
-					context.gui.reflex ();
+	oncontextinitialize : function ( context ) {
+		var mode = [ 
+			gui.FLEXMODE_OPTIMIZED, 
+			gui.FLEXMODE_NATIVE, 
+			gui.FLEXMODE_EMULATED 
+		];
+		( function scoped () {
+			var flexmode = mode [ 0 ];
+			Object.defineProperties ( context.gui, {
+				"flexmode" : {
+					configurable : true,
+					enumerable : false,
+					get : function () {
+						var bestmode = mode [ gui.Client.hasFlexBox ? 1 : 2 ];
+						return flexmode === mode [ 0 ] ? bestmode : flexmode;
+					},
+					set : function ( mode ) {
+						flexmode = mode;
+						gui.FlexCSS.load ( context, mode );
+					}
+				},
+				"reflex" : {
+					configurable : true,
+					enumerable : false,
+					value : function () {
+						var node = this.document;
+						var body = node.body;
+						var root = node.documentElement;
+						if ( this.flexmode === this.FLEXMODE_EMULATED ) {
+							( body.spirit || root.spirit ).flex.reflex ();
+						}
+					}
 				}
-			}
-		});
-	}
+			});
+		}());
+	},
+
+	/**
+	 * 1. Inject the relevant stylesheet
+	 * 2. Setup to flex on EDBML updates
+	 * @param {Window} context
+	 */
+	onbeforespiritualize : function ( context ) {
+		if ( gui.FlexCSS.injected ) {
+			gui.FlexCSS.load ( context, context.gui.flexmode );
+		}
+		if ( context.gui.hasModule ( "edb" )) {
+			var script = context.edb.ScriptPlugin.prototype;
+			gui.Function.decorateAfter ( script, "write", function () {
+				if ( this.spirit.window.gui.flexmode === gui.FLEXMODE_EMULATED ) {
+					this.spirit.flex.reflex ();
+				}
+			});
+		}
+	},
+
+	/**
+	 * Flex everything on startup.
+	 * @param {Window} context
+	 */
+	onafterspiritualize : function ( context ) {
+		if ( context.gui.flexmode === gui.FLEXMODE_EMULATED ) {
+			context.gui.reflex ();
+		}
+	},
+
+	/**
+	 * TODO: make gui.FlexCSS forget this context.
+	 * @param {Window} context
+	 */
+	oncontextunload : function ( context ) {}
 	
 });
-
-/**
- * Mixin global reflex method that flexes everything (at least on startup).
- * @TODO reflex on startup by default...
- * @TODO nicer interface for this kind of thing
- */
-( function defaultsettings () {
-	gui.mixin ( "flexmode", "emulated" );
-	gui.mixin ( "reflex", function () {
-		var node = this.document;
-		var html = node.documentElement;
-		var root = html.spirit;
-		if ( this.flexmode === "emulated" ) {
-			root.flex.reflex ( node.body );
-		}
-	});
-}());
