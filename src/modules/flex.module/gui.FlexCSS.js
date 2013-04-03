@@ -132,7 +132,7 @@ gui.FlexCSS [ "native" ] = ( function () {
 	}
 	var n = -1, max = gui.FlexCSS.maxflex;
 	while ( ++n <= max ) {
-		declare ( n || "" )
+		declare ( n || "" );
 	}
 	return rules;
 }());

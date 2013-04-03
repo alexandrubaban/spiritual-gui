@@ -54,7 +54,7 @@ gui.module ( "flex", {
 						var root = node.documentElement;
 						if ( this.flexmode === this.FLEXMODE_EMULATED ) {
 							( body.spirit || root.spirit ).flex.reflex ();
-						};
+						}
 					}
 				}
 			});
