@@ -114,6 +114,9 @@ gui.SpiritualAid = {
 				}
 				return m;
 			},
+			filter : function map ( array, fun, thisp ) {
+				return Array.prototype.filter.call ( array, fun, thisp );
+			},
 			isArray : function isArray ( o ) {
 				return win.Object.prototype.toString.call ( o ) === "[object Array]";
 			},

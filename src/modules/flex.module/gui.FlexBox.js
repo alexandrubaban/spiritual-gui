@@ -59,7 +59,19 @@ gui.FlexBox.prototype = {
 		this._element = elm;
 		this._flexcol = this._hasclass ( "flexcol" );
 		this._flexlax = this._hasclass ( "flexlax" );
-		this._children = Array.map ( elm.children, function ( child ) {
+		this._children = this._collectchildren ( elm );
+	},
+
+	/**
+	 * Collecting children that are not hidden.
+	 * @todo Discompute absolute and floated (vertical) children
+	 * @param {Element} elm
+	 * @return {Array<gui.FlexChild>}
+	 */
+	_collectchildren : function ( elm ) {
+		return Array.filter ( elm.children, function ( child ) {
+			return gui.CSSPlugin.compute ( child, "display" ) !== "none";
+		}).map ( function ( child ) {
 			return new gui.FlexChild ( child );
 		});
 	},

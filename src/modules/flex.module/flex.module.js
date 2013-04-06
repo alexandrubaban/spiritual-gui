@@ -30,19 +30,22 @@ gui.module ( "flex", {
 			gui.FLEXMODE_NATIVE, 
 			gui.FLEXMODE_EMULATED 
 		];
+		var flexmode = mode [ 0 ];
+		var bestmode = mode [ gui.Client.hasFlexBox ? 1 : 2 ];
 		( function scoped () {
-			var flexmode = mode [ 0 ];
-			Object.defineProperties ( context.gui, {
+			context.Object.defineProperties ( context.gui, {
 				"flexmode" : {
 					configurable : true,
 					enumerable : false,
 					get : function () {
-						var bestmode = mode [ gui.Client.hasFlexBox ? 1 : 2 ];
 						return flexmode === mode [ 0 ] ? bestmode : flexmode;
 					},
 					set : function ( mode ) {
-						flexmode = mode;
-						gui.FlexCSS.load ( context, mode );
+						console.log ( "TODO:something not right" );
+						if (( flexmode = mode ) !== flexmode ) {
+							flexmode = mode === mode [ 0 ] ? bestmode : flexmode;
+							gui.FlexCSS.load ( context, flexmode );
+						}
 					}
 				},
 				"reflex" : {
