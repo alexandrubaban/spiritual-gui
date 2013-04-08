@@ -87,13 +87,19 @@ gui.FlexBox.prototype = {
 	},
 	
 	/**
-	 * Flex the container.
+	 * Flex the container. Tick.next solves an issue with _relaxflex that 
+	 * would manifest when going from native to emulated layout (but not 
+	 * when starting out in emulated), this setup would better be avoided. 
+	 * Note to self: Bug is apparent in demo "colspan-style variable flex"
 	 */
 	_flexself : function () {
 		var elm = this._element;
 		if ( this._flexcol ) {
 			if ( this._flexlax ) {
-				this._relaxflex ( elm );
+				this._relaxflex ( elm ); // first time to minimize flashes in FF
+				gui.Tick.next(function(){ // second time to setup expected layout
+					this._relaxflex ( elm );
+				},this);
 			}
 		}
 	},
