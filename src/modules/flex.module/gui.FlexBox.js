@@ -17,11 +17,21 @@ gui.FlexBox.prototype = {
 	},
 
 	/**
-	 * Flex everything.
+	 * Flex everything using inline styles.
 	 */
 	flex : function () {
 		this._flexself ();
 		this._flexchildren ();
+	},
+
+	/**
+	 * Remove inline styles (also unrelated styles).
+	 */
+	unflex : function () {
+		this._element.removeAttribute ( "style" );
+		this._children.forEach ( function ( child ) {
+			child.unflex ();
+		});
 	},
 
 

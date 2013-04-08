@@ -10,24 +10,43 @@ gui.FlexPlugin = gui.Plugin.extend ( "gui.FlexPlugin", {
 	 * it might be required to call this again if flexboxes get added or removed.
 	 */
 	reflex : function () {
-		var dom = this.spirit.dom;
-		if ( dom.q ( ".flexrow" ) || dom.q ( ".flexcol" )) {
-			var boxes = this._collectboxes ( this.spirit.element );
-			boxes.forEach ( function ( box ) {
-				box.flex ();
-			});
-		}
+		this._doflex ( true );
+	},
+
+	/**
+	 * Hejsa.
+	 */
+	unflex : function () {
+		this._doflex ( false );
 	},
 
 
 	// Private ..................................................................
 
 	/**
+	 * Flex/unflex descendants.
+	 * @param {boolean} isflex
+	 */
+	_doflex : function ( isflex ) {
+		var dom = this.spirit.dom;
+		if ( dom.q ( ".flexrow" ) || dom.q ( ".flexcol" )) {
+			var boxes = this._getflexboxes ( this.spirit.element );
+			boxes.forEach ( function ( box ) {
+				if ( isflex ) {
+					box.flex ();
+				} else {
+					box.unflex ();
+				}
+			});
+		}
+	},
+
+	/**
 	 * Collect descendant-and-self flexboxes.
 	 * @param @optional {Element} elm
 	 * @returns {Array<gui.FlexBox>}
 	 */
-	_collectboxes : function ( elm ) {
+	_getflexboxes : function ( elm ) {
 		var boxes = [], hasclass = gui.CSSPlugin.contains;
 		new gui.Crawler ( "flexcrawler" ).descend ( elm, {
 			handleElement : function ( elm ) {
