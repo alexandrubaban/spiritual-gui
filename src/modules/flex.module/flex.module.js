@@ -30,21 +30,43 @@ gui.module ( "flex", {
 			gui.FLEXMODE_NATIVE, 
 			gui.FLEXMODE_EMULATED 
 		];
+		var bestmode = mode [ gui.Client.hasFlexBox ? 1 : 2 ];
 		( function scoped () {
 			var flexmode = mode [ 0 ];
-			Object.defineProperties ( context.gui, {
+			context.Object.defineProperties ( context.gui, {
+
+				/*
+				 * Set flexmode
+				 */
 				"flexmode" : {
 					configurable : true,
 					enumerable : false,
 					get : function () {
-						var bestmode = mode [ gui.Client.hasFlexBox ? 1 : 2 ];
 						return flexmode === mode [ 0 ] ? bestmode : flexmode;
 					},
-					set : function ( mode ) {
-						flexmode = mode;
-						gui.FlexCSS.load ( context, mode );
+					set : function ( nextmode ) {
+						nextmode = nextmode === mode [ 0 ] ? bestmode : nextmode;
+						if ( nextmode !== flexmode ) {
+							gui.FlexCSS.load ( context, nextmode );
+							if (( flexmode = nextmode ) === mode [ 2 ]) {
+								if ( this.document.documentElement.spirit ) { // @todo life cycle markers for gui...
+									switch ( mode ) {
+										case mode [ 1 ] :
+											this.reflex ();
+											break;
+										case mode [ 2 ] :
+											this.unflex ();
+											break;
+									}
+								}
+							}
+						}
 					}
 				},
+
+				/*
+				 * Reflex all.
+				 */
 				"reflex" : {
 					configurable : true,
 					enumerable : false,
@@ -55,6 +77,20 @@ gui.module ( "flex", {
 						if ( this.flexmode === this.FLEXMODE_EMULATED ) {
 							( body.spirit || root.spirit ).flex.reflex ();
 						}
+					}
+				},
+
+				/*
+				 * Unflex all. 
+				 */
+				"unflex" : {
+					configurable : true,
+					enumerable : false,
+					value : function () {
+						var node = this.document;
+						var body = node.body;
+						var root = node.documentElement;
+						( body.spirit || root.spirit ).flex.unflex ();
 					}
 				}
 			});

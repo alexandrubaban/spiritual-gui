@@ -449,6 +449,9 @@ gui.SpiritualAid = {
 				}
 				return m;
 			},
+			filter : function map ( array, fun, thisp ) {
+				return Array.prototype.filter.call ( array, fun, thisp );
+			},
 			isArray : function isArray ( o ) {
 				return win.Object.prototype.toString.call ( o ) === "[object Array]";
 			},
@@ -12173,7 +12176,19 @@ gui.FlexBox.prototype = {
 		this._element = elm;
 		this._flexcol = this._hasclass ( "flexcol" );
 		this._flexlax = this._hasclass ( "flexlax" );
-		this._children = Array.map ( elm.children, function ( child ) {
+		this._children = this._collectchildren ( elm );
+	},
+
+	/**
+	 * Collecting children that are not hidden.
+	 * @todo Discompute absolute and floated (vertical) children
+	 * @param {Element} elm
+	 * @return {Array<gui.FlexChild>}
+	 */
+	_collectchildren : function ( elm ) {
+		return Array.filter ( elm.children, function ( child ) {
+			return gui.CSSPlugin.compute ( child, "display" ) !== "none";
+		}).map ( function ( child ) {
 			return new gui.FlexChild ( child );
 		});
 	},
@@ -12373,15 +12388,15 @@ gui.FlexCSS = {
 	injected : true,
 
 	/**
-	 * Generating 23 unique classnames for native flex only. 
+	 * Generating 10 unique classnames for native flex only. 
 	 * Emulated flex JS-reads all values from class attribute.
 	 * @type {number}
 	 */
-	maxflex : 23,
+	maxflex : 10,
 
 	/**
 	 * Inject stylesheet in context. For debugging purposes 
-	 * we support a setup to dynically switch the flexmode. 
+	 * we support a setup to dynamically switch the flexmode. 
 	 * @param {Window} context
 	 * @param {String} mode
 	 */
@@ -12393,7 +12408,7 @@ gui.FlexCSS = {
 		if ( sheets && sheets [ mode ]) {
 			sheets [ mode ].enable ();
 		} else {
-			var doc = context.document, ruleset = this [ mode ];
+			var doc = context.document, ruleset = this [ mode ] ( doc );
 			var css = sheets [ mode ] = gui.StyleSheetSpirit.summon ( doc, null, ruleset );
 			doc.querySelector ( "head" ).appendChild ( css.element );
 		}
@@ -12430,73 +12445,78 @@ gui.FlexCSS = {
 };
 	
 /**
- * Emulated ruleset.
- * @TODO font-size-zero trick to eliminate inline spacing...
+ * Emulated ruleset. Notice font-size-zero trick to eliminate spacing on inline-blocks.
+ * @param {Document} doc Used to measure default font-size
  */
-gui.FlexCSS [ "emulated" ] = {
-	".flexrow, .flexcol" : {
-		"display" : "block",
-		"width" : "100%",
-		"height" : "100%"
-	},
-	".flexrow > *" : {
-		"display" : "inline-block",
-		"vertical-align" : "top",
-		//"max-height" : "100%",
-		"height" : "100%"
-	},
-	"flexcol > *" : {
-		"display" : "block",
-		"width" : "100%"
-	},
-	".flexlax > .flexrow" : {
-		"display" : "table"
-	},
-	".flexlax > .flexrow > *" : {
-		"display" : "table-cell"
-	}
+gui.FlexCSS [ "emulated" ] =  function ( doc ) {
+	var size = gui.CSSPlugin.compute ( doc.body, "font-size" );
+	return {
+		".flexrow, .flexcol" : {
+			"display" : "block",
+			"width" : "100%",
+			"height" : "100%",
+			"font-size" : 0
+		},
+		".flexrow > *, .flexcol > *" : {
+			"font-size" : size
+		},
+		".flexrow > *" : {
+			"display" : "inline-block",
+			"vertical-align" : "top",
+			"height" : "100%"
+		},
+		"flexcol > *" : {
+			"display" : "block",
+			"width" : "100%"
+		},
+		".flexlax > .flexrow" : {
+			"display" : "table"
+		},
+		".flexlax > .flexrow > *" : {
+			"display" : "table-cell"
+		}
+	};
 };
 
 /**
- * Native ruleset.
+ * Native ruleset. Engine can't parse [*=x] selector (says DOM exception), so 
+ * let's just create one billion unique classnames. Cached after first compute.
  */
-gui.FlexCSS [ "native" ] = ( function () {
-	var rules = {
-		".flexrow, .flexcol" : {
-			"display": "-beta-flex",
-			"-beta-flex-wrap" : "nowrap",
-			"-beta-flex-direction" : "row",
-			"min-height" : "100%",
-			"min-width": "100%"
-		},
-		".flexcol" : {
-			"-beta-flex-direction" : "column"
-		},
-		".flexrow:not(.flexlax) > *, .flexcol:not(.flexlax) > *" : {
-			"-beta-flex-basis" : 1
+gui.FlexCSS [ "native" ] = function () {
+	return this._native || ( function () {
+		var rules = this._native = {
+			".flexrow, .flexcol" : {
+				"display": "-beta-flex",
+				"-beta-flex-wrap" : "nowrap",
+				"-beta-flex-direction" : "row",
+				"min-height" : "100%",
+				"min-width": "100%"
+			},
+			".flexcol" : {
+				"-beta-flex-direction" : "column"
+			},
+			".flexrow:not(.flexlax) > *, .flexcol:not(.flexlax) > *" : {
+					"-beta-flex-basis" : 1
+			}
+		};
+		function declare ( n ) {
+			rules [ ".flex" + n ] = {
+				"-beta-flex-grow" : n || 1
+			};
+			rules [ ".flexrow:not(.flexlax) > .flex" + n ] = {
+				"width" : "0%"
+			};
+			rules [ ".flexcol:not(.flexlax) > .flex" + n ] = {
+				"height" : "0"
+			};
 		}
-	};
-	/*
-	 * Can't parse 'contains' selector (says DOM exception), 
-	 * so let's just create one billion unique classnames...
-	 */
-	function declare ( n ) {
-		rules [ ".flex" + n ] = {
-			"-beta-flex-grow" : n || 1
-		};
-		rules [ ".flexrow:not(.flexlax) > .flex" + n ] = {
-			"width" : "0%"
-		};
-		rules [ ".flexcol:not(.flexlax) > .flex" + n ] = {
-			"height" : "0"
-		};
-	}
-	var n = -1, max = gui.FlexCSS.maxflex;
-	while ( ++n <= max ) {
-		declare ( n || "" );
-	}
-	return rules;
-}());
+		var n = -1, max = this.maxflex;
+		while ( ++n <= max ) {
+			declare ( n || "" );
+		}
+		return rules;
+	}).call ( this );
+};
 
 
 gui.FLEXMODE_NATIVE = "native";
@@ -12531,19 +12551,22 @@ gui.module ( "flex", {
 			gui.FLEXMODE_NATIVE, 
 			gui.FLEXMODE_EMULATED 
 		];
+		var flexmode = mode [ 0 ];
+		var bestmode = mode [ gui.Client.hasFlexBox ? 1 : 2 ];
 		( function scoped () {
-			var flexmode = mode [ 0 ];
-			Object.defineProperties ( context.gui, {
+			context.Object.defineProperties ( context.gui, {
 				"flexmode" : {
 					configurable : true,
 					enumerable : false,
 					get : function () {
-						var bestmode = mode [ gui.Client.hasFlexBox ? 1 : 2 ];
 						return flexmode === mode [ 0 ] ? bestmode : flexmode;
 					},
 					set : function ( mode ) {
-						flexmode = mode;
-						gui.FlexCSS.load ( context, mode );
+						console.log ( "TODO:something not right" );
+						if (( flexmode = mode ) !== flexmode ) {
+							flexmode = mode === mode [ 0 ] ? bestmode : flexmode;
+							gui.FlexCSS.load ( context, flexmode );
+						}
 					}
 				},
 				"reflex" : {

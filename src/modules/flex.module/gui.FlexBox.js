@@ -17,11 +17,21 @@ gui.FlexBox.prototype = {
 	},
 
 	/**
-	 * Flex everything.
+	 * Flex everything using inline styles.
 	 */
 	flex : function () {
 		this._flexself ();
 		this._flexchildren ();
+	},
+
+	/**
+	 * Remove inline styles (also unrelated styles).
+	 */
+	unflex : function () {
+		this._element.removeAttribute ( "style" );
+		this._children.forEach ( function ( child ) {
+			child.unflex ();
+		});
 	},
 
 
@@ -59,19 +69,37 @@ gui.FlexBox.prototype = {
 		this._element = elm;
 		this._flexcol = this._hasclass ( "flexcol" );
 		this._flexlax = this._hasclass ( "flexlax" );
-		this._children = Array.map ( elm.children, function ( child ) {
+		this._children = this._collectchildren ( elm );
+	},
+
+	/**
+	 * Collecting children that are not hidden.
+	 * @todo Discompute absolute and floated (vertical) children
+	 * @param {Element} elm
+	 * @return {Array<gui.FlexChild>}
+	 */
+	_collectchildren : function ( elm ) {
+		return Array.filter ( elm.children, function ( child ) {
+			return gui.CSSPlugin.compute ( child, "display" ) !== "none";
+		}).map ( function ( child ) {
 			return new gui.FlexChild ( child );
 		});
 	},
 	
 	/**
-	 * Flex the container.
+	 * Flex the container. Tick.next solves an issue with _relaxflex that 
+	 * would manifest when going from native to emulated layout (but not 
+	 * when starting out in emulated), this setup would better be avoided. 
+	 * Note to self: Bug is apparent in demo "colspan-style variable flex"
 	 */
 	_flexself : function () {
 		var elm = this._element;
 		if ( this._flexcol ) {
 			if ( this._flexlax ) {
-				this._relaxflex ( elm );
+				this._relaxflex ( elm ); // first time to minimize flashes in FF
+				gui.Tick.next(function(){ // second time to setup expected layout
+					this._relaxflex ( elm );
+				},this);
 			}
 		}
 	},
