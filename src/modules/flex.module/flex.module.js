@@ -46,9 +46,9 @@ gui.module ( "flex", {
 					set : function ( nextmode ) {
 						nextmode = nextmode === mode [ 0 ] ? bestmode : nextmode;
 						if ( nextmode !== flexmode ) {
-							gui.FlexCSS.load ( context, nextmode );
+							gui.FlexCSS.load ( context, ( flexmode = nextmode ));
 							if ( this.document.documentElement.spirit ) { // @todo life cycle markers for gui...
-								switch (( flexmode = nextmode )) {
+								switch ( flexmode ) {
 									case mode [ 2 ] :
 										this.reflex ();
 										break;
