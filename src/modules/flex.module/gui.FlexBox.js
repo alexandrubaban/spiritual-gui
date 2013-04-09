@@ -27,10 +27,10 @@ gui.FlexBox.prototype = {
 	/**
 	 * Remove inline styles (also unrelated styles).
 	 */
-	unflex : function () {
+	unstyle : function () {
 		this._element.removeAttribute ( "style" );
 		this._children.forEach ( function ( child ) {
-			child.unflex ();
+			child.unstyle ();
 		});
 	},
 

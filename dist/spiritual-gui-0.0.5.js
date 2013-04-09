@@ -12078,39 +12078,93 @@ gui.Guide = {
 gui.FlexPlugin = gui.Plugin.extend ( "gui.FlexPlugin", {
 
 	/**
-	 * Flex this and descendant flexboxes in document order. As the name suggests, 
-	 * it might be required to call this again if flexboxes get added or removed.
+	 * Flex this and descendant flexboxes in document order.
 	 */
 	reflex : function () {
-		var dom = this.spirit.dom;
-		if ( dom.q ( ".flexrow" ) || dom.q ( ".flexcol" )) {
-			var boxes = this._collectboxes ( this.spirit.element );
+		gui.FlexPlugin.reflex ( this.spirit.element );
+	},
+
+	/**
+	 * Hejsa med dig.
+	 */
+	unflex : function () {
+		gui.FlexPlugin.unflex ( this.spirit.element );
+	},
+
+	/**
+	 * Remove inline (emulated) styles.
+	 */
+	unstyle : function () {
+		gui.FlexPlugin.unstyle ( this.spirit.element );
+	}
+
+
+}, {}, { // Static ................................................
+
+	/**
+	 * Flex this and descendant flexboxes in document order.
+	 * @param {Element} elm
+	 */
+	reflex : function ( elm ) {
+		this._crawl ( elm, "flex" );
+	},
+
+	/**
+	 * Hejsa med dig.
+	 * @param {Element} elm
+	 */
+	unflex : function ( elm ) {
+		this._crawl ( elm, "unflex" );
+	},
+
+	/**
+	 * Remove inline (emulated) styles.
+	 * @param {Element} elm
+	 */
+	unstyle : function ( elm ) {
+		this._crawl ( elm, "unstyle" );
+	},
+
+
+	// Private static ........................................................
+
+	/**
+	 * Flex / unflex / unstyle element and descendants.
+	 * @param {Element} elm
+	 * @param {String} action
+	 */
+	_crawl : function ( elm, action ) {
+		if ( this._hasflex ( elm )) {
+			var boxes = this._getflexboxes ( elm );
 			boxes.forEach ( function ( box ) {
-				box.flex ();
+				box [ action ]();
 			});
 		}
 	},
 
-
-	// Private ..................................................................
+	/**
+	 * @TODO check classses on elm itself!
+	 */
+	_hasflex : function ( elm ) {
+		return elm.querySelector ( ".flexrow" ) || elm.querySelector ( ".flexcol" );
+	},
 
 	/**
 	 * Collect descendant-and-self flexboxes.
 	 * @param @optional {Element} elm
 	 * @returns {Array<gui.FlexBox>}
 	 */
-	_collectboxes : function ( elm ) {
-		var boxes = [], hasclass = gui.CSSPlugin.contains;
+	_getflexboxes : function ( elm ) {
+		var boxes = [], contains = gui.CSSPlugin.contains;
 		new gui.Crawler ( "flexcrawler" ).descend ( elm, {
 			handleElement : function ( elm ) {
-				if ( hasclass ( elm, "flexrow" ) || hasclass ( elm, "flexcol" )) {
+				if ( contains ( elm, "flexrow" ) || contains ( elm, "flexcol" )) {
 					boxes.push ( new gui.FlexBox ( elm ));
 				}
 			}
 		});
 		return boxes;
 	}
-
 
 });
 
@@ -12134,11 +12188,21 @@ gui.FlexBox.prototype = {
 	},
 
 	/**
-	 * Flex everything.
+	 * Flex everything using inline styles.
 	 */
 	flex : function () {
 		this._flexself ();
 		this._flexchildren ();
+	},
+
+	/**
+	 * Remove inline styles (also unrelated styles).
+	 */
+	unstyle : function () {
+		this._element.removeAttribute ( "style" );
+		this._children.forEach ( function ( child ) {
+			child.unstyle ();
+		});
 	},
 
 
@@ -12194,13 +12258,19 @@ gui.FlexBox.prototype = {
 	},
 	
 	/**
-	 * Flex the container.
+	 * Flex the container. Tick.next solves an issue with _relaxflex that 
+	 * would manifest when going from native to emulated layout (but not 
+	 * when starting out in emulated), this setup would better be avoided. 
+	 * Note to self: Bug is apparent in demo "colspan-style variable flex"
 	 */
 	_flexself : function () {
 		var elm = this._element;
 		if ( this._flexcol ) {
 			if ( this._flexlax ) {
-				this._relaxflex ( elm );
+				this._relaxflex ( elm ); // first time to minimize flashes in FF
+				gui.Tick.next(function(){ // second time to setup expected layout
+					this._relaxflex ( elm );
+				},this);
 			}
 		}
 	},
@@ -12347,6 +12417,17 @@ gui.FlexChild.prototype = {
 		this._element.style [ prop ] = pct + "%";
 	},
 
+	unflex : function () {
+
+	},
+
+	/**
+	 * Remove inline styles (also unrelated styles) to reset emulated flex.
+	 */
+	unstyle : function () {
+		this._element.removeAttribute ( "style" );
+	},
+
 
 	// Private .........................................................
 		
@@ -12487,16 +12568,21 @@ gui.FlexCSS [ "native" ] = function () {
 		var rules = this._native = {
 			".flexrow, .flexcol" : {
 				"display": "-beta-flex",
-				"-beta-flex-wrap" : "nowrap",
-				"-beta-flex-direction" : "row",
-				"min-height" : "100%",
-				"min-width": "100%"
+				"-beta-flex-wrap" : "nowrap"
 			},
 			".flexcol" : {
-				"-beta-flex-direction" : "column"
+				"-beta-flex-direction" : "column",
+				"min-height" : "100%"
+			},
+			".flexrow" : {
+				"-beta-flex-direction" : "row",
+				"min-width": "100%"
 			},
 			".flexrow:not(.flexlax) > *, .flexcol:not(.flexlax) > *" : {
 					"-beta-flex-basis" : 1
+			},
+			".flexrow > .flexrow" : {
+				"min-width" : "auto"
 			}
 		};
 		function declare ( n ) {
@@ -12504,11 +12590,12 @@ gui.FlexCSS [ "native" ] = function () {
 				"-beta-flex-grow" : n || 1
 			};
 			rules [ ".flexrow:not(.flexlax) > .flex" + n ] = {
-				"width" : "0%"
+				"width" : "0"
 			};
 			rules [ ".flexcol:not(.flexlax) > .flex" + n ] = {
 				"height" : "0"
 			};
+			
 		}
 		var n = -1, max = this.maxflex;
 		while ( ++n <= max ) {
@@ -12527,7 +12614,7 @@ gui.FLEXMODE_OPTIMIZED = "optimized",
  * Provides a subset of flexible boxes that works in IE9 
  * as long as flex is implemented using a predefined set 
  * of classnames: flexrow, flexcol and flexN where N is 
- * a number to indicate the flexiness of things.
+ * a number to indicate the flexiness of child elements.
  * @see {gui.FlexCSS}
  */
 gui.module ( "flex", {
@@ -12551,24 +12638,40 @@ gui.module ( "flex", {
 			gui.FLEXMODE_NATIVE, 
 			gui.FLEXMODE_EMULATED 
 		];
-		var flexmode = mode [ 0 ];
 		var bestmode = mode [ gui.Client.hasFlexBox ? 1 : 2 ];
 		( function scoped () {
+			var flexmode = mode [ 0 ];
 			context.Object.defineProperties ( context.gui, {
+				/*
+				 * Set flexmode
+				 */
 				"flexmode" : {
 					configurable : true,
 					enumerable : false,
 					get : function () {
 						return flexmode === mode [ 0 ] ? bestmode : flexmode;
 					},
-					set : function ( mode ) {
-						console.log ( "TODO:something not right" );
-						if (( flexmode = mode ) !== flexmode ) {
-							flexmode = mode === mode [ 0 ] ? bestmode : flexmode;
-							gui.FlexCSS.load ( context, flexmode );
+					set : function ( nextmode ) {
+						nextmode = nextmode === mode [ 0 ] ? bestmode : nextmode;
+						if ( nextmode !== flexmode ) {
+							gui.FlexCSS.load ( context, nextmode );
+							if ( this.document.documentElement.spirit ) { // @todo life cycle markers for gui...
+								switch (( flexmode = nextmode )) {
+									case mode [ 2 ] :
+										this.reflex ();
+										break;
+									case mode [ 1 ] :
+										this.unstyle ();
+										break;
+								}
+							}
 						}
 					}
 				},
+				/*
+				 * Reflex all.
+				 * @todo unflex
+				 */
 				"reflex" : {
 					configurable : true,
 					enumerable : false,
@@ -12580,9 +12683,35 @@ gui.module ( "flex", {
 							( body.spirit || root.spirit ).flex.reflex ();
 						}
 					}
+				},
+				/*
+				 * Remove inline (emulated) styles.
+				 */
+				"unstyle" : {
+					configurable : true,
+					enumerable : false,
+					value : function () {
+						var node = this.document;
+						var body = node.body;
+						var root = node.documentElement;
+						( body.spirit || root.spirit ).flex.unstyle ();
+					}
 				}
 			});
 		}());
+
+		/*
+		gui.Guide._spiritualize = gui.Combo.after ( function ( node ) {
+			var win = node.ownerDocument.defaultView;
+			var hit = node.nodeType === Node.ELEMENT_NODE;
+			var act = win.gui.flexmode === gui.FLEXMODE_EMULATED;
+			if ( hit &&  act && gui.DOMPlugin.embedded ( node )) {
+
+				// crawl to ancestor flexbox :/
+				gui.FlexPlugin.reflex ( node );
+			}
+		})( gui.Guide._spiritualize );
+		*/
 	},
 
 	/**
@@ -12610,7 +12739,7 @@ gui.module ( "flex", {
 	 */
 	onafterspiritualize : function ( context ) {
 		if ( context.gui.flexmode === gui.FLEXMODE_EMULATED ) {
-			context.gui.reflex ();
+			context.gui.reflex (); // handled by above???
 		}
 	},
 

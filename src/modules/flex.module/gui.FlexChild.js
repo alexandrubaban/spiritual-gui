@@ -54,10 +54,14 @@ gui.FlexChild.prototype = {
 		this._element.style [ prop ] = pct + "%";
 	},
 
-	/**
-	 * Remove inline styles (also unrelated styles), resetting flex.
-	 */
 	unflex : function () {
+
+	},
+
+	/**
+	 * Remove inline styles (also unrelated styles) to reset emulated flex.
+	 */
+	unstyle : function () {
 		this._element.removeAttribute ( "style" );
 	},
 
