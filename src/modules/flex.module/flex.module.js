@@ -112,7 +112,7 @@ gui.module ( "flex", {
 	 * @param {Window} context
 	 */
 	onbeforespiritualize : function ( context ) {
-		if ( gui.FlexCSS.injected ) {
+		if ( !gui.FlexCSS.loaded ) {
 			gui.FlexCSS.load ( context, context.gui.flexmode );
 		}
 		if ( context.gui.hasModule ( "edb" )) {
