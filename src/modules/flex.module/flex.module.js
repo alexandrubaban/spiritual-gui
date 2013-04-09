@@ -6,7 +6,7 @@ gui.FLEXMODE_OPTIMIZED = "optimized",
  * Provides a subset of flexible boxes that works in IE9 
  * as long as flex is implemented using a predefined set 
  * of classnames: flexrow, flexcol and flexN where N is 
- * a number to indicate the flexiness of things.
+ * a number to indicate the flexiness of child elements.
  * @see {gui.FlexCSS}
  */
 gui.module ( "flex", {
@@ -34,7 +34,6 @@ gui.module ( "flex", {
 		( function scoped () {
 			var flexmode = mode [ 0 ];
 			context.Object.defineProperties ( context.gui, {
-
 				/*
 				 * Set flexmode
 				 */
@@ -48,24 +47,22 @@ gui.module ( "flex", {
 						nextmode = nextmode === mode [ 0 ] ? bestmode : nextmode;
 						if ( nextmode !== flexmode ) {
 							gui.FlexCSS.load ( context, nextmode );
-							if (( flexmode = nextmode ) === mode [ 2 ]) {
-								if ( this.document.documentElement.spirit ) { // @todo life cycle markers for gui...
-									switch ( mode ) {
-										case mode [ 1 ] :
-											this.reflex ();
-											break;
-										case mode [ 2 ] :
-											this.unflex ();
-											break;
-									}
+							if ( this.document.documentElement.spirit ) { // @todo life cycle markers for gui...
+								switch (( flexmode = nextmode )) {
+									case mode [ 2 ] :
+										this.reflex ();
+										break;
+									case mode [ 1 ] :
+										this.unstyle ();
+										break;
 								}
 							}
 						}
 					}
 				},
-
 				/*
 				 * Reflex all.
+				 * @todo unflex
 				 */
 				"reflex" : {
 					configurable : true,
@@ -79,22 +76,34 @@ gui.module ( "flex", {
 						}
 					}
 				},
-
 				/*
-				 * Unflex all. 
+				 * Remove inline (emulated) styles.
 				 */
-				"unflex" : {
+				"unstyle" : {
 					configurable : true,
 					enumerable : false,
 					value : function () {
 						var node = this.document;
 						var body = node.body;
 						var root = node.documentElement;
-						( body.spirit || root.spirit ).flex.unflex ();
+						( body.spirit || root.spirit ).flex.unstyle ();
 					}
 				}
 			});
 		}());
+
+		/*
+		gui.Guide._spiritualize = gui.Combo.after ( function ( node ) {
+			var win = node.ownerDocument.defaultView;
+			var hit = node.nodeType === Node.ELEMENT_NODE;
+			var act = win.gui.flexmode === gui.FLEXMODE_EMULATED;
+			if ( hit &&  act && gui.DOMPlugin.embedded ( node )) {
+
+				// crawl to ancestor flexbox :/
+				gui.FlexPlugin.reflex ( node );
+			}
+		})( gui.Guide._spiritualize );
+		*/
 	},
 
 	/**
@@ -122,7 +131,7 @@ gui.module ( "flex", {
 	 */
 	onafterspiritualize : function ( context ) {
 		if ( context.gui.flexmode === gui.FLEXMODE_EMULATED ) {
-			context.gui.reflex ();
+			context.gui.reflex (); // handled by above???
 		}
 	},
 

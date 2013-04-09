@@ -111,16 +111,21 @@ gui.FlexCSS [ "native" ] = function () {
 		var rules = this._native = {
 			".flexrow, .flexcol" : {
 				"display": "-beta-flex",
-				"-beta-flex-wrap" : "nowrap",
-				"-beta-flex-direction" : "row",
-				"min-height" : "100%",
-				"min-width": "100%"
+				"-beta-flex-wrap" : "nowrap"
 			},
 			".flexcol" : {
-				"-beta-flex-direction" : "column"
+				"-beta-flex-direction" : "column",
+				"min-height" : "100%"
+			},
+			".flexrow" : {
+				"-beta-flex-direction" : "row",
+				"min-width": "100%"
 			},
 			".flexrow:not(.flexlax) > *, .flexcol:not(.flexlax) > *" : {
 					"-beta-flex-basis" : 1
+			},
+			".flexrow > .flexrow" : {
+				"min-width" : "auto"
 			}
 		};
 		function declare ( n ) {
@@ -128,11 +133,12 @@ gui.FlexCSS [ "native" ] = function () {
 				"-beta-flex-grow" : n || 1
 			};
 			rules [ ".flexrow:not(.flexlax) > .flex" + n ] = {
-				"width" : "0%"
+				"width" : "0"
 			};
 			rules [ ".flexcol:not(.flexlax) > .flex" + n ] = {
 				"height" : "0"
 			};
+			
 		}
 		var n = -1, max = this.maxflex;
 		while ( ++n <= max ) {
