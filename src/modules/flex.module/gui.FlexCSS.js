@@ -19,24 +19,33 @@ gui.FlexCSS = {
 	maxflex : 10,
 
 	/**
+	 * Flipped on CSS injected.
+	 * @type {boolean}
+	 */
+	loaded : false,
+
+	/**
 	 * Inject stylesheet in context. For debugging purposes 
 	 * we support a setup to dynamically switch the flexmode. 
 	 * @param {Window} context
 	 * @param {String} mode
 	 */
 	load : function ( context, mode ) {
-		var sheets = this._getsheets ( context.gui.signature );
-		if ( sheets && sheets.mode ) {
-			sheets [ sheets.mode ].disable ();
+		if ( this.injected ) {
+			var sheets = this._getsheets ( context.gui.signature );
+			if ( sheets && sheets.mode ) {
+				sheets [ sheets.mode ].disable ();
+			}
+			if ( sheets && sheets [ mode ]) {
+				sheets [ mode ].enable ();
+			} else {
+				var doc = context.document, ruleset = this [ mode ] ( doc );
+				var css = sheets [ mode ] = gui.StyleSheetSpirit.summon ( doc, null, ruleset );
+				doc.querySelector ( "head" ).appendChild ( css.element );
+			}
+			sheets.mode = mode;
+			this.loaded = true;
 		}
-		if ( sheets && sheets [ mode ]) {
-			sheets [ mode ].enable ();
-		} else {
-			var doc = context.document, ruleset = this [ mode ] ( doc );
-			var css = sheets [ mode ] = gui.StyleSheetSpirit.summon ( doc, null, ruleset );
-			doc.querySelector ( "head" ).appendChild ( css.element );
-		}
-		sheets.mode = mode;
 	},
 
 
@@ -81,7 +90,7 @@ gui.FlexCSS [ "emulated" ] =  function ( doc ) {
 			"height" : "100%",
 			"font-size" : 0
 		},
-		".flexrow > *, .flexcol > *" : {
+		".flexrow > *:not(.flexrow):not(.flexcol), .flexcol > *:not(.flexrow):not(.flexcol)" : {
 			"font-size" : size
 		},
 		".flexrow > *" : {
