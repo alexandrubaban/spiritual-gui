@@ -25,7 +25,7 @@ gui.FlexMode = {
 						this.reflex ();
 						break;
 					case gui.FLEXMODE_NATIVE :
-						this.unstyle ();
+						this.unflex ();
 						break;
 				}
 			}
@@ -34,7 +34,7 @@ gui.FlexMode = {
 
 	/**
 	 * Update flex in emulated mode.
-	 * @todo unflex
+	 * @todo unflexxx
 	 */
 	reflex : {
 		configurable : true,
@@ -50,14 +50,14 @@ gui.FlexMode = {
 	 * Remove *all* inline styles from flexbox and member elements.
 	 * @todo Rename this to something flex-related.
 	 */
-	unstyle : {
+	unflex : {
 		configurable : true,
 		enumerable : false,
 		value : function () {
 			var node = this.document;
 			var body = node.body;
 			var root = node.documentElement;
-			( body.spirit || root.spirit ).flex.unstyle ();
+			( body.spirit || root.spirit ).flex.unflex ();
 		}
 	}
 };

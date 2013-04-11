@@ -57,14 +57,14 @@ gui.FlexChild.prototype = {
 	/**
 	 * @todo
 	 */
-	unflex : function () {
+	unflexxx : function () {
 
 	},
 
 	/**
 	 * Remove *all* inline styles from flexchild element.
 	 */
-	unstyle : function () {
+	unflex : function () {
 		this._element.removeAttribute ( "style" );
 	},
 
