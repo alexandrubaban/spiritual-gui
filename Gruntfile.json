@@ -82,5 +82,6 @@
 	"src/modules/flex.module/gui.FlexBox.js",
 	"src/modules/flex.module/gui.FlexChild.js",
 	"src/modules/flex.module/gui.FlexCSS.js",
+	"src/modules/flex.module/gui.FlexMode.js",
 	"src/modules/flex.module/flex.module.js"
 ]

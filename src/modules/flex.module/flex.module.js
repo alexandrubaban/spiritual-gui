@@ -7,6 +7,7 @@ gui.FLEXMODE_OPTIMIZED = "optimized",
  * as long as flex is implemented using a predefined set 
  * of classnames: flexrow, flexcol and flexN where N is 
  * a number to indicate the flexiness of child elements.
+ * @todo Reflex on window resize...
  * @see {gui.FlexCSS}
  */
 gui.module ( "flex", {
@@ -25,96 +26,22 @@ gui.module ( "flex", {
 	 * @param {Window} context
 	 */
 	oncontextinitialize : function ( context ) {
-		var mode = [ 
-			gui.FLEXMODE_OPTIMIZED, 
-			gui.FLEXMODE_NATIVE, 
-			gui.FLEXMODE_EMULATED 
-		];
-		var bestmode = mode [ gui.Client.hasFlexBox ? 1 : 2 ];
-		( function scoped () {
-			var flexmode = mode [ 0 ];
-			context.Object.defineProperties ( context.gui, {
-				/*
-				 * Set flexmode
-				 */
-				"flexmode" : {
-					configurable : true,
-					enumerable : false,
-					get : function () {
-						return flexmode === mode [ 0 ] ? bestmode : flexmode;
-					},
-					set : function ( nextmode ) {
-						nextmode = nextmode === mode [ 0 ] ? bestmode : nextmode;
-						if ( nextmode !== flexmode ) {
-							gui.FlexCSS.load ( context, ( flexmode = nextmode ));
-							if ( this.document.documentElement.spirit ) { // @todo life cycle markers for gui...
-								switch ( flexmode ) {
-									case mode [ 2 ] :
-										this.reflex ();
-										break;
-									case mode [ 1 ] :
-										this.unstyle ();
-										break;
-								}
-							}
-						}
-					}
-				},
-				/*
-				 * Reflex all.
-				 * @todo unflex
-				 */
-				"reflex" : {
-					configurable : true,
-					enumerable : false,
-					value : function () {
-						var node = this.document;
-						var body = node.body;
-						var root = node.documentElement;
-						if ( this.flexmode === this.FLEXMODE_EMULATED ) {
-							( body.spirit || root.spirit ).flex.reflex ();
-						}
-					}
-				},
-				/*
-				 * Remove inline (emulated) styles.
-				 */
-				"unstyle" : {
-					configurable : true,
-					enumerable : false,
-					value : function () {
-						var node = this.document;
-						var body = node.body;
-						var root = node.documentElement;
-						( body.spirit || root.spirit ).flex.unstyle ();
-					}
-				}
-			});
-		}());
-
-		/*
-		gui.Guide._spiritualize = gui.Combo.after ( function ( node ) {
-			var win = node.ownerDocument.defaultView;
-			var hit = node.nodeType === Node.ELEMENT_NODE;
-			var act = win.gui.flexmode === gui.FLEXMODE_EMULATED;
-			if ( hit &&  act && gui.DOMPlugin.embedded ( node )) {
-
-				// crawl to ancestor flexbox :/
-				gui.FlexPlugin.reflex ( node );
-			}
-		})( gui.Guide._spiritualize );
-		*/
+		context.gui._flexmode = gui.FLEXMODE_OPTIMIZED;
+		context.Object.defineProperties ( context.gui, gui.FlexMode );
 	},
 
 	/**
-	 * 1. Inject the relevant stylesheet
-	 * 2. Setup to flex on EDBML updates
+	 * Inject the relevant stylesheet (native or emulated) before startup spiritualization.
+	 * @todo Make sure stylesheet onload has fired to prevent flash of unflexed content?
 	 * @param {Window} context
 	 */
 	onbeforespiritualize : function ( context ) {
 		if ( !gui.FlexCSS.loaded ) {
 			gui.FlexCSS.load ( context, context.gui.flexmode );
 		}
+		/*
+		 * We could potentially bake this into EDBML updates...
+		 *
 		if ( context.gui.hasModule ( "edb" )) {
 			var script = context.edb.ScriptPlugin.prototype;
 			gui.Function.decorateAfter ( script, "write", function () {
@@ -123,16 +50,7 @@ gui.module ( "flex", {
 				}
 			});
 		}
-	},
-
-	/**
-	 * Flex everything on startup.
-	 * @param {Window} context
-	 */
-	onafterspiritualize : function ( context ) {
-		if ( context.gui.flexmode === gui.FLEXMODE_EMULATED ) {
-			context.gui.reflex (); // handled by above???
-		}
+		*/
 	},
 
 	/**
@@ -142,3 +60,34 @@ gui.module ( "flex", {
 	oncontextunload : function ( context ) {}
 	
 });
+
+/**
+ * Manage emulated flex whenever DOM elements get added and removed.
+ * Mixing into 'gui.Guide._spiritualize' and 'gui.Guide._materialize'
+ * @todo Both of these methods should be made public we presume...
+ * @using {gui.Guide}
+ */
+( function decorate ( guide ) {
+
+	/*
+	 * Flex subtree starting from the parent node of given node.
+	 * @param {Node} node
+	 */
+	function flexparent ( node ) {
+		var doc = node.ownerDocument;
+		var win = doc.defaultView;
+		if ( win.gui.flexmode === gui.FLEXMODE_EMULATED ) {
+			if ( gui.DOMPlugin.embedded ( node )) {
+				node = node === doc.documentElement ? node : node.parentNode;
+				gui.Tick.next ( function () {
+					gui.FlexPlugin.reflex ( node );
+				});
+			}
+		}
+	}
+
+	[ "_spiritualize", "_materialize" ].forEach ( function ( method ) {
+		gui.Function.decorateAfter ( guide, method, flexparent );
+	});
+
+}( gui.Guide ));

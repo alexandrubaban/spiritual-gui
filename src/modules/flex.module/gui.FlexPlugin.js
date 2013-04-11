@@ -71,10 +71,20 @@ gui.FlexPlugin = gui.Plugin.extend ( "gui.FlexPlugin", {
 	},
 
 	/**
-	 * @TODO check classses on elm itself!
+	 * Element is flexbox or contains flexible stuff?
+	 * @param {Element} elm
+	 * @returns {boolean}
 	 */
 	_hasflex : function ( elm ) {
-		return elm.querySelector ( ".flexrow" ) || elm.querySelector ( ".flexcol" );
+		if ( elm.nodeType === Node.ELEMENT_NODE ) {
+			return (
+				gui.CSSPlugin.contains ( elm, "flexrow" ) || 
+				gui.CSSPlugin.contains ( elm, "flexcol" ) ||
+				elm.querySelector ( ".flexrow" ) ||
+				elm.querySelector ( ".flexcol" )
+			);
+		}
+		return false;
 	},
 
 	/**

@@ -30,9 +30,11 @@ gui.Function = {
 	 * @param {function} decorator
 	 * @returns {object}
 	 */
-	decorateBefore : function ( target, name, decorator ) {
-		return this._decorate ( "before", target, name, decorator );
-	},
+	decorateBefore : gui.Arguments.confirmed ( "object|function", "string", "function" ) ( 
+		function ( target, name, decorator ) {
+			return this._decorate ( "before", target, name, decorator );
+		}
+	),
 
 	/**
 	 * Decorate object method after.
@@ -41,9 +43,11 @@ gui.Function = {
 	 * @param {function} decorator
 	 * @returns {object}
 	 */
-	decorateAfter : function ( target, name, decorator ) {
-		return this._decorate ( "after", target, name, decorator );
-	},
+	decorateAfter : gui.Arguments.confirmed ( "object|function", "string", "function" ) ( 
+		function ( target, name, decorator ) {
+			return this._decorate ( "after", target, name, decorator );
+		}
+	),
 
 	/**
 	 * @TODO Decorate object method around.
@@ -70,7 +74,7 @@ gui.Function = {
 	},
 
 
-	// Private ..................................................
+	// Private .................................................................
 	
 	/**
 	 * Decorate object method
@@ -80,18 +84,10 @@ gui.Function = {
 	 * @param {function} decorator
 	 * @returns {object}
 	 */
-	_decorate : gui.Arguments.confirmed ( "string", "object|function", "string", "function" ) ( 
-		function ( position, target, name, decorator ) {
-			var base = target [ name ];
-			var deco = gui.Combo [ position ] ( decorator );
-			if ( !this._decorated ( target, name, decorator )) {
-				target [ name ] = deco ( function () {
-					return base.apply ( this, arguments );
-				});
-			}
-			return target;
-		}
-	),
+	_decorate : function ( position, target, name, decorator ) {
+		target [ name ] = gui.Combo [ position ] ( decorator ) ( target [ name ]);
+		return target;
+	},
 
 	/**
 	 * Method was already decorated with something that looks 

@@ -20,7 +20,7 @@ gui.FlexChild.prototype = {
 	 * Get flex value for element. We use the flexN classname to markup this.
 	 * @returns {number}
 	 */
-	getflex : function ( elm ) {
+	getflex : function () {
 		var flex = 0;
 		this._element.className.split ( " ").forEach ( function ( name ) {
 			if ( gui.FlexChild._FLEXNAME.test ( name )) { // @TODO regexp to exlude!
@@ -54,12 +54,15 @@ gui.FlexChild.prototype = {
 		this._element.style [ prop ] = pct + "%";
 	},
 
+	/**
+	 * @todo
+	 */
 	unflex : function () {
 
 	},
 
 	/**
-	 * Remove inline styles (also unrelated styles) to reset emulated flex.
+	 * Remove *all* inline styles from flexchild element.
 	 */
 	unstyle : function () {
 		this._element.removeAttribute ( "style" );
