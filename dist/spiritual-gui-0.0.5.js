@@ -1809,9 +1809,11 @@ gui.Function = {
 	 * @param {function} decorator
 	 * @returns {object}
 	 */
-	decorateBefore : function ( target, name, decorator ) {
-		return this._decorate ( "before", target, name, decorator );
-	},
+	decorateBefore : gui.Arguments.confirmed ( "object|function", "string", "function" ) ( 
+		function ( target, name, decorator ) {
+			return this._decorate ( "before", target, name, decorator );
+		}
+	),
 
 	/**
 	 * Decorate object method after.
@@ -1820,9 +1822,11 @@ gui.Function = {
 	 * @param {function} decorator
 	 * @returns {object}
 	 */
-	decorateAfter : function ( target, name, decorator ) {
-		return this._decorate ( "after", target, name, decorator );
-	},
+	decorateAfter : gui.Arguments.confirmed ( "object|function", "string", "function" ) ( 
+		function ( target, name, decorator ) {
+			return this._decorate ( "after", target, name, decorator );
+		}
+	),
 
 	/**
 	 * @TODO Decorate object method around.
@@ -1849,7 +1853,7 @@ gui.Function = {
 	},
 
 
-	// Private ..................................................
+	// Private .................................................................
 	
 	/**
 	 * Decorate object method
@@ -1859,18 +1863,10 @@ gui.Function = {
 	 * @param {function} decorator
 	 * @returns {object}
 	 */
-	_decorate : gui.Arguments.confirmed ( "string", "object|function", "string", "function" ) ( 
-		function ( position, target, name, decorator ) {
-			var base = target [ name ];
-			var deco = gui.Combo [ position ] ( decorator );
-			if ( !this._decorated ( target, name, decorator )) {
-				target [ name ] = deco ( function () {
-					return base.apply ( this, arguments );
-				});
-			}
-			return target;
-		}
-	),
+	_decorate : function ( position, target, name, decorator ) {
+		target [ name ] = gui.Combo [ position ] ( decorator ) ( target [ name ]);
+		return target;
+	},
 
 	/**
 	 * Method was already decorated with something that looks 
@@ -12085,17 +12081,24 @@ gui.FlexPlugin = gui.Plugin.extend ( "gui.FlexPlugin", {
 	},
 
 	/**
-	 * Hejsa med dig.
+	 * Remove inline (emulated) styles.
 	 */
 	unflex : function () {
 		gui.FlexPlugin.unflex ( this.spirit.element );
 	},
 
 	/**
-	 * Remove inline (emulated) styles.
+	 * Hejsa med dig.
 	 */
-	unstyle : function () {
-		gui.FlexPlugin.unstyle ( this.spirit.element );
+	enable : function () {
+		gui.FlexPlugin.enable ( this.spirit.element );
+	},
+
+	/**
+	 * Hejsa med dig.
+	 */
+	disable : function () {
+		gui.FlexPlugin.disable ( this.spirit.element );
 	}
 
 
@@ -12106,35 +12109,64 @@ gui.FlexPlugin = gui.Plugin.extend ( "gui.FlexPlugin", {
 	 * @param {Element} elm
 	 */
 	reflex : function ( elm ) {
-		this._crawl ( elm, "flex" );
-	},
-
-	/**
-	 * Hejsa med dig.
-	 * @param {Element} elm
-	 */
-	unflex : function ( elm ) {
-		this._crawl ( elm, "unflex" );
+		if ( this._emulated ( elm )) {
+			this._crawl ( elm, "flex" );
+		}
 	},
 
 	/**
 	 * Remove inline (emulated) styles.
 	 * @param {Element} elm
 	 */
-	unstyle : function ( elm ) {
-		this._crawl ( elm, "unstyle" );
+	unflex : function ( elm ) {
+		if ( this._emulated ( elm )) {
+			this._crawl ( elm, "unflex" );
+		}
+	},
+
+	/**
+	 * Hejsa med dig.
+	 * @param {Element} elm
+	 */
+	enable : function ( elm ) {
+		this._crawl ( elm, "enable" );
+		if ( this._emulated ( elm )) {
+			this.reflex ( elm );
+		}
+	},
+
+	/**
+	 * Hejsa med dig.
+	 * @param {Element} elm
+	 */
+	disable : function ( elm ) {
+		if ( this._emulated ( elm )) {
+			this.unflex ( elm );
+		}
+		this._crawl ( elm, "disable" );
 	},
 
 
 	// Private static ........................................................
 
 	/**
-	 * Flex / unflex / unstyle element and descendants.
+	 * Element context runs in emulated mode?
+	 * @param {Element} elm
+	 * @returns {boolean}
+	 */
+	_emulated : function ( elm ) {
+		var doc = elm.ownerDocument;
+		var win = doc.defaultView;
+		return win.gui.flexmode === gui.FLEXMODE_EMULATED;
+	},
+
+	/**
+	 * Flex / disable / unflex element and descendants.
 	 * @param {Element} elm
 	 * @param {String} action
 	 */
 	_crawl : function ( elm, action ) {
-		if ( this._hasflex ( elm )) {
+		if ( this._hasflex ( elm ) || action === "enable" ) {
 			var boxes = this._getflexboxes ( elm );
 			boxes.forEach ( function ( box ) {
 				box [ action ]();
@@ -12143,10 +12175,20 @@ gui.FlexPlugin = gui.Plugin.extend ( "gui.FlexPlugin", {
 	},
 
 	/**
-	 * @TODO check classses on elm itself!
+	 * Element is flexbox or contains flexible stuff?
+	 * @param {Element} elm
+	 * @returns {boolean}
 	 */
 	_hasflex : function ( elm ) {
-		return elm.querySelector ( ".flexrow" ) || elm.querySelector ( ".flexcol" );
+		if ( elm.nodeType === Node.ELEMENT_NODE ) {
+			return (
+				gui.CSSPlugin.contains ( elm, "flexrow" ) || 
+				gui.CSSPlugin.contains ( elm, "flexcol" ) ||
+				elm.querySelector ( ".flexrow" ) ||
+				elm.querySelector ( ".flexcol" )
+			);
+		}
+		return false;
 	},
 
 	/**
@@ -12159,7 +12201,7 @@ gui.FlexPlugin = gui.Plugin.extend ( "gui.FlexPlugin", {
 		new gui.Crawler ( "flexcrawler" ).descend ( elm, {
 			handleElement : function ( elm ) {
 				if ( contains ( elm, "flexrow" ) || contains ( elm, "flexcol" )) {
-					boxes.push ( new gui.FlexBox ( elm ));
+					boxes.push ( new gui.FlexBox ( elm )); // TODO CLASSNAME FOR -disabled
 				}
 			}
 		});
@@ -12196,13 +12238,27 @@ gui.FlexBox.prototype = {
 	},
 
 	/**
-	 * Remove inline styles (also unrelated styles).
+	 * Remove *all* inline styles from flexbox element.
 	 */
-	unstyle : function () {
+	unflex : function () {
 		this._element.removeAttribute ( "style" );
 		this._children.forEach ( function ( child ) {
-			child.unstyle ();
+			child.unflex ();
 		});
+	},
+
+	/**
+	 * Enable flex.
+	 */
+	enable : function () {
+		this._enable ( true );
+	},
+
+	/**
+	 * Disable flex.
+	 */
+	disable : function () {
+		this._enable ( false );
 	},
 
 
@@ -12310,7 +12366,7 @@ gui.FlexBox.prototype = {
 	},
 
 	/**
-	 * Collect child flexes. Unflexed members enter as 0.
+	 * Collect child flexes. disableed members enter as 0.
 	 * @return {Array<number>}
 	 */
 	_childflexes : function () {
@@ -12351,6 +12407,21 @@ gui.FlexBox.prototype = {
 	},
 
 	/**
+	 * Enable/disable flex classname.
+	 * @param {boolean} enable
+	 */
+	_enable : function ( enable ) {
+		var next, elm = this._element, css = elm.className;
+		[ "flexrow", "flexcol" ].forEach ( function ( name ) {
+			name = enable ? name + "-disabled" : name;
+			next = enable ? name : name + "-disabled";
+			if ( css.contains ( name )) {
+				elm.className = css.replace ( name, next );
+			}
+		});
+	},
+
+	/**
 	 * Has classname?
 	 * @param {String} name
 	 * @returns {String}
@@ -12383,7 +12454,7 @@ gui.FlexChild.prototype = {
 	 * Get flex value for element. We use the flexN classname to markup this.
 	 * @returns {number}
 	 */
-	getflex : function ( elm ) {
+	getflex : function () {
 		var flex = 0;
 		this._element.className.split ( " ").forEach ( function ( name ) {
 			if ( gui.FlexChild._FLEXNAME.test ( name )) { // @TODO regexp to exlude!
@@ -12417,14 +12488,17 @@ gui.FlexChild.prototype = {
 		this._element.style [ prop ] = pct + "%";
 	},
 
-	unflex : function () {
+	/**
+	 * @todo
+	 */
+	unflexxx : function () {
 
 	},
 
 	/**
-	 * Remove inline styles (also unrelated styles) to reset emulated flex.
+	 * Remove *all* inline styles from flexchild element.
 	 */
-	unstyle : function () {
+	unflex : function () {
 		this._element.removeAttribute ( "style" );
 	},
 
@@ -12476,24 +12550,41 @@ gui.FlexCSS = {
 	maxflex : 10,
 
 	/**
+	 * Flipped on CSS injected.
+	 * @type {boolean}
+	 */
+	loaded : false,
+
+	/**
+	 * Identification.
+	 * @returns {String}
+	 */
+	toString : function () {
+		return "[object gui.FlexCSS]";
+	},
+
+	/**
 	 * Inject stylesheet in context. For debugging purposes 
 	 * we support a setup to dynamically switch the flexmode. 
 	 * @param {Window} context
 	 * @param {String} mode
 	 */
 	load : function ( context, mode ) {
-		var sheets = this._getsheets ( context.gui.signature );
-		if ( sheets && sheets.mode ) {
-			sheets [ sheets.mode ].disable ();
+		if ( this.injected ) {
+			var sheets = this._getsheets ( context.gui.signature );
+			if ( sheets && sheets.mode ) {
+				sheets [ sheets.mode ].disable ();
+			}
+			if ( sheets && sheets [ mode ]) {
+				sheets [ mode ].enable ();
+			} else {
+				var doc = context.document, ruleset = this [ mode ] ( doc );
+				var css = sheets [ mode ] = gui.StyleSheetSpirit.summon ( doc, null, ruleset );
+				doc.querySelector ( "head" ).appendChild ( css.element );
+			}
+			sheets.mode = mode;
+			this.loaded = true;
 		}
-		if ( sheets && sheets [ mode ]) {
-			sheets [ mode ].enable ();
-		} else {
-			var doc = context.document, ruleset = this [ mode ] ( doc );
-			var css = sheets [ mode ] = gui.StyleSheetSpirit.summon ( doc, null, ruleset );
-			doc.querySelector ( "head" ).appendChild ( css.element );
-		}
-		sheets.mode = mode;
 	},
 
 
@@ -12538,7 +12629,7 @@ gui.FlexCSS [ "emulated" ] =  function ( doc ) {
 			"height" : "100%",
 			"font-size" : 0
 		},
-		".flexrow > *, .flexcol > *" : {
+		".flexrow > *:not(.flexrow):not(.flexcol), .flexcol > *:not(.flexrow):not(.flexcol)" : {
 			"font-size" : size
 		},
 		".flexrow > *" : {
@@ -12606,6 +12697,71 @@ gui.FlexCSS [ "native" ] = function () {
 };
 
 
+/**
+ * Properties and methods to be mixed into the context-local {gui.Spiritual} instance. 
+ * Note to self: Enumerable false is to prevent portalling since this would portal the local setting too.
+ */
+gui.FlexMode = {
+		
+	/**
+	 * Flexmode accessor. Note that flexmode exposes as either native or emulated (never optimized).
+	 */
+	flexmode : {
+		configurable : true,
+		enumerable : false,
+		get : function () { 
+			var best = gui.Client.hasFlexBox ? gui.FLEXMODE_NATIVE : gui.FLEXMODE_EMULATED;
+			return this._flexmode === gui.FLEXMODE_OPTIMIZED ? best : this._flexmode;
+		},
+		set : function ( next ) { // supports hotswapping for debugging
+			this._flexmode = next;
+			var best = gui.Client.hasFlexBox ? gui.FLEXMODE_NATIVE : gui.FLEXMODE_EMULATED;
+			var mode = next === gui.FLEXMODE_OPTIMIZED ? best : next;
+			gui.FlexCSS.load ( this.window, mode );		
+			if ( this.document.documentElement.spirit ) { // @todo life cycle markers for gui.Spiritual
+				switch ( mode ) {
+					case gui.FLEXMODE_EMULATED :
+						this.reflex ();
+						break;
+					case gui.FLEXMODE_NATIVE :
+						this.unflex ();
+						break;
+				}
+			}
+		}
+	},
+
+	/**
+	 * Update flex in emulated mode.
+	 * @todo unflexxx
+	 */
+	reflex : {
+		configurable : true,
+		enumerable : false,
+		value : function ( elm ) {
+			if ( this.flexmode === this.FLEXMODE_EMULATED ) {
+				gui.FlexPlugin.reflex ( elm || this.document.body );
+			}
+		}
+	},
+	
+	/**
+	 * Remove *all* inline styles from flexbox and member elements.
+	 * @todo Rename this to something flex-related.
+	 */
+	unflex : {
+		configurable : true,
+		enumerable : false,
+		value : function () {
+			var node = this.document;
+			var body = node.body;
+			var root = node.documentElement;
+			( body.spirit || root.spirit ).flex.unflex ();
+		}
+	}
+};
+
+
 gui.FLEXMODE_NATIVE = "native";
 gui.FLEXMODE_EMULATED = "emulated";
 gui.FLEXMODE_OPTIMIZED = "optimized",
@@ -12615,6 +12771,7 @@ gui.FLEXMODE_OPTIMIZED = "optimized",
  * as long as flex is implemented using a predefined set 
  * of classnames: flexrow, flexcol and flexN where N is 
  * a number to indicate the flexiness of child elements.
+ * @todo Reflex on window resize...
  * @see {gui.FlexCSS}
  */
 gui.module ( "flex", {
@@ -12633,96 +12790,22 @@ gui.module ( "flex", {
 	 * @param {Window} context
 	 */
 	oncontextinitialize : function ( context ) {
-		var mode = [ 
-			gui.FLEXMODE_OPTIMIZED, 
-			gui.FLEXMODE_NATIVE, 
-			gui.FLEXMODE_EMULATED 
-		];
-		var bestmode = mode [ gui.Client.hasFlexBox ? 1 : 2 ];
-		( function scoped () {
-			var flexmode = mode [ 0 ];
-			context.Object.defineProperties ( context.gui, {
-				/*
-				 * Set flexmode
-				 */
-				"flexmode" : {
-					configurable : true,
-					enumerable : false,
-					get : function () {
-						return flexmode === mode [ 0 ] ? bestmode : flexmode;
-					},
-					set : function ( nextmode ) {
-						nextmode = nextmode === mode [ 0 ] ? bestmode : nextmode;
-						if ( nextmode !== flexmode ) {
-							gui.FlexCSS.load ( context, nextmode );
-							if ( this.document.documentElement.spirit ) { // @todo life cycle markers for gui...
-								switch (( flexmode = nextmode )) {
-									case mode [ 2 ] :
-										this.reflex ();
-										break;
-									case mode [ 1 ] :
-										this.unstyle ();
-										break;
-								}
-							}
-						}
-					}
-				},
-				/*
-				 * Reflex all.
-				 * @todo unflex
-				 */
-				"reflex" : {
-					configurable : true,
-					enumerable : false,
-					value : function () {
-						var node = this.document;
-						var body = node.body;
-						var root = node.documentElement;
-						if ( this.flexmode === this.FLEXMODE_EMULATED ) {
-							( body.spirit || root.spirit ).flex.reflex ();
-						}
-					}
-				},
-				/*
-				 * Remove inline (emulated) styles.
-				 */
-				"unstyle" : {
-					configurable : true,
-					enumerable : false,
-					value : function () {
-						var node = this.document;
-						var body = node.body;
-						var root = node.documentElement;
-						( body.spirit || root.spirit ).flex.unstyle ();
-					}
-				}
-			});
-		}());
-
-		/*
-		gui.Guide._spiritualize = gui.Combo.after ( function ( node ) {
-			var win = node.ownerDocument.defaultView;
-			var hit = node.nodeType === Node.ELEMENT_NODE;
-			var act = win.gui.flexmode === gui.FLEXMODE_EMULATED;
-			if ( hit &&  act && gui.DOMPlugin.embedded ( node )) {
-
-				// crawl to ancestor flexbox :/
-				gui.FlexPlugin.reflex ( node );
-			}
-		})( gui.Guide._spiritualize );
-		*/
+		context.gui._flexmode = gui.FLEXMODE_OPTIMIZED;
+		context.Object.defineProperties ( context.gui, gui.FlexMode );
 	},
 
 	/**
-	 * 1. Inject the relevant stylesheet
-	 * 2. Setup to flex on EDBML updates
+	 * Inject the relevant stylesheet (native or emulated) before startup spiritualization.
+	 * @todo Make sure stylesheet onload has fired to prevent flash of unflexxxed content?
 	 * @param {Window} context
 	 */
 	onbeforespiritualize : function ( context ) {
-		if ( gui.FlexCSS.injected ) {
+		if ( !gui.FlexCSS.loaded ) {
 			gui.FlexCSS.load ( context, context.gui.flexmode );
 		}
+		/*
+		 * We could potentially bake this into EDBML updates...
+		 *
 		if ( context.gui.hasModule ( "edb" )) {
 			var script = context.edb.ScriptPlugin.prototype;
 			gui.Function.decorateAfter ( script, "write", function () {
@@ -12731,16 +12814,7 @@ gui.module ( "flex", {
 				}
 			});
 		}
-	},
-
-	/**
-	 * Flex everything on startup.
-	 * @param {Window} context
-	 */
-	onafterspiritualize : function ( context ) {
-		if ( context.gui.flexmode === gui.FLEXMODE_EMULATED ) {
-			context.gui.reflex (); // handled by above???
-		}
+		*/
 	},
 
 	/**
@@ -12750,3 +12824,34 @@ gui.module ( "flex", {
 	oncontextunload : function ( context ) {}
 	
 });
+
+/**
+ * Manage emulated flex whenever DOM elements get added and removed.
+ * Mixing into 'gui.Guide._spiritualize' and 'gui.Guide._materialize'
+ * @todo Both of these methods should be made public we presume...
+ * @using {gui.Guide}
+ */
+( function decorate ( guide ) {
+
+	/*
+	 * Flex subtree starting from the parent node of given node.
+	 * @param {Node} node
+	 */
+	function flexparent ( node ) {
+		var doc = node.ownerDocument;
+		var win = doc.defaultView;
+		if ( win.gui.flexmode === gui.FLEXMODE_EMULATED ) {
+			if ( gui.DOMPlugin.embedded ( node )) {
+				node = node === doc.documentElement ? node : node.parentNode;
+				gui.Tick.next ( function () {
+					gui.FlexPlugin.reflex ( node );
+				});
+			}
+		}
+	}
+
+	[ "_spiritualize", "_materialize" ].forEach ( function ( method ) {
+		gui.Function.decorateAfter ( guide, method, flexparent );
+	});
+
+}( gui.Guide ));
