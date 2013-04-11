@@ -25,13 +25,27 @@ gui.FlexBox.prototype = {
 	},
 
 	/**
-	 * Remove inline styles (also unrelated styles).
+	 * Remove *all* inline styles from flexbox element.
 	 */
-	unstyle : function () {
+	unflex : function () {
 		this._element.removeAttribute ( "style" );
 		this._children.forEach ( function ( child ) {
-			child.unstyle ();
+			child.unflex ();
 		});
+	},
+
+	/**
+	 * Enable flex.
+	 */
+	enable : function () {
+		this._enable ( true );
+	},
+
+	/**
+	 * Disable flex.
+	 */
+	disable : function () {
+		this._enable ( false );
 	},
 
 
@@ -139,7 +153,7 @@ gui.FlexBox.prototype = {
 	},
 
 	/**
-	 * Collect child flexes. Unflexed members enter as 0.
+	 * Collect child flexes. disableed members enter as 0.
 	 * @return {Array<number>}
 	 */
 	_childflexes : function () {
@@ -177,6 +191,21 @@ gui.FlexBox.prototype = {
 		} else {
 			return elm.offsetWidth;
 		}
+	},
+
+	/**
+	 * Enable/disable flex classname.
+	 * @param {boolean} enable
+	 */
+	_enable : function ( enable ) {
+		var next, elm = this._element, css = elm.className;
+		[ "flexrow", "flexcol" ].forEach ( function ( name ) {
+			name = enable ? name + "-disabled" : name;
+			next = enable ? name : name + "-disabled";
+			if ( css.contains ( name )) {
+				elm.className = css.replace ( name, next );
+			}
+		});
 	},
 
 	/**

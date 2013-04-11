@@ -25,6 +25,14 @@ gui.FlexCSS = {
 	loaded : false,
 
 	/**
+	 * Identification.
+	 * @returns {String}
+	 */
+	toString : function () {
+		return "[object gui.FlexCSS]";
+	},
+
+	/**
 	 * Inject stylesheet in context. For debugging purposes 
 	 * we support a setup to dynamically switch the flexmode. 
 	 * @param {Window} context
