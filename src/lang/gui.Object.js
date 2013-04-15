@@ -64,41 +64,31 @@ gui.Object = {
   },
 
   /**
-	 * Call function for each own key in object (exludes 
-	 * prototype stuff) with key and value as arguments.
-	 * @todo Collect and return array of results!
+	 * Call function for each own key in object (exluding the prototype stuff) 
+	 * with key and value as arguments. Returns array of function call results.
 	 * @param {object} object
 	 * @param {function} func
 	 * @param @optional {object} thisp
 	 */
 	each : function ( object, func, thisp ) {
-		Object.keys ( object ).forEach ( function ( key ) {
-			func.call ( thisp, key, object [ key ]);
+		return Object.keys ( object ).map ( function ( key ) {
+			return func.call ( thisp, key, object [ key ]);
 		});
 	},
 
 	 /**
-	 * Call function for all properties in object (including 
-	 * prototype stuff) with key and value as arguments.
-	 * @todo Collect and return array of results!
+	 * Call function for all properties in object (including prototype stuff) 
+	 * with key and value as arguments. Returns array of function call results.
 	 * @param {object} object
 	 * @param {function} func
 	 * @param @optional {object} thisp
 	 */
 	all : function ( object, func, thisp ) {
+		var res = [];
 		for ( var key in object ) {
-			func.call ( thisp, key, object [ key ]);
+			res.push ( func.call ( thisp, key, object [ key ]));
 		}
-	},
-
-	/**
-	 * @deprecated
-	 * Object has any (own) properties?
-	 * @param {object} object
-	 * @returns {boolean}
-	 */
-	isEmpty : function ( object ) {
-		return Object.keys ( object ).length === 0;
+		return res;
 	},
 
 	/**

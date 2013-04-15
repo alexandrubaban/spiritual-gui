@@ -22,6 +22,7 @@ gui.FlexBox.prototype = {
 	flex : function () {
 		this._flexself ();
 		this._flexchildren ();
+		this._flexcorrect ();
 	},
 
 	/**
@@ -35,17 +36,17 @@ gui.FlexBox.prototype = {
 	},
 
 	/**
+	 * Disable flex (perhaps to fit a mobile screen).
+	 */
+	disable : function () {
+		this._enable ( false );
+	},
+
+	/**
 	 * Enable flex.
 	 */
 	enable : function () {
 		this._enable ( true );
-	},
-
-	/**
-	 * Disable flex.
-	 */
-	disable : function () {
-		this._enable ( false );
 	},
 
 
@@ -94,8 +95,8 @@ gui.FlexBox.prototype = {
 	 */
 	_collectchildren : function ( elm ) {
 		return Array.filter ( elm.children, function ( child ) {
-			return gui.CSSPlugin.compute ( child, "display" ) !== "none";
-		}).map ( function ( child ) {
+			return this._shouldflex ( child );
+		}, this ).map ( function ( child ) {
 			return new gui.FlexChild ( child );
 		});
 	},
@@ -108,13 +109,11 @@ gui.FlexBox.prototype = {
 	 */
 	_flexself : function () {
 		var elm = this._element;
-		if ( this._flexcol ) {
-			if ( this._flexlax ) {
-				this._relaxflex ( elm ); // first time to minimize flashes in FF
-				gui.Tick.next(function(){ // second time to setup expected layout
-					this._relaxflex ( elm );
-				},this);
-			}
+		if ( this._flexcol && this._flexlax ) {
+			this._relaxflex ( elm ); // first time to minimize flashes in FF (does it work?)
+			gui.Tick.next(function(){ // second time to setup expected layout
+				this._relaxflex ( elm );
+			},this);
 		}
 	},
 
@@ -149,6 +148,21 @@ gui.FlexBox.prototype = {
 					child.setoffset ( percentage, this._flexcol );
 				}
 			},this);
+		}
+	},
+
+	/**
+	 * Eliminate spacing between inline-block children. Potentially 
+	 * adds a classname "_flexcorrect" to apply negative left margin.
+	 * @see {gui.FlexCSS}
+	 */
+	_flexcorrect : function () {
+		if ( !this._flexcol ) {
+			this._children.forEach ( function ( child, i ) {
+				if ( i > 0 ) {
+					child.flexcorrect ();
+				}
+			});
 		}
 	},
 
@@ -194,18 +208,29 @@ gui.FlexBox.prototype = {
 	},
 
 	/**
-	 * Enable/disable flex classname.
+	 * Enable/disable flex classname. Child element flexN classname 
+	 * becomes disabled by being scoped to flexrow or flexcol class.
 	 * @param {boolean} enable
 	 */
 	_enable : function ( enable ) {
-		var next, elm = this._element, css = elm.className;
-		[ "flexrow", "flexcol" ].forEach ( function ( name ) {
-			name = enable ? name + "-disabled" : name;
-			next = enable ? name : name + "-disabled";
-			if ( css.contains ( name )) {
-				elm.className = css.replace ( name, next );
+		var name, next, elm = this._element, css = gui.CSSPlugin;
+		[ "flexrow", "flexcol" ].forEach ( function ( klass ) {
+			name = enable ? klass + "-disabled" : klass;
+			next = enable ? klass : klass + "-disabled";
+			if ( css.contains ( elm, name )) {
+				css.remove ( elm, name ).add ( elm, next );
 			}
 		});
+	},
+
+	/**
+	 * Should child element be fed to computer for emulated mode?
+	 * @todo Position absolute might qualify for exclusion...
+	 * @param {Element} elm
+	 * @returns {boolean}
+	 */
+	_shouldflex : function ( elm ) {
+		return gui.CSSPlugin.compute ( elm, "display" ) !== "none";
 	},
 
 	/**

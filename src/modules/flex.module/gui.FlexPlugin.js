@@ -49,9 +49,10 @@ gui.FlexPlugin = gui.Plugin.extend ( "gui.FlexPlugin", {
 	/**
 	 * Remove inline (emulated) styles.
 	 * @param {Element} elm
+	 * @param @optional {boolean} hotswap Switching from emulated to native?
 	 */
-	unflex : function ( elm ) {
-		if ( this._emulated ( elm )) {
+	unflex : function ( elm, hotswap ) {
+		if ( this._emulated ( elm ) || hotswap ) {
 			this._crawl ( elm, "unflex" );
 		}
 	},
@@ -98,8 +99,9 @@ gui.FlexPlugin = gui.Plugin.extend ( "gui.FlexPlugin", {
 	 * @param {String} action
 	 */
 	_crawl : function ( elm, action ) {
-		if ( this._hasflex ( elm ) || action === "enable" ) {
-			var boxes = this._getflexboxes ( elm );
+		var disabled = action === "enable";
+		if ( this._shouldflex ( elm, disabled )) {
+			var boxes = this._getflexboxes ( elm, disabled );
 			boxes.forEach ( function ( box ) {
 				box [ action ]();
 			});
@@ -111,16 +113,36 @@ gui.FlexPlugin = gui.Plugin.extend ( "gui.FlexPlugin", {
 	 * @param {Element} elm
 	 * @returns {boolean}
 	 */
-	_hasflex : function ( elm ) {
-		if ( elm.nodeType === Node.ELEMENT_NODE ) {
-			return (
-				gui.CSSPlugin.contains ( elm, "flexrow" ) || 
-				gui.CSSPlugin.contains ( elm, "flexcol" ) ||
-				elm.querySelector ( ".flexrow" ) ||
-				elm.querySelector ( ".flexcol" )
-			);
-		}
-		return false;
+	_shouldflex : function ( elm, disabled ) {
+		return elm.nodeType === Node.ELEMENT_NODE && 
+			this._isflex ( elm, disabled ) || 
+			this._hasflex ( elm, disabled ); 
+	},
+
+	/**
+	 * Element is (potentially disabled) flexbox?
+	 * @param {Element} elm
+	 * @param {boolean} disabled
+	 * @return {boolean}
+	 */
+	_isflex : function ( elm, disabled ) {
+		return [ "flexrow", "flexcol" ].some ( function ( name ) {
+			name = name + ( disabled ? "-disabled" : "" );
+			return gui.CSSPlugin.contains ( elm, name );
+		});
+	},
+
+	/**
+	 * Element contains flexbox(es)?
+	 * @param {Element} elm
+	 * @param {boolean} disabled
+	 * @return {boolean}
+	 */
+	_hasflex : function ( elm, disabled ) {
+		return [ "flexrow", "flexcol" ].some ( function ( name ) {
+			name = name + ( disabled ? "-disabled" : "" );
+			return elm.querySelector ( "." + name );
+		});
 	},
 
 	/**
@@ -128,12 +150,12 @@ gui.FlexPlugin = gui.Plugin.extend ( "gui.FlexPlugin", {
 	 * @param @optional {Element} elm
 	 * @returns {Array<gui.FlexBox>}
 	 */
-	_getflexboxes : function ( elm ) {
-		var boxes = [], contains = gui.CSSPlugin.contains;
+	_getflexboxes : function ( elm, disabled ) {
+		var boxes = [];
 		new gui.Crawler ( "flexcrawler" ).descend ( elm, {
 			handleElement : function ( elm ) {
-				if ( contains ( elm, "flexrow" ) || contains ( elm, "flexcol" )) {
-					boxes.push ( new gui.FlexBox ( elm )); // TODO CLASSNAME FOR -disabled
+				if ( gui.FlexPlugin._isflex ( elm, disabled )) {
+					boxes.push ( new gui.FlexBox ( elm ));
 				}
 			}
 		});

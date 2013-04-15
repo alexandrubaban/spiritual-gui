@@ -32,7 +32,7 @@ gui.module ( "flex", {
 
 	/**
 	 * Inject the relevant stylesheet (native or emulated) before startup spiritualization.
-	 * @todo Make sure stylesheet onload has fired to prevent flash of unflexxxed content?
+	 * @todo Make sure stylesheet onload has fired to prevent flash of unflexed content?
 	 * @param {Window} context
 	 */
 	onbeforespiritualize : function ( context ) {

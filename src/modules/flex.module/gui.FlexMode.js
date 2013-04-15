@@ -18,7 +18,7 @@ gui.FlexMode = {
 			this._flexmode = next;
 			var best = gui.Client.hasFlexBox ? gui.FLEXMODE_NATIVE : gui.FLEXMODE_EMULATED;
 			var mode = next === gui.FLEXMODE_OPTIMIZED ? best : next;
-			gui.FlexCSS.load ( this.window, mode );		
+			gui.FlexCSS.load ( this.window, mode );
 			if ( this.document.documentElement.spirit ) { // @todo life cycle markers for gui.Spiritual
 				switch ( mode ) {
 					case gui.FLEXMODE_EMULATED :
@@ -33,8 +33,7 @@ gui.FlexMode = {
 	},
 
 	/**
-	 * Update flex in emulated mode.
-	 * @todo unflexxx
+	 * Update flex.
 	 */
 	reflex : {
 		configurable : true,
@@ -47,17 +46,13 @@ gui.FlexMode = {
 	},
 	
 	/**
-	 * Remove *all* inline styles from flexbox and member elements.
-	 * @todo Rename this to something flex-related.
+	 * Remove flex (actually removes all inline styling on flex elements).
 	 */
 	unflex : {
 		configurable : true,
 		enumerable : false,
-		value : function () {
-			var node = this.document;
-			var body = node.body;
-			var root = node.documentElement;
-			( body.spirit || root.spirit ).flex.unflex ();
+		value : function ( elm ) {
+			gui.FlexPlugin.unflex ( elm || this.document.body, true );
 		}
 	}
 };

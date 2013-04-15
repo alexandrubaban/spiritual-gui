@@ -13,7 +13,7 @@ gui.FlexChild.prototype = {
 	 * @returns {String}
 	 */
 	toString : function () {
-		return "[object gui.FlexBox]";
+		return "[object gui.FlexChild]";
 	},
 
 	/**
@@ -23,7 +23,7 @@ gui.FlexChild.prototype = {
 	getflex : function () {
 		var flex = 0;
 		this._element.className.split ( " ").forEach ( function ( name ) {
-			if ( gui.FlexChild._FLEXNAME.test ( name )) { // @TODO regexp to exlude!
+			if ( gui.FlexChild._FLEXNAME.test ( name )) {
 				flex = ( gui.FlexChild._FLEXRATE.exec ( name ) || 1 );
 			}
 		});
@@ -55,19 +55,22 @@ gui.FlexChild.prototype = {
 	},
 
 	/**
-	 * @todo
-	 */
-	unflexxx : function () {
-
-	},
-
-	/**
 	 * Remove *all* inline styles from flexchild element.
 	 */
 	unflex : function () {
 		this._element.removeAttribute ( "style" );
 	},
 
+	/**
+	 * Potentially adds a classname "_flexcorrect" to apply negative left margin. 
+	 * @todo Measure computed font-size and correlate to negative margin value.
+	 */
+	flexcorrect : function () {
+		var elm = this._element;
+		if ( elm.previousSibling.nodeType === Node.TEXT_NODE ) {
+			gui.CSSPlugin.add ( elm, gui.FlexChild._FLEXCORRECT );
+		}
+	},
 
 	// Private .........................................................
 		
@@ -75,12 +78,32 @@ gui.FlexChild.prototype = {
 	 * Flexchild element.
 	 * @type {Element}
 	 */
-	_element : null
+	_element : null,
+
+	_enable : function ( enable ) {
+		var name, next, elm = this._element, css = gui.CSSPlugin;
+		this._element.className.split ( " ").forEach ( function ( klass ) {
+			name = enable ? klass + "-disabled" : klass;
+			next = enable ? klass : klass + "-disabled";
+			if ( gui.FlexChild._FLEXNAME.test ( klass )) {	
+				if ( css.contains ( elm, name )) {
+					css.remove ( elm, name ).add ( elm, next );
+				}
+			}
+		});
+	}
 
 };
 
 
 // Static ............................................................
+
+/**
+ * Classname applies negative left margin to counter 
+ * horizontal spacing on inline-block elements.
+ * @type {String}
+ */
+gui.FlexChild._FLEXCORRECT = "_flexcorrect";
 
 /**
  * Check for flexN classname.

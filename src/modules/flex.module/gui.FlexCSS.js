@@ -47,7 +47,7 @@ gui.FlexCSS = {
 			if ( sheets && sheets [ mode ]) {
 				sheets [ mode ].enable ();
 			} else {
-				var doc = context.document, ruleset = this [ mode ] ( doc );
+				var doc = context.document, ruleset = this [ mode ];
 				var css = sheets [ mode ] = gui.StyleSheetSpirit.summon ( doc, null, ruleset );
 				doc.querySelector ( "head" ).appendChild ( css.element );
 			}
@@ -84,83 +84,77 @@ gui.FlexCSS = {
 		return sheets [ sig ];
 	}
 };
-	
+
 /**
- * Emulated ruleset. Notice font-size-zero trick to eliminate spacing on inline-blocks.
- * @param {Document} doc Used to measure default font-size
+ * Emulated ruleset.
+ * @todo Attempt all this using floats instead of inline-block and table layouts.
  */
-gui.FlexCSS [ "emulated" ] =  function ( doc ) {
-	var size = gui.CSSPlugin.compute ( doc.body, "font-size" );
-	return {
-		".flexrow, .flexcol" : {
-			"display" : "block",
-			"width" : "100%",
-			"height" : "100%",
-			"font-size" : 0
-		},
-		".flexrow > *:not(.flexrow):not(.flexcol), .flexcol > *:not(.flexrow):not(.flexcol)" : {
-			"font-size" : size
-		},
-		".flexrow > *" : {
-			"display" : "inline-block",
-			"vertical-align" : "top",
-			"height" : "100%"
-		},
-		"flexcol > *" : {
-			"display" : "block",
-			"width" : "100%"
-		},
-		".flexlax > .flexrow" : {
-			"display" : "table"
-		},
-		".flexlax > .flexrow > *" : {
-			"display" : "table-cell"
-		}
-	};
+gui.FlexCSS [ "emulated" ] =  {
+	".flexrow, .flexcol" : {
+		"display" : "block",
+		"width" : "100%",
+		"height" : "100%"
+	},
+	".flexrow > *" : {
+		"display" : "inline-block",
+		"vertical-align" : "top",
+		"height" : "100%"
+	},
+	".flexrow > ._flexcorrect" : {
+		"margin-left" : "-4px" // @todo Correlate this to computed font-size :)
+	},
+	"flexcol > *" : {
+		"display" : "block",
+		"width" : "100%"
+	},
+	".flexlax > .flexrow" : {
+		"display" : "table"
+	},
+	".flexlax > .flexrow > *" : {
+		"display" : "table-cell"
+	}
 };
 
 /**
- * Native ruleset. Engine can't parse [*=x] selector (says DOM exception), so 
- * let's just create one billion unique classnames. Cached after first compute.
+ * Native ruleset. Engine can't parse [*=xxxxx] selector (says DOM 
+ * exception), so let's just create one billion unique classnames.
  */
-gui.FlexCSS [ "native" ] = function () {
-	return this._native || ( function () {
-		var rules = this._native = {
-			".flexrow, .flexcol" : {
-				"display": "-beta-flex",
-				"-beta-flex-wrap" : "nowrap"
-			},
-			".flexcol" : {
-				"-beta-flex-direction" : "column",
-				"min-height" : "100%"
-			},
-			".flexrow" : {
-				"-beta-flex-direction" : "row",
-				"min-width": "100%"
-			},
-			".flexrow:not(.flexlax) > *, .flexcol:not(.flexlax) > *" : {
-					"-beta-flex-basis" : 1
-			},
-			".flexrow > .flexrow" : {
-				"min-width" : "auto"
-			}
+gui.FlexCSS [ "native" ] = ( function () {
+	var rules = {
+		".flexrow, .flexcol" : {
+			"display": "-beta-flex",
+			"-beta-flex-wrap" : "nowrap"
+		},
+		".flexcol" : {
+			"-beta-flex-direction" : "column",
+			"min-height" : "100%"
+		},
+		".flexrow" : {
+			"-beta-flex-direction" : "row",
+			"min-width": "100%"
+		},
+		".flexrow:not(.flexlax) > *, .flexcol:not(.flexlax) > *" : {
+				"-beta-flex-basis" : 1
+		},
+		".flexrow > .flexrow" : {
+			"min-width" : "auto"
+		}
+	};
+	function declare ( n ) {
+		rules [ ".flexrow > .flex" + n + ", .flexcol > .flex" + n ] = {
+			"-beta-flex-grow" : n || 1
 		};
-		function declare ( n ) {
-			rules [ ".flex" + n ] = {
-				"-beta-flex-grow" : n || 1
-			};
-			rules [ ".flexrow:not(.flexlax) > .flex" + n ] = {
-				"width" : "0"
-			};
-			rules [ ".flexcol:not(.flexlax) > .flex" + n ] = {
-				"height" : "0"
-			};
-			
-		}
-		var n = -1, max = this.maxflex;
-		while ( ++n <= max ) {
-			declare ( n || "" );
-		}
-		return rules;
-	}).call ( this );
-};
+		rules [ ".flexrow:not(.flexlax) > .flex" + n ] = {
+			"width" : "0"
+		};
+		rules [ ".flexcol:not(.flexlax) > .flex" + n ] = {
+			"height" : "0"
+		};
+		
+	}
+	var n = -1, max = this.maxflex;
+	while ( ++n <= max ) {
+		declare ( n || "" );
+	}
+	return rules;
+}).call ( gui.FlexCSS );
