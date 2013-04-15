@@ -162,11 +162,12 @@ gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
 
 	/**
 	 * Is external address?
+	 * @todo Always external in IE because url.host is empty(!).
 	 * @returns {boolean}
 	 */
 	isExternal : function ( url ) {
-		var a = document.createElement ( "a" );
-		a.href = url;
-		return a.host !== location.host;
+		var doc = document; // TODO: scope this somehow...
+		url = new gui.URL ( doc, url );
+		return url.host !== doc.location.host;
 	}
 });

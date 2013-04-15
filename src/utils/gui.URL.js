@@ -1,14 +1,17 @@
- /**
+/**
  * Resolve an URL string relative to a document.
  * @param {Document} doc
  * @param {String} href
  */
 gui.URL = function ( doc, href ) {
 	if ( doc && doc.nodeType === Node.DOCUMENT_NODE ) {
-		var link = doc.createElement ( "a" ); link.href = href;
+		var val, link = doc.createElement ( "a" ); link.href = href;
 		Object.keys ( gui.URL.prototype ).forEach ( function ( key ) {
-			if ( gui.Type.isString ( link [ key ])) {
-				this [ key ] = link [ key ];
+			if ( gui.Type.isString (( val = link [ key ]))) {
+				if ( key === "pathname" && !val.startsWith ( "/" )) {
+					val = "/" + val; // http://stackoverflow.com/questions/956233/javascript-pathname-ie-quirk
+				}
+				this [ key ] = val;
 			}
 		}, this );
 		this.id = this.hash ? this.hash.substring ( 1 ) : null;
