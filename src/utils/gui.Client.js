@@ -77,11 +77,10 @@ gui.Client = ( new function Client () {
 	this.hasBlob = ( window.Blob && ( window.URL || window.webkitURL ));
 
 	/**
-	 * @TODO
 	 * Supports the History API?
 	 * @type {boolean}
 	 */
-	this.hasHistory = true;
+	this.hasHistory = ( window.history && window.history.pushState );
 
 	/**
 	 * Is mobile device? Not to be confused with this.hasTouch
@@ -109,6 +108,7 @@ gui.Client = ( new function Client () {
 
 	/**
 	 * Supports flexible box module?
+	 * @todo Firefox and Safari only a few versions back should NOT report true on this...
 	 * @type {boolean}
 	 */
 	this.hasFlexBox = supports ( "flex" );
@@ -243,6 +243,13 @@ gui.Client = ( new function Client () {
 		}
 		html.removeChild ( outer );
 		this.scrollBarSize = w1 - w2;
+
+		/*
+		 * Temp hotfix for IE...
+		 */
+		if ( this.isExplorer ) {
+			this.scrollBarSize = 17; // wat
+		}
 	}
 
 });
