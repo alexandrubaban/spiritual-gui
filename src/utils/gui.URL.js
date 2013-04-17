@@ -36,7 +36,7 @@ gui.URL.prototype = {
 	external : false, // external relative to the *document*, not the server host!!! (rename "outbound" to clear this up?)
 	toString : function () { // behave somewhat like window.location ....
 		return this.href;
-	},
+	}
 };
 
 
@@ -120,7 +120,7 @@ gui.URL.setParam = function ( url, name, value ) {
 
 /**
  * @param {Document} doc
- * @param @optional {String}  href
+ * @param @optional {String} href
  */
 gui.URL._createLink = function ( doc, href ) {
 	var link = doc.createElement ( "a" );
@@ -128,9 +128,9 @@ gui.URL._createLink = function ( doc, href ) {
 	if ( gui.Client.isExplorer ) {
 	  var uri = gui.URL.parseUri ( link.href );
 	  Object.keys ( uri ).forEach ( function ( key ) {
-	  	if ( !link [ key ]) {
-	  		link [ key ] = uri [ key ]; // this is wrong...
-	  	}
+			if ( !link [ key ]) {
+				link [ key ] = uri [ key ]; // this is wrong...
+			}
 	  });
 
 	}
@@ -146,10 +146,14 @@ gui.URL.parseUri = function ( str ) {
 		m = o.parser[o.strictMode ? "strict" : "loose"].exec(str),
 		uri = {},
 		i = 14;
-	while (i--) uri[o.key[i]] = m[i] || "";
+	while (i--) {
+		uri[o.key[i]] = m[i] || "";
+	}
 	uri[o.q.name] = {};
 	uri[o.key[12]].replace(o.q.parser, function ($0, $1, $2) {
-		if ($1) uri[o.q.name][$1] = $2;
+		if ($1) {
+			uri[o.q.name][$1] = $2;
+		}
 	});
 	return uri;
 };
