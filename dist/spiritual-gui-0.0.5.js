@@ -146,17 +146,21 @@ window.gui = {
 };
 
 
- /**
+/**
  * Resolve an URL string relative to a document.
+ * @todo Read https://gist.github.com/jlong/2428561
  * @param {Document} doc
  * @param {String} href
  */
 gui.URL = function ( doc, href ) {
 	if ( doc && doc.nodeType === Node.DOCUMENT_NODE ) {
-		var link = doc.createElement ( "a" ); link.href = href;
-		Object.keys ( gui.URL.prototype ).forEach ( function ( key ) {
-			if ( gui.Type.isString ( link [ key ])) {
-				this [ key ] = link [ key ];
+		var val, link = gui.URL._createLink ( doc, href );
+		Object.keys ( gui.URL.prototype ).forEach ( function ( key ) { // @todo exclude toString somehow...
+			if ( gui.Type.isString (( val = link [ key ]))) {
+				if ( key === "pathname" && !val.startsWith ( "/" )) {
+					val = "/" + val; // http://stackoverflow.com/questions/956233/javascript-pathname-ie-quirk
+				}
+				this [ key ] = val;
 			}
 		}, this );
 		this.id = this.hash ? this.hash.substring ( 1 ) : null;
@@ -177,7 +181,10 @@ gui.URL.prototype = {
 	protocol : null, // http:
 	search : null, // ?q=devmo
 	id : null,	// test
-	external : false // external relative to the *document*, not the server host
+	external : false, // external relative to the *document*, not the server host!!! (rename "outbound" to clear this up?)
+	toString : function () { // behave somewhat like window.location ....
+		return this.href;
+	}
 };
 
 
@@ -257,6 +264,62 @@ gui.URL.setParam = function ( url, name, value ) {
 		params [ params.length ] = [ name, value ].join ( "=" );
 	}
 	return url + ( params.length > 0 ? "?" + params.join ( "&" ) : "" );
+};
+
+/**
+ * @param {Document} doc
+ * @param @optional {String} href
+ */
+gui.URL._createLink = function ( doc, href ) {
+	var link = doc.createElement ( "a" );
+	link.href = href || "";
+	if ( gui.Client.isExplorer ) {
+	  var uri = gui.URL.parseUri ( link.href );
+	  Object.keys ( uri ).forEach ( function ( key ) {
+			if ( !link [ key ]) {
+				link [ key ] = uri [ key ]; // this is wrong...
+			}
+	  });
+
+	}
+	return link;
+};
+
+/**
+ * Temp IE hotfix...
+ * @see http://blog.stevenlevithan.com/archives/parseuri
+ */
+gui.URL.parseUri = function ( str ) {
+	var	o = gui.URL.parseOptions,
+		m = o.parser[o.strictMode ? "strict" : "loose"].exec(str),
+		uri = {},
+		i = 14;
+	while (i--) {
+		uri[o.key[i]] = m[i] || "";
+	}
+	uri[o.q.name] = {};
+	uri[o.key[12]].replace(o.q.parser, function ($0, $1, $2) {
+		if ($1) {
+			uri[o.q.name][$1] = $2;
+		}
+	});
+	return uri;
+};
+
+/**
+ * Temp IE hotfix...
+ */
+gui.URL.parseOptions = {
+	strictMode: true,
+	key: ["source","protocol","authority","userInfo","user","password","host","port","relative","path","directory","file","query","anchor"],
+	q:   {
+		name: "queryKey",
+		parser: /(?:^|&)([^&=]*)=?([^&]*)/g
+	},
+	parser: {
+		strict: /^(?:([^:\/?#]+):)?(?:\/\/((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?))?((((?:[^?#\/]*\/)*)([^?#]*))(?:\?([^#]*))?(?:#(.*))?)/,
+		loose:  /^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/
+	}
 };
 
 
@@ -1481,41 +1544,31 @@ gui.Object = {
   },
 
   /**
-	 * Call function for each own key in object (exludes 
-	 * prototype stuff) with key and value as arguments.
-	 * @todo Collect and return array of results!
+	 * Call function for each own key in object (exluding the prototype stuff) 
+	 * with key and value as arguments. Returns array of function call results.
 	 * @param {object} object
 	 * @param {function} func
 	 * @param @optional {object} thisp
 	 */
 	each : function ( object, func, thisp ) {
-		Object.keys ( object ).forEach ( function ( key ) {
-			func.call ( thisp, key, object [ key ]);
+		return Object.keys ( object ).map ( function ( key ) {
+			return func.call ( thisp, key, object [ key ]);
 		});
 	},
 
 	 /**
-	 * Call function for all properties in object (including 
-	 * prototype stuff) with key and value as arguments.
-	 * @todo Collect and return array of results!
+	 * Call function for all properties in object (including prototype stuff) 
+	 * with key and value as arguments. Returns array of function call results.
 	 * @param {object} object
 	 * @param {function} func
 	 * @param @optional {object} thisp
 	 */
 	all : function ( object, func, thisp ) {
+		var res = [];
 		for ( var key in object ) {
-			func.call ( thisp, key, object [ key ]);
+			res.push ( func.call ( thisp, key, object [ key ]));
 		}
-	},
-
-	/**
-	 * @deprecated
-	 * Object has any (own) properties?
-	 * @param {object} object
-	 * @returns {boolean}
-	 */
-	isEmpty : function ( object ) {
-		return Object.keys ( object ).length === 0;
+		return res;
 	},
 
 	/**
@@ -6310,492 +6363,434 @@ gui.IBroadcastHandler = {
 
 
 /**
- * Spirit styling studio.
- * @extends {gui.Plugin}
+ * @using {gui.Combo.chained}
  */
-gui.CSSPlugin = gui.Plugin.extend ( "gui.CSSPlugin", {
-	
-	/**
-	 * Set single element.style.
-	 * @param {String} prop
-	 * @param {String} val
-	 * @returns {gui.CSSPlugin}
-	 */
-	set : function ( prop, val ) {
-		gui.CSSPlugin.set ( this.spirit.element, prop, val );
-		return this;
-	},
+( function using ( chained ) {
 
 	/**
-	 * Get single element.style; see also compute method.
-	 * @param {String} prop
-	 * @returns {String}
+	 * Spirit styling studio.
+	 * @extends {gui.Plugin}
 	 */
-	get : function ( prop ) {
-		return gui.CSSPlugin.get ( this.spirit.element, prop );
-	},
+	gui.CSSPlugin = gui.Plugin.extend ( "gui.CSSPlugin", {
+		
+		/**
+		 * Set single element.style.
+		 * @param {String} prop
+		 * @param {String} val
+		 * @returns {gui.CSSPlugin}
+		 */
+		set : chained ( function ( prop, val ) {
+			gui.CSSPlugin.set ( this.spirit.element, prop, val );
+		}),
 
-	/**
-	 * Compute runtime style.
-	 * @param {String} prop
-	 * @returns {String}
-	 */
-	compute : function ( prop ) {
-		return gui.CSSPlugin.compute ( this.spirit.element, prop );
-	},
+		/**
+		 * Get single element.style; see also compute method.
+		 * @param {String} prop
+		 * @returns {String}
+		 */
+		get : function ( prop ) {
+			return gui.CSSPlugin.get ( this.spirit.element, prop );
+		},
 
-	/**
-	 * Set multiple styles via key value map.
-	 * @param {Map<String,String>} map
-	 * @returns {gui.CSSPlugin}
-	 */
-	style : function ( map ) {
-		gui.CSSPlugin.style ( this.spirit.element, map );
-		return this;
-	},
+		/**
+		 * Compute runtime style.
+		 * @param {String} prop
+		 * @returns {String}
+		 */
+		compute : function ( prop ) {
+			return gui.CSSPlugin.compute ( this.spirit.element, prop );
+		},
 
-	/**
-	 * Get or set (full) className.
-	 * @param @optional {String} name
-	 * @returns {object} gui.Spirit or String
-	 */
-	name : function ( name ) {
-		var result = this.spirit.element.className;
-		if ( name !== undefined ) {
-			this.spirit.element.className = name;
-			result = this.spirit;
+		/**
+		 * Set multiple styles via key value map.
+		 * @param {Map<String,String>} map
+		 * @returns {gui.CSSPlugin}
+		 */
+		style : chained ( function ( map ) {
+			gui.CSSPlugin.style ( this.spirit.element, map );
+		}),
+
+		/**
+		 * Get or set (full) className.
+		 * @param @optional {String} name
+		 * @returns {object} gui.Spirit or String
+		 */
+		name : function ( name ) {
+			var result = this.spirit.element.className;
+			if ( name !== undefined ) {
+				this.spirit.element.className = name;
+				result = this.spirit;
+			}
+			return result;
+		},
+
+		/**
+		 * classList.add
+		 * @param {String} name
+		 * @returns {gui.CSSPlugin}
+		 */
+		add : chained ( function ( name ) {
+			gui.CSSPlugin.add ( this.spirit.element, name );
+		}),
+
+		/**
+		 * classList.remove
+		 * @param {String} name
+		 * @returns {gui.CSSPlugin}
+		 */
+		remove : chained ( function ( name ) {
+			gui.CSSPlugin.remove ( this.spirit.element, name );
+		}),
+
+		/**
+		 * classList.toggle
+		 * @param {String} name
+		 * @returns {gui.CSSPlugin}
+		 */
+		toggle : chained ( function ( name ) {
+			gui.CSSPlugin.toggle ( this.spirit.element, name );
+			return this;
+		}),
+
+		/**
+		 * classList.contains
+		 * @param {String} name
+		 * @returns {boolean}
+		 */
+		contains : function ( name ) {
+			return gui.CSSPlugin.contains ( this.spirit.element, name );
+		}, 
+
+		/**
+		 * Spirit element mathes selector?
+		 * @param {String} selector
+		 * @returns {boolean}
+		 */
+		matches : function ( selector ) {
+			return gui.CSSPlugin.matches ( this.spirit.element, selector );
 		}
-		return result;
-	},
+		
+		
+	}, {}, { // Static ......................................................................
 
-	/**
-	 * classList.add
-	 * @param {String} name
-	 * @returns {gui.CSSPlugin}
-	 */
-	add : function ( name ) {
-		gui.CSSPlugin.add ( this.spirit.element, name );
-		return this;
-	},
-
-	/**
-	 * classList.remove
-	 * @param {String} name
-	 * @returns {gui.CSSPlugin}
-	 */
-	remove : function ( name ) {
-		gui.CSSPlugin.remove ( this.spirit.element, name );
-		return this;
-	},
-
-	/**
-	 * classList.toggle
-	 * @param {String} name
-	 * @returns {gui.CSSPlugin}
-	 */
-	toggle : function ( name ) {
-		gui.CSSPlugin.toggle ( this.spirit.element, name );
-		return this;
-	},
-
-	/**
-	 * classList.contains
-	 * @param {String} name
-	 * @returns {boolean}
-	 */
-	contains : function ( name ) {
-		return gui.CSSPlugin.contains ( this.spirit.element, name );
-	}, 
-
-	/**
-	 * Spirit element mathes selector?
-	 * @param {String} selector
-	 * @returns {boolean}
-	 */
-	matches : function ( selector ) {
-		return gui.CSSPlugin.matches ( this.spirit.element, selector );
-	}
-	
-	
-}, {}, {
-
-	 // Static ......................................................................
-
-	 /**
-	 * classList.add
-	 * @param {Element} element
-	 * @param {String} names
-	 */
-	add : function ( element, name ) {
-		if ( name.indexOf ( " " ) >-1 ) {
-			name = name.split ( " " );
-		}
-		if ( gui.Type.isArray ( name )) {
-			name.forEach ( function ( n ) {
-				this.add ( element, n );
-			}, this );
-		} else {
-			if ( this._supports ) {
-				element.classList.add ( name );
+		 /**
+		 * classList.add
+		 * @param {Element} element
+		 * @param {String} names
+		 * @returns {function}
+		 */
+		add : chained ( function ( element, name ) {
+			if ( name.indexOf ( " " ) >-1 ) {
+				name = name.split ( " " );
+			}
+			if ( gui.Type.isArray ( name )) {
+				name.forEach ( function ( n ) {
+					this.add ( element, n );
+				}, this );
 			} else {
-				var now = element.className.split ( " " );
-				if ( now.indexOf ( name ) === -1 ) {
-					now.push ( name );
+				if ( this._supports ) {
+					element.classList.add ( name );
+				} else {
+					var now = element.className.split ( " " );
+					if ( now.indexOf ( name ) === -1 ) {
+						now.push ( name );
+						element.className = now.join ( " " );
+					}
+				}
+			}
+		}),
+
+		/**
+		 * classList.remove
+		 * @param {Element} element
+		 * @param {String} name
+		 * @returns {function}
+		 */
+		remove : chained ( function ( element, name ) {
+			if ( name.indexOf ( " " ) >-1 ) {
+				name = name.split ( " " );
+			}
+			if ( gui.Type.isArray ( name )) {
+				name.forEach ( function ( n ) {
+					this.remove ( element, n );
+				}, this );
+			} else {
+				if ( this._supports ) {
+					element.classList.remove ( name );
+				} else {
+					var now = element.className.split ( " " );
+					var idx = now.indexOf ( name );
+					if ( idx > -1 ) {
+						gui.Array.remove ( now, idx );
+					}
 					element.className = now.join ( " " );
 				}
 			}
-		}
-	},
+		}),
 
-	/**
-	 * classList.remove
-	 * @param {Element} element
-	 * @param {String} name
-	 * @returns {gui.CSSPlugin}
-	 */
-	remove : function ( element, name ) {
-		if ( name.indexOf ( " " ) >-1 ) {
-			name = name.split ( " " );
-		}
-		if ( gui.Type.isArray ( name )) {
-			name.forEach ( function ( n ) {
-				this.remove ( element, n );
-			}, this );
-		} else {
+		/**
+		 * classList.toggle
+		 * @param {Element} element
+		 * @param {String} name
+		 * @returns {gui.CSSPlugin}
+		 */
+		toggle : chained ( function ( element, name ) {
 			if ( this._supports ) {
-				element.classList.remove ( name );
+				element.classList.toggle ( name );
 			} else {
-				var now = element.className.split ( " " );
-				var idx = now.indexOf ( name );
-				if ( idx > -1 ) {
-					gui.Array.remove ( now, idx );
+				if ( this.contains ( element, name )) {
+					this.remove ( element, name );
+				} else {
+					this.add ( element, name );
 				}
-				element.className = now.join ( " " );
 			}
-		}
-	},
+		}),
 
-	/**
-	 * classList.toggle
-	 * @param {Element} element
-	 * @param {String} name
-	 * @returns {gui.CSSPlugin}
-	 */
-	toggle : function ( element, name ) {
-		if ( this._supports ) {
-			element.classList.toggle ( name );
-		} else {
-			if ( this.contains ( element, name )) {
-				this.remove ( element, name );
+		/**
+		 * classList.contains
+		 * @param {Element} element
+		 * @param {String} name
+		 * @returns {boolean}
+		 */
+		contains : function ( element, name ) {
+			if ( this._supports ) {
+				return element.classList.contains ( name );
 			} else {
-				this.add ( element, name );
+				var classnames = element.className.split ( " " );
+				return classnames.indexOf ( name ) >-1;
 			}
-		}
-	},
+		},
 
-	/**
-	 * classList.contains
-	 * @param {Element} element
-	 * @param {String} name
-	 * @returns {boolean}
-	 */
-	contains : function ( element, name ) {
-		var result = false;
-		if ( this._supports ) {
-			result = element.classList.contains ( name );
-		} else {
-			var classnames = element.className.split ( " " );
-			result = classnames.indexOf ( name ) >-1;
-		}
-		return result;
-	},
-
-	 /**
-	 * Set single element.style property (use style() for multiple)
-	 * @TODO also automate shorthands such as "10px 20px 10px 20px"
-	 * @param {Element}
-	 * @param {String} prop
-	 * @returns {gui.CSSPlugin}
-	 */
-	set : function ( element, prop, value ) {
-		if ( gui.Type.isNumber ( value )) {
-			value = ( this._shorthands [ prop ] || "@" ).replace ( "@", value );
-		}
-		value = String ( value );
-		switch ( prop ) {
-			case "float": 
+		 /**
+		 * Set single element.style property (use style() for multiple)
+		 * @TODO also automate shorthands such as "10px 20px 10px 20px"
+		 * @param {Element}
+		 * @param {String} prop
+		 * @returns {function}
+		 */
+		set : chained ( function ( element, prop, value ) {
+			if ( gui.Type.isNumber ( value )) {
+				value = ( this._shorthands [ prop ] || "@" ).replace ( "@", value );
+			}
+			value = String ( value );
+			if ( prop === "float" ) {
 				prop = "cssFloat";
-				break;
-			default :
+			} else {
 				value = this.jsvalue ( value );
 				prop = this.jsproperty ( prop );
-				break;
-		}
-		element.style [ prop ] = value;
-		return this;
-	},
-
-	 /**
-	 * @TODO Get element.style property; if this has been set. 
-	 * Not to be confused with compute() for computedStyle!!!
-	 * @param {Element}
-	 * @param {String} prop
-	 * @returns {String}
-	 */
-	get : function ( element, prop ) {
-		return this.jsvalue ( element.style [
-			this.jsproperty ( prop )
-		]);
-	},
-
-	/**
-	 * Set multiple element.style properties.
-	 * @param {object} thing Spirit or element.
-	 * @param {Map<String,String>} styles
-	 * @returns {object} Spirit or element
-	 */
-	style : function ( thing, styles ) {
-		var element = thing instanceof gui.Spirit ? thing.element : thing;
-		gui.Object.each ( styles, function ( prop, value ) {
-			this.set ( element, prop, value );
-		}, this );
-		return thing;
-	},
-
-	/**
-	 * Compute runtime style.
-	 * @param {object} thing Spirit or element.
-	 * @param {String} prop
-	 * @returns {String}
-	 */
-	compute : function ( thing, prop ) {
-		var element = thing instanceof gui.Spirit ? thing.element : thing;
-		var doc = element.ownerDocument, win = doc.defaultView;
-		prop = this._standardcase ( this.jsproperty ( prop ));
-		return win.getComputedStyle ( element, null ).getPropertyValue ( prop );
-	},
-
-	/**
-	 * Node matches CSS selector?
-	 * @param {Node} node
-	 * @param {String} selector
-	 * @returns {boolean}
-	 */
-	matches : function ( node, selector ) {
-		return node [ this._matchmethod ]( selector );
-	},
-
-	/**
-	 * Normalize declaration property for use in element.style scenario.
-	 * @param {String} prop
-	 * @returns {String}
-	 */
-	jsproperty : function ( prop ) {
-		var vendors = this._vendors, fixt = prop;
-		var element = document.documentElement;
-		prop = String ( prop );
-		if ( prop.startsWith ( "-beta-" )) {
-			vendors.every ( function ( vendor ) {
-				var test = this._camelcase ( prop.replace ( "-beta-", vendor ));
-				if ( element.style [ test ] !== undefined ) {
-					fixt = test;
-					return false;
-				}
-				return true;
-			}, this );
-		} else {
-			fixt = this._camelcase ( fixt );
-		}
-		return fixt;
-	},
-
-	/**
-	 * Normalize declaration value for use in element.style scenario.
-	 * @param {String} value
-	 * @returns {String}
-	 */
-	jsvalue : function ( value ) {
-		var vendors = this._vendors;
-		var element = document.documentElement;
-		value = String ( value );
-		if ( value && value.contains ( "-beta-" )) {
-			var parts = [];
-			value.split ( ", " ).forEach ( function ( part ) {
-				if (( part = part.trim ()).startsWith ( "-beta-" )) {
-					vendors.every ( function ( vendor ) {
-						var test = this._camelcase ( part.replace ( "-beta-", vendor ));
-						if ( element.style [ test ] !== undefined ) {
-							parts.push ( part.replace ( "-beta-", vendor ));
-							return false;
-						}
-						return true;
-					 }, this );		
-				} else {
-					parts.push ( part );
-				}
-			}, this );
-			value = parts.join ( "," );
-		}
-		return value;
-	},
-
-	/**
-	 * Normalize declaration property for use in CSS text.
-	 * @param {String} prop
-	 * @returns {String}
-	 */
-	cssproperty : function ( prop ) {
-		return this._standardcase ( this.jsproperty ( prop ));
-	},
-
-	/**
-	 * Normalize declaration value for use in CSS text.
-	 * @param {String} prop
-	 * @returns {String}
-	 */
-	cssvalue : function ( value ) {
-		return this._standardcase ( this.jsvalue ( value ));
-	},
-	
-
-	// Private statics ...................................................................... 
-
-	 /**
-	 * Non-matching vendors removed after first run. First entry 
-	 * gets to stay since it represents the unprefixed property.
-	 * @type {Array<String>}
-	 */
-	_vendors : [ "", "-webkit-", "-moz-", "-ms-", "-o-" ],
-
-	/**
-	 * _supports Element.classList?
-	 * @type {boolean}
-	 */
-	_supports : document.documentElement.classList !== undefined,
-
-	/**
-	 * CamelCase string.
-	 * @param {String} string
-	 * @returns {String}
-	 */
-	_camelcase : function ( string ) {
-		return string.replace ( /-([a-z])/ig, function ( all, letter ) {
-			return letter.toUpperCase();
-		});
-	},
-
-	/**
-	 * standard-css-notate CamelCased string.
-	 * @param {String} string
-	 * @returns {String}
-	 */
-	_standardcase : function ( string ) {
-		return string.replace ( /[A-Z]/g, function ( all, letter ) {
-			return "-" + string.charAt ( letter ).toLowerCase ();
-		});
-	},	
-
-	/**
-	 * Setter shorthands will autosuffix properties that require units 
-	 * in support of the syntax: this.css.width = 300;  * no method()
-	 * @TODO add tons of things to this list
-	 * @type {Map<String,String>
-	 */
-	_shorthands : {
-		top : "@px",
-		right : "@px",
-		bottom : "@px",
-		left : "@px",
-		width	: "@px",
-		height : "@px",
-		maxWidth : "@px",
-		maxHeight : "@px",
-		minWidth : "@px",
-		minHeight : "@px",
-		textIndent : "@px",
-		fontWeight : "@",
-		opacity : "@",
-		zIndex : "@",
-		position : "@",
-		display : "@",
-		visibility : "@"
-	},
-
-	// /**
-	//  * Normalize declaration value.
-	//  * @param {String} value
-	//  * @returns {value}
-	//  */
-	// _normval : function ( element, value ) {
-	// 	var vendors = this._vendors;
-	// 	if ( value && value.contains ( "-beta-" )) {
-	// 		var parts = [];
-	// 		value.split ( ", " ).forEach ( function ( part ) {
-	// 			if (( part = part.trim ()).startsWith ( "-beta-" )) {
-	// 				vendors.every ( function ( vendor ) {
-	// 					var test = this._camelcase ( part.replace ( "-beta-", vendor ));
-	// 					if ( element.style [ test ] !== undefined ) {
-	// 						parts.push ( part.replace ( "-beta-", vendor ));
-	// 						return false;
-	// 					}
-	// 					return true;
-	// 				 }, this );		
-	// 			} else {
-	// 				parts.push ( part );
-	// 			}
-	// 		}, this );
-	// 		value = parts.join ( "," );
-	// 	}
-	// 	return value;
-	// },
-
-	// /**
-	//  * Normalize declaration property.
-	//  * @param {Element} element
-	//  * @param {String} prop
-	//  * @returns {String}
-	//  */
-	// _normprop : function ( element, prop ) {
-	// 	var vendors = this._vendors, fixt = prop;
-	// 	if ( true ) {
-	// 		if ( prop.startsWith ( "-beta-" )) {
-	// 			vendors.every ( function ( vendor ) {
-	// 				var test = this._camelcase ( prop.replace ( "-beta-", vendor ));
-	// 				if ( element.style [ test ] !== undefined ) {
-	// 					fixt = test;
-	// 					return false;
-	// 				}
-	// 				return true;
-	// 			}, this );
-	// 		} else {
-	// 			fixt = this._camelcase ( fixt );
-	// 		}
-	// 	}
-	// 	return fixt;
-	// },
-
-	/**
-	 * Lookup vendors "matchesSelector" method.
-	 * @type {String} 
-	 */
-	_matchmethod : ( function () {
-		var match = null, root = document.documentElement;
-		[ 
-			"mozMatchesSelector", 
-			"webkitMatchesSelector", 
-			"msMatchesSelector", 
-			"oMatchesSelector", 
-			"matchesSelector" 
-		].every ( function ( method ) {
-			if ( gui.Type.isDefined ( root [ method ])) {
-				match = method;
 			}
-			return match === null;
-		});
-		return match;
-	})()
-	
-});
+			element.style [ prop ] = value;
+		}),
+
+		 /**
+		 * @TODO Get element.style property; if this has been set. 
+		 * Not to be confused with compute() for computedStyle!!!
+		 * @param {Element}
+		 * @param {String} prop
+		 * @returns {String}
+		 */
+		get : function ( element, prop ) {
+			prop = this.jsproperty ( prop );
+			return this.jsvalue ( element.style [ prop ]);
+		},
+
+		/**
+		 * Set multiple element.style properties.
+		 * @param {object} thing Spirit or element.
+		 * @param {Map<String,String>} styles
+		 * @returns {object} Spirit or element
+		 */
+		style : function ( thing, styles ) {
+			var element = thing instanceof gui.Spirit ? thing.element : thing;
+			gui.Object.each ( styles, function ( prop, value ) {
+				this.set ( element, prop, value );
+			}, this );
+			return thing;
+		},
+
+		/**
+		 * Compute runtime style.
+		 * @param {object} thing Spirit or element.
+		 * @param {String} prop
+		 * @returns {String}
+		 */
+		compute : function ( thing, prop ) {
+			var element = thing instanceof gui.Spirit ? thing.element : thing;
+			var doc = element.ownerDocument, win = doc.defaultView;
+			prop = this._standardcase ( this.jsproperty ( prop ));
+			return win.getComputedStyle ( element, null ).getPropertyValue ( prop );
+		},
+
+		/**
+		 * Node matches CSS selector?
+		 * @param {Node} node
+		 * @param {String} selector
+		 * @returns {boolean}
+		 */
+		matches : function ( node, selector ) {
+			return node [ this._matchmethod ]( selector );
+		},
+
+		/**
+		 * Normalize declaration property for use in element.style scenario.
+		 * @param {String} prop
+		 * @returns {String}
+		 */
+		jsproperty : function ( prop ) {
+			var vendors = this._vendors, fixt = prop;
+			var element = document.documentElement;
+			prop = String ( prop );
+			if ( prop.startsWith ( "-beta-" )) {
+				vendors.every ( function ( vendor ) {
+					var test = this._camelcase ( prop.replace ( "-beta-", vendor ));
+					if ( element.style [ test ] !== undefined ) {
+						fixt = test;
+						return false;
+					}
+					return true;
+				}, this );
+			} else {
+				fixt = this._camelcase ( fixt );
+			}
+			return fixt;
+		},
+
+		/**
+		 * Normalize declaration value for use in element.style scenario.
+		 * @param {String} value
+		 * @returns {String}
+		 */
+		jsvalue : function ( value ) {
+			var vendors = this._vendors;
+			var element = document.documentElement;
+			value = String ( value );
+			if ( value && value.contains ( "-beta-" )) {
+				var parts = [];
+				value.split ( ", " ).forEach ( function ( part ) {
+					if (( part = part.trim ()).startsWith ( "-beta-" )) {
+						vendors.every ( function ( vendor ) {
+							var test = this._camelcase ( part.replace ( "-beta-", vendor ));
+							if ( element.style [ test ] !== undefined ) {
+								parts.push ( part.replace ( "-beta-", vendor ));
+								return false;
+							}
+							return true;
+						 }, this );		
+					} else {
+						parts.push ( part );
+					}
+				}, this );
+				value = parts.join ( "," );
+			}
+			return value;
+		},
+
+		/**
+		 * Normalize declaration property for use in CSS text.
+		 * @param {String} prop
+		 * @returns {String}
+		 */
+		cssproperty : function ( prop ) {
+			return this._standardcase ( this.jsproperty ( prop ));
+		},
+
+		/**
+		 * Normalize declaration value for use in CSS text.
+		 * @param {String} prop
+		 * @returns {String}
+		 */
+		cssvalue : function ( value ) {
+			return this._standardcase ( this.jsvalue ( value ));
+		},
+		
+
+		// Private statics ...................................................................... 
+
+		 /**
+		 * Non-matching vendors removed after first run. First entry 
+		 * gets to stay since it represents the unprefixed property.
+		 * @type {Array<String>}
+		 */
+		_vendors : [ "", "-webkit-", "-moz-", "-ms-", "-o-" ],
+
+		/**
+		 * _supports Element.classList?
+		 * @type {boolean}
+		 */
+		_supports : document.documentElement.classList !== undefined,
+
+		/**
+		 * CamelCase string.
+		 * @param {String} string
+		 * @returns {String}
+		 */
+		_camelcase : function ( string ) {
+			return string.replace ( /-([a-z])/ig, function ( all, letter ) {
+				return letter.toUpperCase();
+			});
+		},
+
+		/**
+		 * standard-css-notate CamelCased string.
+		 * @param {String} string
+		 * @returns {String}
+		 */
+		_standardcase : function ( string ) {
+			return string.replace ( /[A-Z]/g, function ( all, letter ) {
+				return "-" + string.charAt ( letter ).toLowerCase ();
+			});
+		},	
+
+		/**
+		 * Setter shorthands will autosuffix properties that require units 
+		 * in support of the syntax: this.css.width = 300;  * no method()
+		 * @TODO add tons of things to this list
+		 * @type {Map<String,String>
+		 */
+		_shorthands : {
+			top : "@px",
+			right : "@px",
+			bottom : "@px",
+			left : "@px",
+			width	: "@px",
+			height : "@px",
+			maxWidth : "@px",
+			maxHeight : "@px",
+			minWidth : "@px",
+			minHeight : "@px",
+			textIndent : "@px",
+			fontWeight : "@",
+			opacity : "@",
+			zIndex : "@",
+			position : "@",
+			display : "@",
+			visibility : "@"
+		},
+
+		/**
+		 * Lookup vendors "matchesSelector" method.
+		 * @type {String} 
+		 */
+		_matchmethod : ( function () {
+			var match = null, root = document.documentElement;
+			[ 
+				"mozMatchesSelector", 
+				"webkitMatchesSelector", 
+				"msMatchesSelector", 
+				"oMatchesSelector", 
+				"matchesSelector" 
+			].every ( function ( method ) {
+				if ( gui.Type.isDefined ( root [ method ])) {
+					match = method;
+				}
+				return match === null;
+			});
+			return match;
+		})()
+		
+	});
+
+}( gui.Combo.chained ));
 
 /**
  * Generate shorthand getters/setters for top|left|width|height etc.
@@ -7588,7 +7583,7 @@ gui.CSSPlugin = gui.Plugin.extend ( "gui.CSSPlugin", {
 				method.call ( this, elms );
 				return things;
 			} else {
-				throw new TypeError ( "Bad input for method: " + name + "(" + things + ")" );	
+				throw new TypeError ( "Bad argument for method " + name + ": " + things );
 			}
 		});
 	});
@@ -9187,11 +9182,10 @@ gui.Client = ( new function Client () {
 	this.hasBlob = ( window.Blob && ( window.URL || window.webkitURL ));
 
 	/**
-	 * @TODO
 	 * Supports the History API?
 	 * @type {boolean}
 	 */
-	this.hasHistory = true;
+	this.hasHistory = ( window.history && window.history.pushState );
 
 	/**
 	 * Is mobile device? Not to be confused with this.hasTouch
@@ -9219,6 +9213,7 @@ gui.Client = ( new function Client () {
 
 	/**
 	 * Supports flexible box module?
+	 * @todo Firefox and Safari only a few versions back should NOT report true on this...
 	 * @type {boolean}
 	 */
 	this.hasFlexBox = supports ( "flex" );
@@ -9353,6 +9348,13 @@ gui.Client = ( new function Client () {
 		}
 		html.removeChild ( outer );
 		this.scrollBarSize = w1 - w2;
+
+		/*
+		 * Temp hotfix for IE...
+		 */
+		if ( this.isExplorer ) {
+			this.scrollBarSize = 17; // wat
+		}
 	}
 
 });
@@ -10088,12 +10090,13 @@ gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
 
 	/**
 	 * Is external address?
+	 * @todo Always external in IE because url.host is empty(!).
 	 * @returns {boolean}
 	 */
 	isExternal : function ( url ) {
-		var a = document.createElement ( "a" );
-		a.href = url;
-		return a.host !== location.host;
+		var doc = document; // TODO: scope this somehow...
+		url = new gui.URL ( doc, url );
+		return url.host !== doc.location.host;
 	}
 });
 
@@ -12117,9 +12120,10 @@ gui.FlexPlugin = gui.Plugin.extend ( "gui.FlexPlugin", {
 	/**
 	 * Remove inline (emulated) styles.
 	 * @param {Element} elm
+	 * @param @optional {boolean} hotswap Switching from emulated to native?
 	 */
-	unflex : function ( elm ) {
-		if ( this._emulated ( elm )) {
+	unflex : function ( elm, hotswap ) {
+		if ( this._emulated ( elm ) || hotswap ) {
 			this._crawl ( elm, "unflex" );
 		}
 	},
@@ -12166,8 +12170,9 @@ gui.FlexPlugin = gui.Plugin.extend ( "gui.FlexPlugin", {
 	 * @param {String} action
 	 */
 	_crawl : function ( elm, action ) {
-		if ( this._hasflex ( elm ) || action === "enable" ) {
-			var boxes = this._getflexboxes ( elm );
+		var disabled = action === "enable";
+		if ( this._shouldflex ( elm, disabled )) {
+			var boxes = this._getflexboxes ( elm, disabled );
 			boxes.forEach ( function ( box ) {
 				box [ action ]();
 			});
@@ -12179,16 +12184,36 @@ gui.FlexPlugin = gui.Plugin.extend ( "gui.FlexPlugin", {
 	 * @param {Element} elm
 	 * @returns {boolean}
 	 */
-	_hasflex : function ( elm ) {
-		if ( elm.nodeType === Node.ELEMENT_NODE ) {
-			return (
-				gui.CSSPlugin.contains ( elm, "flexrow" ) || 
-				gui.CSSPlugin.contains ( elm, "flexcol" ) ||
-				elm.querySelector ( ".flexrow" ) ||
-				elm.querySelector ( ".flexcol" )
-			);
-		}
-		return false;
+	_shouldflex : function ( elm, disabled ) {
+		return elm.nodeType === Node.ELEMENT_NODE && 
+			this._isflex ( elm, disabled ) || 
+			this._hasflex ( elm, disabled ); 
+	},
+
+	/**
+	 * Element is (potentially disabled) flexbox?
+	 * @param {Element} elm
+	 * @param {boolean} disabled
+	 * @return {boolean}
+	 */
+	_isflex : function ( elm, disabled ) {
+		return [ "flexrow", "flexcol" ].some ( function ( name ) {
+			name = name + ( disabled ? "-disabled" : "" );
+			return gui.CSSPlugin.contains ( elm, name );
+		});
+	},
+
+	/**
+	 * Element contains flexbox(es)?
+	 * @param {Element} elm
+	 * @param {boolean} disabled
+	 * @return {boolean}
+	 */
+	_hasflex : function ( elm, disabled ) {
+		return [ "flexrow", "flexcol" ].some ( function ( name ) {
+			name = name + ( disabled ? "-disabled" : "" );
+			return elm.querySelector ( "." + name );
+		});
 	},
 
 	/**
@@ -12196,12 +12221,12 @@ gui.FlexPlugin = gui.Plugin.extend ( "gui.FlexPlugin", {
 	 * @param @optional {Element} elm
 	 * @returns {Array<gui.FlexBox>}
 	 */
-	_getflexboxes : function ( elm ) {
-		var boxes = [], contains = gui.CSSPlugin.contains;
+	_getflexboxes : function ( elm, disabled ) {
+		var boxes = [];
 		new gui.Crawler ( "flexcrawler" ).descend ( elm, {
 			handleElement : function ( elm ) {
-				if ( contains ( elm, "flexrow" ) || contains ( elm, "flexcol" )) {
-					boxes.push ( new gui.FlexBox ( elm )); // TODO CLASSNAME FOR -disabled
+				if ( gui.FlexPlugin._isflex ( elm, disabled )) {
+					boxes.push ( new gui.FlexBox ( elm ));
 				}
 			}
 		});
@@ -12235,6 +12260,7 @@ gui.FlexBox.prototype = {
 	flex : function () {
 		this._flexself ();
 		this._flexchildren ();
+		this._flexcorrect ();
 	},
 
 	/**
@@ -12248,17 +12274,17 @@ gui.FlexBox.prototype = {
 	},
 
 	/**
+	 * Disable flex (perhaps to fit a mobile screen).
+	 */
+	disable : function () {
+		this._enable ( false );
+	},
+
+	/**
 	 * Enable flex.
 	 */
 	enable : function () {
 		this._enable ( true );
-	},
-
-	/**
-	 * Disable flex.
-	 */
-	disable : function () {
-		this._enable ( false );
 	},
 
 
@@ -12307,8 +12333,8 @@ gui.FlexBox.prototype = {
 	 */
 	_collectchildren : function ( elm ) {
 		return Array.filter ( elm.children, function ( child ) {
-			return gui.CSSPlugin.compute ( child, "display" ) !== "none";
-		}).map ( function ( child ) {
+			return this._shouldflex ( child );
+		}, this ).map ( function ( child ) {
 			return new gui.FlexChild ( child );
 		});
 	},
@@ -12321,13 +12347,11 @@ gui.FlexBox.prototype = {
 	 */
 	_flexself : function () {
 		var elm = this._element;
-		if ( this._flexcol ) {
-			if ( this._flexlax ) {
-				this._relaxflex ( elm ); // first time to minimize flashes in FF
-				gui.Tick.next(function(){ // second time to setup expected layout
-					this._relaxflex ( elm );
-				},this);
-			}
+		if ( this._flexcol && this._flexlax ) {
+			this._relaxflex ( elm ); // first time to minimize flashes in FF (does it work?)
+			gui.Tick.next(function(){ // second time to setup expected layout
+				this._relaxflex ( elm );
+			},this);
 		}
 	},
 
@@ -12362,6 +12386,21 @@ gui.FlexBox.prototype = {
 					child.setoffset ( percentage, this._flexcol );
 				}
 			},this);
+		}
+	},
+
+	/**
+	 * Eliminate spacing between inline-block children. Potentially 
+	 * adds a classname "_flexcorrect" to apply negative left margin.
+	 * @see {gui.FlexCSS}
+	 */
+	_flexcorrect : function () {
+		if ( !this._flexcol ) {
+			this._children.forEach ( function ( child, i ) {
+				if ( i > 0 ) {
+					child.flexcorrect ();
+				}
+			});
 		}
 	},
 
@@ -12407,18 +12446,29 @@ gui.FlexBox.prototype = {
 	},
 
 	/**
-	 * Enable/disable flex classname.
+	 * Enable/disable flex classname. Child element flexN classname 
+	 * becomes disabled by being scoped to flexrow or flexcol class.
 	 * @param {boolean} enable
 	 */
 	_enable : function ( enable ) {
-		var next, elm = this._element, css = elm.className;
-		[ "flexrow", "flexcol" ].forEach ( function ( name ) {
-			name = enable ? name + "-disabled" : name;
-			next = enable ? name : name + "-disabled";
-			if ( css.contains ( name )) {
-				elm.className = css.replace ( name, next );
+		var name, next, elm = this._element, css = gui.CSSPlugin;
+		[ "flexrow", "flexcol" ].forEach ( function ( klass ) {
+			name = enable ? klass + "-disabled" : klass;
+			next = enable ? klass : klass + "-disabled";
+			if ( css.contains ( elm, name )) {
+				css.remove ( elm, name ).add ( elm, next );
 			}
 		});
+	},
+
+	/**
+	 * Should child element be fed to computer for emulated mode?
+	 * @todo Position absolute might qualify for exclusion...
+	 * @param {Element} elm
+	 * @returns {boolean}
+	 */
+	_shouldflex : function ( elm ) {
+		return gui.CSSPlugin.compute ( elm, "display" ) !== "none";
 	},
 
 	/**
@@ -12447,7 +12497,7 @@ gui.FlexChild.prototype = {
 	 * @returns {String}
 	 */
 	toString : function () {
-		return "[object gui.FlexBox]";
+		return "[object gui.FlexChild]";
 	},
 
 	/**
@@ -12457,7 +12507,7 @@ gui.FlexChild.prototype = {
 	getflex : function () {
 		var flex = 0;
 		this._element.className.split ( " ").forEach ( function ( name ) {
-			if ( gui.FlexChild._FLEXNAME.test ( name )) { // @TODO regexp to exlude!
+			if ( gui.FlexChild._FLEXNAME.test ( name )) {
 				flex = ( gui.FlexChild._FLEXRATE.exec ( name ) || 1 );
 			}
 		});
@@ -12489,19 +12539,22 @@ gui.FlexChild.prototype = {
 	},
 
 	/**
-	 * @todo
-	 */
-	unflexxx : function () {
-
-	},
-
-	/**
 	 * Remove *all* inline styles from flexchild element.
 	 */
 	unflex : function () {
 		this._element.removeAttribute ( "style" );
 	},
 
+	/**
+	 * Potentially adds a classname "_flexcorrect" to apply negative left margin. 
+	 * @todo Measure computed font-size and correlate to negative margin value.
+	 */
+	flexcorrect : function () {
+		var elm = this._element;
+		if ( elm.previousSibling.nodeType === Node.TEXT_NODE ) {
+			gui.CSSPlugin.add ( elm, gui.FlexChild._FLEXCORRECT );
+		}
+	},
 
 	// Private .........................................................
 		
@@ -12509,12 +12562,32 @@ gui.FlexChild.prototype = {
 	 * Flexchild element.
 	 * @type {Element}
 	 */
-	_element : null
+	_element : null,
+
+	_enable : function ( enable ) {
+		var name, next, elm = this._element, css = gui.CSSPlugin;
+		this._element.className.split ( " ").forEach ( function ( klass ) {
+			name = enable ? klass + "-disabled" : klass;
+			next = enable ? klass : klass + "-disabled";
+			if ( gui.FlexChild._FLEXNAME.test ( klass )) {	
+				if ( css.contains ( elm, name )) {
+					css.remove ( elm, name ).add ( elm, next );
+				}
+			}
+		});
+	}
 
 };
 
 
 // Static ............................................................
+
+/**
+ * Classname applies negative left margin to counter 
+ * horizontal spacing on inline-block elements.
+ * @type {String}
+ */
+gui.FlexChild._FLEXCORRECT = "_flexcorrect";
 
 /**
  * Check for flexN classname.
@@ -12578,7 +12651,7 @@ gui.FlexCSS = {
 			if ( sheets && sheets [ mode ]) {
 				sheets [ mode ].enable ();
 			} else {
-				var doc = context.document, ruleset = this [ mode ] ( doc );
+				var doc = context.document, ruleset = this [ mode ];
 				var css = sheets [ mode ] = gui.StyleSheetSpirit.summon ( doc, null, ruleset );
 				doc.querySelector ( "head" ).appendChild ( css.element );
 			}
@@ -12615,86 +12688,80 @@ gui.FlexCSS = {
 		return sheets [ sig ];
 	}
 };
-	
+
 /**
- * Emulated ruleset. Notice font-size-zero trick to eliminate spacing on inline-blocks.
- * @param {Document} doc Used to measure default font-size
+ * Emulated ruleset.
+ * @todo Attempt all this using floats instead of inline-block and table layouts.
  */
-gui.FlexCSS [ "emulated" ] =  function ( doc ) {
-	var size = gui.CSSPlugin.compute ( doc.body, "font-size" );
-	return {
-		".flexrow, .flexcol" : {
-			"display" : "block",
-			"width" : "100%",
-			"height" : "100%",
-			"font-size" : 0
-		},
-		".flexrow > *:not(.flexrow):not(.flexcol), .flexcol > *:not(.flexrow):not(.flexcol)" : {
-			"font-size" : size
-		},
-		".flexrow > *" : {
-			"display" : "inline-block",
-			"vertical-align" : "top",
-			"height" : "100%"
-		},
-		"flexcol > *" : {
-			"display" : "block",
-			"width" : "100%"
-		},
-		".flexlax > .flexrow" : {
-			"display" : "table"
-		},
-		".flexlax > .flexrow > *" : {
-			"display" : "table-cell"
-		}
-	};
+gui.FlexCSS [ "emulated" ] =  {
+	".flexrow, .flexcol" : {
+		"display" : "block",
+		"width" : "100%",
+		"height" : "100%"
+	},
+	".flexrow > *" : {
+		"display" : "inline-block",
+		"vertical-align" : "top",
+		"height" : "100%"
+	},
+	".flexrow > ._flexcorrect" : {
+		"margin-left" : "-4px !important" // @todo Correlate this to computed font-size :)
+	},
+	"flexcol > *" : {
+		"display" : "block",
+		"width" : "100%"
+	},
+	".flexlax > .flexrow" : {
+		"display" : "table"
+	},
+	".flexlax > .flexrow > *" : {
+		"display" : "table-cell"
+	}
 };
 
 /**
- * Native ruleset. Engine can't parse [*=x] selector (says DOM exception), so 
- * let's just create one billion unique classnames. Cached after first compute.
+ * Native ruleset. Engine can't parse [*=xxxxx] selector (says DOM 
+ * exception), so let's just create one billion unique classnames.
  */
-gui.FlexCSS [ "native" ] = function () {
-	return this._native || ( function () {
-		var rules = this._native = {
-			".flexrow, .flexcol" : {
-				"display": "-beta-flex",
-				"-beta-flex-wrap" : "nowrap"
-			},
-			".flexcol" : {
-				"-beta-flex-direction" : "column",
-				"min-height" : "100%"
-			},
-			".flexrow" : {
-				"-beta-flex-direction" : "row",
-				"min-width": "100%"
-			},
-			".flexrow:not(.flexlax) > *, .flexcol:not(.flexlax) > *" : {
-					"-beta-flex-basis" : 1
-			},
-			".flexrow > .flexrow" : {
-				"min-width" : "auto"
-			}
+gui.FlexCSS [ "native" ] = ( function () {
+	var rules = {
+		".flexrow, .flexcol" : {
+			"display": "-beta-flex",
+			"-beta-flex-wrap" : "nowrap"
+		},
+		".flexcol" : {
+			"-beta-flex-direction" : "column",
+			"min-height" : "100%"
+		},
+		".flexrow" : {
+			"-beta-flex-direction" : "row",
+			"min-width": "100%"
+		},
+		".flexrow:not(.flexlax) > *, .flexcol:not(.flexlax) > *" : {
+				"-beta-flex-basis" : 1
+		},
+		".flexrow > .flexrow" : {
+			"min-width" : "auto"
+		}
+	};
+	function declare ( n ) {
+		rules [ ".flexrow > .flex" + n + ", .flexcol > .flex" + n ] = {
+			"-beta-flex-grow" : n || 1
 		};
-		function declare ( n ) {
-			rules [ ".flex" + n ] = {
-				"-beta-flex-grow" : n || 1
-			};
-			rules [ ".flexrow:not(.flexlax) > .flex" + n ] = {
-				"width" : "0"
-			};
-			rules [ ".flexcol:not(.flexlax) > .flex" + n ] = {
-				"height" : "0"
-			};
-			
-		}
-		var n = -1, max = this.maxflex;
-		while ( ++n <= max ) {
-			declare ( n || "" );
-		}
-		return rules;
-	}).call ( this );
-};
+		rules [ ".flexrow:not(.flexlax) > .flex" + n ] = {
+			"width" : "0"
+		};
+		rules [ ".flexcol:not(.flexlax) > .flex" + n ] = {
+			"height" : "0"
+		};
+		
+	}
+	var n = -1, max = this.maxflex;
+	while ( ++n <= max ) {
+		declare ( n || "" );
+	}
+	return rules;
+}).call ( gui.FlexCSS );
 
 
 /**
@@ -12717,7 +12784,7 @@ gui.FlexMode = {
 			this._flexmode = next;
 			var best = gui.Client.hasFlexBox ? gui.FLEXMODE_NATIVE : gui.FLEXMODE_EMULATED;
 			var mode = next === gui.FLEXMODE_OPTIMIZED ? best : next;
-			gui.FlexCSS.load ( this.window, mode );		
+			gui.FlexCSS.load ( this.window, mode );
 			if ( this.document.documentElement.spirit ) { // @todo life cycle markers for gui.Spiritual
 				switch ( mode ) {
 					case gui.FLEXMODE_EMULATED :
@@ -12732,8 +12799,7 @@ gui.FlexMode = {
 	},
 
 	/**
-	 * Update flex in emulated mode.
-	 * @todo unflexxx
+	 * Update flex.
 	 */
 	reflex : {
 		configurable : true,
@@ -12746,17 +12812,13 @@ gui.FlexMode = {
 	},
 	
 	/**
-	 * Remove *all* inline styles from flexbox and member elements.
-	 * @todo Rename this to something flex-related.
+	 * Remove flex (actually removes all inline styling on flex elements).
 	 */
 	unflex : {
 		configurable : true,
 		enumerable : false,
-		value : function () {
-			var node = this.document;
-			var body = node.body;
-			var root = node.documentElement;
-			( body.spirit || root.spirit ).flex.unflex ();
+		value : function ( elm ) {
+			gui.FlexPlugin.unflex ( elm || this.document.body, true );
 		}
 	}
 };
@@ -12796,7 +12858,7 @@ gui.module ( "flex", {
 
 	/**
 	 * Inject the relevant stylesheet (native or emulated) before startup spiritualization.
-	 * @todo Make sure stylesheet onload has fired to prevent flash of unflexxxed content?
+	 * @todo Make sure stylesheet onload has fired to prevent flash of unflexed content?
 	 * @param {Window} context
 	 */
 	onbeforespiritualize : function ( context ) {
