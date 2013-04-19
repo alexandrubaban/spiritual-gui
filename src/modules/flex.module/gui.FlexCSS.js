@@ -19,12 +19,6 @@ gui.FlexCSS = {
 	maxflex : 10,
 
 	/**
-	 * Flipped on CSS injected.
-	 * @type {boolean}
-	 */
-	loaded : false,
-
-	/**
 	 * Identification.
 	 * @returns {String}
 	 */
@@ -52,7 +46,7 @@ gui.FlexCSS = {
 				doc.querySelector ( "head" ).appendChild ( css.element );
 			}
 			sheets.mode = mode;
-			this.loaded = true;
+			context.gui.flexloaded = true;
 		}
 	},
 

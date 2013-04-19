@@ -154,8 +154,12 @@ gui.FlexPlugin = gui.Plugin.extend ( "gui.FlexPlugin", {
 		var boxes = [];
 		new gui.Crawler ( "flexcrawler" ).descend ( elm, {
 			handleElement : function ( elm ) {
-				if ( gui.FlexPlugin._isflex ( elm, disabled )) {
-					boxes.push ( new gui.FlexBox ( elm ));
+				if ( gui.CSSPlugin.compute ( elm, "display" ) !== "none" ) {
+					if ( gui.FlexPlugin._isflex ( elm, disabled )) {
+						boxes.push ( new gui.FlexBox ( elm ));
+					}
+				} else {
+					return gui.Crawler.SKIP_CHILDREN;
 				}
 			}
 		});

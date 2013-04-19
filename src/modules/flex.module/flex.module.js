@@ -36,12 +36,14 @@ gui.module ( "flex", {
 	 * @param {Window} context
 	 */
 	onbeforespiritualize : function ( context ) {
-		if ( !gui.FlexCSS.loaded ) {
+		if ( !context.gui.flexloaded ) { // @see {gui.FlexCSS}
 			gui.FlexCSS.load ( context, context.gui.flexmode );
 		}
 		/*
-		 * We could potentially bake this into EDBML updates...
-		 *
+		 * Bake reflex into EDBML updates to catch flex related attribute updates etc. 
+		 * (by default we only reflex whenever DOM elements get inserted or removed)
+		 * @todo Suspend default flex to only flex once
+		 */
 		if ( context.gui.hasModule ( "edb" )) {
 			var script = context.edb.ScriptPlugin.prototype;
 			gui.Function.decorateAfter ( script, "write", function () {
@@ -50,7 +52,14 @@ gui.module ( "flex", {
 				}
 			});
 		}
-		*/
+
+		console.log ( "TODO: resize-end hookup" );
+	},
+
+	onafterspiritualize : function ( context ) {
+		if ( context.gui.flexmode === gui.FLEXMODE_EMULATED ) {
+			context.gui.reflex ();
+		}
 	},
 
 	/**
