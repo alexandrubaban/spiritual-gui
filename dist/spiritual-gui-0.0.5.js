@@ -2060,7 +2060,7 @@ gui.Class = {
 		gui.Object.each ( C.__recurring__, function ( key, val ) {
 			C [ key ] = val;
 		});
-		gui.Accessors.support ( C, protos ); // @TODO what about base?
+		gui.Property.support ( C, protos ); // @TODO what about base?
 		gui.Super.support ( SuperC, C, protos );
 		C = this._nameclass ( C, name );
 		return this._profiling ( C );
@@ -2330,7 +2330,7 @@ gui.Object.each ({
 /**
  * Assisting {gui.Class} with property cloning plus getters and setters stuff.
  */
-gui.Accessors = {
+gui.Property = {
 
 	/**
 	 * Create getter/setter for object assuming enumerable and configurable.
@@ -2339,7 +2339,7 @@ gui.Accessors = {
 	 * @param {object} def An object with methods "get" and/or "set"
 	 * @returns {object}
 	 */
-	defineAccessor : function ( object, key, def ) {
+	accessor : function ( object, key, def ) {
 		if ( this._definesAccessor ( def )) {
 			return Object.defineProperty ( object, key, {
 				enumerable : true,
