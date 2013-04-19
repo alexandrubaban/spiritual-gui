@@ -2,6 +2,7 @@
  * DOM query and manipulation.
  * @TODO implement missing stuff
  * @TODO performance for all this
+ * @TODO add following and preceding
  * @using {gui.Combo#chained}
  */
 ( function using ( chained ) {
