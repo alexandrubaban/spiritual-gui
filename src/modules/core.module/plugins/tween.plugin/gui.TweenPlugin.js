@@ -33,9 +33,7 @@ gui.TweenPlugin = gui.Tracker.extend ( "gui.TweenPlugin", {
 		var sig = this._global ? null : this._sig;
 		var message = gui.BROADCAST_TWEEN;
 		this._breakdown ( arg ).forEach ( function ( type ) {
-			if ( this._removechecks ( type, [ this._global ])) {
-				// what
-			}
+			this._removechecks ( type, [ this._global ]);
 		}, this );
 		return this;
 	},
