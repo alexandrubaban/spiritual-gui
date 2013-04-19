@@ -50,6 +50,14 @@ gui.FlexCSS = {
 		}
 	},
 
+	/**
+	 * Don't reference dead spirits.
+	 * @param {Window} context
+	 */
+	unload : function ( context ) {
+		delete this._sheets [ context.gui.signature ];
+	},
+
 
 	// Private .......................................................................
 	
@@ -83,7 +91,7 @@ gui.FlexCSS = {
  * Emulated ruleset.
  * @todo Attempt all this using floats instead of inline-block and table layouts.
  */
-gui.FlexCSS [ "emulated" ] =  {
+gui.FlexCSS.emulated =  {
 	".flexrow, .flexcol" : {
 		"display" : "block",
 		"width" : "100%",
@@ -113,7 +121,7 @@ gui.FlexCSS [ "emulated" ] =  {
  * Native ruleset. Engine can't parse [*=xxxxx] selector (says DOM 
  * exception), so let's just create one billion unique classnames.
  */
-gui.FlexCSS [ "native" ] = ( function () {
+gui.FlexCSS.native = ( function () {
 	var rules = {
 		".flexrow, .flexcol" : {
 			"display": "-beta-flex",
@@ -146,9 +154,9 @@ gui.FlexCSS [ "native" ] = ( function () {
 		};
 		
 	}
-	var n = -1, max = this.maxflex;
+	var n = -1, max = gui.FlexCSS.maxflex;
 	while ( ++n <= max ) {
 		declare ( n || "" );
 	}
 	return rules;
-}).call ( gui.FlexCSS );
+}());
