@@ -1,14 +1,18 @@
- /**
+/**
  * Resolve an URL string relative to a document.
+ * @todo Read https://gist.github.com/jlong/2428561
  * @param {Document} doc
  * @param {String} href
  */
 gui.URL = function ( doc, href ) {
 	if ( doc && doc.nodeType === Node.DOCUMENT_NODE ) {
-		var link = doc.createElement ( "a" ); link.href = href;
-		Object.keys ( gui.URL.prototype ).forEach ( function ( key ) {
-			if ( gui.Type.isString ( link [ key ])) {
-				this [ key ] = link [ key ];
+		var val, link = gui.URL._createLink ( doc, href );
+		Object.keys ( gui.URL.prototype ).forEach ( function ( key ) { // @todo exclude toString somehow...
+			if ( gui.Type.isString (( val = link [ key ]))) {
+				if ( key === "pathname" && !val.startsWith ( "/" )) {
+					val = "/" + val; // http://stackoverflow.com/questions/956233/javascript-pathname-ie-quirk
+				}
+				this [ key ] = val;
 			}
 		}, this );
 		this.id = this.hash ? this.hash.substring ( 1 ) : null;
@@ -29,7 +33,10 @@ gui.URL.prototype = {
 	protocol : null, // http:
 	search : null, // ?q=devmo
 	id : null,	// test
-	external : false // external relative to the *document*, not the server host
+	external : false, // external relative to the *document*, not the server host!!! (rename "outbound" to clear this up?)
+	toString : function () { // behave somewhat like window.location ....
+		return this.href;
+	}
 };
 
 
@@ -109,4 +116,60 @@ gui.URL.setParam = function ( url, name, value ) {
 		params [ params.length ] = [ name, value ].join ( "=" );
 	}
 	return url + ( params.length > 0 ? "?" + params.join ( "&" ) : "" );
+};
+
+/**
+ * @param {Document} doc
+ * @param @optional {String} href
+ */
+gui.URL._createLink = function ( doc, href ) {
+	var link = doc.createElement ( "a" );
+	link.href = href || "";
+	if ( gui.Client.isExplorer ) {
+	  var uri = gui.URL.parseUri ( link.href );
+	  Object.keys ( uri ).forEach ( function ( key ) {
+			if ( !link [ key ]) {
+				link [ key ] = uri [ key ]; // this is wrong...
+			}
+	  });
+
+	}
+	return link;
+};
+
+/**
+ * Temp IE hotfix...
+ * @see http://blog.stevenlevithan.com/archives/parseuri
+ */
+gui.URL.parseUri = function ( str ) {
+	var	o = gui.URL.parseOptions,
+		m = o.parser[o.strictMode ? "strict" : "loose"].exec(str),
+		uri = {},
+		i = 14;
+	while (i--) {
+		uri[o.key[i]] = m[i] || "";
+	}
+	uri[o.q.name] = {};
+	uri[o.key[12]].replace(o.q.parser, function ($0, $1, $2) {
+		if ($1) {
+			uri[o.q.name][$1] = $2;
+		}
+	});
+	return uri;
+};
+
+/**
+ * Temp IE hotfix...
+ */
+gui.URL.parseOptions = {
+	strictMode: true,
+	key: ["source","protocol","authority","userInfo","user","password","host","port","relative","path","directory","file","query","anchor"],
+	q:   {
+		name: "queryKey",
+		parser: /(?:^|&)([^&=]*)=?([^&]*)/g
+	},
+	parser: {
+		strict: /^(?:([^:\/?#]+):)?(?:\/\/((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?))?((((?:[^?#\/]*\/)*)([^?#]*))(?:\?([^#]*))?(?:#(.*))?)/,
+		loose:  /^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/
+	}
 };

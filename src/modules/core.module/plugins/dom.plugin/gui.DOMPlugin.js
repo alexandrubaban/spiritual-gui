@@ -764,7 +764,7 @@
 				method.call ( this, elms );
 				return things;
 			} else {
-				throw new TypeError ( "Bad input for method: " + name + "(" + things + ")" );	
+				throw new TypeError ( "Bad argument for method " + name + ": " + things );
 			}
 		});
 	});

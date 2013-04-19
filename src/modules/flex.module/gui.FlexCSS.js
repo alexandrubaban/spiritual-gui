@@ -95,7 +95,7 @@ gui.FlexCSS [ "emulated" ] =  {
 		"height" : "100%"
 	},
 	".flexrow > ._flexcorrect" : {
-		"margin-left" : "-4px" // @todo Correlate this to computed font-size :)
+		"margin-left" : "-4px !important" // @todo Correlate this to computed font-size :)
 	},
 	"flexcol > *" : {
 		"display" : "block",
