@@ -1965,6 +1965,7 @@ gui.Class = {
 	 */
 	create : function () {
 		var b = this._breakdown_base ( arguments );
+		//alert ( b.proto === Array.prototype )
 		var C = this._createclass ( null, b.proto, b.name );
 		gui.Object.extend ( C.prototype, b.protos );
 		gui.Object.extend ( C, b.statics );
@@ -2403,6 +2404,16 @@ gui.Property = {
 		} else {
 			throw new TypeError ( "Expected getter and/or setter method" );
 		}
+	},
+
+	/**
+	 * Experimental.
+	 */
+	nonenumerable : function ( def ) {
+		return gui.Object.extend ({
+			configurable : true,
+			enumerable : false
+		}, def );
 	},
 
 
@@ -12225,8 +12236,12 @@ gui.FlexPlugin = gui.Plugin.extend ( "gui.FlexPlugin", {
 		var boxes = [];
 		new gui.Crawler ( "flexcrawler" ).descend ( elm, {
 			handleElement : function ( elm ) {
-				if ( gui.FlexPlugin._isflex ( elm, disabled )) {
-					boxes.push ( new gui.FlexBox ( elm ));
+				if ( gui.CSSPlugin.compute ( elm, "display" ) !== "none" ) {
+					if ( gui.FlexPlugin._isflex ( elm, disabled )) {
+						boxes.push ( new gui.FlexBox ( elm ));
+					}
+				} else {
+					return gui.Crawler.SKIP_CHILDREN;
 				}
 			}
 		});
@@ -12623,12 +12638,6 @@ gui.FlexCSS = {
 	maxflex : 10,
 
 	/**
-	 * Flipped on CSS injected.
-	 * @type {boolean}
-	 */
-	loaded : false,
-
-	/**
 	 * Identification.
 	 * @returns {String}
 	 */
@@ -12656,7 +12665,7 @@ gui.FlexCSS = {
 				doc.querySelector ( "head" ).appendChild ( css.element );
 			}
 			sheets.mode = mode;
-			this.loaded = true;
+			context.gui.flexloaded = true;
 		}
 	},
 
@@ -12766,62 +12775,69 @@ gui.FlexCSS [ "native" ] = ( function () {
 
 /**
  * Properties and methods to be mixed into the context-local {gui.Spiritual} instance. 
- * Note to self: Enumerable false is to prevent portalling since this would portal the local setting too.
+ * @using {gui.Property#nonenumerable}
  */
-gui.FlexMode = {
+gui.FlexMode = ( function using ( nonenumerable ) {
+
+	return {
 		
-	/**
-	 * Flexmode accessor. Note that flexmode exposes as either native or emulated (never optimized).
-	 */
-	flexmode : {
-		configurable : true,
-		enumerable : false,
-		get : function () { 
-			var best = gui.Client.hasFlexBox ? gui.FLEXMODE_NATIVE : gui.FLEXMODE_EMULATED;
-			return this._flexmode === gui.FLEXMODE_OPTIMIZED ? best : this._flexmode;
-		},
-		set : function ( next ) { // supports hotswapping for debugging
-			this._flexmode = next;
-			var best = gui.Client.hasFlexBox ? gui.FLEXMODE_NATIVE : gui.FLEXMODE_EMULATED;
-			var mode = next === gui.FLEXMODE_OPTIMIZED ? best : next;
-			gui.FlexCSS.load ( this.window, mode );
-			if ( this.document.documentElement.spirit ) { // @todo life cycle markers for gui.Spiritual
-				switch ( mode ) {
-					case gui.FLEXMODE_EMULATED :
-						this.reflex ();
-						break;
-					case gui.FLEXMODE_NATIVE :
-						this.unflex ();
-						break;
+		/**
+		 * Flipped on CSS injected.
+		 * @type {boolean}
+		 */
+		flexloaded : nonenumerable ({
+			value : false
+		}),
+
+		/**
+		 * Flexmode accessor. Note that flexmode exposes as either native or emulated (never optimized).
+		 * Note to self: enumerable false is to prevent portalling since this would portal the flexmode.
+		 */
+		flexmode : nonenumerable ({
+			get : function () { 
+				var best = gui.Client.hasFlexBox ? gui.FLEXMODE_NATIVE : gui.FLEXMODE_EMULATED;
+				return this._flexmode === gui.FLEXMODE_OPTIMIZED ? best : this._flexmode;
+			},
+			set : function ( next ) { // supports hotswapping for debugging
+				this._flexmode = next;
+				var best = gui.Client.hasFlexBox ? gui.FLEXMODE_NATIVE : gui.FLEXMODE_EMULATED;
+				var mode = next === gui.FLEXMODE_OPTIMIZED ? best : next;
+				gui.FlexCSS.load ( this.window, mode );
+				if ( this.document.documentElement.spirit ) { // @todo life cycle markers for gui.Spiritual
+					switch ( mode ) {
+						case gui.FLEXMODE_EMULATED :
+							this.reflex ();
+							break;
+						case gui.FLEXMODE_NATIVE :
+							this.unflex ();
+							break;
+					}
 				}
 			}
-		}
-	},
+		}),
 
-	/**
-	 * Update flex.
-	 */
-	reflex : {
-		configurable : true,
-		enumerable : false,
-		value : function ( elm ) {
-			if ( this.flexmode === this.FLEXMODE_EMULATED ) {
-				gui.FlexPlugin.reflex ( elm || this.document.body );
+		/**
+		 * Flex everything.
+		 */
+		reflex : nonenumerable ({
+			value : function ( elm ) {
+				if ( this.flexmode === this.FLEXMODE_EMULATED ) {
+					gui.FlexPlugin.reflex ( elm || this.document.body );
+				}
 			}
-		}
-	},
-	
-	/**
-	 * Remove flex (actually removes all inline styling on flex elements).
-	 */
-	unflex : {
-		configurable : true,
-		enumerable : false,
-		value : function ( elm ) {
-			gui.FlexPlugin.unflex ( elm || this.document.body, true );
-		}
-	}
-};
+		}),
+		
+		/**
+		 * Remove flex (removes all inline styling on flexbox elements).
+		 */
+		unflex : nonenumerable ({
+			value : function ( elm ) {
+				gui.FlexPlugin.unflex ( elm || this.document.body, true );
+			}
+		})
+	};
+
+}( gui.Property.nonenumerable ));
 
 
 gui.FLEXMODE_NATIVE = "native";
@@ -12862,12 +12878,14 @@ gui.module ( "flex", {
 	 * @param {Window} context
 	 */
 	onbeforespiritualize : function ( context ) {
-		if ( !gui.FlexCSS.loaded ) {
+		if ( !context.gui.flexloaded ) { // @see {gui.FlexCSS}
 			gui.FlexCSS.load ( context, context.gui.flexmode );
 		}
 		/*
-		 * We could potentially bake this into EDBML updates...
-		 *
+		 * Bake reflex into EDBML updates to catch flex related attribute updates etc. 
+		 * (by default we only reflex whenever DOM elements get inserted or removed)
+		 * @todo Suspend default flex to only flex once
+		 */
 		if ( context.gui.hasModule ( "edb" )) {
 			var script = context.edb.ScriptPlugin.prototype;
 			gui.Function.decorateAfter ( script, "write", function () {
@@ -12876,7 +12894,14 @@ gui.module ( "flex", {
 				}
 			});
 		}
-		*/
+
+		console.log ( "TODO: resize-end hookup" );
+	},
+
+	onafterspiritualize : function ( context ) {
+		if ( context.gui.flexmode === gui.FLEXMODE_EMULATED ) {
+			context.gui.reflex ();
+		}
 	},
 
 	/**
