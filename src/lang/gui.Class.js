@@ -18,6 +18,7 @@ gui.Class = {
 	 */
 	create : function () {
 		var b = this._breakdown_base ( arguments );
+		//alert ( b.proto === Array.prototype )
 		var C = this._createclass ( null, b.proto, b.name );
 		gui.Object.extend ( C.prototype, b.protos );
 		gui.Object.extend ( C, b.statics );
@@ -166,7 +167,7 @@ gui.Class = {
 		gui.Object.each ( C.__recurring__, function ( key, val ) {
 			C [ key ] = val;
 		});
-		gui.Accessors.support ( C, protos ); // @TODO what about base?
+		gui.Property.support ( C, protos ); // @TODO what about base?
 		gui.Super.support ( SuperC, C, protos );
 		C = this._nameclass ( C, name );
 		return this._profiling ( C );
