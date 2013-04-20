@@ -1,13 +1,11 @@
 /**
+ * Spirit styling studio.
+ * @extends {gui.Plugin}
  * @using {gui.Combo.chained}
  */
-( function using ( chained ) {
+gui.CSSPlugin = ( function using ( chained ) {
 
-	/**
-	 * Spirit styling studio.
-	 * @extends {gui.Plugin}
-	 */
-	gui.CSSPlugin = gui.Plugin.extend ( "gui.CSSPlugin", {
+	return gui.Plugin.extend ( "gui.CSSPlugin", {
 		
 		/**
 		 * Set single element.style.
