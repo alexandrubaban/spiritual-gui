@@ -23,18 +23,33 @@ gui.Object = {
 	},
 
 	/**
-	 * Extend target with source properties *excluding* prototype stuff.
+	 * Extend target with source properties *excluding* prototype stuff. 
+	 * Optional parameter 'loose' to skips properties already declared.
 	 * @TODO bypass mixin?
 	 * @param {object} target
 	 * @param {object} source
+	 * @param @optional {boolean} loose Skip properties already declared
 	 * @returns {object}
 	 */
-	extend : function extend ( target, source ) {
+	extend : function ( target, source, loose ) {
 		Object.keys ( source ).forEach ( function ( name ) {
-			var desc = Object.getOwnPropertyDescriptor ( source, name );
-			Object.defineProperty ( target, name, desc );
+			if ( !loose || !gui.Type.isDefined ( target [ name ])) {
+				var desc = Object.getOwnPropertyDescriptor ( source, name );
+				Object.defineProperty ( target, name, desc );
+			}
     });
     return target;
+  },
+
+  /**
+   * Extend target with source properties, 
+   * skipping everything already declared.
+   * @param {object} target
+	 * @param {object} source
+	 * @returns {object}
+   */
+  extendmissing : function ( target, source ) {
+  	return this.extend ( target, source, true );
   },
 
   /**
@@ -162,7 +177,7 @@ gui.Object = {
 	},
 
 	/**
-	 * Convert array-like object to array; but always return an array.
+	 * Convert array-like object to array. Always returns an array.
 	 * @param {object} object
 	 * @returns {Array<object>}
 	 */
@@ -172,7 +187,7 @@ gui.Object = {
 			result = object;
 		} else {
 			try {
-				if ( object.length !== undefined && ( "0" in Object ( object ))) {
+				if ( gui.Type.isDefined ( object.length ) && ( "0" in Object ( object ))) {
 					result = Array.map ( object, function ( thing ) {
 						return thing;
 					});
