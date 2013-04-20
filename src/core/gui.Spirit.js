@@ -58,9 +58,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	 */
 	onconstruct : function () {
 		this.__plugin__ ();
-		if ( this.window.gui.debug ) {
-			this.__debug__ ( true );
-		}
+		this.__debug__ ( true );
 		this.life.goconstruct ();
 	},
 	
@@ -145,9 +143,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	 */
 	ondestruct : function ( now ) {
 		this.window.gui.destruct ( this );
-		if ( this.window.gui.debug ) {
-			this.__debug__ ( false );
-		}
+		this.__debug__ ( false );
 		this.life.godestruct ();
 		this.__destruct__ ( now );
 	},
