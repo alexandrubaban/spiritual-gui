@@ -49,7 +49,7 @@ gui.Object = {
 	 * @returns {object}
    */
   extendmissing : function ( target, source ) {
-  	return this.extend ( target, source, true );
+		return this.extend ( target, source, true );
   },
 
   /**
