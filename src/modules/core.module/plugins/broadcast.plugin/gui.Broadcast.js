@@ -12,13 +12,14 @@
 	 * @param {object} data
 	 * @param {boolean} global
 	 */
-	gui.Broadcast = function ( target, type, data, global ) {
+	gui.Broadcast = function ( target, type, data, global, sig ) {
 		
 		this.target = target;
 		this.type = type;
 		this.data = data;
 		this.isGlobal = global;
 		this.signatures = [];
+		this.signature = sig || gui.signature;
 	};
 
 	gui.Broadcast.prototype = {
@@ -49,7 +50,15 @@
 		isGlobal : false,
 
 		/**
+		 * Signature of dispatching context. 
+		 * Unimportant for global broadcasts.
+		 * @type {String}
+		 */
+		signature : null,
+
+		/**
 		 * Experimental...
+		 * @todo Still used?
 		 * @type {Array<String>}
 		 */
 		signatures : null,
@@ -263,7 +272,7 @@
 	gui.Broadcast._dispatch = function ( target, type, data, sig ) {
 		var global = !gui.Type.isString ( sig );
 		var map = global ? this._globals : this._locals [ sig ];
-		var b = new gui.Broadcast ( target, type, data, global );
+		var b = new gui.Broadcast ( target, type, data, global, sig );
 		if ( map ) {
 			var handlers = map [ type ];
 			if ( handlers ) {
