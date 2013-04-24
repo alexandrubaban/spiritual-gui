@@ -70,13 +70,17 @@ gui.Class = {
 			if ( this instanceof $name === false ) {
 				return $name.extend.apply ( $name, arguments );
 			} else {
-				window.Object.defineProperty ( this, "$instanceid", {
-					value: gui.KeyMaster.generateKey ( "instance" ),
-					enumerable : false,
-					configurable: false,
-					writable: false
-				});
 				var constructor = this.$onconstruct || this.onconstruct;
+				var nonenumprop = gui.Property.nonenumerable;
+				window.Object.defineProperties ( this, {
+					"$instanceid" : nonenumprop ({
+						value: gui.KeyMaster.generateKey ( "instance" )
+					}),
+					displayName : nonenumprop ({
+						value : this.constructor.displayName,
+						writable : true
+					})
+				});
 				if ( gui.Type.isFunction ( constructor )) {
 					constructor.apply ( this, arguments );
 				}
@@ -166,7 +170,7 @@ gui.Class = {
 		gui.Object.each ( C.__recurring__, function ( key, val ) {
 			C [ key ] = val;
 		});
-		gui.Accessors.support ( C, protos ); // @TODO what about base?
+		gui.Property.extendall ( protos, C.prototype ); // @TODO what about base?
 		gui.Super.support ( SuperC, C, protos );
 		C = this._nameclass ( C, name );
 		return this._profiling ( C );
@@ -269,12 +273,12 @@ gui.Class = {
 	 */
 	_displayname : function ( thing, name ) {
 		if ( !gui.Type.isDefined ( thing.displayName )) {
-			Object.defineProperty ( thing, "displayName", {
-				enumerable : false,
-				configurable: true,
-				writable: true,
-				value: name
-			});
+			Object.defineProperty ( thing, "displayName", 
+				gui.Property.nonenumerable ({
+					writable : true,
+					value : name
+				})
+			);
 		}
 		return thing;
 	}

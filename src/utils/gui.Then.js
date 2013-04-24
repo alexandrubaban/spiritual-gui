@@ -1,5 +1,6 @@
 /**
- * Encapsulates a callback for future use.
+ * Encapsulates a callback for future use. 
+ * @TODO mimic DOM Futures to some degree.
  */
 gui.Then = function Then () {};
 
@@ -21,6 +22,9 @@ gui.Then.prototype = {
   then : function ( callback, thisp ) {
     this._callback = callback ? callback : null;
     this._pointer = thisp ? thisp : null;
+    if ( this._now ) {
+      this.now ();
+    }
   },  
 
   /**
@@ -33,6 +37,8 @@ gui.Then.prototype = {
     if ( c ) {
       this.then ( null, null );
       c.apply ( p, arguments );
+    } else {
+      this._now = true;
     }
   },
 
@@ -49,6 +55,12 @@ gui.Then.prototype = {
    * Preserve integrity of "this" keyword in callback function.
    * @type {object}
    */
-  _pointer : null
+  _pointer : null,
+
+  /**
+   * Execute as soon as callback gets delivered?
+   * @type {boolean}
+   */
+  _now : false
 
 };

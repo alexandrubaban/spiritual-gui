@@ -13,8 +13,8 @@ gui.FLEXMODE_OPTIMIZED = "optimized",
 gui.module ( "flex", {
 
 	/** 
-	 * Setup gui.FlexPlugin for all spirits. 
-	 * Trigger flex using this.flex.reflex()
+	 * Setup gui.FlexPlugin for all spirits. Spirits may 
+	 * update subtree flex by using `this.flex.reflex()`
 	 */
 	plugins : {
 		flex : gui.FlexPlugin
@@ -28,6 +28,7 @@ gui.module ( "flex", {
 	oncontextinitialize : function ( context ) {
 		context.gui._flexmode = gui.FLEXMODE_OPTIMIZED;
 		context.Object.defineProperties ( context.gui, gui.FlexMode );
+		this._edbsetup ( context );
 	},
 
 	/**
@@ -36,12 +37,46 @@ gui.module ( "flex", {
 	 * @param {Window} context
 	 */
 	onbeforespiritualize : function ( context ) {
-		if ( !gui.FlexCSS.loaded ) {
+		if ( !context.gui.flexloaded ) { // @see {gui.FlexCSS}
 			gui.FlexCSS.load ( context, context.gui.flexmode );
 		}
-		/*
-		 * We could potentially bake this into EDBML updates...
-		 *
+	},
+
+	/**
+	 * Flex everything on startup and resize. 
+	 * @TODO put broadcast into if statement
+	 * @param {Window} context
+	 */
+	onafterspiritualize : function ( context ) {
+		if ( context.gui.flexmode === gui.FLEXMODE_EMULATED ) {
+			context.gui.reflex ();
+		}
+		gui.Broadcast.addGlobal ( gui.BROADCAST_RESIZE_END, {
+			onbroadcast : function () {
+				if ( context.gui.flexmode === gui.FLEXMODE_EMULATED )	{
+					context.gui.reflex ();
+				}
+			}
+		});
+	},
+
+	/**
+	 * Cleanup on window unload.
+	 * @param {Window} context
+	 */
+	oncontextunload : function ( context ) {
+		gui.FlexCSS.unload ( context );
+	},
+
+
+	// Private ...................................................
+	 
+	/*
+	 * Bake reflex into EDBML updates to catch flex related attribute updates etc. 
+	 * (by default we only reflex whenever DOM elements get inserted or removed)
+	 * @todo Suspend default flex to only flex once
+	 */
+	_edbsetup : function ( context ) {
 		if ( context.gui.hasModule ( "edb" )) {
 			var script = context.edb.ScriptPlugin.prototype;
 			gui.Function.decorateAfter ( script, "write", function () {
@@ -50,14 +85,7 @@ gui.module ( "flex", {
 				}
 			});
 		}
-		*/
-	},
-
-	/**
-	 * TODO: make gui.FlexCSS forget this context.
-	 * @param {Window} context
-	 */
-	oncontextunload : function ( context ) {}
+	}
 	
 });
 

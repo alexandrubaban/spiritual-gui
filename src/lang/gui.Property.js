@@ -1,7 +1,48 @@
 /**
- * Assisting {gui.Class} with property cloning plus getters and setters stuff.
+ * Working with properties.
  */
-gui.Accessors = {
+gui.Property = {
+
+	/**
+	 * Clone properties from source to target.
+	 * @param {object} source
+	 * @param {object} target
+	 * @returns {object}
+	 */
+	extendall : function ( source, target ) {
+		Object.keys ( source ).forEach ( function ( key ) {
+			this.extend ( source, target, key );
+		}, this );
+		return target;
+	},
+
+	/**
+	 * Copy property from source to target. Main feature is that it 
+	 * will be setup to a property accessor (getter/setter) provided:
+	 * 
+	 * 1) The property value is an object
+	 * 2) It has (only) one or both properties "getter" and "setter"
+	 * 3) These are both functions
+	 */
+	extend : function ( source, target, key ) {
+		var desc = Object.getOwnPropertyDescriptor ( source, key );
+		desc = this._accessor ( target, key, desc );
+		Object.defineProperty ( target, key, desc );
+		return target;
+	},
+
+	/**
+	 * Provide sugar for non-enumerable propety descriptors. 
+	 * Omit "writable" since accessors must not define that.
+	 * @param {object} desc
+	 * @returns {object}
+	 */
+	nonenumerable : function ( desc ) {
+		return gui.Object.extendmissing ({
+			configurable : true,
+			enumerable : false
+		}, desc );
+	},
 
 	/**
 	 * Create getter/setter for object assuming enumerable and configurable.
@@ -10,13 +51,13 @@ gui.Accessors = {
 	 * @param {object} def An object with methods "get" and/or "set"
 	 * @returns {object}
 	 */
-	defineAccessor : function ( object, key, def ) {
-		if ( this._definesAccessor ( def )) {
+	accessor : function ( object, key, def ) {
+		if ( this._isaccessor ( def )) {
 			return Object.defineProperty ( object, key, {
 				enumerable : true,
 				configurable : true,
-				get : def.getter,
-				set : def.setter
+				get : def.getter || this._NOGETTER,
+				set : def.setter || this._NOSETTER
 			});
 		} else {
 			throw new TypeError ( "Expected getter and/or setter method" );
@@ -31,7 +72,7 @@ gui.Accessors = {
 	 * @param {object} obj
 	 * @returns {boolean}
 	 */
-	_definesAccessor : function ( obj ) {
+	_isaccessor : function ( obj ) {
 		return Object.keys ( obj ).every ( function ( key ) {
 			var is = false;
 			switch ( key ) {
@@ -42,42 +83,6 @@ gui.Accessors = {
 			}
 			return is;
 		});
-	},
-
-
-
-
-
-	
-	/**
-	 * Copy non-method properties from configuration object to class 
-	 * prototype. Property will be modified to a getter or setter if:
-	 * 
-	 * 1) The property value is an object
-	 * 2) It has (only) one or both properties "getter" and "setter"
-	 * 3) These are both functions
-	 * 
-	 * @param {function} C gui.Class constructor
-	 * @param {object} protos Prototype extensions
-	 */
-	support : function ( C, protos ) {
-		this._accessors ( protos, C.prototype );
-	},
-
-
-	// Private .....................................................
-
-	/**
-	 * Copy properties from definitions object to function prototype.
-	 * @param {object} protos Source
-	 * @param {object} proto Target
-	 */
-	_accessors : function ( protos, proto ) {
-		Object.keys ( protos ).forEach ( function ( key ) {
-			var desc = Object.getOwnPropertyDescriptor ( protos, key );
-			desc = this._accessor ( proto, key, desc );
-			Object.defineProperty ( proto, key, desc );
-		}, this );
 	},
 
 	/**
