@@ -265,7 +265,6 @@ gui.DOMPlugin = ( function using ( chained ) {
 				if ( type ) {
 					result = this.qall ( node, selector, type )[ 0 ] || null;
 				} else {
-					console.log ( node, selector );
 					result = node.querySelector ( selector );
 				}
 				return result;
