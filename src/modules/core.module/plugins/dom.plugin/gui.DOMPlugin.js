@@ -265,7 +265,6 @@ gui.DOMPlugin = ( function using ( chained ) {
 				if ( type ) {
 					result = this.qall ( node, selector, type )[ 0 ] || null;
 				} else {
-					console.log ( node, selector );
 					result = node.querySelector ( selector );
 				}
 				return result;
@@ -309,11 +308,13 @@ gui.DOMPlugin = ( function using ( chained ) {
 		 */
 		_qualify : function ( node, selector, action ) {
 			var hadid = true, id, regexp = this._thiskeyword;
-			if ( regexp.test ( selector )) {
-				hadid = node.id;
-				id = node.id = node.id || gui.KeyMaster.generateKey ();
-				selector = selector.replace ( regexp, "#" + id );
-				node = node.ownerDocument;
+			if ( node.nodeType === Node.ELEMENT_NODE ) {
+				if ( regexp.test ( selector )) {
+					hadid = node.id;
+					id = node.id = ( node.id || gui.KeyMaster.generateKey ());
+					selector = selector.replace ( regexp, "#" + id );
+					node = node.ownerDocument;
+				}
 			}
 			return function ( action ) {
 				var res = action.call ( gui.DOMPlugin, node, selector );
