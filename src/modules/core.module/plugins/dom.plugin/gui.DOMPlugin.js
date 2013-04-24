@@ -24,31 +24,6 @@ gui.DOMPlugin = ( function using ( chained ) {
 		}),
 	 
 		/**
-		 * Get spirit element tagname or create an element of given tagname. 
-		 * @param @optional {String} name If present, create an element
-		 * @param @optional {String} text If present, also append a text node
-		 * @TODO Third argument for namespace? Investigate general XML-ness.
-		 */
-		tag : function ( name, text ) {
-			var res = null;
-			var doc = this.spirit.document;
-			var elm = this.spirit.element;
-			if ( name ) {
-				res = doc.createElement ( name );
-
-				// @TODO "text" > "child" and let gui.DOMPlugin handle the rest....
-				if ( gui.Type.isString ( text )) {
-					res.appendChild ( 
-						doc.createTextNode ( text )
-					);
-				}
-			} else {
-				res = elm.localName;
-			}
-			return res;
-		},
-
-		/**
 		 * Get or set element title (tooltip).
 		 * @param @optional {String} title
 		 * @returns {String|gui.DOMPlugin}
@@ -61,15 +36,6 @@ gui.DOMPlugin = ( function using ( chained ) {
 				return element.title;
 			}
 		}),
-
-		/**
-		 * Is positioned in page DOM? Otherwise plausible 
-		 * createElement or documentFragment scenario.
-		 * @returns {boolean}
-		 */
-		embedded : function () {
-			return gui.DOMPlugin.embedded ( this.spirit.element );
-		},
 
 		/**
 		 * Get or set element markup.
@@ -113,14 +79,6 @@ gui.DOMPlugin = ( function using ( chained ) {
 		}),
 
 		/**
-		 * Clone spirit element.
-		 * @return {Element}
-		 */
-		clone : function () {
-			return this.spirit.element.cloneNode ( true );
-		},
-
-		/**
 		 * Show spirit element, recursively informing descendants.
 		 * @returns {gui.DOMPlugin}
 		 */
@@ -137,30 +95,63 @@ gui.DOMPlugin = ( function using ( chained ) {
 			this.spirit.css.add("_gui-invisible");
 			this.spirit.invisible ();
 		}),
+
+		/**
+		 * Get spirit element tagname or create an element of given tagname. 
+		 * @param @optional {String} name If present, create an element
+		 * @param @optional {String} text If present, also append a text node
+		 * @TODO Third argument for namespace? Investigate general XML-ness.
+		 */
+		tag : function ( name, text ) {
+			var res = null;
+			var doc = this.spirit.document;
+			var elm = this.spirit.element;
+			if ( name ) {
+				res = doc.createElement ( name );
+
+				// @TODO "text" > "child" and let gui.DOMPlugin handle the rest....
+				if ( gui.Type.isString ( text )) {
+					res.appendChild ( 
+						doc.createTextNode ( text )
+					);
+				}
+			} else {
+				res = elm.localName;
+			}
+			return res;
+		},
+
+		/**
+		 * Is positioned in page DOM? Otherwise plausible 
+		 * createElement or documentFragment scenario.
+		 * @returns {boolean}
+		 */
+		embedded : function () {
+			return gui.DOMPlugin.embedded ( this.spirit.element );
+		},
+
+		/**
+		 * Clone spirit element.
+		 * @return {Element}
+		 */
+		clone : function () {
+			return this.spirit.element.cloneNode ( true );
+		},
 		
-		
+
 		// Private .....................................................................
 
 		/**
 		 * @TODO Explain custom `this` keyword in selector.
 		 * @param {String} selector
 		 * @returns {String}
-		 */
+		 *
 		_qualify : function ( selector ) {
 			return gui.DOMPlugin._qualify ( selector, this.spirit.element );
 		}
-		
+		*/
 		
 	}, {}, { // Static ...............................................................
-
-		/**
-		 * Match custom "this" keyword in CSS selector. We use this to start 
-		 * selector expressions with "this>*" to find immediate child, but 
-		 * maybe we should look into the spec for something instead. The goal 
-		 * here is to the make lookup indenpendant of the spirits tagname.
-		 * @type {RegExp}
-		 */
-		_thiskeyword : /^this|,this/g, // /^this\W|,this\W|^this$/g
 
 		/**
 		 * Spiritual-aware innerHTML with special setup for WebKit.
@@ -261,50 +252,88 @@ gui.DOMPlugin = ( function using ( chained ) {
 		},
 
 		/**
-		 * Get list of all elements that matches a selector.
-		 * Optional type argument filters to spirits of type.
+		 * Get first elements that matches a selector.
+		 * Optional type argument filters to spirit of type.
 		 * @param {Node} node
 		 * @param {String} selector
 		 * @param @optional {function} type
-		 * @returns {Array<object>} List of Element or gui.Spirit
+		 * @returns {Element|gui.Spirit}
 		 */
-		qall : function ( node, selector, type ) {
-			selector = gui.DOMPlugin._qualify ( selector, node );
-			var result = gui.Array.toArray ( node.querySelectorAll ( selector ));
-			if ( type ) {
-				result = result.filter ( function ( el )  {
-					return el.spirit && el.spirit instanceof type;
-				}).map ( function ( el ) {
-					return el.spirit;
-				});
-			}
-			return result;
+		q : function ( node, selector, type ) {
+			var result = null;
+			return this._qualify ( node, selector )( function ( node, selector ) {
+				if ( type ) {
+					result = this.qall ( node, selector, type )[ 0 ] || null;
+				} else {
+					console.log ( node, selector );
+					result = node.querySelector ( selector );
+				}
+				return result;
+			});
 		},
 
 		/**
-		 * Replace proprietary "this" keyword in CSS selector with element nodename.
-		 * @TODO There was something about a "scope" or similar keyword in CSS4??? 
-		 * @param {String} selector
+		 * Get list of all elements that matches a selector.
+		 * Optional type argument filters to spirits of type. 
+		 * Method always returns a (potentially empty) array.
 		 * @param {Node} node
-		 * @returns {String}
+		 * @param {String} selector
+		 * @param @optional {function} type
+		 * @returns {Array<Element|gui.Spirit>}
 		 */
-		_qualify : function ( selector, node ) {
-			var result = selector.trim ();
-			switch ( node.nodeType ) {
-				case Node.ELEMENT_NODE :
-					result = selector.replace ( gui.DOMPlugin._thiskeyword, node.localName );
-					break;
-				case Node.DOCUMENT_NODE :
-					// @TODO use ":root" for something?
-					break;
+		qall : function ( node, selector, type ) {
+			var result = [];
+			return this._qualify ( node, selector )( function ( node, selector ) {
+				result = gui.Array.toArray ( node.querySelectorAll ( selector ));
+				if ( type ) {
+					result = result.filter ( function ( el )  {
+						return el.spirit && el.spirit instanceof type;
+					}).map ( function ( el ) {
+						return el.spirit;
+					});
+				}
+				return result;
+			});
+		},
+
+
+		// Private static .........................................................
+
+		/**
+		 * Support direct children selection using proprietary 'this' keyword 
+		 * by temporarily assigning the element an ID and modifying the query.
+		 * @param {Node} node
+		 * @param {String} selector
+		 * @param {function} action
+		 * @returns {object}
+		 */
+		_qualify : function ( node, selector, action ) {
+			var hadid = true, id, regexp = this._thiskeyword;
+			if ( regexp.test ( selector )) {
+				hadid = node.id;
+				id = node.id = node.id || gui.KeyMaster.generateKey ();
+				selector = selector.replace ( regexp, "#" + id );
+				node = node.ownerDocument;
 			}
-			return result;
-		}
+			return function ( action ) {
+				var res = action.call ( this, node, selector );
+				if ( !hadid ) {
+					node.id = "";
+				}
+				return res;
+			};
+		},
+
+		/**
+		 * Match custom 'this' keyword in CSS selector. You can start 
+		 * selector expressions with "this>*" to find immediate child.
+		 * @type {RegExp}
+		 */
+		_thiskeyword : /^this|,this/g
 			
 	});
 
 }( gui.Combo.chained ));
-
 
 /**
  * DOM query methods accept a CSS selector and an optional spirit constructor 
@@ -321,15 +350,8 @@ gui.Object.each ({
 	 * @param @optional {function} type Spirit constructor (eg. gui.Spirit)
 	 * @returns {Element|gui.Spirit}
 	 */
-	q : function ( selector, type ) {	
-		var result = null;
-		selector = this._qualify ( selector );
-		if ( type ) {
-			result = this.qall ( selector, type )[ 0 ] || null;
-		} else {
-			result = this.spirit.element.querySelector ( selector );
-		}
-		return result;
+	q : function ( selector, type ) {
+		return gui.DOMPlugin.q ( this.spirit.element, selector, type );
 	},
 
 	/**
@@ -340,7 +362,6 @@ gui.Object.each ({
 	 * @returns {Array<Element|gui.Spirit>}
 	 */
 	qall : function ( selector, type ) {
-		selector = this._qualify ( selector );
 		return gui.DOMPlugin.qall ( this.spirit.element, selector, type );
 	},
 
