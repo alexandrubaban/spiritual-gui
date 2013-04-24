@@ -316,7 +316,7 @@ gui.DOMPlugin = ( function using ( chained ) {
 				node = node.ownerDocument;
 			}
 			return function ( action ) {
-				var res = action.call ( this, node, selector );
+				var res = action.call ( gui.DOMPlugin, node, selector );
 				if ( !hadid ) {
 					node.id = "";
 				}
