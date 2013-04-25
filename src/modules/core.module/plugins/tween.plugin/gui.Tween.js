@@ -45,12 +45,12 @@ gui.Tween.prototype = {
  */
 gui.Tween.dispatchGlobal = function ( type, data ){
 	var that = this;
-	var start = new Date ().getTime ();
+	var start = Date.now ();
 	var tween = new gui.Tween ( type, data );
 	var duration = data ? ( data.duration || 200 ) : 200;
 	var timing = data ? ( data.timing || "none" ) : "none";
 	function step () {
-		var time = new Date ().getTime ();
+		var time = Date.now ();
 		var value = 1, progress = time - start;
 		if ( progress < duration ) {
 			value = progress / duration;
