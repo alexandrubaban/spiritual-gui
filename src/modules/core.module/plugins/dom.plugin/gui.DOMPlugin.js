@@ -136,20 +136,8 @@ gui.DOMPlugin = ( function using ( chained ) {
 		 */
 		clone : function () {
 			return this.spirit.element.cloneNode ( true );
-		},
-		
-
-		// Private .....................................................................
-
-		/**
-		 * @TODO Explain custom `this` keyword in selector.
-		 * @param {String} selector
-		 * @returns {String}
-		 *
-		_qualify : function ( selector ) {
-			return gui.DOMPlugin._qualify ( selector, this.spirit.element );
 		}
-		*/
+		
 		
 	}, {}, { // Static ...............................................................
 
