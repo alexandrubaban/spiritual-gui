@@ -136,20 +136,8 @@ gui.DOMPlugin = ( function using ( chained ) {
 		 */
 		clone : function () {
 			return this.spirit.element.cloneNode ( true );
-		},
-		
-
-		// Private .....................................................................
-
-		/**
-		 * @TODO Explain custom `this` keyword in selector.
-		 * @param {String} selector
-		 * @returns {String}
-		 *
-		_qualify : function ( selector ) {
-			return gui.DOMPlugin._qualify ( selector, this.spirit.element );
 		}
-		*/
+		
 		
 	}, {}, { // Static ...............................................................
 
@@ -308,11 +296,13 @@ gui.DOMPlugin = ( function using ( chained ) {
 		 */
 		_qualify : function ( node, selector, action ) {
 			var hadid = true, id, regexp = this._thiskeyword;
-			if ( regexp.test ( selector )) {
-				hadid = node.id;
-				id = node.id = node.id || gui.KeyMaster.generateKey ();
-				selector = selector.replace ( regexp, "#" + id );
-				node = node.ownerDocument;
+			if ( node.nodeType === Node.ELEMENT_NODE ) {
+				if ( regexp.test ( selector )) {
+					hadid = node.id;
+					id = node.id = ( node.id || gui.KeyMaster.generateKey ());
+					selector = selector.replace ( regexp, "#" + id );
+					node = node.ownerDocument;
+				}
 			}
 			return function ( action ) {
 				var res = action.call ( gui.DOMPlugin, node, selector );
@@ -326,6 +316,7 @@ gui.DOMPlugin = ( function using ( chained ) {
 		/**
 		 * Match custom 'this' keyword in CSS selector. You can start 
 		 * selector expressions with "this>*" to find immediate child
+		 * @TODO skip 'this' and support simply ">*" and "+*" instead.
 		 * @type {RegExp}
 		 */
 		_thiskeyword : /^this|,this/g
@@ -412,6 +403,14 @@ gui.Object.each ({
  * argument. They return a spirit, an element or an array of either.
  */
 gui.Object.each ({
+
+	preceding : function ( type ) {
+		console.error ( "TODO" );
+	},
+
+	following : function ( type ) {
+		console.error ( "TODO" );
+	},
 
 	/**
 	 * Next element or next spirit of given type.
@@ -529,19 +528,9 @@ gui.Object.each ({
 	 * @returns {Element|gui.Spirit}
 	 */
 	child : function ( type ) {
-		var result = null,
-			spirit = null,
-			el = this.spirit.element.firstElementChild;
-		if ( el && type ) {
-			while ( el !== null && result === null ) {
-				spirit = el.spirit;
-				if ( spirit && spirit instanceof type ) {
-					result = spirit;
-				}
-				el = el.nextElementSibling;
-			}
-		} else {
-			result = el;
+		var result = this.spirit.element.firstElementChild;
+		if ( type ) {
+			result = this.children ( type )[ 0 ] || null;
 		}
 		return result;
 	},
@@ -553,21 +542,13 @@ gui.Object.each ({
 	 * @returns {Array<Element|gui.Spirit>}
 	 */
 	children : function ( type ) {
-		var result = [],
-			me = this.spirit.element,
-			el = me.firstElementChild;
-		if ( el ) {
-			while ( el !== null ) {
-				result.push ( el );
-				el = el.nextElementSibling; 
-			}
-			if ( type ) {
-				result = result.filter ( function ( el )  {
-					return el.spirit && el.spirit instanceof type;
-				}).map ( function ( el ) {
-					return el.spirit;
-				});
-			}
+		var result = gui.Object.toArray ( this.spirit.element.children );
+		if ( type ) {
+			result = result.filter ( function ( elm ) {
+				return elm.spirit && elm.spirit instanceof type;
+			}).map ( function ( elm ) {
+				return elm.spirit;
+			});
 		}
 		return result;
 	},
@@ -768,7 +749,7 @@ gui.Object.each ({
 	 * Adding methods to gui.DOMPlugin.prototype. These methods come highly overloaded.
 	 * 
 	 * 1. Convert input to array of one or more elements
-	 * 2. Confirm array of elements
+	 * 2. Confirm array of elements (exception supressed for now pending IE9 issue)
 	 * 3. Invoke the method
 	 * 4. Return the input
 	 * @param {String} name
@@ -778,14 +759,12 @@ gui.Object.each ({
 	gui.DOMPlugin.mixin ( name, function ( things ) {
 		var elms = Array.map ( gui.Array.toArray ( things ), function ( thing ) {
 			return thing && thing instanceof gui.Spirit ? thing.element : thing;
+		}).filter ( function ( thing ) { // @TODO IE9 may sometimes for some reason throw and array in here :/ must investigate!!!
+			return gui.Type.isNumber ( thing.nodeType );
 		});
-		if ( elms.every ( function ( elm ) { 
-			return gui.Type.isNumber ( elm.nodeType );
-		})) {
+		if ( elms.length ) {
 			method.call ( this, elms );
-			return things;
-		} else {
-			throw new TypeError ( "Bad argument for method " + name + ": " + things );
 		}
+		return things;
 	});
 });

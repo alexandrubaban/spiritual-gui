@@ -121,7 +121,7 @@ gui.FlexCSS.emulated =  {
  * Native ruleset. Engine can't parse [*=xxxxx] selector (says DOM 
  * exception), so let's just create one billion unique classnames.
  */
-gui.FlexCSS.native = ( function () {
+gui.FlexCSS [ "native" ] = ( function () {
 	var rules = {
 		".flexrow, .flexcol" : {
 			"display": "-beta-flex",
