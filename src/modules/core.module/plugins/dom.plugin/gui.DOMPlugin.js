@@ -265,7 +265,6 @@ gui.DOMPlugin = ( function using ( chained ) {
 				if ( type ) {
 					result = this.qall ( node, selector, type )[ 0 ] || null;
 				} else {
-					console.log ( node, selector );
 					result = node.querySelector ( selector );
 				}
 				return result;
@@ -326,7 +325,7 @@ gui.DOMPlugin = ( function using ( chained ) {
 
 		/**
 		 * Match custom 'this' keyword in CSS selector. You can start 
-		 * selector expressions with "this>*" to find immediate child.
+		 * selector expressions with "this>*" to find immediate child
 		 * @type {RegExp}
 		 */
 		_thiskeyword : /^this|,this/g
