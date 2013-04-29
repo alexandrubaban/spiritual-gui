@@ -286,14 +286,14 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 		"mouseup" : gui.BROADCAST_MOUSEUP,
 		"scroll" : gui.BROADCAST_SCROLL, // top ??????????
 		"resize" : gui.BROADCAST_RESIZE, // top ??????????
-		"touchstart" : gui.BROADCAST_TOUCHSTART,
-		"touchend" : gui.BROADCAST_TOUCHEND,
-		"touchcancel" : gui.BROADCAST_TOUCHCANCEL,
-		"touchleave" : gui.BROADCAST_TOUCHLEAVE,
-		"touchmove" : gui.BROADCAST_TOUCHMOVE,
 		"hashchange" : gui.BROADCAST_HASHCHANGE, // top ??????????
 		"popstate" : gui.BROADCAST_POPSTATE // top ??????????
 		// "mousemove" : gui.BROADCAST_MOUSEMOVE,
+		// "touchstart" : gui.BROADCAST_TOUCHSTART,
+		//"touchend" : gui.BROADCAST_TOUCHEND,
+		//"touchcancel" : gui.BROADCAST_TOUCHCANCEL,
+		//"touchleave" : gui.BROADCAST_TOUCHLEAVE,
+		//"touchmove" : gui.BROADCAST_TOUCHMOVE,
 	},
 
 	/**
