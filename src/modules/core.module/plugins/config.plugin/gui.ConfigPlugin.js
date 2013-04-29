@@ -16,10 +16,21 @@ gui.ConfigPlugin = gui.Plugin.extend ( "gui.ConfigPlugin", {
 	 */
 	onconstruct : function () {
 		this._super.onconstruct ();
+		this.spirit.life.add ( gui.LIFE_CONSTRUCT, this );
+	},
+
+	/**
+	 * Handle life.
+	 * @TODO: Hm... simple properties should somehow be ready always...
+	 * @param {gui.Life} life
+	 */
+	onlife : function ( life ) {
 		var atts = this.spirit.element.attributes;
-		Array.forEach ( atts, function ( att ) {
-			this._evaluate ( this._lookup ( att.name ), att.value );
-		}, this );
+		if ( life.type === gui.LIFE_CONSTRUCT ) {
+			Array.forEach ( atts, function ( att ) {
+				this._evaluate ( this._lookup ( att.name ), att.value );
+			}, this );
+		}
 	},
 
 
