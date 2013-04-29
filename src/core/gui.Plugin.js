@@ -26,6 +26,7 @@ gui.Plugin = gui.Class.create ( "gui.Plugin", Object.prototype, {
 
 	/**
 	 * Destruct.
+	 * @TODO rename ondestruct
 	 */
 	ondestruct : function () {
 

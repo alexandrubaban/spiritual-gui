@@ -315,7 +315,7 @@ gui.DOMPlugin = ( function using ( chained ) {
 
 		/**
 		 * Match custom 'this' keyword in CSS selector. You can start 
-		 * selector expressions with "this>*" to find immediate child.
+		 * selector expressions with "this>*" to find immediate child
 		 * @TODO skip 'this' and support simply ">*" and "+*" instead.
 		 * @type {RegExp}
 		 */

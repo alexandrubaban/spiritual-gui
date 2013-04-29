@@ -51,7 +51,7 @@ gui.Tracker = gui.Plugin.extend ( "gui.Tracker", {
 	},
 
 	/**
-	 * @TODO what? 
+	 * @TODO Rename ondestruct.
 	 */
 	destruct : function () {
 		var type, list;
@@ -76,6 +76,25 @@ gui.Tracker = gui.Plugin.extend ( "gui.Tracker", {
 	
 	
 	// Private .....................................................
+		
+	/**
+	 * Global mode? This doesn't nescessarily makes 
+	 * sense for all {gui.Tracker} implementations.
+	 * @type {boolean}
+	 */
+	_global : false,
+
+	/**
+	 * Execute operation in global mode.
+	 * @param {function} operation
+	 * @returns {object}
+	 */
+	_globalize : function ( operation ) {
+		this._global = true;
+		var res = operation.call ( this );
+		this._global = false;
+		return res;
+	},
 
 	/**
 	 * Can add type of given checks?
@@ -128,7 +147,6 @@ gui.Tracker = gui.Plugin.extend ( "gui.Tracker", {
 		var result = false;
 		var list = this._xxx [ type ];
 		if ( list ) {
-			//result = !this._haschecks ( list, checks );
 			result = this._haschecks ( list, checks );
 		}
 		return result;
@@ -151,6 +169,14 @@ gui.Tracker = gui.Plugin.extend ( "gui.Tracker", {
 			return !result;
 		});
 		return result;
+	},
+
+	/**
+	 * All checks removed?
+	 * @returns {boolean}
+	 */
+	_hashandlers : function () {
+		return Object.keys ( this._xxx ).length > 0;
 	},
 
 	/**
