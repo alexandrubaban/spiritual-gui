@@ -15,7 +15,9 @@ gui.ConfigPlugin = gui.Plugin.extend ( "gui.ConfigPlugin", {
 	 * @TODO reconfigure scenario
 	 */
 	onconstruct : function () {
-		this.spirit.att.all ().forEach ( function ( att ) {
+		this._super.onconstruct ();
+		var atts = this.spirit.element.attributes;
+		Array.forEach ( atts, function ( att ) {
 			this._evaluate ( this._lookup ( att.name ), att.value );
 		}, this );
 	},

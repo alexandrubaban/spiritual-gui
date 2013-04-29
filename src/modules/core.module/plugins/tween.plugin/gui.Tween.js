@@ -32,7 +32,15 @@ gui.Tween.prototype = {
 	 * Done when value is one.
 	 * @type {boolean}
 	 */
-	done : false
+	done : false,
+
+	/**
+	 * Identification.
+	 * @returns {String}
+	 */
+	toString : function () {
+		return "[object gui.Tween]";
+	}
 };
 
 // Static .............................................

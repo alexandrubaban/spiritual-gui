@@ -748,8 +748,8 @@ gui.Object.each ({
 	/**
 	 * Adding methods to gui.DOMPlugin.prototype. These methods come highly overloaded.
 	 * 
-	 * 1. Convert input to array of one or more elements
-	 * 2. Confirm array of elements (exception supressed for now pending IE9 issue)
+	 * 1. Convert arguments to array of one or more elements
+	 * 2. Confirm array of elements (exception supressed pending IE9 issue)
 	 * 3. Invoke the method
 	 * 4. Return the input
 	 * @param {String} name
@@ -760,7 +760,7 @@ gui.Object.each ({
 		var elms = Array.map ( gui.Array.toArray ( things ), function ( thing ) {
 			return thing && thing instanceof gui.Spirit ? thing.element : thing;
 		}).filter ( function ( thing ) { // @TODO IE9 may sometimes for some reason throw and array in here :/ must investigate!!!
-			return gui.Type.isNumber ( thing.nodeType );
+			return thing && gui.Type.isNumber ( thing.nodeType ); // first check added for FF which now may fail as well :/
 		});
 		if ( elms.length ) {
 			method.call ( this, elms );

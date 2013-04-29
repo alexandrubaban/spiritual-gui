@@ -4041,7 +4041,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 		this.window.gui.destruct ( this );
 		this.__debug__ ( false );
 		this.life.godestruct ();
-		this.__destruct__ ( now );
+		this.$ondestruct ( now );
 	},
 	
 	// Handlers .....................................................................
@@ -4180,7 +4180,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	 * to a new execution stack, but the consequences should be thought throught at some point.
 	 * @param @optional {boolean} now Destruct immediately (for example when the window unloads)
 	 */
-	__destruct__ : function ( now ) {
+	$ondestruct : function ( now ) {
 		var map = this.__lazyplugins__;
 		gui.Object.each ( map, function ( prefix ) {
 			if ( map [ prefix ] === true ) {
@@ -4194,13 +4194,13 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 				case "object" :
 					if ( thing instanceof gui.Plugin ) {
 						if ( thing !== this.life ) {
-							thing.__destruct__ ( now );
+							thing.$ondestruct ( now );
 						}
 					}
 					break;
 			}
 		}, this );
-		this.life.__destruct__ (); // dispose life plugin last
+		this.life.$ondestruct (); // dispose life plugin last
 		if ( now ) {
 			this.__null__ ();
 		} else {
@@ -4475,8 +4475,19 @@ gui.Plugin = gui.Class.create ( "gui.Plugin", Object.prototype, {
 	/**
 	 * Destruct.
 	 * @TODO rename ondestruct
+	 * @param @optional {boolean} now @TODO: we might not need this arg in plugins...
 	 */
-	destruct : function () {},
+	ondestruct : function ( now ) {},
+
+	/**
+	 * @deprecated
+	 * Deprecated ondestruct alias.
+	 * @param @optional {boolean} now
+	 */
+	destruct : function ( now ) {
+		console.log ("Deprecated");
+		this.ondestruct ( now );
+	},
 
 	/**
 	 * Implements DOM2 EventListener. Forwards to onevent().
@@ -4500,14 +4511,15 @@ gui.Plugin = gui.Class.create ( "gui.Plugin", Object.prototype, {
 	$onconstruct : function ( spirit ) {
 		this.spirit = spirit || null;
 		this.context = spirit ? spirit.window : null;
+		this.onconstruct ();
 	},
 
 	/**
-	 * Secret destructor. Catching stuff that 
-	 * might be executed on a timed schedule.
+	 * Secret destructor.
+	 * @param @optional {boolean} now
 	 */
-	__destruct__ : function () {
-		this.destruct ();
+	$ondestruct : function ( now ) {
+		this.ondestruct ( now );
 		if ( this.spirit !== null ) {
 			Object.defineProperty ( this, "spirit", gui.Spirit.DENIED );
 		}
@@ -5167,7 +5179,9 @@ gui.ConfigPlugin = gui.Plugin.extend ( "gui.ConfigPlugin", {
 	 * @TODO reconfigure scenario
 	 */
 	onconstruct : function () {
-		this.spirit.att.all ().forEach ( function ( att ) {
+		this._super.onconstruct ();
+		var atts = this.spirit.element.attributes;
+		Array.forEach ( atts, function ( att ) {
 			this._evaluate ( this._lookup ( att.name ), att.value );
 		}, this );
 	},
@@ -7600,8 +7614,8 @@ gui.Object.each ({
 	/**
 	 * Adding methods to gui.DOMPlugin.prototype. These methods come highly overloaded.
 	 * 
-	 * 1. Convert input to array of one or more elements
-	 * 2. Confirm array of elements (exception supressed for now pending IE9 issue)
+	 * 1. Convert arguments to array of one or more elements
+	 * 2. Confirm array of elements (exception supressed pending IE9 issue)
 	 * 3. Invoke the method
 	 * 4. Return the input
 	 * @param {String} name
@@ -7612,7 +7626,7 @@ gui.Object.each ({
 		var elms = Array.map ( gui.Array.toArray ( things ), function ( thing ) {
 			return thing && thing instanceof gui.Spirit ? thing.element : thing;
 		}).filter ( function ( thing ) { // @TODO IE9 may sometimes for some reason throw and array in here :/ must investigate!!!
-			return gui.Type.isNumber ( thing.nodeType );
+			return thing && gui.Type.isNumber ( thing.nodeType ); // first check added for FF which now may fail as well :/
 		});
 		if ( elms.length ) {
 			method.call ( this, elms );
@@ -8242,7 +8256,15 @@ gui.Tween.prototype = {
 	 * Done when value is one.
 	 * @type {boolean}
 	 */
-	done : false
+	done : false,
+
+	/**
+	 * Identification.
+	 * @returns {String}
+	 */
+	toString : function () {
+		return "[object gui.Tween]";
+	}
 };
 
 // Static .............................................
@@ -12333,8 +12355,8 @@ gui.KeyPlugin = ( function using ( confirmed, chained ) {
 		/**
 		 * Destruction time again.
 		 */
-		destruct : function () {
-			this._super.destruct ();
+		ondestruct : function () {
+			this._super.ondestruct ();
 			if ( !this._hashandlers ()) {
 				gui.Broadcast.removeGlobal ( gui.BROADCAST_KEYEVENT, this );		
 			}
