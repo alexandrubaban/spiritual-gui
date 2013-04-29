@@ -70,18 +70,21 @@ window.gui = {
 	 * Plugin broadcast types
 	 */
 	BROADCAST_ORIENTATIONCHANGE : "gui-broadcast-orientationchange",
-	BROADCAST_TOUCHSTART : "gui-broadcast-touchstart",
-	BROADCAST_TOUCHEND : "gui-broadcast-touchend",
-	BROADCAST_TOUCHCANCEL : "gui-broadcast-touchcancel",
-	BROADCAST_TOUCHLEAVE : "gui-broadcast-touchleave",
-	BROADCAST_TOUCHMOVE : "gui-broadcast-touchmove",
-	BROADCAST_DRAG_START : "gui-broadcast-drag-start",
-	BROADCAST_DRAG_END : "gui-broadcast-drag-end",
-	BROADCAST_DRAG_DROP : "gui-broadcast-drag-drop",
-	BROADCAST_COMMAND : "gui-broadcast-command", // ????
 	BROADCAST_ATTENTION_ON : "gui-broadcast-attention-on",
 	BROADCAST_ATTENTION_OFF : "gui-broadcast-attention-off",
 	BROADCAST_ATTENTION_GO : "gui-broadcast-attention-go",
+
+	/*
+	 * @TODO: offload to modules
+	 */
+	// BROADCAST_TOUCHSTART : "gui-broadcast-touchstart",
+	// BROADCAST_TOUCHEND : "gui-broadcast-touchend",
+	// BROADCAST_TOUCHCANCEL : "gui-broadcast-touchcancel",
+	// BROADCAST_TOUCHLEAVE : "gui-broadcast-touchleave",
+	// BROADCAST_TOUCHMOVE : "gui-broadcast-touchmove",
+	// BROADCAST_DRAG_START : "gui-broadcast-drag-start",
+	// BROADCAST_DRAG_END : "gui-broadcast-drag-end",
+	// BROADCAST_DRAG_DROP : "gui-broadcast-drag-drop",
 
 	/** 
 	 * Global actions
@@ -4471,6 +4474,7 @@ gui.Plugin = gui.Class.create ( "gui.Plugin", Object.prototype, {
 
 	/**
 	 * Destruct.
+	 * @TODO rename ondestruct
 	 */
 	destruct : function () {},
 
@@ -4611,7 +4615,7 @@ gui.Tracker = gui.Plugin.extend ( "gui.Tracker", {
 	},
 
 	/**
-	 * @TODO what? 
+	 * @TODO Rename ondestruct.
 	 */
 	destruct : function () {
 		var type, list;
@@ -4636,6 +4640,25 @@ gui.Tracker = gui.Plugin.extend ( "gui.Tracker", {
 	
 	
 	// Private .....................................................
+		
+	/**
+	 * Global mode? This doesn't nescessarily makes 
+	 * sense for all {gui.Tracker} implementations.
+	 * @type {boolean}
+	 */
+	_global : false,
+
+	/**
+	 * Execute operation in global mode.
+	 * @param {function} operation
+	 * @returns {object}
+	 */
+	_globalize : function ( operation ) {
+		this._global = true;
+		var res = operation.call ( this );
+		this._global = false;
+		return res;
+	},
 
 	/**
 	 * Can add type of given checks?
@@ -4688,7 +4711,6 @@ gui.Tracker = gui.Plugin.extend ( "gui.Tracker", {
 		var result = false;
 		var list = this._xxx [ type ];
 		if ( list ) {
-			//result = !this._haschecks ( list, checks );
 			result = this._haschecks ( list, checks );
 		}
 		return result;
@@ -4711,6 +4733,14 @@ gui.Tracker = gui.Plugin.extend ( "gui.Tracker", {
 			return !result;
 		});
 		return result;
+	},
+
+	/**
+	 * All checks removed?
+	 * @returns {boolean}
+	 */
+	_hashandlers : function () {
+		return Object.keys ( this._xxx ).length > 0;
 	},
 
 	/**
@@ -5594,25 +5624,7 @@ gui.ActionPlugin = ( function using ( confirmed, chained ) {
 
 
 		// Private ....................................................
-
-		/**
-		 * Global mode?
-		 * @type {boolean}
-		 */
-		_global : false,
-
-		/**
-		 * Execute operation in global mode.
-		 * @param {function} operation
-		 * @returns {object}
-		 */
-		_globalize : function ( operation ) {
-			this._global = true;
-			var res = operation.call ( this );
-			this._global = false;
-			return res;
-		},
-
+		
 		/**
 		 * Remove delegated handlers. 
 		 * @TODO verify that this works
@@ -6342,25 +6354,7 @@ gui.BroadcastPlugin = gui.Tracker.extend ( "gui.BroadcastPlugin", {
 	},
 
 	// Private ...................................................................
-
-	/**
-	 * Global mode?
-	 * @type {boolean}
-	 */
-	_global : false,
-
-	/**
-	 * Execute operation in global mode.
-	 * @param {function} operation
-	 * @returns {object}
-	 */
-	_globalize : function ( operation ) {
-		this._global = true;
-		var res = operation.call ( this );
-		this._global = false;
-		return res;
-	},
-
+	
 	/**
 	 * Remove delegated handlers. 
 	 * @overwrites {gui.Tracker#_cleanup}
@@ -7173,7 +7167,8 @@ gui.DOMPlugin = ( function using ( chained ) {
 
 		/**
 		 * Match custom 'this' keyword in CSS selector. You can start 
-		 * selector expressions with "this>*" to find immediate child.
+		 * selector expressions with "this>*" to find immediate child
+		 * @TODO skip 'this' and support simply ">*" and "+*" instead.
 		 * @type {RegExp}
 		 */
 		_thiskeyword : /^this|,this/g
@@ -7260,6 +7255,14 @@ gui.Object.each ({
  * argument. They return a spirit, an element or an array of either.
  */
 gui.Object.each ({
+
+	preceding : function ( type ) {
+		console.error ( "TODO" );
+	},
+
+	following : function ( type ) {
+		console.error ( "TODO" );
+	},
 
 	/**
 	 * Next element or next spirit of given type.
@@ -7377,19 +7380,9 @@ gui.Object.each ({
 	 * @returns {Element|gui.Spirit}
 	 */
 	child : function ( type ) {
-		var result = null,
-			spirit = null,
-			el = this.spirit.element.firstElementChild;
-		if ( el && type ) {
-			while ( el !== null && result === null ) {
-				spirit = el.spirit;
-				if ( spirit && spirit instanceof type ) {
-					result = spirit;
-				}
-				el = el.nextElementSibling;
-			}
-		} else {
-			result = el;
+		var result = this.spirit.element.firstElementChild;
+		if ( type ) {
+			result = this.children ( type )[ 0 ] || null;
 		}
 		return result;
 	},
@@ -7401,21 +7394,13 @@ gui.Object.each ({
 	 * @returns {Array<Element|gui.Spirit>}
 	 */
 	children : function ( type ) {
-		var result = [],
-			me = this.spirit.element,
-			el = me.firstElementChild;
-		if ( el ) {
-			while ( el !== null ) {
-				result.push ( el );
-				el = el.nextElementSibling; 
-			}
-			if ( type ) {
-				result = result.filter ( function ( el )  {
-					return el.spirit && el.spirit instanceof type;
-				}).map ( function ( el ) {
-					return el.spirit;
-				});
-			}
+		var result = gui.Object.toArray ( this.spirit.element.children );
+		if ( type ) {
+			result = result.filter ( function ( elm ) {
+				return elm.spirit && elm.spirit instanceof type;
+			}).map ( function ( elm ) {
+				return elm.spirit;
+			});
 		}
 		return result;
 	},
@@ -7616,7 +7601,7 @@ gui.Object.each ({
 	 * Adding methods to gui.DOMPlugin.prototype. These methods come highly overloaded.
 	 * 
 	 * 1. Convert input to array of one or more elements
-	 * 2. Confirm array of elements
+	 * 2. Confirm array of elements (exception supressed for now pending IE9 issue)
 	 * 3. Invoke the method
 	 * 4. Return the input
 	 * @param {String} name
@@ -7626,15 +7611,13 @@ gui.Object.each ({
 	gui.DOMPlugin.mixin ( name, function ( things ) {
 		var elms = Array.map ( gui.Array.toArray ( things ), function ( thing ) {
 			return thing && thing instanceof gui.Spirit ? thing.element : thing;
+		}).filter ( function ( thing ) { // @TODO IE9 may sometimes for some reason throw and array in here :/ must investigate!!!
+			return gui.Type.isNumber ( thing.nodeType );
 		});
-		if ( elms.every ( function ( elm ) { 
-			return gui.Type.isNumber ( elm.nodeType );
-		})) {
+		if ( elms.length ) {
 			method.call ( this, elms );
-			return things;
-		} else {
-			throw new TypeError ( "Bad argument for method " + name + ": " + things );
 		}
+		return things;
 	});
 });
 
@@ -8272,12 +8255,12 @@ gui.Tween.prototype = {
  */
 gui.Tween.dispatchGlobal = function ( type, data ){
 	var that = this;
-	var start = new Date ().getTime ();
+	var start = Date.now ();
 	var tween = new gui.Tween ( type, data );
 	var duration = data ? ( data.duration || 200 ) : 200;
 	var timing = data ? ( data.timing || "none" ) : "none";
 	function step () {
-		var time = new Date ().getTime ();
+		var time = Date.now ();
 		var value = 1, progress = time - start;
 		if ( progress < duration ) {
 			value = progress / duration;
@@ -8417,25 +8400,7 @@ gui.TweenPlugin = ( function using ( chained ) {
 		},
 
 		// Private ...................................................................
-
-		/**
-		 * Global mode?
-		 * @type {boolean}
-		 */
-		_global : false,
-
-		/**
-		 * Execute operation in global mode.
-		 * @param {function} operation
-		 * @returns {object}
-		 */
-		_globalize : function ( operation ) {
-			this._global = true;
-			var res = operation.call ( this );
-			this._global = false;
-			return res;
-		},
-
+		
 		/**
 		 * Remove broadcast subscriptions on dispose.
 		 * @overwrites {gui.Tracker#_cleanup}
@@ -9704,14 +9669,14 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 		"mouseup" : gui.BROADCAST_MOUSEUP,
 		"scroll" : gui.BROADCAST_SCROLL, // top ??????????
 		"resize" : gui.BROADCAST_RESIZE, // top ??????????
-		"touchstart" : gui.BROADCAST_TOUCHSTART,
-		"touchend" : gui.BROADCAST_TOUCHEND,
-		"touchcancel" : gui.BROADCAST_TOUCHCANCEL,
-		"touchleave" : gui.BROADCAST_TOUCHLEAVE,
-		"touchmove" : gui.BROADCAST_TOUCHMOVE,
 		"hashchange" : gui.BROADCAST_HASHCHANGE, // top ??????????
 		"popstate" : gui.BROADCAST_POPSTATE // top ??????????
 		// "mousemove" : gui.BROADCAST_MOUSEMOVE,
+		// "touchstart" : gui.BROADCAST_TOUCHSTART,
+		//"touchend" : gui.BROADCAST_TOUCHEND,
+		//"touchcancel" : gui.BROADCAST_TOUCHCANCEL,
+		//"touchleave" : gui.BROADCAST_TOUCHLEAVE,
+		//"touchmove" : gui.BROADCAST_TOUCHMOVE,
 	},
 
 	/**
@@ -12119,6 +12084,486 @@ gui.Guide = {
 
 
 /**
+ * Key event summary.
+ * @TODO check out http://mozilla.pettay.fi/moztests/events/browser-keyCodes.htm
+ * @param {boolean} down
+ * @param {number} n KeyCode
+ * @param {number} c Character
+ * @param {boolean} g Global?
+ */
+gui.Key = function Key ( down, n, c, g ) {
+	this.up = !down;
+	this.down = down;
+	this.code = n;
+	this.char = c;
+	this.global = g;
+};
+
+gui.Key.prototype = {
+
+	/**
+	 * Key released?
+	 * @type {boolean}
+	 */
+	up : false,
+
+	/**
+	 * Key down?
+	 * @type {boolean}
+	 */
+	down : false,
+
+	/**
+	 * Identifies physical keys by keyCode.
+	 * @type {number}
+	 */
+	code : -1,
+
+	/**
+	 * Identifies typed character. This is `null` for 
+	 * special keys such as arrow keys and page down.
+	 * http://stackoverflow.com/questions/7226402/help-with-regex-pattern-for-delete-arrows-and-escape-keys
+	 * http://javascript.info/tutorial/keyboard-events
+	 * @TODO keyword breaks parsers?
+	 * @type {String}
+	 */
+	char : null,
+
+	/**
+	 * Reserved for a distant future where browsers implement DOM3 keys.
+	 * @type {String}
+	 */
+	key : null,
+
+	/**
+	 * Global key?
+	 * @TODO Deprecate this?
+	 * @type {boolean}
+	 */
+	global : false
+};
+
+
+// Static .........................................................................................
+
+/**
+ * Key modifiers.
+ * @TODO: platform specific variations "accelDown" and "accessDown" (get a Mac and figure this out)
+ * @TODO Update from http://askubuntu.com/questions/19558/what-are-the-meta-super-and-hyper-keys
+ */
+( function keymodifiers () {
+	gui.Object.each ({
+		shiftDown : false, // The Shift key.
+		ctrlDown : false,  // The Control key.
+		altDown : false,   // The Alt key. On the Macintosh, this is the Option key
+		metaDown : false,  // The Meta key. On the Macintosh, this is the Command key.
+		accelDown : false, // The key used for keyboard shortcuts on the user's platform. Usually, this would be the value you would use.
+		accessDown : false // The access key for activating menus and other elements. On Windows, this is the Alt key, used in conjuction with an element's accesskey.
+	}, function ( key, value ) {
+		gui.Key [ key ] = value;
+	});
+}());
+
+/**
+ * These key codes "do not usually change" with keyboard layouts.
+ * @TODO Read http://www.w3.org/TR/DOM-Level-3-Events/#key-values
+ * @TODO http://www.w3.org/TR/DOM-Level-3-Events/#fixed-virtual-key-codes
+ * @TODO http://www.w3.org/TR/DOM-Level-3-Events/#key-values-list
+ */
+( function keyconstants () {
+	gui.Object.each ({
+		BACKSPACE :	8,
+		TAB	: 9,
+		ENTER	: 13,
+		SHIFT	: 16,
+		CONTROL	: 17,
+		ALT	: 18,
+		CAPSLOCK : 20,
+		ESCAPE : 27,
+		SPACE	: 32,
+		PAGE_UP	: 33,
+		PAGE_DOWN	: 34,
+		END	: 35,
+		HOME : 36,
+		LEFT : 37,
+		UP : 38,
+		RIGHT : 39,
+		DOWN : 40,
+		DELETE : 46
+	}, function ( key, value ) {
+		gui.Key [ key ] = value;
+	});
+}());
+
+/**
+ * These codes are somewhat likely to match a US or European keyboard, 
+ * but they are not listed in the above "do not usually change" section. 
+ */
+( function questionablekeys () {
+	gui.Object.each ({
+		PLUS: 187,
+		MINUS: 189,
+		NUMPLUS: 107,
+		NUMMINUS: 109
+	}, function ( key, value ) {
+		gui.Key [ key ] = value;
+	});
+}());
+
+
+/**
+ * Tracking keys.
+ * @extends {gui.Tracker}
+ * @using {gui.Arguments#confirmed}
+ * @using {gui.Combo#chained}
+ */
+gui.KeyPlugin = ( function using ( confirmed, chained ) {
+
+	return gui.Tracker.extend ( "gui.KeyPlugin", {
+	
+		/**
+		 * Add one or more action handlers.
+		 * @param {Array<String,Number>|String|number} arg @TODO Strings!
+		 * @param @optional {object|function} handler
+		 * @returns {gui.KeyPlugin}
+		 */
+		add : confirmed ( "array|string", "(object|function)" ) (
+			chained ( function ( arg, handler ) {
+				handler = handler ? handler : this.spirit;
+				if ( gui.Interface.validate ( gui.IKeyHandler, handler )) {
+					this._breakdown ( arg ).forEach ( function ( a ) {
+						a = gui.Type.cast ( a );
+						if ( this._addchecks ( a, [ handler, this._global ])) {
+							gui.Broadcast.addGlobal ( gui.BROADCAST_KEYEVENT, this );
+						}
+					}, this );
+				}
+			})
+		),
+
+		/**
+		 * Remove one or more action handlers.
+		 * @param {Array<String,Number>|String|number} arg
+		 * @param @optional {object} handler
+		 * @returns {gui.KeyPlugin}
+		 */
+		remove : confirmed ( "array|string", "(object|function)" ) (
+			chained ( function ( arg, handler ) {
+				handler = handler ? handler : this.spirit;
+				if ( gui.Interface.validate ( gui.IKeyHandler, handler )) {
+					this._breakdown ( arg ).forEach ( function ( a ) {
+						a = gui.Type.cast ( a );
+						if ( this._removechecks ( a, [ handler, this._global ])) {
+							if ( !this._hashandlers ()) {
+								gui.Broadcast.removeGlobal ( gui.BROADCAST_KEYEVENT, this );		
+							}
+						}
+					}, this );
+				}
+			})
+		),
+
+		/**
+		 * Add handlers for global key(s).
+		 * @param {object} arg
+		 * @param @optional {gui.IKeyListener} handler (defaults to spirit)
+		 * @returns {gui.KeyPlugin}
+		 */
+		addGlobal : function ( arg, handler ) {
+			return this._globalize ( function () {
+				return this.add ( arg, handler );
+			});
+		},
+
+		/**
+		 * Add handlers for global keys(s).
+		 * @param {object} arg
+		 * @param @optional {gui.IKeyListener} handler (defaults to spirit)
+		 * @returns {gui.KeyPlugin}
+		 */
+		removeGlobal : function ( arg, handler ) {
+			return this._globalize ( function () {
+				return this.remove ( arg, handler );
+			});
+		},
+
+		/**
+		 * Handle broadcast.
+		 * @param {gui.Broadcast} b
+		 */
+		onbroadcast : function ( b ) {
+			var list, checks, handler, global;
+			if ( b.type === gui.BROADCAST_KEYEVENT ) {
+				var d = b.data.down, n = b.data.code, c = b.data.char;
+				if (( list = ( this._xxx [ n ] || this._xxx [ c ]))) {
+					list.forEach ( function ( checks ) {
+						handler = checks [ 0 ];
+						global = checks [ 1 ];
+						if ( global === b.isGlobal ) {
+							handler.onkey ( 
+								new gui.Key ( d, n, c, global )
+							);
+						}
+					});
+				}
+			}
+			/*
+			if ( b.type === gui.BROADCAST_KEYEVENT ) {
+				if ( list = this._xxx [ b.data.keyCode ]) {
+					list.forEach ( function ( checks ) {
+						handler = checks [ 0 ];
+						global = checks [ 1 ];
+						if ( global === b.isGlobal ) {
+							handler.onkey ( 
+								new gui.Key ( 
+									b.data.type,
+									b.data.keyCode,
+									b.data.charCode,
+									b.data.which,
+									b.isGlobal
+								)
+							);
+						}
+					});
+				}
+			}
+			*/
+		},
+
+		/**
+		 * Destruction time again.
+		 */
+		destruct : function () {
+			this._super.destruct ();
+			if ( !this._hashandlers ()) {
+				gui.Broadcast.removeGlobal ( gui.BROADCAST_KEYEVENT, this );		
+			}
+		},
+
+
+		// Private .....................................................................
+		
+		/**
+		 * Remove delegated handlers. 
+		 * @TODO same as in gui.ActionPlugin, perhaps superize this stuff somehow...
+		 */
+		_cleanup : function ( type, checks ) {
+			if ( this._removechecks ( type, checks )) {
+				var handler = checks [ 0 ], global = checks [ 1 ];
+				if ( global ) {
+					this.removeGlobal ( type, handler );
+				} else {
+					this.remove ( type, handler );
+				}
+			}
+		}
+
+	}, {}, { // Static ...............................................................
+
+	});
+
+}( gui.Arguments.confirmed, gui.Combo.chained ));
+
+
+/**
+ * Interface KeyHandler
+ */
+gui.IKeyHandler = {
+
+	/**
+	 * Identification.
+	 * @returns {String}
+	 */
+	toString : function () {
+		return "[object IKeyHandler]";
+	},
+
+	/**
+	 * Handle key
+	 * @param {gui.Key} key
+	 */
+	onkey : function ( key ) {}
+};
+
+
+/**
+ * Keys module.
+ * @TODO http://www.w3.org/TR/DOM-Level-3-Events/#events-keyboardevents
+ * @TODO http://dev.opera.com/articles/view/functional-key-handling-in-opera-tv-store-applications/
+ */
+gui.module ( "keys", {
+
+	/*
+	 * Plugins (for all spirits).
+	 */
+	plugins : {
+		"key" : gui.KeyPlugin
+	},
+
+	/*
+	 * Mixins (for all spirits).
+	 */
+	mixins : {
+		/**
+		 * Handle key.
+		 * @param {gui.Key} key
+		 */
+		onkey : function ( key ) {}
+	},
+
+	/**
+	 * Context init.
+	 * @param {Window} context
+	 */
+	oncontextinitialize : function ( context ) {
+		this._keymap = Object.create ( null );
+		[ "keydown", "keypress", "keyup" ].forEach ( function ( type ) {
+			context.document.addEventListener ( type, this, false );
+		}, this );
+	},
+
+	/**
+	 * Handle event.
+	 * @param {KeyEvent} e
+	 */
+	handleEvent : function ( e ) {
+		this._modifiers ( e );
+		if ( gui.Type.isDefined ( e.repeat )) {
+			this._newschool ( e );
+		} else {
+			this._oldschool ( e );
+		}
+	},
+
+	/**
+	 * DOM2.5 style events blending event keyCode (now legacy) and char (now spec). 
+	 * Opera 12 appears to fire keyup repeatedly while key presses, is it correct? 
+	 * @param {Event} e
+	 */
+	_newschool : function ( e ) {
+		var c = e.char, n = e.keyCode, b = gui.BROADCAST_KEYEVENT;
+		switch ( e.type ) {
+			case "keydown" :
+				this._keymap [ n ] = c;
+				gui.Broadcast.dispatchGlobal ( null, b, {
+					down : true,
+					char : c,
+					code : n
+				});
+				break;
+			case "keyup" :
+				delete this._keymap [ n ];
+				var that = this;
+				setTimeout ( function () {
+					if ( !that._keymap [ n ]) {
+						console.log ( Math.random ());
+						gui.Broadcast.dispatchGlobal ( null, b, {
+							down : false,
+							char : c,
+							code : n
+						});
+					}
+				});
+				/*
+				gui.Tick.next ( function () {
+					if ( !this._keymap [ n ]) {
+						console.log ( Math.random ());
+						gui.Broadcast.dispatchGlobal ( null, b, {
+							down : false,
+							char : c,
+							code : n
+						});
+					}
+				}, this );
+				*/
+				break;
+		}
+	},
+
+	/**
+	 * Conan the Barbarian style events.
+	 * @param {Event} e
+	 */
+	_oldschool : function ( e ) {
+		var n = e.keyCode, c = this._keymap [ n ], b = gui.BROADCAST_KEYEVENT;
+		switch ( e.type ) {
+			case "keydown" :			
+				if ( c === undefined ) {
+					this._keycode = n;
+					this._keymap [ n ] = null;
+					gui.Tick.next ( function () {
+						c = this._keymap [ n ];
+						gui.Broadcast.dispatchGlobal ( null, b, {
+							down : true,
+							char : c,
+							code : n
+						});
+						this._keycode = null;
+					}, this );
+				}
+				break;
+			case "keypress" :
+				if ( this._keycode ) {
+					c = this._keychar ( e.keyCode, e.charCode, e.which );
+					this._keymap [ this._keycode ] = c;
+				}
+				break;
+			case "keyup" :
+				if ( c !== undefined ) {
+					gui.Broadcast.dispatchGlobal ( null, b, {
+						down : false,
+						char : c,
+						code : n
+					});
+					delete this._keymap [ n ];
+				}
+				break;
+		}
+	},
+
+
+	// Private ......................................................
+	
+	_keymap : null,
+
+	/**
+	 * Update key modifiers state.
+	 * @TODO Cross platform abstractions "accelDown" and "accessDown"
+	 * @param {KeyEvent} e
+	 */
+	_modifiers : function ( e ) {
+		gui.Key.ctrlDown = e.ctrlKey;
+		gui.Key.shiftDown = e.shiftKey;
+		gui.Key.altDown = e.altKey;
+		gui.Key.metaDown = e.metaKey;
+	},
+
+	/**
+	 * Get character for event details on keypress only. 
+	 * Returns null for special keys such as arrows etc.
+	 * http://javascript.info/tutorial/keyboard-events
+	 * @param {number} n
+	 * @param {number} c
+	 * @param {number} which
+	 * @return {String}
+	 */
+	_keychar : function ( n, c, which ) {
+		if ( which === null || which === undefined ) {
+			return String.fromCharCode ( n ); // IE (below 9 or what?)
+	  } else if ( which !== 0 && c ) { // c != 0
+	    return String.fromCharCode ( which ); // the rest
+	  }
+	  return null;
+	}
+
+});
+
+( function keybroadcasts () {
+	gui.BROADCAST_KEYEVENT = "gui-broadcast-keyevent";
+}());
+
+
+/**
  * Facilitate flexbox-like layouts in IE9 
  * provided a fixed classname structure.
  * @extends {gui.Plugin}
@@ -12778,7 +13223,7 @@ gui.FlexCSS.emulated =  {
  * Native ruleset. Engine can't parse [*=xxxxx] selector (says DOM 
  * exception), so let's just create one billion unique classnames.
  */
-gui.FlexCSS.native = ( function () {
+gui.FlexCSS [ "native" ] = ( function () {
 	var rules = {
 		".flexrow, .flexcol" : {
 			"display": "-beta-flex",

@@ -78,6 +78,11 @@
 	"src/dev/gui.Observer.js",
 	"src/core/gui.Guide.js",
 
+	"src/modules/keys.module/gui.Key.js",	
+	"src/modules/keys.module/gui.KeyPlugin.js",	
+	"src/modules/keys.module/gui.IKeyHandler.js",	
+	"src/modules/keys.module/keys.module.js",	
+
 	"src/modules/flex.module/gui.FlexPlugin.js",
 	"src/modules/flex.module/gui.FlexBox.js",
 	"src/modules/flex.module/gui.FlexChild.js",

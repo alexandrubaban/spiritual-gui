@@ -108,25 +108,7 @@ gui.TweenPlugin = ( function using ( chained ) {
 		},
 
 		// Private ...................................................................
-
-		/**
-		 * Global mode?
-		 * @type {boolean}
-		 */
-		_global : false,
-
-		/**
-		 * Execute operation in global mode.
-		 * @param {function} operation
-		 * @returns {object}
-		 */
-		_globalize : function ( operation ) {
-			this._global = true;
-			var res = operation.call ( this );
-			this._global = false;
-			return res;
-		},
-
+		
 		/**
 		 * Remove broadcast subscriptions on dispose.
 		 * @overwrites {gui.Tracker#_cleanup}

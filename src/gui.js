@@ -62,18 +62,21 @@ window.gui = {
 	 * Plugin broadcast types
 	 */
 	BROADCAST_ORIENTATIONCHANGE : "gui-broadcast-orientationchange",
-	BROADCAST_TOUCHSTART : "gui-broadcast-touchstart",
-	BROADCAST_TOUCHEND : "gui-broadcast-touchend",
-	BROADCAST_TOUCHCANCEL : "gui-broadcast-touchcancel",
-	BROADCAST_TOUCHLEAVE : "gui-broadcast-touchleave",
-	BROADCAST_TOUCHMOVE : "gui-broadcast-touchmove",
-	BROADCAST_DRAG_START : "gui-broadcast-drag-start",
-	BROADCAST_DRAG_END : "gui-broadcast-drag-end",
-	BROADCAST_DRAG_DROP : "gui-broadcast-drag-drop",
-	BROADCAST_COMMAND : "gui-broadcast-command", // ????
 	BROADCAST_ATTENTION_ON : "gui-broadcast-attention-on",
 	BROADCAST_ATTENTION_OFF : "gui-broadcast-attention-off",
 	BROADCAST_ATTENTION_GO : "gui-broadcast-attention-go",
+
+	/*
+	 * @TODO: offload to modules
+	 */
+	// BROADCAST_TOUCHSTART : "gui-broadcast-touchstart",
+	// BROADCAST_TOUCHEND : "gui-broadcast-touchend",
+	// BROADCAST_TOUCHCANCEL : "gui-broadcast-touchcancel",
+	// BROADCAST_TOUCHLEAVE : "gui-broadcast-touchleave",
+	// BROADCAST_TOUCHMOVE : "gui-broadcast-touchmove",
+	// BROADCAST_DRAG_START : "gui-broadcast-drag-start",
+	// BROADCAST_DRAG_END : "gui-broadcast-drag-end",
+	// BROADCAST_DRAG_DROP : "gui-broadcast-drag-drop",
 
 	/** 
 	 * Global actions
