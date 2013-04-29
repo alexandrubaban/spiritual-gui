@@ -27,7 +27,18 @@ gui.Plugin = gui.Class.create ( "gui.Plugin", Object.prototype, {
 	/**
 	 * Destruct.
 	 */
-	destruct : function () {},
+	ondestruct : function () {
+
+	},
+
+	/**
+	 * @deprecated
+	 * Deprecated ondestruct alias.
+	 */
+	destruct : function () {
+		console.log ("Deprecated");
+		this.ondestruct ();
+	},
 
 	/**
 	 * Implements DOM2 EventListener. Forwards to onevent().
@@ -51,6 +62,7 @@ gui.Plugin = gui.Class.create ( "gui.Plugin", Object.prototype, {
 	$onconstruct : function ( spirit ) {
 		this.spirit = spirit || null;
 		this.context = spirit ? spirit.window : null;
+		this.onconstruct ();
 	},
 
 	/**
@@ -58,7 +70,7 @@ gui.Plugin = gui.Class.create ( "gui.Plugin", Object.prototype, {
 	 * might be executed on a timed schedule.
 	 */
 	__destruct__ : function () {
-		this.destruct ();
+		this.ondestruct ();
 		if ( this.spirit !== null ) {
 			Object.defineProperty ( this, "spirit", gui.Spirit.DENIED );
 		}
