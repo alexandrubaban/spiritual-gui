@@ -27,16 +27,18 @@ gui.Plugin = gui.Class.create ( "gui.Plugin", Object.prototype, {
 	/**
 	 * Destruct.
 	 * @TODO rename ondestruct
+	 * @param @optional {boolean} now @TODO: we might not need this arg in plugins...
 	 */
-	ondestruct : function () {},
+	ondestruct : function ( now ) {},
 
 	/**
 	 * @deprecated
 	 * Deprecated ondestruct alias.
+	 * @param @optional {boolean} now
 	 */
-	destruct : function () {
+	destruct : function ( now ) {
 		console.log ("Deprecated");
-		this.ondestruct ();
+		this.ondestruct ( now );
 	},
 
 	/**
@@ -67,9 +69,10 @@ gui.Plugin = gui.Class.create ( "gui.Plugin", Object.prototype, {
 	/**
 	 * Secret destructor. Catching stuff that 
 	 * might be executed on a timed schedule.
+	 * @param @optional {boolean} now
 	 */
-	__destruct__ : function () {
-		this.ondestruct ();
+	$ondestruct : function ( now ) {
+		this.ondestruct ( now );
 		if ( this.spirit !== null ) {
 			Object.defineProperty ( this, "spirit", gui.Spirit.DENIED );
 		}
