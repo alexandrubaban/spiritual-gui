@@ -2,7 +2,7 @@
  * Configures a spirit by attribute parsing.
  * @extends {gui.Plugin}
  */
-gui.ConfigPlugin = gui.Plugin.extend ( "gui.ConfigPlugin", {
+gui.AttConfigPlugin = gui.Plugin.extend ( "gui.AttConfigPlugin", {
 
 	/**
 	 * Mapping attribute names to an expanded syntax (eg. "myatt" becomes "my.plugin.att").

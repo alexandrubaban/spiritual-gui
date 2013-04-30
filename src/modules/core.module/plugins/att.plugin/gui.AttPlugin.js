@@ -125,7 +125,7 @@ gui.AttPlugin = ( function using ( chained ) {
 				if ( elm.getAttribute ( name ) !== value ) {
 					elm.setAttribute ( name, value );
 					if ( spirit ) {
-						spirit.config.configureone ( name, value );
+						spirit.attconfig.configureone ( name, value );
 					}
 				}
 			}
@@ -151,7 +151,7 @@ gui.AttPlugin = ( function using ( chained ) {
 			var spirit = elm.spirit;
 			elm.removeAttribute ( name );
 			if ( spirit ) {
-				spirit.config.configureone ( name, null );
+				spirit.attconfig.configureone ( name, null );
 			}
 		}),
 

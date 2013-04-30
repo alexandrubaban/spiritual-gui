@@ -150,6 +150,9 @@ gui.Class = {
 	 */
 	_createsubclass : function ( SuperC, args ) {
 		args = this.breakdown ( args );
+		if ( gui.Type.isDefined ( args.config )) {
+			console.warn ( "'config' has been renamed 'attconfig'" );
+		}
 		SuperC.$super = SuperC.$super || new gui.Super ( SuperC );
 		return this._extend_fister ( SuperC, args.protos, args.recurring, args.statics, args.name );
 	},

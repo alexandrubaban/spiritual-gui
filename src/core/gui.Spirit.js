@@ -68,7 +68,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	 * @TODO Explain this
 	 */
 	onconfigure : function () {
-		this.config.configureall ();
+		this.attconfig.configureall ();
 		this.life.goconfigure ();
 	},
 	
@@ -231,7 +231,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	 */
 	$plugin : function () {
 		this.life = new gui.LifePlugin ( this );
-		this.config = new gui.ConfigPlugin ( this );
+		this.attconfig = new gui.AttConfigPlugin ( this );
 		this.$lazyplugins = Object.create ( null );
 		var prefixes = [], plugins = this.constructor.$plugins;
 		gui.Object.each ( plugins, function ( prefix, Plugin ) {
@@ -250,7 +250,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 			}
 		}, this );
 		this.life.onconstruct ();
-		this.config.onconstruct ();
+		this.attconfig.onconstruct ();
 		prefixes.forEach ( function ( prefix ) {
 			if ( !this.$lazyplugins [ prefix ]) {
 				this [ prefix ].onconstruct ();
