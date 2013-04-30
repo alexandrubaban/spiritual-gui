@@ -47,16 +47,16 @@ gui.CSSPlugin = ( function using ( chained ) {
 		/**
 		 * Get or set (full) className.
 		 * @param @optional {String} name
-		 * @returns {object} gui.Spirit or String
+		 * @returns {String|gui.CSSPlugin}
 		 */
-		name : function ( name ) {
+		name : chained ( function ( name ) {
 			var result = this.spirit.element.className;
 			if ( name !== undefined ) {
 				this.spirit.element.className = name;
 				result = this.spirit;
 			}
 			return result;
-		},
+		}),
 
 		/**
 		 * classList.add
@@ -83,7 +83,6 @@ gui.CSSPlugin = ( function using ( chained ) {
 		 */
 		toggle : chained ( function ( name ) {
 			gui.CSSPlugin.toggle ( this.spirit.element, name );
-			return this;
 		}),
 
 		/**
@@ -166,7 +165,7 @@ gui.CSSPlugin = ( function using ( chained ) {
 		 * classList.toggle
 		 * @param {Element} element
 		 * @param {String} name
-		 * @returns {gui.CSSPlugin}
+		 * @returns {function}
 		 */
 		toggle : chained ( function ( element, name ) {
 			if ( this._supports ) {
@@ -230,9 +229,9 @@ gui.CSSPlugin = ( function using ( chained ) {
 
 		/**
 		 * Set multiple element.style properties.
-		 * @param {object} thing Spirit or element.
+		 * @param {Element|gui.Spirit} thing Spirit or element.
 		 * @param {Map<String,String>} styles
-		 * @returns {object} Spirit or element
+		 * @returns {Element|gui.Spirit}
 		 */
 		style : function ( thing, styles ) {
 			var element = thing instanceof gui.Spirit ? thing.element : thing;

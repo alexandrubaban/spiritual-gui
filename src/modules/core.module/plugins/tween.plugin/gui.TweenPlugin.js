@@ -117,14 +117,12 @@ gui.TweenPlugin = ( function using ( chained ) {
 		 */
 		_cleanup : function ( type, checks ) {
 			var message = gui.BROADCAST_TWEEN;
-			if ( this._removechecks ( type, checks )) {
-				var global = checks [ 0 ];
-				var sig = global ? null : this._sig;
-				if ( global ) {
-					gui.Broadcast.removeGlobal ( message, this );
-				} else {
-					gui.Broadcast.remove ( message, this, this._sig );
-				}
+			var global = checks [ 0 ];
+			var sig = global ? null : this._sig;
+			if ( global ) {
+				gui.Broadcast.removeGlobal ( message, this );
+			} else {
+				gui.Broadcast.remove ( message, this, this._sig );
 			}
 		}
 

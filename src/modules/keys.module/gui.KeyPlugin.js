@@ -42,8 +42,8 @@ gui.KeyPlugin = ( function using ( confirmed, chained ) {
 						a = gui.Type.cast ( a );
 						if ( this._removechecks ( a, [ handler, this._global ])) {
 							if ( !this._hashandlers ()) {
-								gui.Broadcast.removeGlobal ( gui.BROADCAST_KEYEVENT, this );		
-							}
+								gui.Broadcast.removeGlobal ( gui.BROADCAST_KEYEVENT, this );
+							}	
 						}
 					}, this );
 				}
@@ -94,37 +94,6 @@ gui.KeyPlugin = ( function using ( confirmed, chained ) {
 					});
 				}
 			}
-			/*
-			if ( b.type === gui.BROADCAST_KEYEVENT ) {
-				if ( list = this._xxx [ b.data.keyCode ]) {
-					list.forEach ( function ( checks ) {
-						handler = checks [ 0 ];
-						global = checks [ 1 ];
-						if ( global === b.isGlobal ) {
-							handler.onkey ( 
-								new gui.Key ( 
-									b.data.type,
-									b.data.keyCode,
-									b.data.charCode,
-									b.data.which,
-									b.isGlobal
-								)
-							);
-						}
-					});
-				}
-			}
-			*/
-		},
-
-		/**
-		 * Destruction time again.
-		 */
-		ondestruct : function () {
-			this._super.ondestruct ();
-			if ( !this._hashandlers ()) {
-				gui.Broadcast.removeGlobal ( gui.BROADCAST_KEYEVENT, this );		
-			}
 		},
 
 
@@ -135,14 +104,14 @@ gui.KeyPlugin = ( function using ( confirmed, chained ) {
 		 * @TODO same as in gui.ActionPlugin, perhaps superize this stuff somehow...
 		 */
 		_cleanup : function ( type, checks ) {
-			if ( this._removechecks ( type, checks )) {
+			//if ( this._removechecks ( type, checks )) {
 				var handler = checks [ 0 ], global = checks [ 1 ];
 				if ( global ) {
 					this.removeGlobal ( type, handler );
 				} else {
 					this.remove ( type, handler );
 				}
-			}
+			//}
 		}
 
 	}, {}, { // Static ...............................................................
