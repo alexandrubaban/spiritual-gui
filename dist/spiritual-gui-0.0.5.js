@@ -4184,11 +4184,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	 * @param @optional {boolean} now Destruct immediately (for example when the window unloads)
 	 */
 	$ondestruct : function ( now ) {
-<<<<<<< HEAD
-		var map = this.__lazyplugins__;
-=======
 		var map = this.$lazyplugins;
->>>>>>> 30e7c60ee33dcca3a36db110c18cada42dd3cd88
 		gui.Object.each ( map, function ( prefix ) {
 			if ( map [ prefix ] === true ) {
 				delete this [ prefix ]; // otherwise next iterator will instantiate the lazy plugin...
@@ -4525,13 +4521,8 @@ gui.Plugin = gui.Class.create ( "gui.Plugin", Object.prototype, {
 	 * Secret destructor.
 	 * @param @optional {boolean} now
 	 */
-<<<<<<< HEAD
-	$ondestruct : function () {
-		this.destruct ();
-=======
 	$ondestruct : function ( now ) {
 		this.ondestruct ( now );
->>>>>>> 30e7c60ee33dcca3a36db110c18cada42dd3cd88
 		if ( this.spirit !== null ) {
 			Object.defineProperty ( this, "spirit", gui.Spirit.DENIED );
 		}
@@ -5916,7 +5907,22 @@ gui.BoxPlugin = gui.Plugin.extend ( "gui.BoxPlugin", {
 	pageX   : 0, // X relative to the full page (includes scrolling)
 	pageY   : 0, // Y telative to the full page (includes scrolling)	  
 	clientX : 0, // X relative to the viewport (excludes scrolling)
-	clientY : 0  // Y relative to the viewport (excludes scrolling)
+	clientY : 0,  // Y relative to the viewport (excludes scrolling)
+
+	/**
+	 * Returns local scrolling element (hotfixed)
+	 * @TODO Fix this in gui.Client...
+	 * @returns {Element}
+	 */
+	_scrollroot : function () {
+		return ( function ( doc ) {
+			if ( gui.Client.scrollRoot.localName === "html" ) {
+				return doc.documentElement;
+			} else {
+				return doc.body;
+			}
+		}( this.spirit.document ));
+	}
 });
 
 Object.defineProperties ( gui.BoxPlugin.prototype, {
@@ -5968,7 +5974,7 @@ Object.defineProperties ( gui.BoxPlugin.prototype, {
 	 */
 	pageX : {
 		get : function () {
-			return this.clientX + gui.Client.scrollRoot.scrollLeft;
+			return this.clientX + this._scrollroot ().scrollLeft;
 		}
 	},
 
@@ -5979,7 +5985,7 @@ Object.defineProperties ( gui.BoxPlugin.prototype, {
 	 */
 	pageY : {
 		get : function () {
-			return this.clientY + gui.Client.scrollRoot.scrollTop;
+			return this.clientY + this._scrollroot ().scrollTop;
 		}
 	},
 
@@ -6496,16 +6502,16 @@ gui.CSSPlugin = ( function using ( chained ) {
 		/**
 		 * Get or set (full) className.
 		 * @param @optional {String} name
-		 * @returns {object} gui.Spirit or String
+		 * @returns {String|gui.CSSPlugin}
 		 */
-		name : function ( name ) {
+		name : chained ( function ( name ) {
 			var result = this.spirit.element.className;
 			if ( name !== undefined ) {
 				this.spirit.element.className = name;
 				result = this.spirit;
 			}
 			return result;
-		},
+		}),
 
 		/**
 		 * classList.add
@@ -6532,7 +6538,6 @@ gui.CSSPlugin = ( function using ( chained ) {
 		 */
 		toggle : chained ( function ( name ) {
 			gui.CSSPlugin.toggle ( this.spirit.element, name );
-			return this;
 		}),
 
 		/**
@@ -6615,7 +6620,7 @@ gui.CSSPlugin = ( function using ( chained ) {
 		 * classList.toggle
 		 * @param {Element} element
 		 * @param {String} name
-		 * @returns {gui.CSSPlugin}
+		 * @returns {function}
 		 */
 		toggle : chained ( function ( element, name ) {
 			if ( this._supports ) {
@@ -6679,9 +6684,9 @@ gui.CSSPlugin = ( function using ( chained ) {
 
 		/**
 		 * Set multiple element.style properties.
-		 * @param {object} thing Spirit or element.
+		 * @param {Element|gui.Spirit} thing Spirit or element.
 		 * @param {Map<String,String>} styles
-		 * @returns {object} Spirit or element
+		 * @returns {Element|gui.Spirit}
 		 */
 		style : function ( thing, styles ) {
 			var element = thing instanceof gui.Spirit ? thing.element : thing;
@@ -6903,8 +6908,6 @@ gui.CSSPlugin = ( function using ( chained ) {
 /**
  * DOM query and manipulation.
  * @extends {gui.Plugin}
- * @TODO implement missing stuff
- * @TODO performance for all this
  * @TODO add following and preceding
  * @using {gui.Combo#chained}
  */
