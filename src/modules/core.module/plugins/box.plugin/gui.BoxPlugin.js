@@ -12,7 +12,22 @@ gui.BoxPlugin = gui.Plugin.extend ( "gui.BoxPlugin", {
 	pageX   : 0, // X relative to the full page (includes scrolling)
 	pageY   : 0, // Y telative to the full page (includes scrolling)	  
 	clientX : 0, // X relative to the viewport (excludes scrolling)
-	clientY : 0  // Y relative to the viewport (excludes scrolling)
+	clientY : 0,  // Y relative to the viewport (excludes scrolling)
+
+	/**
+	 * Returns local scrolling element (hotfixed)
+	 * @TODO Fix this in gui.Client...
+	 * @returns {Element}
+	 */
+	_scrollroot : function () {
+		return ( function ( doc ) {
+			if ( gui.Client.scrollRoot.localName === "html" ) {
+				return doc.documentElement;
+			} else {
+				return doc.body;
+			}
+		}( this.spirit.document ));
+	}
 });
 
 Object.defineProperties ( gui.BoxPlugin.prototype, {
@@ -64,7 +79,7 @@ Object.defineProperties ( gui.BoxPlugin.prototype, {
 	 */
 	pageX : {
 		get : function () {
-			return this.clientX + gui.Client.scrollRoot.scrollLeft;
+			return this.clientX + this._scrollroot ().scrollLeft;
 		}
 	},
 
@@ -75,7 +90,7 @@ Object.defineProperties ( gui.BoxPlugin.prototype, {
 	 */
 	pageY : {
 		get : function () {
-			return this.clientY + gui.Client.scrollRoot.scrollTop;
+			return this.clientY + this._scrollroot ().scrollTop;
 		}
 	},
 
