@@ -61,13 +61,13 @@ gui.Guide = {
 			case gui.BROADCAST_LOADING_CHANNELS :
 				if ( !spirits ) {
 					spirits = this._windows [ sig ] = [];
-					spirits.__loading__ = 0;
+					spirits.$loading = 0;
 				}
 				spirits.push ( b.target );
-				spirits.__loading__ ++;
+				spirits.$loading ++;
 				break;
 			case gui.BROADCAST_CHANNELS_LOADED :
-				if ( -- spirits.__loading__ === 0 ) {
+				if ( -- spirits.$loading === 0 ) {
 					while (( spirit = spirits.shift ())) {
 						spirit.channel ();
 					}
@@ -364,7 +364,7 @@ gui.Guide = {
 			});
 			attach.forEach ( function ( spirit ) {
 				if ( !spirit.life.configured ) {
-					spirit.onconfigure (); // @TODO deprecated :(
+					spirit.onconfigure ();
 				}
 				if ( this._invisible ( spirit )) {
 					if ( spirit.life.visible ) {

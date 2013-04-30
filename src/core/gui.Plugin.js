@@ -67,8 +67,7 @@ gui.Plugin = gui.Class.create ( "gui.Plugin", Object.prototype, {
 	},
 
 	/**
-	 * Secret destructor. Catching stuff that 
-	 * might be executed on a timed schedule.
+	 * Secret destructor.
 	 * @param @optional {boolean} now
 	 */
 	$ondestruct : function ( now ) {

@@ -100,7 +100,6 @@ gui.module ( "jquery", {
 				this.each ( function ( i, elm ) {
 					if ( elm.spirit ) {
 						if ( val !== undefined || del ) {
-							// @TODO spirit.att.__suspend__ ???
 							elm.spirit.att.set ( nam, val );
 						} else {
 							res = elm.spirit.att.get ( nam );

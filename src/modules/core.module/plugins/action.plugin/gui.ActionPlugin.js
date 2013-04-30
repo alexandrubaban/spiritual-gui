@@ -187,13 +187,11 @@ gui.ActionPlugin = ( function using ( confirmed, chained ) {
 		 * @param {Array<object>} checks
 		 */
 		_cleanup : function ( type, checks ) {
-			if ( this._removechecks ( type, checks )) {
-				var handler = checks [ 0 ], global = checks [ 1 ];
-				if ( global ) {
-					this.removeGlobal ( type, handler );
-				} else {
-					this.remove ( type, handler );
-				}
+			var handler = checks [ 0 ], global = checks [ 1 ];
+			if ( global ) {
+				this.removeGlobal ( type, handler );
+			} else {
+				this.remove ( type, handler );
 			}
 		}
 

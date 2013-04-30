@@ -2,22 +2,35 @@
  * Configures a spirit by attribute parsing.
  * @extends {gui.Plugin}
  */
-gui.ConfigPlugin = gui.Plugin.extend ( "gui.ConfigPlugin", {
+gui.AttConfigPlugin = gui.Plugin.extend ( "gui.AttConfigPlugin", {
 
 	/**
-	 * Mapping shorthands to expanded syntax.
+	 * Mapping attribute names to an expanded syntax (eg. "myatt" becomes "my.plugin.att").
 	 * @type {Map<String,String>}
 	 */
 	map : null,
 
 	/**
-	 * Configure spirit by DOM attributes.
-	 * @TODO reconfigure scenario
+	 * Invoked by the {gui.Spirit} once all plugins have been plugged in. 
+	 * @TODO: Simple props with no setter does nothing when updated now. 
+	 * Perhaps it would be possible to somehow configure those *first*?
+	 * @TODO Figure out whether or not this should postpone to onenter()
 	 */
-	onconstruct : function () {
-		this.spirit.att.all ().forEach ( function ( att ) {
-			this._evaluate ( this._lookup ( att.name ), att.value );
+	configureall : function () {
+		var atts = this.spirit.element.attributes;
+		Array.forEach ( atts, function ( att ) {
+			this.configureone ( att.name, att.value );
 		}, this );
+	},
+
+	/**
+	 * Setup configuration (if applicable) after an attribute update. 
+	 * This should probably only ever be invoked by the {gui.AttPlugin}.
+	 * @param {String} name
+	 * @param {String} value
+	 */
+	configureone : function ( name, value ) {
+		this._evaluate ( this._lookup ( name ), value );
 	},
 
 
