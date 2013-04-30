@@ -4041,7 +4041,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 		this.window.gui.destruct ( this );
 		this.__debug__ ( false );
 		this.life.godestruct ();
-		this.__destruct__ ( now );
+		this.$ondestruct ( now );
 	},
 	
 	// Handlers .....................................................................
@@ -4180,7 +4180,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	 * to a new execution stack, but the consequences should be thought throught at some point.
 	 * @param @optional {boolean} now Destruct immediately (for example when the window unloads)
 	 */
-	__destruct__ : function ( now ) {
+	$ondestruct : function ( now ) {
 		var map = this.__lazyplugins__;
 		gui.Object.each ( map, function ( prefix ) {
 			if ( map [ prefix ] === true ) {
@@ -4194,13 +4194,13 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 				case "object" :
 					if ( thing instanceof gui.Plugin ) {
 						if ( thing !== this.life ) {
-							thing.__destruct__ ( now );
+							thing.$ondestruct ( now );
 						}
 					}
 					break;
 			}
 		}, this );
-		this.life.__destruct__ (); // dispose life plugin last
+		this.life.$ondestruct (); // dispose life plugin last
 		if ( now ) {
 			this.__null__ ();
 		} else {
@@ -4506,7 +4506,7 @@ gui.Plugin = gui.Class.create ( "gui.Plugin", Object.prototype, {
 	 * Secret destructor. Catching stuff that 
 	 * might be executed on a timed schedule.
 	 */
-	__destruct__ : function () {
+	$ondestruct : function () {
 		this.destruct ();
 		if ( this.spirit !== null ) {
 			Object.defineProperty ( this, "spirit", gui.Spirit.DENIED );
