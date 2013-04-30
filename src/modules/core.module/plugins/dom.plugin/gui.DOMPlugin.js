@@ -1,8 +1,6 @@
 /**
  * DOM query and manipulation.
  * @extends {gui.Plugin}
- * @TODO implement missing stuff
- * @TODO performance for all this
  * @TODO add following and preceding
  * @using {gui.Combo#chained}
  */

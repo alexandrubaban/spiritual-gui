@@ -101,8 +101,8 @@ gui.Function = {
 	_decorated : function ( target, name, decorator ) {
 		var result = true;
 		var string = decorator.toString ();
-		var decoed = target.__decorators__ || ( function () {
-			return ( target.__decorators__ = Object.create ( null ));
+		var decoed = target.$decorators || ( function () {
+			return ( target.$decorators = Object.create ( null ));
 		}());
 		if (( result = decoed [ name ] !== string )) {
 			decoed [ name ] = string;

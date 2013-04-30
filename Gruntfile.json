@@ -36,7 +36,7 @@
 
 	"src/modules/core.module/plugins/life.plugin/gui.Life.js",
 	"src/modules/core.module/plugins/life.plugin/gui.LifePlugin.js",
-	"src/modules/core.module/plugins/config.plugin/gui.ConfigPlugin.js",
+	"src/modules/core.module/plugins/attconfig.plugin/gui.AttConfigPlugin.js",
 
 	"src/modules/core.module/plugins/action.plugin/gui.Action.js",
 	"src/modules/core.module/plugins/action.plugin/gui.ActionPlugin.js",

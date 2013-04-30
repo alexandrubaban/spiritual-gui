@@ -24,14 +24,14 @@ gui.module ( "core", {
 		
 		action : gui.ActionPlugin,
 		att : gui.AttPlugin, 
+		attconfig : gui.AttConfigPlugin,
 		attention : gui.AttentionPlugin,
 		box : gui.BoxPlugin,
 		broadcast : gui.BroadcastPlugin,
-		config : gui.ConfigPlugin,
 		css : gui.CSSPlugin,
 		dom : gui.DOMPlugin,
 		event : gui.EventPlugin,
-		lif : gui.LifePlugin,
+		life : gui.LifePlugin,
 		tick : gui.TickPlugin,
 		tween : gui.TweenPlugin,
 		transition : gui.TransitionPlugin

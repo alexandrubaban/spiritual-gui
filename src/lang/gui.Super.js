@@ -17,7 +17,7 @@ gui.Object.each ({ // generating static methods
 	 * Instance of gui.Class which is now invoking _super()
 	 * @type {object}
 	 */
-	__subject__ : null,
+	$subject : null,
 
 	/**
 	 * Identification.
@@ -46,7 +46,7 @@ gui.Object.each ({ // generating static methods
 	 */
 	generateStub : function ( suber, proto, name ) {
 		var func = suber [ name ] = function () {
-			return proto [ name ].apply ( gui.Super.__subject__, arguments );
+			return proto [ name ].apply ( gui.Super.$subject, arguments );
 		};
 		func.displayName = name;
 	},
@@ -93,11 +93,11 @@ gui.Object.each ({ // generating static methods
 	_decorator : function ( SuperC ) {
 		return function ( base ) {
 			return function () {
-				var sub = gui.Super.__subject__;
-				gui.Super.__subject__ = this;
-				this._super = SuperC.__super__;
+				var sub = gui.Super.$subject;
+				gui.Super.$subject = this;
+				this._super = SuperC.$super;
 				var result = base.apply ( this, arguments );
-				gui.Super.__subject__ = sub;
+				gui.Super.$subject = sub;
 				return result;
 			};
 		};

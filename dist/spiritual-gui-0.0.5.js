@@ -1043,7 +1043,7 @@ gui.Spiritual.prototype = {
 			var doc = element.ownerDocument;
 			var win = doc.defaultView;
 			var att = element.getAttribute ( "gui" ); // @TODO "data-gui"
-			// test for "gui" attribute in markup. "[" accounts for {gui.Spirit#__debug__}
+			// test for "gui" attribute in markup. "[" accounts for {gui.Spirit#$debug}
 			if ( gui.Type.isString ( att ) && !att.startsWith ( "[" )) {
 				if ( att !== "" ) { // no spirit for empty string
 					res = win.gui._inlines [ att ];
@@ -1951,8 +1951,8 @@ gui.Function = {
 	_decorated : function ( target, name, decorator ) {
 		var result = true;
 		var string = decorator.toString ();
-		var decoed = target.__decorators__ || ( function () {
-			return ( target.__decorators__ = Object.create ( null ));
+		var decoed = target.$decorators || ( function () {
+			return ( target.$decorators = Object.create ( null ));
 		}());
 		if (( result = decoed [ name ] !== string )) {
 			decoed [ name ] = string;
@@ -1988,7 +1988,7 @@ gui.Class = {
 		gui.Object.extend ( C, b.statics );
 		if ( b.recurring ) {
 			gui.Object.each ( b.recurring, function ( key, val ) {
-				C [ key ] = C.__recurring__ [ key ] = val;
+				C [ key ] = C.$recurring [ key ] = val;
 			});
 		}
 		return this._profiling ( C );
@@ -2115,7 +2115,10 @@ gui.Class = {
 	 */
 	_createsubclass : function ( SuperC, args ) {
 		args = this.breakdown ( args );
-		SuperC.__super__ = SuperC.__super__ || new gui.Super ( SuperC );
+		if ( gui.Type.isDefined ( args.config )) {
+			console.warn ( "'config' has been renamed 'attconfig'" );
+		}
+		SuperC.$super = SuperC.$super || new gui.Super ( SuperC );
 		return this._extend_fister ( SuperC, args.protos, args.recurring, args.statics, args.name );
 	},
 
@@ -2131,8 +2134,8 @@ gui.Class = {
 	_extend_fister : function ( SuperC, protos, recurring, statics, name ) {
 		var C = this._createclass ( SuperC, SuperC.prototype, name );
 		gui.Object.extend ( C, statics );
-		gui.Object.extend ( C.__recurring__, recurring );
-		gui.Object.each ( C.__recurring__, function ( key, val ) {
+		gui.Object.extend ( C.$recurring, recurring );
+		gui.Object.each ( C.$recurring, function ( key, val ) {
 			C [ key ] = val;
 		});
 		gui.Property.extendall ( protos, C.prototype ); // @TODO what about base?
@@ -2168,12 +2171,12 @@ gui.Class = {
 	 * @returns {function}
 	 */
 	_internals : function ( C, SuperC ) {
-		C.__super__ = null;
-		C.__subclasses__ = [];
-		C.__superclass__ = SuperC || null;
-		C.__recurring__ = SuperC ? gui.Object.copy ( SuperC.__recurring__ ) : Object.create ( null );
+		C.$super = null;
+		C.$subclasses = [];
+		C.$superclass = SuperC || null;
+		C.$recurring = SuperC ? gui.Object.copy ( SuperC.$recurring ) : Object.create ( null );
 		if ( SuperC ) {
-			SuperC.__subclasses__.push ( C );
+			SuperC.$subclasses.push ( C );
 		}
 		return C;
 	},
@@ -2280,8 +2283,8 @@ gui.Object.each ({
 		if ( !gui.Type.isDefined ( this.prototype [ name ]) || override ) {
 			this.prototype [ name ] = value;
 			gui.Class.descendantsAndSelf ( this, function ( C ) {
-				if ( C.__super__ ) { // mixed in method gets added to the _super objects...
-					gui.Super.generateStub ( C.__super__, C.prototype, name );
+				if ( C.$super ) { // mixed in method gets added to the _super objects...
+					gui.Super.generateStub ( C.$super, C.prototype, name );
 				}
 			});
 		} else {
@@ -2309,7 +2312,7 @@ gui.Object.each ({
 	children : function ( C, action, thisp ) {
 		var results = [];
 		action = action || gui.Combo.identity;
-		C.__subclasses__.forEach ( function ( sub ) {
+		C.$subclasses.forEach ( function ( sub ) {
 			results.push ( action.call ( thisp, sub ));
 		}, thisp );
 		return results;
@@ -2328,7 +2331,7 @@ gui.Object.each ({
 	descendants : function ( C, action, thisp, results ) {
 		results = results || [];
 		action = action || gui.Combo.identity;
-		C.__subclasses__.forEach ( function ( sub ) {
+		C.$subclasses.forEach ( function ( sub ) {
 			results.push ( action.call ( thisp, sub ));
 			gui.Class.descendants ( sub, action, thisp, results );
 		}, thisp );
@@ -2360,7 +2363,7 @@ gui.Object.each ({
 	 */
 	parent : function ( C, action, thisp ) {
 		action = action || gui.Combo.identity;
-		return action.call ( thisp, C.__superclass__ );
+		return action.call ( thisp, C.$superclass );
 	},
 
 	/**
@@ -2375,9 +2378,9 @@ gui.Object.each ({
 	ancestors : function ( C, action, thisp, results ) {
 		results = results || [];
 		action = action || gui.Combo.identity;
-		if ( C.__superclass__ ) {
-			results.push ( action.call ( thisp, C.__superclass__ ));
-			gui.Class.ancestors ( C.__superclass__, action, thisp, results );
+		if ( C.$superclass ) {
+			results.push ( action.call ( thisp, C.$superclass ));
+			gui.Class.ancestors ( C.$superclass, action, thisp, results );
 		}
 		return results;
 	},
@@ -2738,7 +2741,7 @@ gui.Object.each ({ // generating static methods
 	 * Instance of gui.Class which is now invoking _super()
 	 * @type {object}
 	 */
-	__subject__ : null,
+	$subject : null,
 
 	/**
 	 * Identification.
@@ -2767,7 +2770,7 @@ gui.Object.each ({ // generating static methods
 	 */
 	generateStub : function ( suber, proto, name ) {
 		var func = suber [ name ] = function () {
-			return proto [ name ].apply ( gui.Super.__subject__, arguments );
+			return proto [ name ].apply ( gui.Super.$subject, arguments );
 		};
 		func.displayName = name;
 	},
@@ -2814,11 +2817,11 @@ gui.Object.each ({ // generating static methods
 	_decorator : function ( SuperC ) {
 		return function ( base ) {
 			return function () {
-				var sub = gui.Super.__subject__;
-				gui.Super.__subject__ = this;
-				this._super = SuperC.__super__;
+				var sub = gui.Super.$subject;
+				gui.Super.$subject = this;
+				this._super = SuperC.$super;
 				var result = base.apply ( this, arguments );
-				gui.Super.__subject__ = sub;
+				gui.Super.$subject = sub;
 				return result;
 			};
 		};
@@ -3940,7 +3943,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	},
 	
 	
-	// Lifecycle ..............................................................
+	// Lifecycle .............................................................................
 
 	/**
 	 * You can safely overload or overwrite methods in the lifecycle section, 
@@ -3953,19 +3956,18 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	 * element may not be positioned in the document DOM at this point. 
 	 */
 	onconstruct : function () {
-		this.__plugin__ ();
-		this.__debug__ ( true );
+		this.$plugin ();
+		this.$debug ( true );
 		this.life.goconstruct ();
 	},
 	
 	/**
-	 * @deprecated
 	 * `onconfigure` gets callend immediately after construction. This 
 	 * instructs the spirit to parse configuration attributes in markup. 
 	 * @TODO Explain this
 	 */
 	onconfigure : function () {
-		//this.config.configure ();
+		this.attconfig.configureall ();
 		this.life.goconfigure ();
 	},
 	
@@ -4039,12 +4041,13 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	 */
 	ondestruct : function ( now ) {
 		this.window.gui.destruct ( this );
-		this.__debug__ ( false );
+		this.$debug ( false );
 		this.life.godestruct ();
 		this.$ondestruct ( now );
 	},
 	
-	// Handlers .....................................................................
+
+	// Handlers ..............................................................................
 
 	/**	
 	 * Handle crawler (tell me more)
@@ -4062,7 +4065,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	onlife : function ( life ) {},
 	
 	
-	// More stuff ........................................................................
+	// More stuff ............................................................................
 
 	/**
 	 * Mark spirit visible. THis adds the classname "_gui-invisible" and 
@@ -4094,8 +4097,8 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 		this.ondestruct ();
 	},
 	
-	
-	// Secret ....................................................................
+
+	// Secret ................................................................................
 	
 	/**
 	 * Secret constructor. The $instanceid is generated standard by the {gui.Class}
@@ -4116,7 +4119,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	 * Mapping lazy plugins to prefixes.
 	 * @type {Map<String,gui.Plugin>}
 	 */
-	__lazyplugins__ : null,
+	$lazyplugins : null,
 
 	/**
 	 * Plug in the plugins.
@@ -4125,11 +4128,11 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	 * - config plugin second
 	 * - bonus plugins galore
 	 */
-	__plugin__ : function () {
+	$plugin : function () {
 		this.life = new gui.LifePlugin ( this );
-		this.config = new gui.ConfigPlugin ( this );
-		this.__lazyplugins__ = Object.create ( null );
-		var prefixes = [], plugins = this.constructor.__plugins__;
+		this.attconfig = new gui.AttConfigPlugin ( this );
+		this.$lazyplugins = Object.create ( null );
+		var prefixes = [], plugins = this.constructor.$plugins;
 		gui.Object.each ( plugins, function ( prefix, Plugin ) {
 			switch ( Plugin ) {
 				case gui.LifePlugin :
@@ -4137,7 +4140,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 					break;
 				default :
 					if ( Plugin.lazy ) {
-						gui.Plugin.later ( Plugin, prefix, this, this.__lazyplugins__ );
+						gui.Plugin.later ( Plugin, prefix, this, this.$lazyplugins );
 					} else {
 						this [ prefix ] = new Plugin ( this );
 					}
@@ -4146,9 +4149,9 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 			}
 		}, this );
 		this.life.onconstruct ();
-		this.config.onconstruct ();
+		this.attconfig.onconstruct ();
 		prefixes.forEach ( function ( prefix ) {
-			if ( !this.__lazyplugins__ [ prefix ]) {
+			if ( !this.$lazyplugins [ prefix ]) {
 				this [ prefix ].onconstruct ();
 			}
 		}, this );
@@ -4160,7 +4163,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	 * passed as first argument to the gui.Spirit.infuse("John") method.
 	 * @param {boolean} constructing
 	 */
-	__debug__ : function ( constructing ) {
+	$debug : function ( constructing ) {
 		var val, elm = this.element;
 		if ( constructing ) {
 			if ( !elm.hasAttribute ( "gui" )) {
@@ -4181,7 +4184,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	 * @param @optional {boolean} now Destruct immediately (for example when the window unloads)
 	 */
 	$ondestruct : function ( now ) {
-		var map = this.__lazyplugins__;
+		var map = this.$lazyplugins;
 		gui.Object.each ( map, function ( prefix ) {
 			if ( map [ prefix ] === true ) {
 				delete this [ prefix ]; // otherwise next iterator will instantiate the lazy plugin...
@@ -4202,7 +4205,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 		}, this );
 		this.life.$ondestruct (); // dispose life plugin last
 		if ( now ) {
-			this.__null__ ();
+			this.$null ();
 		} else {
 			var that = this;
 			var tick = gui.TICK_SPIRIT_NULL;
@@ -4211,7 +4214,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 			gui.Tick.one ( tick, {
 				ontick : function () {
 					try {
-						that.__null__ ();
+						that.$null ();
 					} catch ( exception ) {
 						// @TODO why sometimes gui.Spirit.DENIED?
 					}
@@ -4223,7 +4226,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	/**
 	 * Null all props.
 	 */
-	__null__ : function () {
+	$null : function () {
 		var myelm = this.element;
 		var debug = this.window.gui.debug;
 		var ident = this.toString ();
@@ -4239,7 +4242,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	}
 
 
-}, { // Recurring static ...............................................................
+}, { // Recurring static ...................................................................
 	
 	/**
 	 * Portal spirit into iframes via the `gui.portal` method?
@@ -4257,9 +4260,9 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	 */
 	infuse : function () {
 		var C = gui.Class.extend.apply ( this, arguments );
-		C.__plugins__ = gui.Object.copy ( this.__plugins__ );
+		C.$plugins = gui.Object.copy ( this.$plugins );
 		var b = gui.Class.breakdown ( arguments );
-		gui.Object.each ( C.__plugins__, function ( prefix, plugin ) {
+		gui.Object.each ( C.$plugins, function ( prefix, plugin ) {
 			var def = b.protos [ prefix ];			
 			switch ( gui.Type.of ( def )) {
 				case "object" :
@@ -4329,7 +4332,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	 * @param @optional {boolean} override Disable collision detection
 	 */
 	plugin : function ( prefix, plugin, override ) {
-		var plugins = this.__plugins__;
+		var plugins = this.$plugins;
 		var proto = this.prototype;
 		if ( !proto.hasOwnProperty ( prefix ) || proto.prefix === null || override ) {
 			if ( !plugins [ prefix ] || override ) {
@@ -4348,10 +4351,10 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	 * Mapping plugin constructor to plugin prefix.
 	 * @type {Map<String,function>}
 	 */
-	__plugins__ : Object.create ( null )
+	$plugins : Object.create ( null )
 
 	
-}, { // Static ....................................................................
+}, { // Static .............................................................................
 
 	/**
 	 * Hello.
@@ -4627,11 +4630,11 @@ gui.Tracker = gui.Plugin.extend ( "gui.Tracker", {
 	},
 
 	/**
-	 * @TODO Rename ondestruct.
+	 * Cleanup on destruction.
 	 */
-	destruct : function () {
+	ondestruct : function () {
 		var type, list;
-		this._super.destruct ();
+		this._super.ondestruct ();
 		gui.Object.each ( this._xxx, function ( type, list ) {
 			list.slice ( 0 ).forEach ( function ( checks ) {
 				this._cleanup ( type, checks );
@@ -4646,7 +4649,7 @@ gui.Tracker = gui.Plugin.extend ( "gui.Tracker", {
 	 */
 	_cleanup : function ( type, checks ) {
 		if ( this._removechecks ( type, checks )) { 
-			// do cleanup here
+			// do cleanup here (perhaps overwrite all this to perform _removechecks elsewhere)
 		}
 	},
 	
@@ -5166,24 +5169,35 @@ gui.LifePlugin = gui.Tracker.extend ( "gui.LifePlugin", {
  * Configures a spirit by attribute parsing.
  * @extends {gui.Plugin}
  */
-gui.ConfigPlugin = gui.Plugin.extend ( "gui.ConfigPlugin", {
+gui.AttConfigPlugin = gui.Plugin.extend ( "gui.AttConfigPlugin", {
 
 	/**
-	 * Mapping shorthands to expanded syntax.
+	 * Mapping attribute names to an expanded syntax (eg. "myatt" becomes "my.plugin.att").
 	 * @type {Map<String,String>}
 	 */
 	map : null,
 
 	/**
-	 * Configure spirit by DOM attributes.
-	 * @TODO reconfigure scenario
+	 * Invoked by the {gui.Spirit} once all plugins have been plugged in. 
+	 * @TODO: Simple props with no setter does nothing when updated now. 
+	 * Perhaps it would be possible to somehow configure those *first*?
+	 * @TODO Figure out whether or not this should postpone to onenter()
 	 */
-	onconstruct : function () {
-		this._super.onconstruct ();
+	configureall : function () {
 		var atts = this.spirit.element.attributes;
 		Array.forEach ( atts, function ( att ) {
-			this._evaluate ( this._lookup ( att.name ), att.value );
+			this.configureone ( att.name, att.value );
 		}, this );
+	},
+
+	/**
+	 * Setup configuration (if applicable) after an attribute update. 
+	 * This should probably only ever be invoked by the {gui.AttPlugin}.
+	 * @param {String} name
+	 * @param {String} value
+	 */
+	configureone : function ( name, value ) {
+		this._evaluate ( this._lookup ( name ), value );
 	},
 
 
@@ -5647,13 +5661,11 @@ gui.ActionPlugin = ( function using ( confirmed, chained ) {
 		 * @param {Array<object>} checks
 		 */
 		_cleanup : function ( type, checks ) {
-			if ( this._removechecks ( type, checks )) {
-				var handler = checks [ 0 ], global = checks [ 1 ];
-				if ( global ) {
-					this.removeGlobal ( type, handler );
-				} else {
-					this.remove ( type, handler );
-				}
+			var handler = checks [ 0 ], global = checks [ 1 ];
+			if ( global ) {
+				this.removeGlobal ( type, handler );
+			} else {
+				this.remove ( type, handler );
 			}
 		}
 
@@ -5686,185 +5698,199 @@ gui.IActionHandler = {
 /**
  * Methods to read and write DOM attributes.
  * @extends {gui.Tracker}
+ * @using {gui.Combo.chained}
  */
-gui.AttPlugin = gui.Plugin.extend ( "gui.AttPlugin", {
+gui.AttPlugin = ( function using ( chained ) {
 
-	/**
-	 * Get single element attribute cast to an inferred type.
-	 * @param {String} att
-	 * @returns {object} String, boolean or number
-	 */
-	get : function ( name ) {
-		return gui.AttPlugin.get ( this.spirit.element, name );
-	},
+	return gui.Plugin.extend ( "gui.AttPlugin", {
 
-	/**
-	 * Set single element attribute (use null to remove).
-	 * @param {String} name
-	 * @param {String} value
-	 * @returns {gui.AttPlugin}
-	 */
-	set : function ( name, value ) {
-		if ( !this.__suspended__ ) {
-			gui.AttPlugin.set ( this.spirit.element, name, value );
-		}
-		return this;
-	},
+		/**
+		 * Get single element attribute cast to an inferred type.
+		 * @param {String} att
+		 * @returns {String|number|boolean} Autoconverted
+		 */
+		get : function ( name ) {
+			return gui.AttPlugin.get ( this.spirit.element, name );
+		},
 
-	/**
-	 * Element has attribute?
-	 * @param {String} att
-	 * @returns {boolean}
-	 */
-	has : function ( name ) {
-		gui.AttPlugin.has ( this.spirit.element, name );
-	},
-
-	/**
-	 * Remove element attribute.
-	 * @param {String} att
-	 * @returns {gui.AttPlugin}
-	 */
-	del : function ( name ) {
-		if ( !this.__suspended__ ) {
-			gui.AttPlugin.del ( this.spirit.element, name );
-		}
-		return this;
-	},
-
-	/**
-	 * Collect attributes as an array (of DOMAttributes).
-	 * @returns {Array<Attr>}
-	 */
-	all : function () {
-		return gui.AttPlugin.all ( this.spirit.element );
-	},
-
-	/**
-	 * Get all attributes as hashmap type object. 
-	 * Values are converted to an inferred type.
-	 * @returns {Map<String,String>} 
-	 */
-	getmap : function () {
-		return gui.AttPlugin.getmap ( this.spirit.element );
-	},
-
-	/**
-	 * Invoke multiple attributes update via hashmap 
-	 * argument. Use null value to remove an attribute.
-	 * @param {Map<String,String>}
-	 */
-	setmap : function ( map ) {
-		gui.AttPlugin.setmap ( this.spirit.element, map );
-	},
-
-
-	// Secret .................................................
-
-	/**
-	 * Attribute updates disabled?
-	 * @type {boolean}
-	 */
-	__suspended__ : false,
-
-	/**
-	 * Suspend attribute updates for the duration of the 
-	 * action. This to prevent endless attribute updates
-	 * @param {function} action
-	 * @retruns {object}
-	 */
-	__suspend__ : function ( action ) {
-		this.__suspended__ = true;
-		var res = action.apply ( this, arguments );
-		this.__suspended__ = false;
-		return res;
-	}
-
-	
-}, {}, { // Static ...........................................
-
-	/**
-	 * Get single element attribute cast to an inferred type.
-	 * @param {Element} elm
-	 * @param {String} att
-	 * @returns {object} String, boolean or number
-	 */
-	get : function ( elm, name ) {
-		return gui.Type.cast ( elm.getAttribute ( name ));
-	},
-
-	/**
-	 * Set single element attribute (use null to remove).
-	 * @param {Element} elm
-	 * @param {String} name
-	 * @param {String} value
-	 * @returns {gui.AttPlugin}
-	 */
-	set : function ( elm, name, value ) {
-		if ( value === null ) {
-			this.del ( elm, name );
-		} else {
-			value = String ( value );
-			if ( elm.getAttribute ( name ) !== value ) {
-				elm.setAttribute ( name, value );
+		/**
+		 * Set single element attribute (use null to remove).
+		 * @param {String} name
+		 * @param {String|number|boolean} value
+		 * @returns {gui.AttPlugin}
+		 */
+		set : chained ( function ( name, value ) {
+			if ( !this.$suspended ) {
+				gui.AttPlugin.set ( this.spirit.element, name, value );
 			}
+		}),
+
+		/**
+		 * Element has attribute?
+		 * @param {String|number|boolean} att
+		 * @returns {boolean}
+		 */
+		has : function ( name ) {
+			gui.AttPlugin.has ( this.spirit.element, name );
+		},
+
+		/**
+		 * Remove element attribute.
+		 * @param {String} att
+		 * @returns {gui.AttPlugin}
+		 */
+		del : chained ( function ( name ) {
+			if ( !this.$suspended ) {
+				gui.AttPlugin.del ( this.spirit.element, name );
+			}
+		}),
+
+		/**
+		 * Collect attributes as an array (of DOMAttributes).
+		 * @returns {Array<Attr>}
+		 */
+		all : function () {
+			return gui.AttPlugin.all ( this.spirit.element );
+		},
+
+		/**
+		 * Get all attributes as hashmap type object. 
+		 * Values are converted to an inferred type.
+		 * @returns {Map<String,String>} 
+		 */
+		getmap : function () {
+			return gui.AttPlugin.getmap ( this.spirit.element );
+		},
+
+		/**
+		 * Invoke multiple attributes update via hashmap 
+		 * argument. Use null value to remove an attribute.
+		 * @param {Map<String,String>}
+		 */
+		setmap : function ( map ) {
+			gui.AttPlugin.setmap ( this.spirit.element, map );
+		},
+
+
+		// Secret .................................................
+
+		/**
+		 * Attribute updates disabled?
+		 * @type {boolean}
+		 */
+		$suspended : false,
+
+		/**
+		 * Suspend attribute updates for the duration of the 
+		 * action. This to prevent endless attribute updates.
+		 * @param {function} action
+		 * @retruns {object}
+		 */
+		$suspend : function ( action ) {
+			this.$suspended = true;
+			var res = action.apply ( this, arguments );
+			this.$suspended = false;
+			return res;
 		}
-	},
 
-	/**
-	 * Element has attribute?
-	 * @param {Element} elm
-	 * @param {String} name
-	 * @returns {boolean}
-	 */
-	has : function ( elm, name ) {
-		return elm.hasAttribute ( name );
-	},
+		
+	}, {}, { // Static ...........................................
 
-	/**
-	 * Remove element attribute.
-	 * @param {Element} elm
-	 * @param {String} att
-	 */
-	del : function ( elm, name ) {
-		elm.removeAttribute ( name );
-	},
+		/**
+		 * Get single element attribute cast to an inferred type.
+		 * @param {Element} elm
+		 * @param {String} att
+		 * @returns {object} String, boolean or number
+		 */
+		get : function ( elm, name ) {
+			return gui.Type.cast ( elm.getAttribute ( name ));
+		},
 
-	/**
-	 * Collect attributes as an array (of DOMAttributes).
-	 * @param {Element} elm
-	 * @returns {Array<Attr>}
-	 */
-	all : function ( elm ) {
-		return gui.Object.toArray ( elm.attributes );
-	},
+		/**
+		 * Set single element attribute (use null to remove).
+		 * @param {Element} elm
+		 * @param {String} name
+		 * @param {String} value
+		 * @returns {function}
+		 */
+		set : chained ( function ( elm, name, value ) {
+			var spirit = elm.spirit;
+			if ( value === null ) {
+				this.del ( elm, name );
+			} else {
+				value = String ( value );
+				if ( elm.getAttribute ( name ) !== value ) {
+					elm.setAttribute ( name, value );
+					if ( spirit ) {
+						spirit.attconfig.configureone ( name, value );
+					}
+				}
+			}
+		}),
 
-	/**
-	 * Get all attributes as hashmap type object. 
-	 * Values are converted to an inferred type.
-	 * @param {Element} elm
-	 * @returns {Map<String,String>} 
-	 */
-	getmap : function ( elm ) {
-		var map = Object.create ( null );
-		this.all ( elm ).forEach ( function ( att ) {
-			map [ att.name ] = gui.Type.cast ( att.value );
-		});
-		return map;
-	},
+		/**
+		 * Element has attribute?
+		 * @param {Element} elm
+		 * @param {String} name
+		 * @returns {boolean}
+		 */
+		has : function ( elm, name ) {
+			return elm.hasAttribute ( name );
+		},
 
-	/**
-	 * Invoke multiple attributes update via hashmap 
-	 * argument. Use null value to remove an attribute.
-	 * @param {Element} elm
-	 * @param {Map<String,String>}
-	 */
-	setmap : function ( elm, map) {
-		gui.Object.each ( map, function ( name, value ) {
-			this.set ( elm, name, value );
-		}, this );
-	}
-});
+		/**
+		 * Remove element attribute.
+		 * @param {Element} elm
+		 * @param {String} att
+		 * @returns {function}
+		 */
+		del : chained ( function ( elm, name ) {
+			var spirit = elm.spirit;
+			elm.removeAttribute ( name );
+			if ( spirit ) {
+				spirit.attconfig.configureone ( name, null );
+			}
+		}),
+
+		/**
+		 * Collect attributes as an array (of DOMAttributes).
+		 * @param {Element} elm
+		 * @returns {Array<Attr>}
+		 */
+		all : function ( elm ) {
+			return gui.Object.toArray ( elm.attributes );
+		},
+
+		/**
+		 * Get all attributes as hashmap type object. 
+		 * Values are converted to an inferred type.
+		 * @param {Element} elm
+		 * @returns {Map<String,String>} 
+		 */
+		getmap : function ( elm ) {
+			var map = Object.create ( null );
+			this.all ( elm ).forEach ( function ( att ) {
+				map [ att.name ] = gui.Type.cast ( att.value );
+			});
+			return map;
+		},
+
+		/**
+		 * Invoke multiple attributes update via hashmap 
+		 * argument. Use null value to remove an attribute.
+		 * @param {Element} elm
+		 * @param {Map<String,String>}
+		 * @returns {function}
+		 */
+		setmap : chained ( function ( elm, map) {
+			gui.Object.each ( map, function ( name, value ) {
+				this.set ( elm, name, value );
+			}, this );
+		})
+
+	});
+
+}( gui.Combo.chained ));
 
 
 /**
@@ -6267,116 +6293,116 @@ Object.defineProperties ( gui.BoxPlugin.prototype, {
 /**
  * Tracking broadcasts.
  * @extends {gui.Tracker}
+ * @using {gui.Combo.chained}
  */
-gui.BroadcastPlugin = gui.Tracker.extend ( "gui.BroadcastPlugin", {
+gui.BroadcastPlugin = ( function using ( chained ) {
 
-	/**
-	 * Add one or more broadcast handlers.
-	 * @param {object} arg
-	 * @param @optional {object} handler implements BroadcastListener (defaults to spirit)
-	 * @returns {gui.BroadcastPlugin}
-	 */
-	add : function ( arg, handler ) {
-		handler = handler ? handler : this.spirit;
-		var sig = this._global ? null : this._sig;
-		this._breakdown ( arg ).forEach ( function ( type ) {
-			if ( this._addchecks ( type, [ handler, this._global ])) {
-				if ( this._global ) {
-					gui.Broadcast.addGlobal ( type, handler );
-				} else {
-					gui.Broadcast.add ( type, handler, sig );
+	return gui.Tracker.extend ( "gui.BroadcastPlugin", {
+
+		/**
+		 * Add one or more broadcast handlers.
+		 * @param {object} arg
+		 * @param @optional {object} handler implements BroadcastListener (defaults to spirit)
+		 * @returns {gui.BroadcastPlugin}
+		 */
+		add : chained ( function ( arg, handler ) {
+			handler = handler ? handler : this.spirit;
+			var sig = this._global ? null : this._sig;
+			this._breakdown ( arg ).forEach ( function ( type ) {
+				if ( this._addchecks ( type, [ handler, this._global ])) {
+					if ( this._global ) {
+						gui.Broadcast.addGlobal ( type, handler );
+					} else {
+						gui.Broadcast.add ( type, handler, sig );
+					}
 				}
-			}
-		}, this );
-		return this;
-	},
+			}, this );
+		}),
 
-	/**
-	 * Remove one or more broadcast handlers.
-	 * @param {object} arg
-	 * @param @optional {object} handler implements BroadcastListener (defaults to spirit)
-	 * @returns {gui.BroadcastPlugin}
-	 */
-	remove : function ( arg, handler ) {
-		handler = handler ? handler : this.spirit;
-		var sig = this._global ? null : this._sig;
-		this._breakdown ( arg ).forEach ( function ( type ) {
-			if ( this._removechecks ( type, [ handler, this._global ])) {
-				if ( this._global ) {
-					gui.Broadcast.removeGlobal ( type, handler );
-				} else {
-					gui.Broadcast.remove ( type, handler, sig );
+		/**
+		 * Remove one or more broadcast handlers.
+		 * @param {object} arg
+		 * @param @optional {object} handler implements BroadcastListener (defaults to spirit)
+		 * @returns {gui.BroadcastPlugin}
+		 */
+		remove : chained ( function ( arg, handler ) {
+			handler = handler ? handler : this.spirit;
+			var sig = this._global ? null : this._sig;
+			this._breakdown ( arg ).forEach ( function ( type ) {
+				if ( this._removechecks ( type, [ handler, this._global ])) {
+					if ( this._global ) {
+						gui.Broadcast.removeGlobal ( type, handler );
+					} else {
+						gui.Broadcast.remove ( type, handler, sig );
+					}
 				}
-			}
-		}, this );
-		return this;
-	},
+			}, this );
+		}),
 
-	/**
-	 * Dispatch type(s).
-	 * @param {object} arg
-	 * @param @optional {object} data
-	 * @returns {gui.Broadcast}
-	 */
-	dispatch : function ( arg, data ) {
-		var result = null;
-		var sig = this._global ? null : this._sig;
-		this._breakdown ( arg ).forEach ( function ( type ) {
-			if ( this._global ) {
-				result = gui.Broadcast.dispatchGlobal ( this.spirit, type, data );
-			} else {
-				result = gui.Broadcast.dispatch ( this.spirit, type, data, sig );	
-			}
-		}, this );
-		return result;
-	},
+		/**
+		 * Dispatch type(s).
+		 * @param {object} arg
+		 * @param @optional {object} data
+		 * @returns {gui.Broadcast}
+		 */
+		dispatch : function ( arg, data ) {
+			var result = null;
+			var sig = this._global ? null : this._sig;
+			this._breakdown ( arg ).forEach ( function ( type ) {
+				if ( this._global ) {
+					result = gui.Broadcast.dispatchGlobal ( this.spirit, type, data );
+				} else {
+					result = gui.Broadcast.dispatch ( this.spirit, type, data, sig );	
+				}
+			}, this );
+			return result;
+		},
 
-	/**
-	 * Add handlers for global broadcast(s).
-	 * @param {object} arg
-	 * @param @optional {object} handler implements BroadcastListener (defaults to spirit)
-	 * @returns {gui.BroadcastPlugin}
-	 */
-	addGlobal : function ( arg, handler ) {
-		return this._globalize ( function () {
-			return this.add ( arg, handler );
-		});
-	},
+		/**
+		 * Add handlers for global broadcast(s).
+		 * @param {object} arg
+		 * @param @optional {object} handler implements BroadcastListener (defaults to spirit)
+		 * @returns {gui.BroadcastPlugin}
+		 */
+		addGlobal : function ( arg, handler ) {
+			return this._globalize ( function () {
+				return this.add ( arg, handler );
+			});
+		},
 
-	/**
-	 * Add handlers for global broadcast(s).
-	 * @param {object} arg
-	 * @param @optional {object} handler implements BroadcastListener (defaults to spirit)
-	 * @returns {gui.BroadcastPlugin}
-	 */
-	removeGlobal : function ( arg, handler ) {
-		return this._globalize ( function () {
-			return this.remove ( arg, handler );
-		});
-	},
+		/**
+		 * Add handlers for global broadcast(s).
+		 * @param {object} arg
+		 * @param @optional {object} handler implements BroadcastListener (defaults to spirit)
+		 * @returns {gui.BroadcastPlugin}
+		 */
+		removeGlobal : function ( arg, handler ) {
+			return this._globalize ( function () {
+				return this.remove ( arg, handler );
+			});
+		},
 
-	/**
-	 * Dispatch type(s) globally.
-	 * @param {object} arg
-	 * @param @optional {object} data
-	 * @returns {gui.Broadcast}
-	 */
-	dispatchGlobal : function ( arg, data ) {
-		return this._globalize ( function () {
-			return this.dispatch ( arg, data );
-		});
-	},
+		/**
+		 * Dispatch type(s) globally.
+		 * @param {object} arg
+		 * @param @optional {object} data
+		 * @returns {gui.Broadcast}
+		 */
+		dispatchGlobal : function ( arg, data ) {
+			return this._globalize ( function () {
+				return this.dispatch ( arg, data );
+			});
+		},
 
-	// Private ...................................................................
-	
-	/**
-	 * Remove delegated handlers. 
-	 * @overwrites {gui.Tracker#_cleanup}
-	 * @param {String} type
-	 * @param {Array<object>} checks
-	 */
-	_cleanup : function ( type, checks ) {
-		if ( this._removechecks ( type, checks )) {
+		// Private ...................................................................
+		
+		/**
+		 * Remove delegated handlers. 
+		 * @overwrites {gui.Tracker#_cleanup}
+		 * @param {String} type
+		 * @param {Array<object>} checks
+		 */
+		_cleanup : function ( type, checks ) {
 			var handler = checks [ 0 ], global = checks [ 1 ];
 			var sig = global ? null : this._sig;
 			if ( global ) {
@@ -6385,9 +6411,10 @@ gui.BroadcastPlugin = gui.Tracker.extend ( "gui.BroadcastPlugin", {
 				gui.Broadcast.remove ( type, handler, this._sig );
 			}
 		}
-	}
 
-});
+	});
+
+}( gui.Combo.chained ));
 
 
 /**
@@ -7641,106 +7668,108 @@ gui.Object.each ({
  * @TODO Throw an error on remove not added!
  * @TODO Static interface for general consumption.
  * @extends {gui.Tracker}
+ * @using {gui.Combo.chained}
  */
-gui.EventPlugin = gui.Tracker.extend ( "gui.EventPlugin", {
+gui.EventPlugin = ( function using ( chained ) {
 
-	/**
-	 * Add one or more DOM event handlers.
-	 * @TODO Don't assume spirit handler
-	 * @TODO reverse handler and capture args
-	 * @param {object} arg String, array or whitespace-separated-string
-	 * @param @optional {object} target Node, Window or XmlHttpRequest. Defaults to spirit element
-	 * @param @optional {object} handler implements EventListener interface, defaults to spirit
-	 * @param @optional {boolean} capture Defaults to false
-	 * @returns {gui.Spirit}
-	 */
-	add : function ( arg, target, handler, capture ) {
-		target = target ? target : this.spirit.element;
-		handler = handler ? handler : this.spirit;
-		capture = capture ? capture : false;
-		if ( target instanceof gui.Spirit ) {
-			target = target.element;
-		}
-		if ( gui.Interface.validate ( gui.IEventHandler, handler )) {
-			var checks = [ target, handler, capture ];
-			this._breakdown ( arg ).forEach ( function ( type ) {
-				if ( this._addchecks ( type, checks )) {
-					target.addEventListener ( type, handler, capture );
-				}
-			}, this );
-		}
-		return this;
-	},
+	return gui.Tracker.extend ( "gui.EventPlugin", {
 
-	/**
-	 * Add one or more DOM event handlers.
-	 * @param {object} arg String, array or whitespace-separated-string
-	 * @param @optional {object} target Node, Window or XmlHttpRequest. Defaults to spirit element
-	 * @param @optional {object} handler implements EventListener interface, defaults to spirit
-	 * @param @optional {boolean} capture Defaults to false
-	 */
-	remove : function ( arg, target, handler, capture ) {
-		target = target ? target : this.spirit.element;
-		handler = handler ? handler : this.spirit;
-		capture = capture ? capture : false;
-		if ( target instanceof gui.Spirit ) {
-			target = target.element;
-		}
-		if ( gui.Interface.validate ( gui.IEventHandler, handler )) {
-			var checks = [ target, handler, capture ];
-			this._breakdown ( arg ).forEach ( function ( type ) {
-				if ( this._removechecks ( type, checks )) {
-					target.removeEventListener ( type, handler, capture );
-				}
-			}, this );
-		}
-		return this;
-	},
-
-	/**
-	 * Toggle one or more DOM event handlers.
-	 * @param {object} arg String, array or whitespace-separated-string
-	 * @param @optional {object} target Node, Window or XmlHttpRequest. Defaults to spirit element
-	 * @param @optional {object} handler implements EventListener interface, defaults to spirit
-	 * @param @optional {boolean} capture Defaults to false
-	 */
-	toggle : function ( arg, target, handler, capture ) {
-		target = target ? target : this.spirit.element;
-		handler = handler ? handler : this.spirit;
-		capture = capture ? capture : false;
-		if ( target instanceof gui.Spirit ) {
-			target = target.element;
-		}
-		var checks = [ target, handler, capture ];
-		this._breakdown ( arg ).forEach ( function ( type ) {
-			if ( this._contains ( type, checks )) {
-				this.add ( type, target, handler, capture );
-			} else {
-				this.remove ( type, target, handler, capture );
+		/**
+		 * Add one or more DOM event handlers.
+		 * @TODO Don't assume spirit handler
+		 * @TODO reverse handler and capture args
+		 * @param {object} arg String, array or whitespace-separated-string
+		 * @param @optional {object} target Node, Window or XmlHttpRequest. Defaults to spirit element
+		 * @param @optional {object} handler implements EventListener interface, defaults to spirit
+		 * @param @optional {boolean} capture Defaults to false
+		 * @returns {gui.EventPlugin}
+		 */
+		add : chained ( function ( arg, target, handler, capture ) {
+			target = target ? target : this.spirit.element;
+			handler = handler ? handler : this.spirit;
+			capture = capture ? capture : false;
+			if ( target instanceof gui.Spirit ) {
+				target = target.element;
 			}
-		}, this );
-		return this;
-	},
+			if ( gui.Interface.validate ( gui.IEventHandler, handler )) {
+				var checks = [ target, handler, capture ];
+				this._breakdown ( arg ).forEach ( function ( type ) {
+					if ( this._addchecks ( type, checks )) {
+						target.addEventListener ( type, handler, capture );
+					}
+				}, this );
+			}
+		}),
+
+		/**
+		 * Add one or more DOM event handlers.
+		 * @param {object} arg String, array or whitespace-separated-string
+		 * @param @optional {object} target Node, Window or XmlHttpRequest. Defaults to spirit element
+		 * @param @optional {object} handler implements EventListener interface, defaults to spirit
+		 * @param @optional {boolean} capture Defaults to false
+		 * @returns {gui.EventPlugin}
+		 */
+		remove : chained ( function ( arg, target, handler, capture ) {
+			target = target ? target : this.spirit.element;
+			handler = handler ? handler : this.spirit;
+			capture = capture ? capture : false;
+			if ( target instanceof gui.Spirit ) {
+				target = target.element;
+			}
+			if ( gui.Interface.validate ( gui.IEventHandler, handler )) {
+				var checks = [ target, handler, capture ];
+				this._breakdown ( arg ).forEach ( function ( type ) {
+					if ( this._removechecks ( type, checks )) {
+						target.removeEventListener ( type, handler, capture );
+					}
+				}, this );
+			}
+		}),
+
+		/**
+		 * Toggle one or more DOM event handlers.
+		 * @param {object} arg String, array or whitespace-separated-string
+		 * @param @optional {object} target Node, Window or XmlHttpRequest. Defaults to spirit element
+		 * @param @optional {object} handler implements EventListener interface, defaults to spirit
+		 * @param @optional {boolean} capture Defaults to false
+		 * @returns {gui.EventPlugin}
+		 */
+		toggle : chained ( function ( arg, target, handler, capture ) {
+			target = target ? target : this.spirit.element;
+			handler = handler ? handler : this.spirit;
+			capture = capture ? capture : false;
+			if ( target instanceof gui.Spirit ) {
+				target = target.element;
+			}
+			var checks = [ target, handler, capture ];
+			this._breakdown ( arg ).forEach ( function ( type ) {
+				if ( this._contains ( type, checks )) {
+					this.add ( type, target, handler, capture );
+				} else {
+					this.remove ( type, target, handler, capture );
+				}
+			}, this );
+		}),
 
 
-	// PRIVATE ..........................................................
+		// PRIVATE ..........................................................
 
-	/**
-	 * Remove event listeners.
-	 * @overwrites {gui.Tracker#_cleanup}
-	 * @param {String} type
-	 * @param {Array<object>} checks
-	 */
-	_cleanup : function ( type, checks ) {
-		if ( this._removechecks ( type, checks )) {
+		/**
+		 * Remove event listeners.
+		 * @overwrites {gui.Tracker#_cleanup}
+		 * @param {String} type
+		 * @param {Array<object>} checks
+		 */
+		_cleanup : function ( type, checks ) {
 			var target = checks [ 0 ];
 			var handler = checks [ 1 ];
 			var capture = checks [ 2 ];
-			target.removeEventListener ( type, handler, capture );
+			this.remove ( type, target, handler, capture );
 		}
-	}
 
-});
+	});
+
+}( gui.Combo.chained ));
 
 
 /**
@@ -8058,147 +8087,159 @@ gui.IEventHandler = {
  * Tracking timed events.
  * @TODO Global timed events.
  * @extends {gui.Tracker}
+ * @using {gui.Combo.chained}
  */
-gui.TickPlugin = gui.Tracker.extend ( "gui.TickPlugin", {
+gui.TickPlugin = ( function using ( chained ) {
 
-	/**
-	 * Add one or more tick handlers.
-	 * @param {object} arg
-	 * @param @optional {object} handler
-	 * @param @optional {boolean} one Remove handler after on tick of this type?
-	 * @returns {gui.TickPlugin}
-	 */
-	add : function ( arg, handler, one ) {
-		handler = handler ? handler : this.spirit;
-		if ( gui.Interface.validate ( gui.ITickHandler, handler )) {
-			this._breakdown ( arg ).forEach ( function ( type ) {
-				if ( this._addchecks ( type, [ handler, this._global ])) {
-					this._add ( type, handler, false );
-				}
-			}, this );
-		}
-		return this;
-	},
+	return gui.Tracker.extend ( "gui.TickPlugin", {
 
-	/**
-	 * Add handler for single tick of given type(s).
-	 * @TODO This on ALL trackers :)
-	 * @param {object} arg
-	 * @param @optional {object} handler
-	 * @returns {gui.TickPlugin}
-	 */
-	one : function ( arg, handler ) {
-		return this.add ( arg, handler, true );
-	},
-
-	/**
-	 * Quickfix.
-	 * @param {function} action 
-	 */
-	next : function ( action ) {
-		gui.Tick.next ( action, this.spirit );
-	},
-
-	/**
-	 * Remove one or more tick handlers.
-	 * @param {object} arg
-	 * @param @optional {object} handler implements ActionListener interface, defaults to spirit
-	 * @returns {gui.TickPlugin}
-	 */
-	remove : function ( arg, handler ) {
-		handler = handler ? handler : this.spirit;
-		if ( gui.Interface.validate ( gui.ITickHandler, handler )) {
-			this._breakdown ( arg ).forEach ( function ( type ) {
-				if ( this._removechecks ( type, [ handler, this._global ])) {
-					this._remove ( type, handler );
-				}
-			}, this );
-		}
-		return this;
-	},
-
-	/**
-	 * Dispatch tick after given time.
-	 * @param {String} type
-	 * @param {number} time Milliseconds (zero is setImmediate)
-	 * @returns {gui.Tick}
-	 */
-	dispatch : function ( type, time ) {
-		return this._dispatch ( type, time || 0 );
-	},
-	
-	
-	// Private .............................................................................
-
-	/**
-	 * Global mode?
-	 * @type {boolean}
-	 */
-	_global : false,
-
-	/**
-	 * Add handler.
-	 */
-	_add : function ( type, handler, one ) {
-		var sig = this.spirit.signature;
-		if ( one ) {
-			if ( this._global ) {
-				gui.Tick.oneGlobal ( type, handler );
-			} else {
-				gui.Tick.one ( type, handler, sig );
+		/**
+		 * Add one or more tick handlers.
+		 * @param {object} arg
+		 * @param @optional {object} handler
+		 * @param @optional {boolean} one Remove handler after on tick of this type?
+		 * @returns {gui.TickPlugin}
+		 */
+		add : chained ( function ( arg, handler, one ) {
+			handler = handler ? handler : this.spirit;
+			if ( gui.Interface.validate ( gui.ITickHandler, handler )) {
+				this._breakdown ( arg ).forEach ( function ( type ) {
+					if ( this._addchecks ( type, [ handler, this._global ])) {
+						this._add ( type, handler, false );
+					}
+				}, this );
 			}
-		} else {
-			if ( this._global ) {
-				gui.Tick.addGlobal ( type, handler );
-			} else {
-				gui.Tick.add ( type, handler, sig );
+		}),
+
+		/**
+		 * Add handler for single tick of given type(s).
+		 * @TODO This on ALL trackers :)
+		 * @param {object} arg
+		 * @param @optional {object} handler
+		 * @returns {gui.TickPlugin}
+		 */
+		one : chained ( function ( arg, handler ) {
+			this.add ( arg, handler, true );
+		}),
+
+		/**
+		 * Execute action in next available tick, 
+		 * let 'this' keyword point to the spirit.
+		 * @param {function} action 
+		 * @returns {gui.TickPlugin}
+		 */
+		next : chained ( function ( action ) {
+			gui.Tick.next ( action, this.spirit );
+		}),
+
+		/**
+		 * Remove one or more tick handlers.
+		 * @param {object} arg
+		 * @param @optional {object} handler implements ActionListener interface, defaults to spirit
+		 * @returns {gui.TickPlugin}
+		 */
+		remove : chained ( function ( arg, handler ) {
+			handler = handler ? handler : this.spirit;
+			if ( gui.Interface.validate ( gui.ITickHandler, handler )) {
+				this._breakdown ( arg ).forEach ( function ( type ) {
+					if ( this._removechecks ( type, [ handler, this._global ])) {
+						this._remove ( type, handler );
+					}
+				}, this );
 			}
-		}
-	},
+		}),
 
-	/**
-	 * Remove handler.
-	 */
-	_remove : function ( type, handler ) {
-		var sig = this.spirit.signature;
-		if ( this._global ) {
-			gui.Tick.removeGlobal ( type, handler );
-		} else {
-			gui.Tick.remove ( type, handler, sig );
-		}
-	},
+		/**
+		 * Dispatch tick after given time.
+		 * @param {String} type
+		 * @param {number} time Milliseconds (zero is setImmediate)
+		 * @returns {gui.Tick}
+		 */
+		dispatch : function ( type, time ) {
+			return this._dispatch ( type, time || 0 );
+		},
+		
+		
+		// Private .............................................................................
 
-	/**
-	 * Dispatch.
-	 */
-	_dispatch : function ( type, time ) {
-		var tick, sig = this.spirit.signature;
-		if ( this._global ) {
-			tick = gui.Tick.dispatchGlobal ( type, time );
-		} else {
-			tick = gui.Tick.dispatch ( type, time, sig );
-		}
-		return tick;
-	},
+		/**
+		 * Global mode?
+		 * @type {boolean}
+		 */
+		_global : false,
 
-	/**
-	 * Remove delegated handlers. 
-	 * @overloads {gui.Tracker#_cleanup}
-	 * @param {String} type
-	 * @param {Array<object>} checks
-	 */
-	_cleanup : function ( type, checks ) {
-		var handler = checks [ 0 ];
-		var bglobal = checks [ 1 ];
-		if ( this._remove ( type, [ handler ])) {
-			if ( bglobal ) {
+		/**
+		 * Add handler.
+		 * @param {String} type
+		 * @param {object|function} handler
+		 * @param {boolean} one
+		 */
+		_add : function ( type, handler, one ) {
+			var sig = this.spirit.signature;
+			if ( one ) {
+				if ( this._global ) {
+					gui.Tick.oneGlobal ( type, handler );
+				} else {
+					gui.Tick.one ( type, handler, sig );
+				}
+			} else {
+				if ( this._global ) {
+					gui.Tick.addGlobal ( type, handler );
+				} else {
+					gui.Tick.add ( type, handler, sig );
+				}
+			}
+		},
+
+		/**
+		 * Remove handler.
+		 * @param {String} type
+		 * @param {object|function} handler
+		 */
+		_remove : function ( type, handler ) {
+			var sig = this.spirit.signature;
+			if ( this._global ) {
 				gui.Tick.removeGlobal ( type, handler );
 			} else {
-				gui.Tick.remove ( type, handler, this.signature );
+				gui.Tick.remove ( type, handler, sig );
+			}
+		},
+
+		/**
+		 * Dispatch.
+		 * @param {String} type
+		 * @param @optional {number} time
+		 */
+		_dispatch : function ( type, time ) {
+			var tick, sig = this.spirit.signature;
+			if ( this._global ) {
+				tick = gui.Tick.dispatchGlobal ( type, time );
+			} else {
+				tick = gui.Tick.dispatch ( type, time, sig );
+			}
+			return tick;
+		},
+
+		/**
+		 * Remove delegated handlers. 
+		 * @overwrites {gui.Tracker#_cleanup}
+		 * @param {String} type
+		 * @param {Array<object>} checks
+		 */
+		_cleanup : function ( type, checks ) {
+			var handler = checks [ 0 ];
+			var bglobal = checks [ 1 ];
+			if ( this._remove ( type, [ handler ])) {
+				if ( bglobal ) {
+					gui.Tick.removeGlobal ( type, handler );
+				} else {
+					gui.Tick.remove ( type, handler, this.signature );
+				}
 			}
 		}
-	}
-});
+	});
+
+}( gui.Combo.chained ));
 
 
 /**
@@ -8431,14 +8472,12 @@ gui.TweenPlugin = ( function using ( chained ) {
 		 */
 		_cleanup : function ( type, checks ) {
 			var message = gui.BROADCAST_TWEEN;
-			if ( this._removechecks ( type, checks )) {
-				var global = checks [ 0 ];
-				var sig = global ? null : this._sig;
-				if ( global ) {
-					gui.Broadcast.removeGlobal ( message, this );
-				} else {
-					gui.Broadcast.remove ( message, this, this._sig );
-				}
+			var global = checks [ 0 ];
+			var sig = global ? null : this._sig;
+			if ( global ) {
+				gui.Broadcast.removeGlobal ( message, this );
+			} else {
+				gui.Broadcast.remove ( message, this, this._sig );
 			}
 		}
 
@@ -9072,14 +9111,14 @@ gui.module ( "core", {
 		
 		action : gui.ActionPlugin,
 		att : gui.AttPlugin, 
+		attconfig : gui.AttConfigPlugin,
 		attention : gui.AttentionPlugin,
 		box : gui.BoxPlugin,
 		broadcast : gui.BroadcastPlugin,
-		config : gui.ConfigPlugin,
 		css : gui.CSSPlugin,
 		dom : gui.DOMPlugin,
 		event : gui.EventPlugin,
-		lif : gui.LifePlugin,
+		life : gui.LifePlugin,
 		tick : gui.TickPlugin,
 		tween : gui.TweenPlugin,
 		transition : gui.TransitionPlugin
@@ -10486,7 +10525,6 @@ gui.module ( "jquery", {
 				this.each ( function ( i, elm ) {
 					if ( elm.spirit ) {
 						if ( val !== undefined || del ) {
-							// @TODO spirit.att.__suspend__ ???
 							elm.spirit.att.set ( nam, val );
 						} else {
 							res = elm.spirit.att.get ( nam );
@@ -11218,7 +11256,7 @@ gui.DOMCombos = {
 		 * @param {String} val
 		 */
 		var setAttAfter = combo.after ( function ( att, val ) {
-			this.spirit.att.__suspend__ ( function () {
+			this.spirit.att.$suspend ( function () {
 				this.set ( att, val );
 			});
 		});
@@ -11229,7 +11267,7 @@ gui.DOMCombos = {
 		 * @param {String} att
 		 */
 		var delAttAfter = combo.after ( function ( att ) {
-			this.spirit.att.__suspend__ ( function () {
+			this.spirit.att.$suspend ( function () {
 				this.del ( att );
 			});
 		});
@@ -11715,13 +11753,13 @@ gui.Guide = {
 			case gui.BROADCAST_LOADING_CHANNELS :
 				if ( !spirits ) {
 					spirits = this._windows [ sig ] = [];
-					spirits.__loading__ = 0;
+					spirits.$loading = 0;
 				}
 				spirits.push ( b.target );
-				spirits.__loading__ ++;
+				spirits.$loading ++;
 				break;
 			case gui.BROADCAST_CHANNELS_LOADED :
-				if ( -- spirits.__loading__ === 0 ) {
+				if ( -- spirits.$loading === 0 ) {
 					while (( spirit = spirits.shift ())) {
 						spirit.channel ();
 					}
@@ -12018,7 +12056,7 @@ gui.Guide = {
 			});
 			attach.forEach ( function ( spirit ) {
 				if ( !spirit.life.configured ) {
-					spirit.onconfigure (); // @TODO deprecated :(
+					spirit.onconfigure ();
 				}
 				if ( this._invisible ( spirit )) {
 					if ( spirit.life.visible ) {
@@ -12277,8 +12315,8 @@ gui.KeyPlugin = ( function using ( confirmed, chained ) {
 						a = gui.Type.cast ( a );
 						if ( this._removechecks ( a, [ handler, this._global ])) {
 							if ( !this._hashandlers ()) {
-								gui.Broadcast.removeGlobal ( gui.BROADCAST_KEYEVENT, this );		
-							}
+								gui.Broadcast.removeGlobal ( gui.BROADCAST_KEYEVENT, this );
+							}	
 						}
 					}, this );
 				}
@@ -12329,37 +12367,6 @@ gui.KeyPlugin = ( function using ( confirmed, chained ) {
 					});
 				}
 			}
-			/*
-			if ( b.type === gui.BROADCAST_KEYEVENT ) {
-				if ( list = this._xxx [ b.data.keyCode ]) {
-					list.forEach ( function ( checks ) {
-						handler = checks [ 0 ];
-						global = checks [ 1 ];
-						if ( global === b.isGlobal ) {
-							handler.onkey ( 
-								new gui.Key ( 
-									b.data.type,
-									b.data.keyCode,
-									b.data.charCode,
-									b.data.which,
-									b.isGlobal
-								)
-							);
-						}
-					});
-				}
-			}
-			*/
-		},
-
-		/**
-		 * Destruction time again.
-		 */
-		ondestruct : function () {
-			this._super.ondestruct ();
-			if ( !this._hashandlers ()) {
-				gui.Broadcast.removeGlobal ( gui.BROADCAST_KEYEVENT, this );		
-			}
 		},
 
 
@@ -12370,14 +12377,14 @@ gui.KeyPlugin = ( function using ( confirmed, chained ) {
 		 * @TODO same as in gui.ActionPlugin, perhaps superize this stuff somehow...
 		 */
 		_cleanup : function ( type, checks ) {
-			if ( this._removechecks ( type, checks )) {
+			//if ( this._removechecks ( type, checks )) {
 				var handler = checks [ 0 ], global = checks [ 1 ];
 				if ( global ) {
 					this.removeGlobal ( type, handler );
 				} else {
 					this.remove ( type, handler );
 				}
-			}
+			//}
 		}
 
 	}, {}, { // Static ...............................................................

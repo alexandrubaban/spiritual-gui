@@ -51,11 +51,11 @@ gui.Tracker = gui.Plugin.extend ( "gui.Tracker", {
 	},
 
 	/**
-	 * @TODO Rename ondestruct.
+	 * Cleanup on destruction.
 	 */
-	destruct : function () {
+	ondestruct : function () {
 		var type, list;
-		this._super.destruct ();
+		this._super.ondestruct ();
 		gui.Object.each ( this._xxx, function ( type, list ) {
 			list.slice ( 0 ).forEach ( function ( checks ) {
 				this._cleanup ( type, checks );
@@ -70,7 +70,7 @@ gui.Tracker = gui.Plugin.extend ( "gui.Tracker", {
 	 */
 	_cleanup : function ( type, checks ) {
 		if ( this._removechecks ( type, checks )) { 
-			// do cleanup here
+			// do cleanup here (perhaps overwrite all this to perform _removechecks elsewhere)
 		}
 	},
 	
