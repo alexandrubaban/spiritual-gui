@@ -44,7 +44,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	},
 	
 	
-	// Lifecycle ..............................................................
+	// Lifecycle .............................................................................
 
 	/**
 	 * You can safely overload or overwrite methods in the lifecycle section, 
@@ -57,19 +57,18 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	 * element may not be positioned in the document DOM at this point. 
 	 */
 	onconstruct : function () {
-		this.__plugin__ ();
-		this.__debug__ ( true );
+		this.$plugin ();
+		this.$debug ( true );
 		this.life.goconstruct ();
 	},
 	
 	/**
-	 * @deprecated
 	 * `onconfigure` gets callend immediately after construction. This 
 	 * instructs the spirit to parse configuration attributes in markup. 
 	 * @TODO Explain this
 	 */
 	onconfigure : function () {
-		//this.config.configure ();
+		this.config.configureall ();
 		this.life.goconfigure ();
 	},
 	
@@ -143,12 +142,13 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	 */
 	ondestruct : function ( now ) {
 		this.window.gui.destruct ( this );
-		this.__debug__ ( false );
+		this.$debug ( false );
 		this.life.godestruct ();
 		this.$ondestruct ( now );
 	},
 	
-	// Handlers .....................................................................
+
+	// Handlers ..............................................................................
 
 	/**	
 	 * Handle crawler (tell me more)
@@ -166,7 +166,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	onlife : function ( life ) {},
 	
 	
-	// More stuff ........................................................................
+	// More stuff ............................................................................
 
 	/**
 	 * Mark spirit visible. THis adds the classname "_gui-invisible" and 
@@ -198,8 +198,8 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 		this.ondestruct ();
 	},
 	
-	
-	// Secret ....................................................................
+
+	// Secret ................................................................................
 	
 	/**
 	 * Secret constructor. The $instanceid is generated standard by the {gui.Class}
@@ -220,7 +220,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	 * Mapping lazy plugins to prefixes.
 	 * @type {Map<String,gui.Plugin>}
 	 */
-	__lazyplugins__ : null,
+	$lazyplugins : null,
 
 	/**
 	 * Plug in the plugins.
@@ -229,11 +229,11 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	 * - config plugin second
 	 * - bonus plugins galore
 	 */
-	__plugin__ : function () {
+	$plugin : function () {
 		this.life = new gui.LifePlugin ( this );
 		this.config = new gui.ConfigPlugin ( this );
-		this.__lazyplugins__ = Object.create ( null );
-		var prefixes = [], plugins = this.constructor.__plugins__;
+		this.$lazyplugins = Object.create ( null );
+		var prefixes = [], plugins = this.constructor.$plugins;
 		gui.Object.each ( plugins, function ( prefix, Plugin ) {
 			switch ( Plugin ) {
 				case gui.LifePlugin :
@@ -241,7 +241,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 					break;
 				default :
 					if ( Plugin.lazy ) {
-						gui.Plugin.later ( Plugin, prefix, this, this.__lazyplugins__ );
+						gui.Plugin.later ( Plugin, prefix, this, this.$lazyplugins );
 					} else {
 						this [ prefix ] = new Plugin ( this );
 					}
@@ -252,7 +252,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 		this.life.onconstruct ();
 		this.config.onconstruct ();
 		prefixes.forEach ( function ( prefix ) {
-			if ( !this.__lazyplugins__ [ prefix ]) {
+			if ( !this.$lazyplugins [ prefix ]) {
 				this [ prefix ].onconstruct ();
 			}
 		}, this );
@@ -264,7 +264,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	 * passed as first argument to the gui.Spirit.infuse("John") method.
 	 * @param {boolean} constructing
 	 */
-	__debug__ : function ( constructing ) {
+	$debug : function ( constructing ) {
 		var val, elm = this.element;
 		if ( constructing ) {
 			if ( !elm.hasAttribute ( "gui" )) {
@@ -285,7 +285,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	 * @param @optional {boolean} now Destruct immediately (for example when the window unloads)
 	 */
 	$ondestruct : function ( now ) {
-		var map = this.__lazyplugins__;
+		var map = this.$lazyplugins;
 		gui.Object.each ( map, function ( prefix ) {
 			if ( map [ prefix ] === true ) {
 				delete this [ prefix ]; // otherwise next iterator will instantiate the lazy plugin...
@@ -306,7 +306,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 		}, this );
 		this.life.$ondestruct (); // dispose life plugin last
 		if ( now ) {
-			this.__null__ ();
+			this.$null ();
 		} else {
 			var that = this;
 			var tick = gui.TICK_SPIRIT_NULL;
@@ -315,7 +315,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 			gui.Tick.one ( tick, {
 				ontick : function () {
 					try {
-						that.__null__ ();
+						that.$null ();
 					} catch ( exception ) {
 						// @TODO why sometimes gui.Spirit.DENIED?
 					}
@@ -327,7 +327,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	/**
 	 * Null all props.
 	 */
-	__null__ : function () {
+	$null : function () {
 		var myelm = this.element;
 		var debug = this.window.gui.debug;
 		var ident = this.toString ();
@@ -343,7 +343,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	}
 
 
-}, { // Recurring static ...............................................................
+}, { // Recurring static ...................................................................
 	
 	/**
 	 * Portal spirit into iframes via the `gui.portal` method?
@@ -361,9 +361,9 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	 */
 	infuse : function () {
 		var C = gui.Class.extend.apply ( this, arguments );
-		C.__plugins__ = gui.Object.copy ( this.__plugins__ );
+		C.$plugins = gui.Object.copy ( this.$plugins );
 		var b = gui.Class.breakdown ( arguments );
-		gui.Object.each ( C.__plugins__, function ( prefix, plugin ) {
+		gui.Object.each ( C.$plugins, function ( prefix, plugin ) {
 			var def = b.protos [ prefix ];			
 			switch ( gui.Type.of ( def )) {
 				case "object" :
@@ -433,7 +433,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	 * @param @optional {boolean} override Disable collision detection
 	 */
 	plugin : function ( prefix, plugin, override ) {
-		var plugins = this.__plugins__;
+		var plugins = this.$plugins;
 		var proto = this.prototype;
 		if ( !proto.hasOwnProperty ( prefix ) || proto.prefix === null || override ) {
 			if ( !plugins [ prefix ] || override ) {
@@ -452,10 +452,10 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	 * Mapping plugin constructor to plugin prefix.
 	 * @type {Map<String,function>}
 	 */
-	__plugins__ : Object.create ( null )
+	$plugins : Object.create ( null )
 
 	
-}, { // Static ....................................................................
+}, { // Static .............................................................................
 
 	/**
 	 * Hello.

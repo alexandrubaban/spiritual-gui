@@ -5,32 +5,32 @@
 gui.ConfigPlugin = gui.Plugin.extend ( "gui.ConfigPlugin", {
 
 	/**
-	 * Mapping shorthands to expanded syntax.
+	 * Mapping attribute names to an expanded syntax (eg. "myatt" becomes "my.plugin.att").
 	 * @type {Map<String,String>}
 	 */
 	map : null,
 
 	/**
-	 * Configure spirit by DOM attributes.
-	 * @TODO reconfigure scenario
+	 * Invoked by the {gui.Spirit} once all plugins have been plugged in. 
+	 * @TODO: Simple props with no setter does nothing when updated now. 
+	 * Perhaps it would be possible to somehow configure those *first*?
+	 * @TODO Figure out whether or not this should postpone to onenter()
 	 */
-	onconstruct : function () {
-		this._super.onconstruct ();
-		this.spirit.life.add ( gui.LIFE_CONSTRUCT, this );
+	configureall : function () {
+		var atts = this.spirit.element.attributes;
+		Array.forEach ( atts, function ( att ) {
+			this.configureone ( att.name, att.value );
+		}, this );
 	},
 
 	/**
-	 * Handle life.
-	 * @TODO: Hm... simple properties should somehow be ready always...
-	 * @param {gui.Life} life
+	 * Setup configuration (if applicable) after an attribute update. 
+	 * This should probably only ever be invoked by the {gui.AttPlugin}.
+	 * @param {String} name
+	 * @param {String} value
 	 */
-	onlife : function ( life ) {
-		var atts = this.spirit.element.attributes;
-		if ( life.type === gui.LIFE_CONSTRUCT ) {
-			Array.forEach ( atts, function ( att ) {
-				this._evaluate ( this._lookup ( att.name ), att.value );
-			}, this );
-		}
+	configureone : function ( name, value ) {
+		this._evaluate ( this._lookup ( name ), value );
 	},
 
 

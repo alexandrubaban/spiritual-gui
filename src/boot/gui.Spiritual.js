@@ -304,7 +304,7 @@ gui.Spiritual.prototype = {
 			var doc = element.ownerDocument;
 			var win = doc.defaultView;
 			var att = element.getAttribute ( "gui" ); // @TODO "data-gui"
-			// test for "gui" attribute in markup. "[" accounts for {gui.Spirit#__debug__}
+			// test for "gui" attribute in markup. "[" accounts for {gui.Spirit#$debug}
 			if ( gui.Type.isString ( att ) && !att.startsWith ( "[" )) {
 				if ( att !== "" ) { // no spirit for empty string
 					res = win.gui._inlines [ att ];

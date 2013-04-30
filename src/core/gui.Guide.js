@@ -364,7 +364,7 @@ gui.Guide = {
 			});
 			attach.forEach ( function ( spirit ) {
 				if ( !spirit.life.configured ) {
-					spirit.onconfigure (); // @TODO deprecated :(
+					spirit.onconfigure ();
 				}
 				if ( this._invisible ( spirit )) {
 					if ( spirit.life.visible ) {
