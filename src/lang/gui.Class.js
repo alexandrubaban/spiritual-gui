@@ -23,7 +23,7 @@ gui.Class = {
 		gui.Object.extend ( C, b.statics );
 		if ( b.recurring ) {
 			gui.Object.each ( b.recurring, function ( key, val ) {
-				C [ key ] = C.__recurring__ [ key ] = val;
+				C [ key ] = C.$recurring [ key ] = val;
 			});
 		}
 		return this._profiling ( C );
@@ -150,7 +150,7 @@ gui.Class = {
 	 */
 	_createsubclass : function ( SuperC, args ) {
 		args = this.breakdown ( args );
-		SuperC.__super__ = SuperC.__super__ || new gui.Super ( SuperC );
+		SuperC.$super = SuperC.$super || new gui.Super ( SuperC );
 		return this._extend_fister ( SuperC, args.protos, args.recurring, args.statics, args.name );
 	},
 
@@ -166,8 +166,8 @@ gui.Class = {
 	_extend_fister : function ( SuperC, protos, recurring, statics, name ) {
 		var C = this._createclass ( SuperC, SuperC.prototype, name );
 		gui.Object.extend ( C, statics );
-		gui.Object.extend ( C.__recurring__, recurring );
-		gui.Object.each ( C.__recurring__, function ( key, val ) {
+		gui.Object.extend ( C.$recurring, recurring );
+		gui.Object.each ( C.$recurring, function ( key, val ) {
 			C [ key ] = val;
 		});
 		gui.Property.extendall ( protos, C.prototype ); // @TODO what about base?
@@ -203,12 +203,12 @@ gui.Class = {
 	 * @returns {function}
 	 */
 	_internals : function ( C, SuperC ) {
-		C.__super__ = null;
-		C.__subclasses__ = [];
-		C.__superclass__ = SuperC || null;
-		C.__recurring__ = SuperC ? gui.Object.copy ( SuperC.__recurring__ ) : Object.create ( null );
+		C.$super = null;
+		C.$subclasses = [];
+		C.$superclass = SuperC || null;
+		C.$recurring = SuperC ? gui.Object.copy ( SuperC.$recurring ) : Object.create ( null );
 		if ( SuperC ) {
-			SuperC.__subclasses__.push ( C );
+			SuperC.$subclasses.push ( C );
 		}
 		return C;
 	},
@@ -315,8 +315,8 @@ gui.Object.each ({
 		if ( !gui.Type.isDefined ( this.prototype [ name ]) || override ) {
 			this.prototype [ name ] = value;
 			gui.Class.descendantsAndSelf ( this, function ( C ) {
-				if ( C.__super__ ) { // mixed in method gets added to the _super objects...
-					gui.Super.generateStub ( C.__super__, C.prototype, name );
+				if ( C.$super ) { // mixed in method gets added to the _super objects...
+					gui.Super.generateStub ( C.$super, C.prototype, name );
 				}
 			});
 		} else {
@@ -344,7 +344,7 @@ gui.Object.each ({
 	children : function ( C, action, thisp ) {
 		var results = [];
 		action = action || gui.Combo.identity;
-		C.__subclasses__.forEach ( function ( sub ) {
+		C.$subclasses.forEach ( function ( sub ) {
 			results.push ( action.call ( thisp, sub ));
 		}, thisp );
 		return results;
@@ -363,7 +363,7 @@ gui.Object.each ({
 	descendants : function ( C, action, thisp, results ) {
 		results = results || [];
 		action = action || gui.Combo.identity;
-		C.__subclasses__.forEach ( function ( sub ) {
+		C.$subclasses.forEach ( function ( sub ) {
 			results.push ( action.call ( thisp, sub ));
 			gui.Class.descendants ( sub, action, thisp, results );
 		}, thisp );
@@ -395,7 +395,7 @@ gui.Object.each ({
 	 */
 	parent : function ( C, action, thisp ) {
 		action = action || gui.Combo.identity;
-		return action.call ( thisp, C.__superclass__ );
+		return action.call ( thisp, C.$superclass );
 	},
 
 	/**
@@ -410,9 +410,9 @@ gui.Object.each ({
 	ancestors : function ( C, action, thisp, results ) {
 		results = results || [];
 		action = action || gui.Combo.identity;
-		if ( C.__superclass__ ) {
-			results.push ( action.call ( thisp, C.__superclass__ ));
-			gui.Class.ancestors ( C.__superclass__, action, thisp, results );
+		if ( C.$superclass ) {
+			results.push ( action.call ( thisp, C.$superclass ));
+			gui.Class.ancestors ( C.$superclass, action, thisp, results );
 		}
 		return results;
 	},

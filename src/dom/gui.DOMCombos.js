@@ -89,7 +89,7 @@ gui.DOMCombos = {
 		 * @param {String} val
 		 */
 		var setAttAfter = combo.after ( function ( att, val ) {
-			this.spirit.att.__suspend__ ( function () {
+			this.spirit.att.$suspend ( function () {
 				this.set ( att, val );
 			});
 		});
@@ -100,7 +100,7 @@ gui.DOMCombos = {
 		 * @param {String} att
 		 */
 		var delAttAfter = combo.after ( function ( att ) {
-			this.spirit.att.__suspend__ ( function () {
+			this.spirit.att.$suspend ( function () {
 				this.del ( att );
 			});
 		});

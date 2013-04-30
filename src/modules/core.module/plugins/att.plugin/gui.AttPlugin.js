@@ -23,7 +23,7 @@ gui.AttPlugin = ( function using ( chained ) {
 		 * @returns {gui.AttPlugin}
 		 */
 		set : chained ( function ( name, value ) {
-			if ( !this.__suspended__ ) {
+			if ( !this.$suspended ) {
 				gui.AttPlugin.set ( this.spirit.element, name, value );
 			}
 		}),
@@ -43,7 +43,7 @@ gui.AttPlugin = ( function using ( chained ) {
 		 * @returns {gui.AttPlugin}
 		 */
 		del : chained ( function ( name ) {
-			if ( !this.__suspended__ ) {
+			if ( !this.$suspended ) {
 				gui.AttPlugin.del ( this.spirit.element, name );
 			}
 		}),
@@ -81,7 +81,7 @@ gui.AttPlugin = ( function using ( chained ) {
 		 * Attribute updates disabled?
 		 * @type {boolean}
 		 */
-		__suspended__ : false,
+		$suspended : false,
 
 		/**
 		 * Suspend attribute updates for the duration of the 
@@ -89,10 +89,10 @@ gui.AttPlugin = ( function using ( chained ) {
 		 * @param {function} action
 		 * @retruns {object}
 		 */
-		__suspend__ : function ( action ) {
-			this.__suspended__ = true;
+		$suspend : function ( action ) {
+			this.$suspended = true;
 			var res = action.apply ( this, arguments );
-			this.__suspended__ = false;
+			this.$suspended = false;
 			return res;
 		}
 
