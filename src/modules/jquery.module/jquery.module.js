@@ -97,15 +97,18 @@ gui.module ( "jquery", {
 				var res = naive [ name ].apply ( this, arguments );
 				var del = name === "removeAttr";
 				val = del ? null : val;
-				this.each ( function ( i, elm ) {
-					if ( elm.spirit ) {
-						if ( val !== undefined || del ) {
-							elm.spirit.att.set ( nam, val );
-						} else {
-							res = elm.spirit.att.get ( nam );
+				if ( val !== undefined || del ) {
+					this.each ( function ( i, elm ) {
+						if ( elm.spirit ) {
+							if ( val !== undefined || del ) {
+								elm.spirit.att.set ( nam, val ); // trigger attribute setters
+								if(!del){ // attribute was already set, must configure manually
+									elm.spirit.attconfig.configureone(nam,val);
+								}
+							}
 						}
-					}
-				});
+					});
+				}
 				return res;
 			};
 		});
