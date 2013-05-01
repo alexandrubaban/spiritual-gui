@@ -27,27 +27,6 @@ gui.TickPlugin = ( function using ( chained ) {
 		}),
 
 		/**
-		 * Add handler for single tick of given type(s).
-		 * @TODO This on ALL trackers :)
-		 * @param {object} arg
-		 * @param @optional {object} handler
-		 * @returns {gui.TickPlugin}
-		 */
-		one : chained ( function ( arg, handler ) {
-			this.add ( arg, handler, true );
-		}),
-
-		/**
-		 * Execute action in next available tick, 
-		 * let 'this' keyword point to the spirit.
-		 * @param {function} action 
-		 * @returns {gui.TickPlugin}
-		 */
-		next : chained ( function ( action ) {
-			gui.Tick.next ( action, this.spirit );
-		}),
-
-		/**
 		 * Remove one or more tick handlers.
 		 * @param {object} arg
 		 * @param @optional {object} handler implements ActionListener interface, defaults to spirit
@@ -62,6 +41,28 @@ gui.TickPlugin = ( function using ( chained ) {
 					}
 				}, this );
 			}
+		}),
+
+		/**
+		 * Add handler for single tick of given type(s).
+		 * @TODO This on ALL trackers :)
+		 * @param {object} arg
+		 * @param @optional {object} handler
+		 * @returns {gui.TickPlugin}
+		 */
+		one : chained ( function ( arg, handler ) {
+			this.add ( arg, handler, true );
+		}),
+
+		/**
+		 * Execute action in next available tick, 
+		 * let 'this' keyword point to the spirit.
+		 * @param {function} action 
+		 * @param @optional {object|function} thisp
+		 * @returns {gui.TickPlugin}
+		 */
+		next : chained ( function ( action, thisp ) {
+			gui.Tick.next ( action, thisp || this.spirit );
 		}),
 
 		/**
