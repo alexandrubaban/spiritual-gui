@@ -304,7 +304,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 					break;
 			}
 		}, this );
-		this.life.$ondestruct (); // dispose life plugin last
+		this.life.$ondestruct ( now ); // dispose life plugin last
 		if ( now ) {
 			this.$null ();
 		} else {

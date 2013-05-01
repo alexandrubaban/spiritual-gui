@@ -129,6 +129,17 @@ gui.DOMPlugin = ( function using ( chained ) {
 		},
 
 		/**
+		 * Removing this spirit from it's parent container. Note that this will 
+		 * schedule destruction of the spirit unless it gets reinserted somewhere. 
+		 * Also note that this method is called on the spirit, not on the parent.
+		 * @returns {object} Returns the argument
+		 */
+		remove : function () {
+			var parent = this.spirit.element.parentNode;
+			parent.removeChild ( this.spirit.element );
+		},
+
+		/**
 		 * Clone spirit element.
 		 * @return {Element}
 		 */
@@ -719,17 +730,6 @@ gui.Object.each ({
 		els.forEach ( function ( el ) {
 			parent.insertBefore ( el, target.nextSibling );
 		});
-	},
-
-	/**
-	 * Removing this spirit from it's parent container. Note that this will 
-	 * schedule destruction of the spirit unless it gets reinserted somewhere. 
-	 * Also note that this method is called on the spirit, not on the parent.
-	 * @returns {object} Returns the argument
-	 */
-	remove : function () {
-		var parent = this.spirit.element.parentNode;
-		parent.removeChild ( this.spirit.element );
 	},
 
 	/**

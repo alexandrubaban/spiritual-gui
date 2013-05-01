@@ -4203,7 +4203,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 					break;
 			}
 		}, this );
-		this.life.$ondestruct (); // dispose life plugin last
+		this.life.$ondestruct ( now ); // dispose life plugin last
 		if ( now ) {
 			this.$null ();
 		} else {
@@ -7036,6 +7036,17 @@ gui.DOMPlugin = ( function using ( chained ) {
 		},
 
 		/**
+		 * Removing this spirit from it's parent container. Note that this will 
+		 * schedule destruction of the spirit unless it gets reinserted somewhere. 
+		 * Also note that this method is called on the spirit, not on the parent.
+		 * @returns {object} Returns the argument
+		 */
+		remove : function () {
+			var parent = this.spirit.element.parentNode;
+			parent.removeChild ( this.spirit.element );
+		},
+
+		/**
 		 * Clone spirit element.
 		 * @return {Element}
 		 */
@@ -7626,17 +7637,6 @@ gui.Object.each ({
 		els.forEach ( function ( el ) {
 			parent.insertBefore ( el, target.nextSibling );
 		});
-	},
-
-	/**
-	 * Removing this spirit from it's parent container. Note that this will 
-	 * schedule destruction of the spirit unless it gets reinserted somewhere. 
-	 * Also note that this method is called on the spirit, not on the parent.
-	 * @returns {object} Returns the argument
-	 */
-	remove : function () {
-		var parent = this.spirit.element.parentNode;
-		parent.removeChild ( this.spirit.element );
 	},
 
 	/**
@@ -8839,10 +8839,12 @@ gui.AttentionPlugin = gui.Plugin.extend ( "gui.AttentionPlugin", {
 		switch ( life.type ) {
 			case gui.LIFE_DESTRUCT :
 				gui.Broadcast.removeGlobal ( gui.BROADCAST_ATTENTION_GO, this );
-				gui.Broadcast.dispatchGlobal ( null,
-					gui.BROADCAST_ATTENTION_OFF,
-					this.spirit.$instanceid
-				);
+				if ( this._focused ) {
+					gui.Broadcast.dispatchGlobal ( null,
+						gui.BROADCAST_ATTENTION_OFF,
+						this.spirit.$instanceid
+					);
+				}
 				break;
 		}
 	},
@@ -10534,15 +10536,18 @@ gui.module ( "jquery", {
 				var res = naive [ name ].apply ( this, arguments );
 				var del = name === "removeAttr";
 				val = del ? null : val;
-				this.each ( function ( i, elm ) {
-					if ( elm.spirit ) {
-						if ( val !== undefined || del ) {
-							elm.spirit.att.set ( nam, val );
-						} else {
-							res = elm.spirit.att.get ( nam );
+				if ( val !== undefined || del ) {
+					this.each ( function ( i, elm ) {
+						if ( elm.spirit ) {
+							if ( val !== undefined || del ) {
+								elm.spirit.att.set ( nam, val ); // trigger attribute setters
+								if(!del){ // attribute was already set, must configure manually
+									elm.spirit.attconfig.configureone(nam,val);
+								}
+							}
 						}
-					}
-				});
+					});
+				}
 				return res;
 			};
 		});
