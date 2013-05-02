@@ -62,9 +62,9 @@ window.gui = {
 	 * Plugin broadcast types
 	 */
 	BROADCAST_ORIENTATIONCHANGE : "gui-broadcast-orientationchange",
-	BROADCAST_ATTENTION_ON : "gui-broadcast-attention-on",
-	BROADCAST_ATTENTION_OFF : "gui-broadcast-attention-off",
-	BROADCAST_ATTENTION_GO : "gui-broadcast-attention-go",
+	BROADCAST_ATTENTION_ENTER : "gui-broadcast-attention-on",
+	BROADCAST_ATTENTION_EXIT : "gui-broadcast-attention-off",
+	BROADCAST_ATTENTION_MOVE : "gui-broadcast-attention-go",
 
 	/*
 	 * @TODO: offload to modules
