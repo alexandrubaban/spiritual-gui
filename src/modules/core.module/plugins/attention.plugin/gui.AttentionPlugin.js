@@ -18,16 +18,16 @@ gui.AttentionPlugin = ( function using ( chained ) {
 		trap : chained ( function () {
 			if ( !this._trapping ) {
 				this._trapping = true;
-				this._listen ();
+				this._listen ( true );
 				this._setup ();
 			}
 		}),
 
 		/**
-		 * Focus the last focused  element, defaulting to first focusable element.
+		 * Focus the latest focused element, if any, defaulting to first focusable element.
 		 * @returns {gui.AttentionPlugin}
 		 */
-		focus : chained ( function () {
+		enter : chained ( function () {
 			if ( !this._focused ) {
 				if ( this._latest ) {
 					this._latest.focus ();
@@ -38,20 +38,14 @@ gui.AttentionPlugin = ( function using ( chained ) {
 		}),
 
 		/**
-		 * Blur anything that might be focused.
-		 * @TODO definitely not like this...
+		 * Blur anything that might be focused and instigate attention move.
 		 * @returns {gui.AttentionPlugin}
 		 */
-		blur : chained ( function () { 
-			gui.Broadcast.dispatchGlobal ( null,
-				gui.BROADCAST_ATTENTION_OFF,
-				this.spirit.$instanceid
-			);
-			if ( this._focused ) {
-				if ( this._latest ) {
-					this._latest.blur ();
-				}
+		exit : chained ( function () {
+			if ( this._focused && this._latest ) {
+				this._latest.blur ();
 			}
+			this._exit ();
 		}),
 
 		/**
@@ -76,9 +70,9 @@ gui.AttentionPlugin = ( function using ( chained ) {
 		 * @param {gui.Broadcast} b
 		 */
 		onbroadcast : function ( b ) {
-			if ( b.type === gui.BROADCAST_ATTENTION_GO ) {
+			if ( b.type === gui.BROADCAST_ATTENTION_MOVE ) {
 				if ( b.data === this.spirit.$instanceid ) {
-					this.focus ();
+					this.enter();
 				}
 			}
 		},
@@ -87,12 +81,9 @@ gui.AttentionPlugin = ( function using ( chained ) {
 		 * Destuction time.
 		 */
 		ondestruct : function () {
-			gui.Broadcast.removeGlobal ( 
-				gui.BROADCAST_ATTENTION_GO, this 
-			).dispatchGlobal ( null,
-				gui.BROADCAST_ATTENTION_OFF,
-				this.spirit.$instanceid
-			);
+			if ( this._trapping ) {
+				this._listen ( false );
+			}
 		},
 
 
@@ -133,14 +124,17 @@ gui.AttentionPlugin = ( function using ( chained ) {
 		},
 
 		/**
-		 * Listen for all sorts of stuff going on.
+		 * Listen and unlisten for all sorts of stuff going on.
 		 * @TODO use focusin and focusout for IE/Opera?
+		 * @param {boolean} listen
 		 */
-		_listen : function () {
-			var elm = this.spirit.element;
-			elm.addEventListener ( "focus", this, true );
-			elm.addEventListener ( "blur", this, true );
-			gui.Broadcast.addGlobal ( gui.BROADCAST_ATTENTION_GO, this );
+		_listen : function ( listen ) {
+			var element = this.spirit.element;
+			var action1 = listen ? "addEventListener" : "removeEventListener";
+			var action2 = listen ? "addGlobal" : "removeGlobal";
+			element [ action1 ] ( "focus", this, true );
+			element [ action1 ] ( "blur", this, true );
+			gui.Broadcast [ action2 ] ( gui.BROADCAST_ATTENTION_MOVE, this );
 		},
 
 		/**
@@ -240,7 +234,8 @@ gui.AttentionPlugin = ( function using ( chained ) {
 			this._focused = true;
 			this._latest = elm;
 			if ( !this._entered ) { // trap just entered?
-				this._setentered ( true );
+				this._entered = true;
+				this._enter ();
 			}
 			var klas = elm.className; // was hidden input?
 			if ( klas.startsWith ( "_gui-focus" )) {
@@ -253,30 +248,41 @@ gui.AttentionPlugin = ( function using ( chained ) {
 		},
 
 		/**
-		 * Something was blurred.
+		 * Something was blurred. If nothing new gets focused soon, we determine 
+		 * that an exit was performed. Not that this doesn't move to focus back 
+		 * to any previous zone, you must invoke a manual 'exit()' for this.
 		 * @param {Element} elm (not used)
 		 */
 		_onblur : function ( elm ) {
-			this._focused = false;
 			var that = this;
+			this._focused = false;
 			setTimeout(function(){
-				if ( that._entered && !that._focused ) {
-					that._setentered ( false );
+				if ( !that._focused ) {
+					that._entered = false;
 				}
 			});
 		},
 
 		/**
-		 * Attention trap entered or escaped.
-		 * @param {boolean} entered
+		 * Broadcast zone entered-
 		 */
-		_setentered : function ( entered ) {
-			this._entered = entered;
+		_enter : function () {
 			gui.Broadcast.dispatchGlobal ( null,
-				entered ? gui.BROADCAST_ATTENTION_ON : gui.BROADCAST_ATTENTION_OFF,
+				gui.BROADCAST_ATTENTION_ENTER,
+				this.spirit.$instanceid
+			);
+		},
+
+		/**
+		 * Broadcast zone exited.
+		 */
+		_exit : function () {
+			gui.Broadcast.dispatchGlobal ( null,
+				gui.BROADCAST_ATTENTION_EXIT,
 				this.spirit.$instanceid
 			);
 		}
+
 
 	}, { // Static ........................................................................
 
@@ -304,12 +310,12 @@ gui.AttentionPlugin = ( function using ( chained ) {
 			var q = this._queue;
 			var id = b.data;
 			switch ( b.type ) {
-				case gui.BROADCAST_ATTENTION_ON :
+				case gui.BROADCAST_ATTENTION_ENTER :
 					if ( this._last () !== id ) {
 						q.push ( id );
 					}
 					break;
-				case gui.BROADCAST_ATTENTION_OFF :
+				case gui.BROADCAST_ATTENTION_EXIT :
 					var that = this;
 					setTimeout ( function () {
 						that._update ( id );
@@ -331,7 +337,7 @@ gui.AttentionPlugin = ( function using ( chained ) {
 			}
 			if ( q.length ) {
 				gui.Broadcast.dispatchGlobal ( null,
-					gui.BROADCAST_ATTENTION_GO,
+					gui.BROADCAST_ATTENTION_MOVE,
 					this._last ()
 				);
 			}
@@ -346,7 +352,7 @@ gui.AttentionPlugin = ( function using ( chained ) {
  */
 ( function () {
 	gui.Broadcast.addGlobal ([ 
-		gui.BROADCAST_ATTENTION_ON,
-		gui.BROADCAST_ATTENTION_OFF
+		gui.BROADCAST_ATTENTION_ENTER,
+		gui.BROADCAST_ATTENTION_EXIT
 	], gui.AttentionPlugin );
 }());
