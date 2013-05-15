@@ -10,6 +10,7 @@ gui.Client = ( new function Client () {
 	var root = document.documentElement;
 
 	this.isExplorer = agent.contains ( "msie" );
+	this.isExplorer9 = this.isExplorer && agent.contains ( "msie 9" ); // @TODO feature detect something
 	this.isOpera = agent.contains ( "opera" );
 	this.isWebKit = agent.contains ( "webkit" );
 	this.isChrome = this.isWebKit && agent.contains ( "chrome" );
@@ -80,7 +81,7 @@ gui.Client = ( new function Client () {
 	 * Supports the History API?
 	 * @type {boolean}
 	 */
-	this.hasHistory = ( window.history && window.history.pushState );
+	this.hasHistory = ( window.history && window.history.pushState ) ? true : false;
 
 	/**
 	 * Is mobile device? Not to be confused with this.hasTouch
