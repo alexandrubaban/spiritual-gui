@@ -12,8 +12,8 @@ gui.FlexCSS = {
 	injected : true,
 
 	/**
-	 * Generating 10 unique classnames for native flex only. 
-	 * Emulated flex JS-reads all values from class attribute.
+	 * Generating 10 unique classnames. For native flex only; 
+	 * emulated flex reads the value from the class attribute.
 	 * @type {number}
 	 */
 	maxflex : 10,
@@ -97,13 +97,17 @@ gui.FlexCSS.emulated =  {
 		"width" : "100%",
 		"height" : "100%"
 	},
+	".flexrow" : {
+		"white-space" : "nowrap"
+	},
 	".flexrow > *" : {
 		"display" : "inline-block",
 		"vertical-align" : "top",
+		"white-space" : "normal",
 		"height" : "100%"
 	},
 	".flexrow > ._flexcorrect" : {
-		"margin-left" : "-4px !important" // @todo Correlate this to computed font-size :)
+		"margin" : "0 0 0 -4px !important" // @TODO correlate to computed font-size :)
 	},
 	"flexcol > *" : {
 		"display" : "block",
