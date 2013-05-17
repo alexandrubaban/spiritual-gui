@@ -145,6 +145,13 @@ gui.DOMPlugin = ( function using ( chained ) {
 		 */
 		clone : function () {
 			return this.spirit.element.cloneNode ( true );
+		},
+
+		/**
+		 * @returns {number}
+		 */
+		ordinal : function () {
+			return gui.DOMPlugin.ordinal ( this.element );
 		}
 		
 		
