@@ -19,9 +19,8 @@ gui.KeyPlugin = ( function using ( confirmed, chained ) {
 				handler = handler ? handler : this.spirit;
 				if ( gui.Interface.validate ( gui.IKeyHandler, handler )) {
 					this._breakdown ( arg ).forEach ( function ( a ) {
-						a = gui.Type.cast ( a );
-						if ( this._addchecks ( a, [ handler, this._global ])) {
-							gui.Broadcast.addGlobal ( gui.BROADCAST_KEYEVENT, this );
+						if ( this._addchecks ( String ( a ), [ handler, this._global ])) {
+							this._setupbroadcast ( true );
 						}
 					}, this );
 				}
@@ -39,10 +38,9 @@ gui.KeyPlugin = ( function using ( confirmed, chained ) {
 				handler = handler ? handler : this.spirit;
 				if ( gui.Interface.validate ( gui.IKeyHandler, handler )) {
 					this._breakdown ( arg ).forEach ( function ( a ) {
-						a = gui.Type.cast ( a );
-						if ( this._removechecks ( a, [ handler, this._global ])) {
+						if ( this._removechecks ( String ( a ), [ handler, this._global ])) {
 							if ( !this._hashandlers ()) {
-								gui.Broadcast.removeGlobal ( gui.BROADCAST_KEYEVENT, this );
+								this._setupbroadcast ( false );
 							}	
 						}
 					}, this );
@@ -79,17 +77,15 @@ gui.KeyPlugin = ( function using ( confirmed, chained ) {
 		 * @param {gui.Broadcast} b
 		 */
 		onbroadcast : function ( b ) {
-			var list, checks, handler, global;
+			var list, checks, handler, isglobal;
 			if ( b.type === gui.BROADCAST_KEYEVENT ) {
-				var d = b.data.down, n = b.data.code, c = b.data.char;
-				if (( list = ( this._xxx [ n ] || this._xxx [ c ]))) {
+				var down = b.data.down, type = b.data.type;
+				if (( list = ( this._xxx [ type ]))) {
 					list.forEach ( function ( checks ) {
 						handler = checks [ 0 ];
-						global = checks [ 1 ];
-						if ( global === b.isGlobal ) {
-							handler.onkey ( 
-								new gui.Key ( d, n, c, global )
-							);
+						isglobal = checks [ 1 ];
+						if ( isglobal === b.isGlobal ) {
+							handler.onkey ( new gui.Key ( down, type, isglobal ));
 						}
 					});
 				}
@@ -100,21 +96,33 @@ gui.KeyPlugin = ( function using ( confirmed, chained ) {
 		// Private .....................................................................
 		
 		/**
+		 * Start and stop listening for broadcasted key event details.
+		 * @param {boolean} add
+		 */
+		_setupbroadcast : function ( add ) {
+			var act, sig = this.context.gui.signature;
+			var type = gui.BROADCAST_KEYEVENT;
+			if ( this._global ) {
+				act = add ? "addGlobal" : "removeGlobal";
+				gui.Broadcast [ act ] ( type, this );
+			} else {
+				act = add ? "add" : "remove";
+				gui.Broadcast [ act ] ( type, this, sig );
+			}
+		},
+
+		/**
 		 * Remove delegated handlers. 
 		 * @TODO same as in gui.ActionPlugin, perhaps superize this stuff somehow...
 		 */
 		_cleanup : function ( type, checks ) {
-			//if ( this._removechecks ( type, checks )) {
-				var handler = checks [ 0 ], global = checks [ 1 ];
-				if ( global ) {
-					this.removeGlobal ( type, handler );
-				} else {
-					this.remove ( type, handler );
-				}
-			//}
+			var handler = checks [ 0 ], global = checks [ 1 ];
+			if ( global ) {
+				this.removeGlobal ( type, handler );
+			} else {
+				this.remove ( type, handler );
+			}
 		}
-
-	}, {}, { // Static ...............................................................
 
 	});
 

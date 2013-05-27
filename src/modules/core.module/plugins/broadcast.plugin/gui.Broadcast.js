@@ -1,8 +1,9 @@
 /** 
  * Broadcast instance.
  * @using gui.Arguments#confirmed
+ * @using gui.Combo#chained
  */
-( function using ( confirmed ) {
+( function using ( confirmed, chained ) {
 
 	/**
 	 * Broadcast constructor.
@@ -13,7 +14,7 @@
 	 * @param {boolean} global
 	 */
 	gui.Broadcast = function ( target, type, data, global, sig ) {
-		
+
 		this.target = target;
 		this.type = type;
 		this.data = data;
@@ -72,9 +73,9 @@
 		}
 	};
 
-
-	// Static .........................................................
-
+	
+	// Static ................................................................................
+	
 	/**
 	 * Tracking global handlers (mapping broadcast types to list of handlers).
 	 * @type {Map<String,<Array<object>>}
@@ -92,20 +93,22 @@
 	 * @param {object} message String or array of strings
 	 * @param {object} handler Implements BroadcastListener
 	 * @param @optional {String} sig
+	 * @returns {function}
 	 */
-	gui.Broadcast.add = function ( message, handler, sig ) {
-	 return	this._add ( message, handler, sig || gui.signature );
-	};
+	gui.Broadcast.add = chained ( function ( message, handler, sig ) {
+		this._add ( message, handler, sig || gui.signature );
+	});
 
 	/**
 	 * Unmapcribe handler from broadcast.
 	 * @param {object} message String or array of strings
 	 * @param {object} handler
 	 * @param @optional {String} sig
+	 * @returns {function}
 	 */
-	gui.Broadcast.remove = function ( message, handler, sig ) {
-		return this._remove ( message, handler, sig || gui.signature );
-	};
+	gui.Broadcast.remove = chained ( function ( message, handler, sig ) {
+		this._remove ( message, handler, sig || gui.signature );
+	});
 
 	/**
 	 * Publish broadcast in local window scope.
@@ -124,19 +127,21 @@
 	 * mapcribe handler to message globally.
 	 * @param {object} message String or array of strings
 	 * @param {object} handler Implements BroadcastListener
+	 * @returns {function}
 	 */
-	gui.Broadcast.addGlobal = function ( message, handler ) {
-		return this._add ( message, handler );
-	};
+	gui.Broadcast.addGlobal = chained ( function ( message, handler ) {
+		this._add ( message, handler );
+	});
 
 	/**
 	 * Unmapcribe handler from global broadcast.
 	 * @param {object} message String or array of strings
 	 * @param {object} handler
+	 * @returns {function}
 	 */
-	gui.Broadcast.removeGlobal = function ( message, handler ) {
-		return this._remove ( message, handler );
-	};
+	gui.Broadcast.removeGlobal = chained ( function ( message, handler ) {
+		this._remove ( message, handler );
+	});
 
 	/**
 	 * Dispatch broadcast in global scope (all windows).
@@ -145,6 +150,7 @@
 	 * @param {Spirit} target
 	 * @param {String} type
 	 * @param {object} data
+	 * @returns {gui.Broadcast}
 	 */
 	gui.Broadcast.dispatchGlobal = function ( target, type, data ) {
 		return this._dispatch ( target, type, data );
@@ -165,7 +171,7 @@
 						d = d.stringify ();
 					} else {
 						try {
-							JSON.stringify ( d );
+							JSON.stringify ( d ); // @TODO: think mcfly - how come not d = JSON.stringify????
 						} catch ( jsonexception ) {
 							d = null;
 						}
@@ -189,6 +195,7 @@
 		}
 	};
 
+
 	// PRIVATE ...................................................................................
 
 	/**
@@ -196,7 +203,6 @@
 	 * @param {Array<string>|string} type
 	 * @param {object|function} handler Implements BroadcastListener
 	 * @param @optional {String} sig
-	 * @returns {function}
 	 */
 	gui.Broadcast._add = confirmed ( "array|string", "object|function", "(string)" ) (
 		function ( type, handler, sig ) {
@@ -224,7 +230,6 @@
 					}
 				}
 			}
-			return this;
 		}
 	);
 
@@ -233,7 +238,6 @@
 	 * @param {object} message String or array of strings
 	 * @param {object} handler
 	 * @param @optional {String} sig
-	 * @returns {function}
 	 */
 	gui.Broadcast._remove = function ( message, handler, sig ) {
 		if ( gui.Interface.validate ( gui.IBroadcastHandler, handler )) {
@@ -259,7 +263,6 @@
 				}
 			}
 		}
-		return this;
 	};
 
 	/**
@@ -268,6 +271,7 @@
 	 * @param {String} type
 	 * @param {object} data
 	 * @param @optional {String} sig
+	 * @returns {gui.Broadcast}
 	 */
 	gui.Broadcast._dispatch = function ( target, type, data, sig ) {
 		var global = !gui.Type.isString ( sig );
@@ -287,6 +291,7 @@
 				root.propagateBroadcast ( b );
 			}
 		}
+		return b;
 	};
 
-}( gui.Arguments.confirmed ));
+}( gui.Arguments.confirmed, gui.Combo.chained ));
