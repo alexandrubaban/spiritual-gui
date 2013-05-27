@@ -1,6 +1,6 @@
 /**
  * Tracking DOM events.
- * @TODO Validate add/remove arguments (important because signature doesn't match other trackers)
+ * @TODO Validate add/remove arguments (important because arguments signature doesn't match other trackers)
  * @TODO Throw an error on remove not added!
  * @TODO Static interface for general consumption.
  * @extends {gui.Tracker}

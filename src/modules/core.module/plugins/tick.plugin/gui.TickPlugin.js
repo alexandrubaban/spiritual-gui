@@ -91,7 +91,7 @@ gui.TickPlugin = ( function using ( chained ) {
 		 * @param {boolean} one
 		 */
 		_add : function ( type, handler, one ) {
-			var sig = this.spirit.signature;
+			var sig = this.spirit.$contextid;
 			if ( one ) {
 				if ( this._global ) {
 					gui.Tick.oneGlobal ( type, handler );
@@ -113,7 +113,7 @@ gui.TickPlugin = ( function using ( chained ) {
 		 * @param {object|function} handler
 		 */
 		_remove : function ( type, handler ) {
-			var sig = this.spirit.signature;
+			var sig = this.spirit.$contextid;
 			if ( this._global ) {
 				gui.Tick.removeGlobal ( type, handler );
 			} else {
@@ -127,7 +127,7 @@ gui.TickPlugin = ( function using ( chained ) {
 		 * @param @optional {number} time
 		 */
 		_dispatch : function ( type, time ) {
-			var tick, sig = this.spirit.signature;
+			var tick, sig = this.spirit.$contextid;
 			if ( this._global ) {
 				tick = gui.Tick.dispatchGlobal ( type, time );
 			} else {
@@ -149,7 +149,7 @@ gui.TickPlugin = ( function using ( chained ) {
 				if ( bglobal ) {
 					gui.Tick.removeGlobal ( type, handler );
 				} else {
-					gui.Tick.remove ( type, handler, this.signature );
+					gui.Tick.remove ( type, handler, this.$contextid );
 				}
 			}
 		}

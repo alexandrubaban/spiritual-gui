@@ -100,7 +100,7 @@ gui.KeyPlugin = ( function using ( confirmed, chained ) {
 		 * @param {boolean} add
 		 */
 		_setupbroadcast : function ( add ) {
-			var act, sig = this.context.gui.signature;
+			var act, sig = this.context.gui.$contextid;
 			var type = gui.BROADCAST_KEYEVENT;
 			if ( this._global ) {
 				act = add ? "addGlobal" : "removeGlobal";

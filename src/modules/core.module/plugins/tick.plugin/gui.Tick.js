@@ -63,7 +63,7 @@
 	 */
 	gui.Tick.add = confirmed ( "string|array", "object|function", "(string)" ) (
 		function ( type, handler, sig ) {
-			return this._add ( type, handler, false, sig || gui.signature );
+			return this._add ( type, handler, false, sig || gui.$contextid );
 		}
 	);
 
@@ -75,7 +75,7 @@
 	 */
 	gui.Tick.one = confirmed ( "string|array", "object|function", "(string)" ) (
 		function ( type, handler, sig ) {
-			return this._add ( type, handler, true, sig || gui.signature );
+			return this._add ( type, handler, true, sig || gui.$contextid );
 		}
 	);
 

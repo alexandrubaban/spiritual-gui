@@ -19,8 +19,8 @@
 		this.type = type;
 		this.data = data;
 		this.isGlobal = global;
-		this.signatures = [];
-		this.signature = sig || gui.signature;
+		this.$contextids = [];
+		this.$contextid = sig || gui.$contextid;
 	};
 
 	gui.Broadcast.prototype = {
@@ -55,14 +55,14 @@
 		 * Unimportant for global broadcasts.
 		 * @type {String}
 		 */
-		signature : null,
+		$contextid : null,
 
 		/**
 		 * Experimental...
 		 * @todo Still used?
 		 * @type {Array<String>}
 		 */
-		signatures : null,
+		$contextids : null,
 
 		/**
 		 * Identification
@@ -83,7 +83,7 @@
 	gui.Broadcast._globals = Object.create ( null );
 
 	/**
-	 * Tracking local handlers (mapping gui.signatures to broadcast types to list of handlers).
+	 * Tracking local handlers (mapping gui.$contextids to broadcast types to list of handlers).
 	 * @type {Map<String,Map<String,Array<object>>>}
 	 */
 	gui.Broadcast._locals = Object.create ( null );
@@ -96,7 +96,7 @@
 	 * @returns {function}
 	 */
 	gui.Broadcast.add = chained ( function ( message, handler, sig ) {
-		this._add ( message, handler, sig || gui.signature );
+		this._add ( message, handler, sig || gui.$contextid );
 	});
 
 	/**
@@ -107,7 +107,7 @@
 	 * @returns {function}
 	 */
 	gui.Broadcast.remove = chained ( function ( message, handler, sig ) {
-		this._remove ( message, handler, sig || gui.signature );
+		this._remove ( message, handler, sig || gui.$contextid );
 	});
 
 	/**
@@ -120,7 +120,7 @@
 	 * @returns {gui.Broadcast}
 	 */
 	gui.Broadcast.dispatch = function ( target, type, data, sig ) {
-		return this._dispatch ( target, type, data, sig || gui.signature );
+		return this._dispatch ( target, type, data, sig || gui.$contextid );
 	};
 
 	/**

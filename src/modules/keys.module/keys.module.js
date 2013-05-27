@@ -72,7 +72,7 @@ gui.module ( "keys", {
 	 */
 	_oldschool : function ( e ) {
 		var n = e.keyCode, c = this._keymap [ n ], b = gui.BROADCAST_KEYEVENT;
-		var sig = e.currentTarget.defaultView.gui.signature;
+		var sig = e.currentTarget.defaultView.gui.$contextid;
 
 		//e.stopPropagation ();
 		//e.preventDefault ();

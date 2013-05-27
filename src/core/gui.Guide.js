@@ -135,14 +135,14 @@ gui.Guide = {
 	possess : function ( elm, Spirit ) {
 		var doc = elm.ownerDocument;
 		var win = doc.defaultView;
-		var sig = win.gui.signature;
+		var sig = win.gui.$contextid;
 		return ( elm.spirit = new Spirit ( elm, doc, win, sig ));
 
 		/*
 		spirit.element = element;
 		spirit.document = element.ownerDocument;
 		spirit.window = spirit.document.defaultView;
-		spirit.signature = spirit.window.gui.signature;
+		spirit.$contextid = spirit.window.gui.$contextid;
 		// @TODO weakmap for this stunt
 		element.spirit = spirit;
 		if ( !spirit.life || spirit.life.constructed ) {
@@ -253,7 +253,7 @@ gui.Guide = {
 	 */
 	_step1 : function ( doc ) {
 		var win = doc.defaultView;
-		var sig = win.gui.signature;
+		var sig = win.gui.$contextid;
 		this._metatags ( win ); // configure runtime
 		win.gui.go (); // channel spirits
 		this._stylesheets ( win ); // more spirits?
@@ -269,7 +269,7 @@ gui.Guide = {
 	 */
 	_step2 : function ( doc ) {
 		var win = doc.defaultView;
-		var sig = win.gui.signature;
+		var sig = win.gui.$contextid;
 		// broadcast before and after spirits attach
 		this.spiritualizeOne ( doc.documentElement );
 		if ( win.gui.mode !== gui.MODE_MANAGED ) {
