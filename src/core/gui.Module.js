@@ -105,7 +105,7 @@ gui.Module = gui.Class.create ( "gui.Module", Object.prototype, {
 			msg2
 		], { 
 			onbroadcast : function ( b ) {
-				if ( b.data === context.gui.signature ) {
+				if ( b.data === context.gui.$contextid ) {
 					gui.Broadcast.removeGlobal ( b.type, this );
 					switch ( b.type ) {
 						case msg1 :

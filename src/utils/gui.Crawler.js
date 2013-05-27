@@ -197,7 +197,7 @@ gui.Crawler.prototype = {
 			uri = cut.join ( "/" );
 		} else {
 			uri = "*"; // @TODO
-			key = thiswin.gui.signature;
+			key = thiswin.gui.$contextid;
 		}
 		handler.transcend ( thatwin, uri, key );
 	}

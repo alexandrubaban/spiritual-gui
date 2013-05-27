@@ -28,12 +28,12 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	$instanceid : null,
 	
 	/**
-	 * Matches the property `signature` of the local `gui` object.
+	 * Matches the property `$contextid` of the local `gui` object.
 	 * @TODO rename this property
 	 * @TODO perhapse deprecate?
 	 * @type {String}
 	 */
-	signature : null,
+	$contextid : null,
 
 	/**
 	 * Identification.
@@ -212,7 +212,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 		this.element = elm;
 		this.document = doc;
 		this.window = win;
-		this.signature = sig;
+		this.$contextid = sig;
 		this.onconstruct ();
 	},
 
@@ -320,7 +320,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 						// @TODO why sometimes gui.Spirit.DENIED?
 					}
 				}
-			}, this.signature ).dispatch ( tick, 0, this.signature );
+			}, this.$contextid ).dispatch ( tick, 0, this.$contextid );
 		}
 	},
 	

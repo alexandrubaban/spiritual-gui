@@ -21,7 +21,7 @@ gui.Spiritual.prototype = {
 	 * @TODO rename guikey or windowkey or contextkey
 	 * @type {String}
 	 */
-	signature : null,
+	$contextid : null,
 
 	/**
 	 * Usually the window object. Occasionally a web worker scope.
@@ -99,7 +99,7 @@ gui.Spiritual.prototype = {
 				gui.DOMChanger.change ( this.context );
 				break;
 		}
-		gui.Tick.add ( gui.TICK_DESTRUCT_DETACHED, this, this.signature );
+		gui.Tick.add ( gui.TICK_DESTRUCT_DETACHED, this, this.$contextid );
 		if ( this._configs !== null ) {
 			this._configs.forEach ( function ( config ) {
 				this.channel ( config.select, config.klass );
@@ -399,7 +399,7 @@ gui.Spiritual.prototype = {
 				delete all.inside [ key ];
 			}
 			all.outside [ key ] = spirit;
-			gui.Tick.dispatch ( gui.TICK_DESTRUCT_DETACHED, 0, this.signature );
+			gui.Tick.dispatch ( gui.TICK_DESTRUCT_DETACHED, 0, this.$contextid );
 		}
 	},
 
@@ -426,7 +426,7 @@ gui.Spiritual.prototype = {
 	 * @TODO Think of more stuff to cleanup here...
 	 */
 	nameDestructAlreadyUsed : function () {
-		gui.Tick.remove ( gui.TICK_DESTRUCT_DETACHED, this, this.signature );
+		gui.Tick.remove ( gui.TICK_DESTRUCT_DETACHED, this, this.$contextid );
 		[ 
 			"_spiritualaid", 
 			"context", 
@@ -502,10 +502,10 @@ gui.Spiritual.prototype = {
 
 		// patching features
 		this._spiritualaid.polyfill ( context );		
-		// compute signature (possibly identical to $instanceid of hosting iframe spirit)
-		this.signature = ( function () {
+		// compute $contextid (possibly identical to $instanceid of hosting iframe spirit)
+		this.$contextid = ( function () {
 			var sig, url = location.href;
-			var key = "spiritual-signature"; // ouch, must remain configurable!
+			var key = "spiritual-$contextid"; // ouch, must remain configurable!
 			if ( url.contains ( key )) {
 				return gui.URL.getParam ( url, key ).split ( "/" ).pop ();
 			} else {
@@ -538,7 +538,7 @@ gui.Spiritual.prototype = {
 		var indexes = [];
 		function index ( def ) {
 			switch ( def ) {
-				case "signature" :
+				case "$contextid" :
 				case "context" :
 					// must be kept unique in each window context
 					break;

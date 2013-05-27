@@ -11,7 +11,7 @@ gui.Tracker = gui.Plugin.extend ( "gui.Tracker", {
 	_xxx : null,
 
 	/**
-	 * Containing window's gui.signature.
+	 * Containing window's gui.$contextid.
 	 * @type {String}
 	 */
 	_sig : null,
@@ -24,7 +24,7 @@ gui.Tracker = gui.Plugin.extend ( "gui.Tracker", {
 		this._super.onconstruct ();
 		this._xxx = Object.create ( null );
 		if ( this.spirit ) {
-			this._sig = this.spirit.window.gui.signature;
+			this._sig = this.spirit.window.gui.$contextid;
 		}
 	},
 

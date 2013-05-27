@@ -34,7 +34,7 @@ gui.FlexCSS = {
 	 */
 	load : function ( context, mode ) {
 		if ( this.injected ) {
-			var sheets = this._getsheets ( context.gui.signature );
+			var sheets = this._getsheets ( context.gui.$contextid );
 			if ( sheets && sheets.mode ) {
 				sheets [ sheets.mode ].disable ();
 			}
@@ -55,7 +55,7 @@ gui.FlexCSS = {
 	 * @param {Window} context
 	 */
 	unload : function ( context ) {
-		delete this._sheets [ context.gui.signature ];
+		delete this._sheets [ context.gui.$contextid ];
 	},
 
 

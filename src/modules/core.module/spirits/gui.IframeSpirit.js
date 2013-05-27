@@ -133,7 +133,7 @@ gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
 	 * signing that looks somewhat less like a spyware attack.
 	 * @type {String}
 	 */
-	KEY_SIGNATURE : "spiritual-signature",
+	KEY_SIGNATURE : "spiritual-contextid",
 
 	/**
 	 * Sign URL with cross-domain credentials 
@@ -151,7 +151,7 @@ gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
 	},
 
 	/**
-	 * Remove signature from URL (for whatever reason).
+	 * Remove $contextid from URL (for whatever reason).
 	 * @param {String} url
 	 * @param {String} sign
 	 * @returns {String}

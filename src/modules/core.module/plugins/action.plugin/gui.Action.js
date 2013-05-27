@@ -169,7 +169,7 @@ gui.Action.stringify = function ( a, key ) {
 					d = d.stringify ();
 				} else {
 					try {
-						JSON.stringify ( d );
+						JSON.stringify ( d ); // @TODO: think mcfly - how come not d = JSON.stringify???? (breaks iframe test)
 					} catch ( jsonexception ) {
 						d = null;
 					}

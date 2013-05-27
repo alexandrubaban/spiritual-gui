@@ -21,7 +21,7 @@ gui.Observer = {
 	 * @param {Window} win
 	 */
 	observe : function ( win ) {
-		var sig = win.gui.signature;
+		var sig = win.gui.$contextid;
 		var doc = win.document;
 		var obs = this._observers [ sig ];
 		if ( this.observes && win.gui.debug ) {
@@ -93,7 +93,7 @@ gui.Observer = {
 	_suspend : 0,
 
 	/**
-	 * Tracking MutationObservers for window contexts by gui.signature
+	 * Tracking MutationObservers for window contexts by gui.$contextid
 	 * @type {Map<String,MutationObserver}
 	 */
 	_observers : Object.create ( null ),
@@ -114,7 +114,7 @@ gui.Observer = {
 	_connect : function ( node, connect ) {
 		var doc = node.ownerDocument || node;
 		var win = doc.defaultView;
-		var sig = win.gui.signature;
+		var sig = win.gui.$contextid;
 		var obs = this._observers [ sig ];
 		if ( obs ) {
 			if ( connect ) {

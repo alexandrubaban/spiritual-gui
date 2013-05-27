@@ -5,6 +5,13 @@
  */
 gui.module ( "keys", {
 
+	/**
+	 * Channeling spirits to CSS selectors.
+	 */
+	channels : [
+		[ "meta[content=key]", gui.KeySpirit ]
+	],
+
 	/*
 	 * Plugins (for all spirits).
 	 */
@@ -16,9 +23,11 @@ gui.module ( "keys", {
 	 * Mixins (for all spirits).
 	 */
 	mixins : {
+
 		/**
 		 * Handle key.
 		 * @param {gui.Key} key
+		 * @implements {gui.IKeyHandler}
 		 */
 		onkey : function ( key ) {}
 	},
@@ -40,7 +49,7 @@ gui.module ( "keys", {
 	 */
 	handleEvent : function ( e ) {
 		this._modifiers ( e );
-		if ( gui.Type.isDefined ( e.repeat )) {
+		if ( false && gui.Type.isDefined ( e.repeat )) {
 			this._newschool ( e );
 		} else {
 			this._oldschool ( e );
@@ -48,48 +57,13 @@ gui.module ( "keys", {
 	},
 
 	/**
-	 * DOM2.5 style events blending event keyCode (now legacy) and char (now spec). 
-	 * Opera 12 appears to fire keyup repeatedly while key presses, is it correct? 
+	 * DOM3 style events. Skipped for now since Opera 12 appears 
+	 * to fire it all repeatedly while key pressed, is it correct? 
+	 * Also, event.repeat is always false, that doesn't make sense...
 	 * @param {Event} e
 	 */
 	_newschool : function ( e ) {
-		var c = e.char, n = e.keyCode, b = gui.BROADCAST_KEYEVENT;
-		switch ( e.type ) {
-			case "keydown" :
-				this._keymap [ n ] = c;
-				gui.Broadcast.dispatchGlobal ( null, b, {
-					down : true,
-					char : c,
-					code : n
-				});
-				break;
-			case "keyup" :
-				delete this._keymap [ n ];
-				var that = this;
-				setTimeout ( function () {
-					if ( !that._keymap [ n ]) {
-						console.log ( Math.random ());
-						gui.Broadcast.dispatchGlobal ( null, b, {
-							down : false,
-							char : c,
-							code : n
-						});
-					}
-				});
-				/*
-				gui.Tick.next ( function () {
-					if ( !this._keymap [ n ]) {
-						console.log ( Math.random ());
-						gui.Broadcast.dispatchGlobal ( null, b, {
-							down : false,
-							char : c,
-							code : n
-						});
-					}
-				}, this );
-				*/
-				break;
-		}
+		// skipped for now
 	},
 
 	/**
@@ -98,18 +72,20 @@ gui.module ( "keys", {
 	 */
 	_oldschool : function ( e ) {
 		var n = e.keyCode, c = this._keymap [ n ], b = gui.BROADCAST_KEYEVENT;
+		var sig = e.currentTarget.defaultView.gui.$contextid;
+
+		//e.stopPropagation ();
+		//e.preventDefault ();
+
 		switch ( e.type ) {
-			case "keydown" :			
+			case "keydown" :
+				//console.log ( String.fromCharCode(e.keyCode) );
 				if ( c === undefined ) {
 					this._keycode = n;
 					this._keymap [ n ] = null;
 					gui.Tick.next ( function () {
 						c = this._keymap [ n ];
-						gui.Broadcast.dispatchGlobal ( null, b, {
-							down : true,
-							char : c,
-							code : n
-						});
+						this._broadcast ( true, null, c, n , sig);
 						this._keycode = null;
 					}, this );
 				}
@@ -122,15 +98,31 @@ gui.module ( "keys", {
 				break;
 			case "keyup" :
 				if ( c !== undefined ) {
-					gui.Broadcast.dispatchGlobal ( null, b, {
-						down : false,
-						char : c,
-						code : n
-					});
+					this._broadcast ( false, null, c, n, sig );
 					delete this._keymap [ n ];
 				}
 				break;
 		}
+	},
+
+	/**
+	 * Broadcast key details globally. Details reduced to a boolean 'down' and a 'type' 
+	 * string to represent typed character (single letter) or special key (multi letter). 
+	 * Note that the SPACE character is broadcasted as the multi-letter type "Space".
+	 * @TODO what other pseudospecial keys are mapped to typed characters (like SPACE)?
+	 * @param {boolean} down
+	 * @param {String} key Newschool
+	 * @param {String} c (char) Bothschool
+	 * @param {number} code Oldschool
+	 * @param {String} sig Contextkey
+	 */
+	_broadcast : function ( down, key, c, code, sig ) {
+		var type = c !== null ? c : ( key !== null ? key : gui.Key.$key [ code ]);
+		var msg = gui.BROADCAST_KEYEVENT;
+		var arg = { down : down, type : type };
+		type = type === " " ? gui.Key.SPACE : type;
+		gui.Broadcast.dispatch ( null, msg, arg, sig );
+		gui.Broadcast.dispatchGlobal ( null, msg, arg );
 	},
 
 
@@ -170,6 +162,7 @@ gui.module ( "keys", {
 
 });
 
-( function keybroadcasts () {
-	gui.BROADCAST_KEYEVENT = "gui-broadcast-keyevent";
-}());
+/*
+ * Register broadcast type.
+ */
+gui.BROADCAST_KEYEVENT = "gui-broadcast-keyevent";

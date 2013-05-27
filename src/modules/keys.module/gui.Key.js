@@ -6,49 +6,27 @@
  * @param {number} c Character
  * @param {boolean} g Global?
  */
-gui.Key = function Key ( down, n, c, g ) {
-	this.up = !down;
+gui.Key = function Key ( down, type, isglobal ) {
 	this.down = down;
-	this.code = n;
-	this.char = c;
-	this.global = g;
+	this.type = type;
+	this.global = isglobal;
 };
 
 gui.Key.prototype = {
 
 	/**
-	 * Key released?
-	 * @type {boolean}
-	 */
-	up : false,
-
-	/**
-	 * Key down?
+	 * Key down? Otherwise up.
 	 * @type {boolean}
 	 */
 	down : false,
 
 	/**
-	 * Identifies physical keys by keyCode.
-	 * @type {number}
+	 * Reducing 'key', 'char' and potentially 'keyCode' to a single string. If 
+	 * the string length is greater than one, we are dealing with a special key. 
+	 * @TODO: Note about the SPACE character - how exactly should we handle it?
+	 * @type {[type]}
 	 */
-	code : -1,
-
-	/**
-	 * Identifies typed character. This is `null` for 
-	 * special keys such as arrow keys and page down.
-	 * http://stackoverflow.com/questions/7226402/help-with-regex-pattern-for-delete-arrows-and-escape-keys
-	 * http://javascript.info/tutorial/keyboard-events
-	 * @TODO keyword breaks parsers?
-	 * @type {String}
-	 */
-	char : null,
-
-	/**
-	 * Reserved for a distant future where browsers implement DOM3 keys.
-	 * @type {String}
-	 */
-	key : null,
+	type : null,
 
 	/**
 	 * Global key?
@@ -80,11 +58,40 @@ gui.Key.prototype = {
 }());
 
 /**
+ * Mapping DOM0 key codes to DOM3 key values. Note that key codes are not to be used in our API.
+ * @see http://www.w3.org/TR/DOM-Level-3-Events/#key-values
+ */
+( function keymappings () {
+	gui.Key.$key = gui.Object.extend ({
+		38 : "Up",
+		40 : "Down",
+		37 : "Left",
+		39 : "Right",
+		18 : "Alt",
+		17 : "Control",
+		16 : "Shift",
+		32 : "Space"
+	}, Object.create ( null ));
+}());
+
+/**
+ * Create constant 'gui.Key.DOWN' to alias the string "Down" for those who prefer such a syntax.
+ * @TODO Compute appropriate translation of pascal-case to underscores.
+ */
+( function keyconstants () {
+	gui.Object.each ( gui.Key.$key, function ( key, value ) {
+		gui.Key [ value.toUpperCase ()] = value;
+	});
+}());
+
+
+
+/**
  * These key codes "do not usually change" with keyboard layouts.
  * @TODO Read http://www.w3.org/TR/DOM-Level-3-Events/#key-values
  * @TODO http://www.w3.org/TR/DOM-Level-3-Events/#fixed-virtual-key-codes
  * @TODO http://www.w3.org/TR/DOM-Level-3-Events/#key-values-list
- */
+ *
 ( function keyconstants () {
 	gui.Object.each ({
 		BACKSPACE :	8,
@@ -109,11 +116,12 @@ gui.Key.prototype = {
 		gui.Key [ key ] = value;
 	});
 }());
+*/
 
 /**
  * These codes are somewhat likely to match a US or European keyboard, 
- * but they are not listed in the above "do not usually change" section. 
- */
+ * but they are not listed in "do not usually change" section above. 
+ *
 ( function questionablekeys () {
 	gui.Object.each ({
 		PLUS: 187,
@@ -124,3 +132,6 @@ gui.Key.prototype = {
 		gui.Key [ key ] = value;
 	});
 }());
+*/
+
+

@@ -192,7 +192,7 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 	 * @param {gui.Broadcast} b
 	 */
 	propagateBroadcast : function ( b ) {
-		b.signatures.push ( this.signature );
+		b.$contextids.push ( this.$contextid );
 		var msg = gui.Broadcast.stringify ( b );
 		var win = this.window;
 		var sup = win.parent;
@@ -255,7 +255,7 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 		var pattern = "spiritual-broadcast";
 		if ( msg.startsWith ( pattern )) {
 			var b = gui.Broadcast.parse ( msg );
-			if ( b.signatures.indexOf ( this.signature ) < 0 ) {
+			if ( b.$contextids.indexOf ( this.$contextid ) < 0 ) {
 				gui.Broadcast.dispatchGlobal ( 
 					b.target, 
 					b.type, 
