@@ -509,7 +509,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	},
 
 	/**
-	 * Custom property access denial for debug mode.
+	 * Custom property access denial for debug mode (include property details).
 	 * @param {String} name
 	 * @param {String} prop
 	 */
@@ -518,10 +518,10 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 			enumerable : true,
 			configurable : true,
 			get : function DENIED () {
-				throw new Error ( gui.Spirit.DENIAL + ": " + name + ":" + prop );
+				gui.Spirit.DENY ( gui.Spirit.DENIAL + ": " + name + ":" + prop );
 			},
 			set : function DENIED () {
-				throw new Error ( gui.Spirit.DENIAL + ": " + name + ":" + prop );
+				gui.Spirit.DENY ( gui.Spirit.DENIAL + ": " + name + ":" + prop );
 			}
 		};	
 	},
@@ -534,12 +534,36 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 		enumerable : true,
 		configurable : true,
 		get : function DENIED () {
-			throw new Error ( gui.Spirit.DENIAL );
+			gui.Spirit.DENY ();
 		},
 		set : function DENIED () {
-			throw new Error ( gui.Spirit.DENIAL );
+			gui.Spirit.DENY ();
 		}
 	},
+
+	/**
+	 * Experimentally include whole stacktrace in error message 
+	 * for weirdo test robots that might omit all stacktraces.
+	 * @param @optional {String} message.
+	 */
+	DENY : function ( message ) {
+		var stack, e = new Error ( message || gui.Spirit.DENIAL );
+		if ( !gui.Client.isExplorer && ( stack = e.stack )) {
+			if ( gui.Client.isWebKit ) {
+				stack = stack.replace ( /^[^\(]+?[\n$]/gm, "" ).
+					replace ( /^\s+at\s+/gm, "" ).
+					replace ( /^Object.<anonymous>\s*\(/gm, '{anonymous}()@' ).
+					split ( "\n" );
+			} else {
+				stack = stack.split ( "\n" );
+			}
+			stack.shift (); stack.shift ();
+			throw new Error ( e.message + "\n" + stack );
+		} else {
+			throw e;
+		}
+	},
+
 
 	/**
 	 * Spirit was terminated.
