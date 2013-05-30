@@ -26,20 +26,8 @@ gui.Plugin = gui.Class.create ( "gui.Plugin", Object.prototype, {
 
 	/**
 	 * Destruct.
-	 * @TODO rename ondestruct
-	 * @param @optional {boolean} now @TODO: we might not need this arg in plugins...
 	 */
-	ondestruct : function ( now ) {},
-
-	/**
-	 * @deprecated
-	 * Deprecated ondestruct alias.
-	 * @param @optional {boolean} now
-	 */
-	destruct : function ( now ) {
-		console.log ("Deprecated");
-		this.ondestruct ( now );
-	},
+	ondestruct : function () {},
 
 	/**
 	 * Implements DOM2 EventListener. Forwards to onevent().
@@ -68,12 +56,18 @@ gui.Plugin = gui.Class.create ( "gui.Plugin", Object.prototype, {
 
 	/**
 	 * Secret destructor.
-	 * @param @optional {boolean} now
 	 */
-	$ondestruct : function ( now ) {
-		this.ondestruct ( now );
-		if ( this.spirit !== null ) {
-			Object.defineProperty ( this, "spirit", gui.Spirit.DENIED );
+	$ondestruct : function () {
+		var debug = this.spirit.window.gui.debug;
+		var nativ = this.spirit.window.Object;
+		for ( var prop in this ) {
+			if ( nativ [ prop ] === undefined ) {
+				if ( debug ) {
+					Object.defineProperty ( this, prop, gui.Spirit.DENIED );
+				} else {
+					this [ prop ] = null;
+				}
+			}
 		}
 	}
 	

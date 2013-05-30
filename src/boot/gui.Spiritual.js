@@ -63,9 +63,16 @@ gui.Spiritual.prototype = {
 	/**
 	 * Automatically run on DOMContentLoaded? 
 	 * If set to false, run using kickstart().
+	 * @TODO: rename this to something
 	 * @type {boolean}
 	 */
 	autostart : true,
+
+	/**
+	 * Portalled?
+	 * @type {Boolean}
+	 */
+	portalled : false,
 
 	/**
 	 * Identification.
@@ -188,19 +195,6 @@ gui.Spiritual.prototype = {
 	},
 
 	/**
-	 * Mixin prototype property. Checking for naming collision.
-	 * @param {String} key
-	 * @param {object} value
-	 * @param @optional {boolean} override
-	 * @returns {object} Returns the mixin value
-	 *
-	mixin : function ( key, value, override ) {
-		var proto = this.constructor.prototype;
-		return gui.Object.mixin ( proto, key, value, override );
-	},
-	*/
-
-	/**
 	 * Portal Spiritual to a parallel window in three easy steps.
 	 * 
 	 * 1. Create a local instance of `gui.Spiritual` (this class) and assign it to the global variable `gui` in remote window.
@@ -215,6 +209,8 @@ gui.Spiritual.prototype = {
 			// create remote gui object then portal gui namespaces and members.
 			var subgui = sub.gui = new ( this.constructor )( sub );
 			var indexes = [];
+			// mark as portalled
+			subgui.portalled = true;
 			// portal custom namespaces and members.
 			subgui._spaces = this._spaces.slice ();
 			this._spaces.forEach ( function ( ns ) {
@@ -267,6 +263,7 @@ gui.Spiritual.prototype = {
 	},
 
 	/**
+	 * @TODO: Require "portals" as a nsobject prop!!!!!
 	 * Members of given namespace will be migrated 
 	 * to descendant iframes via the portal method.
 	 * @param {String} ns
@@ -371,7 +368,7 @@ gui.Spiritual.prototype = {
 	// Internal .................................................................
 
 	/**
-	 * Register spirit in document (framework internal method).
+	 * Register spirit inside a main document.
 	 * @TODO move? rename? 
 	 * @param {gui.Spirit} spirit
 	 */
@@ -387,7 +384,8 @@ gui.Spiritual.prototype = {
 	},
 
 	/**
-	 * Register spirit outside document (now scheduled for destruction).
+	 * Register spirit outside document. This schedules the spirit 
+	 * for destruction unless reinserted somewhere else, and soon.
 	 * @TODO move? rename?
 	 * @param {gui.Spirit} spirit
 	 */
@@ -404,17 +402,22 @@ gui.Spiritual.prototype = {
 	},
 
 	/**
-	 * Handle tick.
+	 * Destruct all detached spirits.
 	 * @param {gui.Tick} tick
 	 */
 	ontick : function ( tick ) {
-		// @TODO do we want to loose track of potential non-exited spirit?
 		if ( tick.type === gui.TICK_DESTRUCT_DETACHED ) {
 			gui.Object.each ( this._spirits.outside, function ( key, spirit ) {
-				if ( spirit.onexit () !== false ) { // spirit may prevent destruction
-					spirit.ondestruct ();
-				}
-			}, this );
+				return spirit;
+			}).filter ( function ( spirit ) {
+				return spirit.onexit () !== false;
+			}).map ( function ( spirit ) {
+				spirit.ondestruct ();
+				return spirit;
+			}).forEach ( function ( spirit ) {
+				spirit.$ondestruct ();
+			});
+			// @TODO do we want to loose track of potential non-exited spirits?
 			this._spirits.outside = Object.create ( null );
 		}
 	},
@@ -437,7 +440,7 @@ gui.Spiritual.prototype = {
 			"_modules", 
 			"_spirits" 
 		].forEach ( function ( thing ) {
-			delete this [ thing ];
+			this [ thing ] = null;
 		}, this );
 	},
 	

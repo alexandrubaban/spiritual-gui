@@ -58,21 +58,44 @@ gui.Key.prototype = {
 }());
 
 /**
- * Mapping DOM0 key codes to DOM3 key values. Note that key codes are not to be used in our API.
+ * Mapping DOM0 key codes to DOM3 key values. Note that keycodes aren't used on an API level.
  * @see http://www.w3.org/TR/DOM-Level-3-Events/#key-values
  */
 ( function keymappings () {
 	gui.Key.$key = gui.Object.extend ({
+		
+		// navigation
+
 		38 : "Up",
 		40 : "Down",
 		37 : "Left",
 		39 : "Right",
+
+		// modifiers
+
 		18 : "Alt",
 		17 : "Control",
 		16 : "Shift",
 		32 : "Space"
+
 	}, Object.create ( null ));
 }());
+
+/*
+"Alt"
+"AltGraph"
+"CapsLock"
+"Control"
+"Fn"
+"FnLock"
+"Meta"
+"Process"
+"NumLock"
+"Shift"
+"SymbolLock"
+"OS"
+"Compose"
+
 
 /**
  * Create constant 'gui.Key.DOWN' to alias the string "Down" for those who prefer such a syntax.

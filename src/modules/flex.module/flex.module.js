@@ -99,16 +99,18 @@ gui.module ( "flex", {
 
 	/*
 	 * Flex subtree starting from the parent node of given node.
-	 * @param {Node} node
+	 * @param {Node|gui.Spirit} child
 	 */
-	function flexparent ( node ) {
-		var doc = node.ownerDocument;
-		var win = doc.defaultView;
+	function flexparent ( child ) {
+		var doc, win;
+		child = child instanceof gui.Spirit ? child.element : child;
+		doc = child.ownerDocument;
+		win = doc.defaultView;
 		if ( win.gui.flexmode === gui.FLEXMODE_EMULATED ) {
-			if ( gui.DOMPlugin.embedded ( node )) {
-				node = node === doc.documentElement ? node : node.parentNode;
+			if ( gui.DOMPlugin.embedded ( child )) {
+				child = child === doc.documentElement ? child : child.parentNode;
 				gui.Tick.next ( function () {
-					gui.FlexPlugin.reflex ( node );
+					gui.FlexPlugin.reflex ( child );
 				});
 			}
 		}

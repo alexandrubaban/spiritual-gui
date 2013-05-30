@@ -80,11 +80,20 @@ gui.Crawler.prototype = {
 	},
 
 	/**
+	 * Crawl DOM ascending, transcend into ancestor frames.
+	 * @param {Element|gui.Spirit} start
+	 * @param {object} handler
+	 */
+	ascendGlobal : function ( start, handler ) {
+		this.global = true;
+		this.ascend ( start, handler );
+	},
+
+	/**
 	 * Crawl DOM descending.
-	 * @TODO descendGlobal
-	 * @TODO Transcend into iframes.
 	 * @param {object} start Spirit or Element
 	 * @param {object} handler
+	 * @param @optional {object} arg @TODO: is this even supported?
 	 */
 	descend : function ( start, handler, arg ) {
 		this.direction = gui.Crawler.DESCENDING;
@@ -93,6 +102,17 @@ gui.Crawler.prototype = {
 			elm = elm.documentElement;
 		}
 		this._descend ( elm, handler, arg, true );
+	},
+
+	/**
+	 * Crawl DOM descending, transcend into iframes.
+	 * @param {object} start Spirit or Element
+	 * @param {object} handler
+	 * @param @optional {object} arg @TODO: is this even supported?
+	 */
+	descendGlobal : function ( start, handler, arg ) {
+		this.global = true;
+		this.descend ( start, handler, arg );
 	},
 
 
