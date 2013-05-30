@@ -81,8 +81,9 @@ gui.DOMPlugin = ( function using ( chained ) {
 		 * @returns {gui.DOMPlugin}
 		 */
 		show : chained ( function () {
-			this.spirit.css.remove("_gui-invisible");
-			this.spirit.visible ();
+			//this.spirit.css.remove("_gui-invisible");
+			//this.spirit.visible ();
+			gui.Spirit.visible ( this.spirit );
 		}),
 
 		/**
@@ -90,8 +91,9 @@ gui.DOMPlugin = ( function using ( chained ) {
 		 * @returns {gui.DOMPlugin}
 		 */
 		hide : chained ( function () {
-			this.spirit.css.add("_gui-invisible");
-			this.spirit.invisible ();
+			//this.spirit.css.add("_gui-invisible");
+			//this.spirit.invisible ();
+			gui.Spirit.invisible ( this.spirit );
 		}),
 
 		/**

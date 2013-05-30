@@ -80,50 +80,51 @@ gui.Guide = {
 	/**
 	 * Possess element and descendants.
 	 * @TODO Jump detached spirit if matching id (!)
-	 * @param {Element} elm
+	 * @param {Element} target
 	 */
-	spiritualize : function ( elm ) {
-		this._spiritualize ( elm, false, false );
+	spiritualize : function ( target ) {
+		target = target instanceof gui.Spirit ? target.element : target;
+		this._spiritualize ( target, false, false );
 	},
 
 	/**
 	 * Possess descendants.
-	 * @param {Element} elm
+	 * @param {Element|gui.Spirit} target
 	 */
-	spiritualizeSub : function ( elm ) {
-		this._spiritualize ( elm, true, false );
+	spiritualizeSub : function ( target ) {
+		this._spiritualize ( target, true, false );
 	},
 
 	/**
 	 * Possess one element non-crawling.
-	 * @param {Element} elm
+	 * @param {Element|gui.Spirit} target
 	 */
-	spiritualizeOne : function ( elm ) {
-		this._spiritualize ( elm, false, true );
+	spiritualizeOne : function ( target ) {
+		this._spiritualize ( target, false, true );
 	},
 
 	/**
 	 * Dispell spirits from element and descendants.
-	 * @param {Element} elm
+	 * @param {Element|gui.Spirit} target
 	 */
-	materialize : function ( elm ) {
-		this._materialize ( elm, false, false );
+	materialize : function ( target ) {
+		this._materialize ( target, false, false );
 	},
 
 	/**
 	 * Dispell spirits for descendants.
-	 * @param {Element} elm
+	 * @param {Element|gui.Spirit} target
 	 */
-	materializeSub : function ( elm ) {
-		this._materialize ( elm, true, false );
+	materializeSub : function ( target ) {
+		this._materialize ( target, true, false );
 	},
 
 	/**
 	 * Dispell one spirit non-crawling.
-	 * @param {Element} elm
+	 * @param {Element|gui.Spirit} target
 	 */
-	materializeOne : function ( elm ) {
-		this._materialize ( elm, false, true );
+	materializeOne : function ( target ) {
+		this._materialize ( target, false, true );
 	},
 
 	/**
@@ -137,33 +138,16 @@ gui.Guide = {
 		var win = doc.defaultView;
 		var sig = win.gui.$contextid;
 		return ( elm.spirit = new Spirit ( elm, doc, win, sig ));
-
-		/*
-		spirit.element = element;
-		spirit.document = element.ownerDocument;
-		spirit.window = spirit.document.defaultView;
-		spirit.$contextid = spirit.window.gui.$contextid;
-		// @TODO weakmap for this stunt
-		element.spirit = spirit;
-		if ( !spirit.life || spirit.life.constructed ) {
-			spirit.onconstruct ();
-		} else {
-			throw "Constructed twice: " + spirit.toString ();
-		}
-		return spirit;
-		*/
 	},
 
 	/**
-	 * Dispell spirits from element and descendants. This destructs the spirit (immediately).
-	 * @param {Element|Document} node
+	 * Immediately nukes the spirit. It's wise to leave this for the framework to manage since 
+	 * there is a risk of errors when we collapse the otherwise two-phased destruction sequence.
+	 * @param {gui.Spirit} spirit
 	 */
-	exorcise : function ( node ) {
-		this._collect ( node, false, gui.CRAWLER_DISPOSE ).forEach ( function ( spirit ) {
-			if ( !spirit.life.destructed ) {
-				spirit.ondestruct ( true );
-			}
-		}, this );
+	exorcise : function  ( spirit ) {
+		spirit.ondestruct (); // API user should cleanup here
+		spirit.$ondestruct (); // everything is destroyed here
 	},
 
 	/**
@@ -199,8 +183,7 @@ gui.Guide = {
 	 * @returns {boolean}
 	 */
 	_handles : function ( node ) {
-		return !this._suspended && 
-			gui.Type.isDefined ( node ) && 
+		return node && !this._suspended && 
 			gui.DOMPlugin.embedded ( node ) &&
 			node.nodeType === Node.ELEMENT_NODE;
 	},
@@ -234,8 +217,8 @@ gui.Guide = {
 	},
 
 	/**
-	 * Fires on window.unload
-	 * @TODO handle disposal in {gui.Spiritual} (no crawling)
+	 * Fires on window unload. If Spiritual was portalled into the document 
+	 * from a parent frame, we must perform some manual memory management
 	 * @param {gui.EventSummary} sum
 	 */
 	_unload : function ( sum ) {
@@ -243,8 +226,9 @@ gui.Guide = {
 			sum.documentspirit.onunload ();
 		}
 		gui.broadcastGlobal ( gui.BROADCAST_UNLOAD, sum );
-		this.exorcise ( sum.document );
-		sum.window.gui.nameDestructAlreadyUsed ();
+		if ( sum.window.gui.portalled ) {
+			this._cleanup ( sum.window, sum.document );
+		}
 	},
 
 	/**
@@ -314,7 +298,7 @@ gui.Guide = {
 	},
 
 	/**
-	 * Collect spirits from element and descendants.
+	 * Collect non-destructed spirits from element and descendants.
 	 * @param {Node} node
 	 * @param @optional {boolean} skip
 	 * @returns {Array<gui.Spirit>}
@@ -334,18 +318,21 @@ gui.Guide = {
 
 	/**
 	 * Attach spirits to element and subtree.
-	 * * Construct spirits in document order
-	 * * Fire life cycle events except ready in document order
-	 * * Fire ready in reverse document order (innermost first)
-	 * @param {Element} elm
+	 * 
+	 * - Construct spirits in document order
+	 * - Fire life cycle events except `ready` in document order
+	 * - Fire `ready` in reverse document order (innermost first)
+	 * @param {Node|gui.Spirit} elm
 	 * @param {boolean} skip Skip the element?
 	 * @param {boolean} one Skip the subtree?
 	 */
 	_spiritualize : function ( node, skip, one ) {
+		node = node instanceof gui.Spirit ? node.element : node;
 		node = node.nodeType === Node.DOCUMENT_NODE ? node.documentElement : node;
 		if ( this._handles ( node )) {
 			var attach = [];
 			var readys = [];
+			var hidden = this._hidden ( node );
 			new gui.Crawler ( gui.CRAWLER_ATTACH ).descend ( node, {
 				handleElement : function ( elm ) {
 					if ( !skip || elm !== node ) {
@@ -366,6 +353,7 @@ gui.Guide = {
 				if ( !spirit.life.configured ) {
 					spirit.onconfigure ();
 				}
+				/*
 				if ( this._invisible ( spirit )) {
 					if ( spirit.life.visible ) {
 						spirit.oninvisible ();
@@ -374,6 +362,12 @@ gui.Guide = {
 					if ( spirit.life.invisible ) {
 						spirit.onvisible ();
 					}
+				}
+				*/
+				if ( hidden ) {
+					spirit.oninvisible ();
+				} else {
+					spirit.onvisible ();
 				}
 				if ( !spirit.life.entered ) {
 					spirit.onenter ();
@@ -390,19 +384,26 @@ gui.Guide = {
 	},
 
 	/**
-	 * Detach spirits from element and subtree.
-	 * @param {Node} node
+	 * Destruct spirits from element and subtree. Using a two-phased destruction sequence 
+	 * to minimize the risk of plugins invoking already destructed plugins during destruct.
+	 * @param {Node|gui.Spirit} node
 	 * @param {boolean} skip Skip the element?
 	 * @param {boolean} one Skip the subtree?
+	 * @param {boolean} force
 	 */
-	_materialize : function ( node, skip, one ) {
+	_materialize : function ( node, skip, one, force ) {
+		node = node instanceof gui.Spirit ? node.element : node;
 		node = node.nodeType === Node.DOCUMENT_NODE ? node.documentElement : node;
-		if ( this._handles ( node )) {
-			this._collect ( node, skip, gui.CRAWLER_DETACH ).forEach ( function ( spirit ) {
+		if ( force || this._handles ( node )) {
+			this._collect ( node, skip, gui.CRAWLER_DETACH ).filter ( function ( spirit ) {
 				if ( spirit.life.attached && !spirit.life.destructed ) {
-					spirit.ondetach ();
+					spirit.ondestruct (); // API user should do cleanup here
+					return true;
 				}
-			}, this );
+				return false;
+			}).forEach ( function ( spirit ) {
+				spirit.$ondestruct (); // framework nukes everything here
+			});
 		}
 	},
 
@@ -427,15 +428,48 @@ gui.Guide = {
 
 	/**
 	 * Spirit is invisible? 
-	 * @TODO only test for this if something is indeed invisible. 
-	 * Consider maintaining this via crawlers.
+	 * @TODO Costly stunt - only test for this if something is indeed invisible. 
+	 * 
+	 * @TODO hook into spiritualize-crawler and run this test for start node only !!!!!!!!
+	 * 
 	 * @param {gui.Spirit} spirit
 	 * @returns {boolean}
 	 */
 	_invisible : function ( spirit ) {
+		console.log ( "deprecated" );
 		return spirit.css.contains ( gui.CLASS_INVISIBLE ) || 
 		spirit.css.matches ( "." + gui.CLASS_INVISIBLE + " *" );
+	},
+
+	/**
+	 * Is element hidden?
+	 * @param {Element} elm
+	 * @returns {boolean}
+	 */
+	_hidden : function ( elm ) {
+		return gui.CSSPlugin.contains ( elm, gui.CLASS_INVISIBLE ) || 
+		gui.CSSPlugin.matches ( elm, "." + gui.CLASS_INVISIBLE + " *" );
+	},
+
+	/**
+	 * Destruct all spirits in document. Spirit instances, unless locally loaded, 
+	 * might be newed up in another context. Destruction will null all properties 
+	 * so that the spirit might be garbage collected sooner, let's hope it works. 
+	 * (not using _materialize because that might have been overloaded somehow)
+	 * @param {Window} win
+	 * @param {Document} doc
+	 */
+	_cleanup : function ( win, doc ) {
+		var spirits = this._collect ( doc, false );
+		spirits.forEach ( function ( spirit ) {
+			spirit.ondestruct (); // API user should cleanup here	
+		});
+		spirits.forEach ( function ( spirit ) {
+			spirit.$ondestruct (); // everything is destroyed here		
+		});
+		win.gui.nameDestructAlreadyUsed ();
 	}
+
 };
 
 /**

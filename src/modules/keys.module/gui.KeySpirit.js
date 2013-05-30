@@ -42,12 +42,12 @@ gui.KeySpirit = gui.Spirit.infuse ( "gui.KeySpirit", {
 	_map : null,
 
 	/**
-	 * Parsing the 'value' attribute, setup key listeners.
+	 * Parsing the 'key' attribute, setup key listeners.
 	 */
 	_setup : function () {
-		var value = this.att.get ( "value" );
-		if ( value ) {
-			value.split ( " " ).forEach ( function ( token ) {
+		var key = this.att.get ( "key" );
+		if ( key ) {
+			key.split ( " " ).forEach ( function ( token ) {
 				token = token.trim ();
 				this.key.addGlobal ( token );
 				this._map [ token ] = false;

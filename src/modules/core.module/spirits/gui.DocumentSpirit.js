@@ -113,7 +113,7 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 	},
 
 	/**
-	 * Hello.
+	 * Relay visibility from ancestor frame.
 	 */
 	onvisible : function () {
 		this.css.remove ( gui.CLASS_INVISIBLE );
@@ -121,7 +121,7 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 	},
 
 	/**
-	 * Hello.
+	 * Relay visibility from ancestor frame.
 	 */
 	oninvisible : function () {
 		this.css.add ( gui.CLASS_INVISIBLE );

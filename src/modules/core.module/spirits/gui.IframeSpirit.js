@@ -61,7 +61,7 @@ gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
 	 */
 	src : function ( src ) {
 		if ( gui.Type.isString ( src )) {
-			if ( gui.IframeSpirit.isExternal ( src )) {
+			if ( gui.IframeSpirit.isExternal ( src, this.document )) {
 				src = gui.IframeSpirit.sign ( src, this.document, this.$instanceid );
 				this.external = true;
 			}
@@ -107,7 +107,7 @@ gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
 		var spirit = this.possess ( iframe );
 		spirit.css.add ( "gui-iframe" );
 		if ( src ) {
-			if ( gui.IframeSpirit.isExternal ( src )) { // should be moved to src() method!!!!!
+			if ( gui.IframeSpirit.isExternal ( src, doc )) { // should be moved to src() method!!!!!
 				src = this.sign ( src, doc, spirit.$instanceid );
 				spirit.external = true;
 			}
@@ -161,17 +161,21 @@ gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
 	},
 
 	/**
-	 * Is external address?
-	 * @TODO: fix IE!
+	 * Is URL external to document (as in external host)?
+	 * @TODO: fix IE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	 * @param {String} url
+	 * @param {Document} doc
 	 * @returns {boolean}
 	 */
-	isExternal : function ( url ) {
-		var doc = document; // TODO: scope this somehow...
+	isExternal : function ( url, doc ) {
+		doc = doc || document;
 		url = new gui.URL ( doc, url );
-		if ( url.host !== doc.location.host ) {
-			console.debug ( "Browser thinks this is an external URL - overruling it for now: " + url );
+		if ( gui.Client.isExplorer ) {
+			console.debug ( "TODO: Fix hardcoded assesment of external URL in IE (always false): " + url );
+			return false;
+		} else {
+			return url.host !== doc.location.host;
 		}
-		return false; // always return false for now...
 	}
 
 });

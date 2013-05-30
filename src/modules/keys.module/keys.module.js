@@ -3,17 +3,18 @@
  * @TODO http://www.w3.org/TR/DOM-Level-3-Events/#events-keyboardevents
  * @TODO http://dev.opera.com/articles/view/functional-key-handling-in-opera-tv-store-applications/
  */
-gui.module ( "keys", {
+gui.KeysModule = gui.module ( "keys", {
 
 	/**
 	 * Channeling spirits to CSS selectors.
 	 */
 	channels : [
-		[ "meta[content=key]", gui.KeySpirit ]
+		[ ".gui-key", gui.KeySpirit ]
 	],
 
 	/*
 	 * Plugins (for all spirits).
+	 * @TODO: combo
 	 */
 	plugins : {
 		"key" : gui.KeyPlugin
@@ -49,43 +50,66 @@ gui.module ( "keys", {
 	 */
 	handleEvent : function ( e ) {
 		this._modifiers ( e );
-		if ( false && gui.Type.isDefined ( e.repeat )) {
+		this._oldschool ( e );
+		/*
+		if ( gui.Type.isDefined ( e.repeat )) { // bypass DOM3 for now
 			this._newschool ( e );
 		} else {
 			this._oldschool ( e );
 		}
+		*/
 	},
+
+
+	// Private ..........................................................
+	 
+	/**
+	 * Mapping keycodes to characters between keydown and keypress event.
+	 * @type {Map<number,String>}
+	 */
+	_keymap : null,
+
+	/*
+	 * Snapshot latest broadcast to prevent 
+	 * doubles in mysterious Gecko cornercase.
+	 * @type {String}
+	 */
+	_snapshot : null,
+
 
 	/**
 	 * DOM3 style events. Skipped for now since Opera 12 appears 
-	 * to fire it all repeatedly while key pressed, is it correct? 
+	 * to fire all events repeatedly while key pressed, that correct? 
 	 * Also, event.repeat is always false, that doesn't make sense...
 	 * @param {Event} e
 	 */
-	_newschool : function ( e ) {
-		// skipped for now
-	},
+	_newschool : function ( e ) {},
 
 	/**
-	 * Conan the Barbarian style events.
+	 * Conan the Barbarian style events. 
+	 * At least they suck in a known way.
 	 * @param {Event} e
 	 */
 	_oldschool : function ( e ) {
 		var n = e.keyCode, c = this._keymap [ n ], b = gui.BROADCAST_KEYEVENT;
-		var sig = e.currentTarget.defaultView.gui.$contextid;
+		var id = e.currentTarget.defaultView.gui.$contextid;
 
-		//e.stopPropagation ();
-		//e.preventDefault ();
+		/*
+		// TODO: THIS!
+		if ( e.ctrlKey && gui.Key.$key [ e.keyCode ] !== "Control" ) {
+			e.preventDefault ();
+		}
+		*/
 
 		switch ( e.type ) {
 			case "keydown" :
-				//console.log ( String.fromCharCode(e.keyCode) );
 				if ( c === undefined ) {
 					this._keycode = n;
 					this._keymap [ n ] = null;
+					this._keymap [ n ] = String.fromCharCode ( e.which ).toLowerCase ();
 					gui.Tick.next ( function () {
 						c = this._keymap [ n ];
-						this._broadcast ( true, null, c, n , sig);
+						this._broadcast ( true, null, c, n , id );
 						this._keycode = null;
 					}, this );
 				}
@@ -98,7 +122,7 @@ gui.module ( "keys", {
 				break;
 			case "keyup" :
 				if ( c !== undefined ) {
-					this._broadcast ( false, null, c, n, sig );
+					this._broadcast ( false, null, c, n, id );
 					delete this._keymap [ n ];
 				}
 				break;
@@ -107,28 +131,32 @@ gui.module ( "keys", {
 
 	/**
 	 * Broadcast key details globally. Details reduced to a boolean 'down' and a 'type' 
-	 * string to represent typed character (single letter) or special key (multi letter). 
-	 * Note that the SPACE character is broadcasted as the multi-letter type "Space".
+	 * string to represent typed character (eg "b") or special key (eg "Shift" or "Alt"). 
+	 * Note that the SPACE character is broadcasted as the multi-letter type "Space" (TODO!)
 	 * @TODO what other pseudospecial keys are mapped to typed characters (like SPACE)?
 	 * @param {boolean} down
-	 * @param {String} key Newschool
+	 * @param {String} key Newschool ABORTED FOR NOW
 	 * @param {String} c (char) Bothschool
 	 * @param {number} code Oldschool
 	 * @param {String} sig Contextkey
 	 */
 	_broadcast : function ( down, key, c, code, sig ) {
-		var type = c !== null ? c : ( key !== null ? key : gui.Key.$key [ code ]);
-		var msg = gui.BROADCAST_KEYEVENT;
-		var arg = { down : down, type : type };
+		var type, msg, arg;
+		type = gui.Key.$key [ code ] ||  c;
 		type = type === " " ? gui.Key.SPACE : type;
-		gui.Broadcast.dispatch ( null, msg, arg, sig );
-		gui.Broadcast.dispatchGlobal ( null, msg, arg );
+		msg = gui.BROADCAST_KEYEVENT;
+		arg = { down : down, type : type };
+		/*
+		 * Never broadcast same message twice. Fixes something about Firefox 
+		 * registering multiple keystrokes on certain chars (notably the 's').
+		 */
+		var snapshot = JSON.stringify ( arg );
+		if ( snapshot !== this._snapshot ) {
+			gui.Broadcast.dispatch ( null, msg, arg, sig ); // do we want this?
+			gui.Broadcast.dispatchGlobal ( null, msg, arg );
+			this._snapshot = snapshot;
+		}
 	},
-
-
-	// Private ......................................................
-	
-	_keymap : null,
 
 	/**
 	 * Update key modifiers state.

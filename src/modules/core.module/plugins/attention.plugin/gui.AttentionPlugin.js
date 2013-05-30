@@ -81,6 +81,7 @@ gui.AttentionPlugin = ( function using ( chained ) {
 		 * Destuction time.
 		 */
 		ondestruct : function () {
+			this._super.ondestruct ();
 			if ( this._trapping ) {
 				this._listen ( false );
 			}

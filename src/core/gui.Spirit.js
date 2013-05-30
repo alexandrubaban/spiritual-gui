@@ -137,14 +137,12 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	 * Invoked when spirit gets disposed. Code your last wishes. Should only be 
 	 * called by the framework, please use `dispose()` to terminate the spirit.
 	 * @see {gui.Spirit#dispose}
-	 * @param {boolean} now Triggers immediate destruction when true
-	 * @returns {boolean}
 	 */
-	ondestruct : function ( now ) {
+	ondestruct : function () {
 		this.window.gui.destruct ( this );
 		this.$debug ( false );
 		this.life.godestruct ();
-		this.$ondestruct ( now );
+		// process continues in $ondestruct()
 	},
 	
 
@@ -171,8 +169,12 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	/**
 	 * Mark spirit visible. THis adds the classname "_gui-invisible" and 
 	 * triggers a call to `oninvisible()` on this and all descendant spirits.
+	 *
+	 * @TODO: NOT IF INSIDE AN *IN*VISIBLE SECTION !!!!!!!!!!!!!!
+	 * @TODO: move this method to DOMPlugin
+	 * 
 	 * @returns {gui.Spirit}
-	 */
+	 *
 	invisible : function () {
 		return gui.Spirit.invisible ( this );
 	},
@@ -181,10 +183,11 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	 * Mark spirit visible. Removes the classname "_gui-invisible" and 
 	 * triggers a call to `onvisible()` on this and all descendant spirits.
 	 * @returns {gui.Spirit}
-	 */
+	 *
 	visible : function () {
 		return gui.Spirit.visible ( this );
 	},
+	*/
 
 	/**
 	 * Terminate the spirit and remove the element (optionally keep it). 
@@ -195,12 +198,18 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 		if ( !keep ) {
 			this.dom.remove ();
 		}
-		this.ondestruct ();
+		gui.Guide.materializeOne ( this );
 	},
 	
 
 	// Secret ................................................................................
 	
+	/**
+	 * Mapping lazy plugins to prefixes.
+	 * @type {Map<String,gui.Plugin>}
+	 */
+	$lazyplugins : null,
+
 	/**
 	 * Secret constructor. The $instanceid is generated standard by the {gui.Class}
 	 * @param {Element} elm
@@ -217,10 +226,58 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	},
 
 	/**
-	 * Mapping lazy plugins to prefixes.
-	 * @type {Map<String,gui.Plugin>}
+	 * Total destruction.
+	 * @TODO might be going a little overboard with this
+	 *
+	 * - Null lazy plugins so that we don't accidentaly instantiate them
+	 * - destruct remaining plugins, saving {gui.Life} plugin for last
+	 * - null all properties and hope for the garbage collector to notice
 	 */
-	$lazyplugins : null,
+	$ondestruct : function () {
+		var map = this.$lazyplugins;
+		gui.Object.each ( map, function ( prefix ) {
+			if ( map [ prefix ] === true ) {
+				this [ prefix ] = null;
+			}
+		}, this );
+		gui.Object.each ( this, function ( prop ) {
+			return this [ prop ];
+		}).filter ( function ( thing ) {
+			return gui.Type.isObject ( thing ) && thing instanceof gui.Plugin && thing !== this.life;
+		}, this ).sort ().map ( function ( plugin ) {
+			plugin.ondestruct ();
+			return plugin;
+		}).forEach ( function ( plugin ) {
+			plugin.$ondestruct ();
+		});
+		this.life.ondestruct ();
+		this.life.$ondestruct ();
+		this.$null ();
+	},
+
+	/**
+	 * Null everything. In debug mode, we replace everything with an accessor to throw exception.
+	 * @TODO: scan property descriptor and skip unmutable properties (would throw in strict?)
+	 */
+	$null : function () {
+		var myelm = this.element;
+		var debug = this.window.gui.debug;
+		var nativ = this.window.Object;
+		if ( myelm ) {
+			try {
+				myelm.spirit = null;
+			} catch ( denied ) {} // explorer may deny permission in frames, strange as that is
+		}
+		for ( var prop in this ) {
+			if ( nativ [ prop ] === undefined ) {
+				if ( debug ) {
+					Object.defineProperty ( this, prop, gui.Spirit.DENIED );
+				} else {
+					this [ prop ] = null;
+				}
+			}
+		}
+	},
 
 	/**
 	 * Plug in the plugins.
@@ -277,69 +334,6 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 				elm.removeAttribute ( "gui" );
 			}
 		}
-	},
-	
-	/**
-	 * Total destruction. We have hotfixed conflicts upon destruction by moving the property nulling 
-	 * to a new execution stack, but the consequences should be thought throught at some point.
-	 * @param @optional {boolean} now Destruct immediately (for example when the window unloads)
-	 */
-	$ondestruct : function ( now ) {
-		var map = this.$lazyplugins;
-		gui.Object.each ( map, function ( prefix ) {
-			if ( map [ prefix ] === true ) {
-				delete this [ prefix ]; // otherwise next iterator will instantiate the lazy plugin...
-			}
-		}, this );
-		// dispose plugins (plugins should not invoke external stuff during this phase)
-		gui.Object.each ( this, function ( prop ) {
-			var thing = this [ prop ];
-			switch ( gui.Type.of ( thing )) {
-				case "object" :
-					if ( thing instanceof gui.Plugin ) {
-						if ( thing !== this.life ) {
-							thing.$ondestruct ( now );
-						}
-					}
-					break;
-			}
-		}, this );
-		this.life.$ondestruct ( now ); // dispose life plugin last
-		if ( now ) {
-			this.$null ();
-		} else {
-			var that = this;
-			var tick = gui.TICK_SPIRIT_NULL;
-			var spirit = this;
-			var title = this.document.title;
-			gui.Tick.one ( tick, {
-				ontick : function () {
-					try {
-						that.$null ();
-					} catch ( exception ) {
-						// @TODO why sometimes gui.Spirit.DENIED?
-					}
-				}
-			}, this.$contextid ).dispatch ( tick, 0, this.$contextid );
-		}
-	},
-	
-	/**
-	 * Null all props.
-	 */
-	$null : function () {
-		var myelm = this.element;
-		var debug = this.window.gui.debug;
-		var ident = this.toString ();
-		if ( myelm ) {
-			try {
-				myelm.spirit = null;
-			} catch ( denied ) {} // explorer may deny permission in frames
-		}
-		Object.keys ( this ).forEach ( function ( prop ) {
-			var desc = debug ? gui.Spirit.denial ( ident, prop ) : gui.Spirit.DENIED;
-			Object.defineProperty ( this, prop, desc );
-		}, this );
 	}
 
 
@@ -464,7 +458,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	 */
 	visible : function ( spirit ) {
 		if ( spirit.life.invisible ) {
-			this._setvisibility ( spirit, true, spirit.life.entered );
+			this._setvisibility ( spirit, true );
 			spirit.css.remove ( gui.CLASS_INVISIBLE );
 		}
 		return spirit;
@@ -477,7 +471,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	 */
 	invisible : function ( spirit ) {
 		if ( spirit.life.visible ) {
-			this._setvisibility ( spirit, false, spirit.life.entered );
+			this._setvisibility ( spirit, false );
 			spirit.css.add ( gui.CLASS_INVISIBLE );
 		}
 		return spirit;
@@ -489,65 +483,54 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	 * @param {boolean} show Visible or invisible?
 	 * @param {boolean} subtree Recurse?
 	 */
-	_setvisibility : function ( spirit, show, subtree ) {
-		var crawler = new gui.Crawler ( show ? 
-			gui.CRAWLER_VISIBLE : gui.CRAWLER_INVISIBLE 
-		);
-		crawler.global = true;
-		crawler.descend ( spirit, {
-			handleSpirit : function ( s ) {
-				if ( show ) {
-					s.onvisible ();
-				} else {
-					s.oninvisible ();
+	_setvisibility : function ( start, show, subtree ) {
+		var id = show ? gui.CRAWLER_VISIBLE : gui.CRAWLER_INVISIBLE;
+		new gui.Crawler ( id ).descendGlobal ( start, {
+			handleSpirit : function ( spirit ) {
+				if ( spirit === start ) {
+					if ( show ) {
+						spirit.css.remove ( gui.CLASS_INVISIBLE );
+					} else {
+						spirit.css.add ( gui.CLASS_INVISIBLE );				
+					}
 				}
-				return subtree ?
-					gui.Crawler.CONTINUE :
-					gui.Crawler.STOP;
+				if ( show ) {
+					spirit.onvisible ();
+				} else {
+					spirit.oninvisible ();
+				}
+				if ( spirit.element !== start.element ) {
+					if ( show && spirit.css.contains ( gui.CLASS_INVISIBLE )) {
+						return gui.Crawler.STOP;
+					}
+				}
+				return gui.Crawler.CONTINUE;
 			}
 		});
 	},
 
 	/**
-	 * Custom property access denial for debug mode (include property details).
-	 * @param {String} name
-	 * @param {String} prop
-	 */
-	denial : function ( name, prop ) {
-		return {
-			enumerable : true,
-			configurable : true,
-			get : function DENIED () {
-				gui.Spirit.DENY ( gui.Spirit.DENIAL + ": " + name + ":" + prop );
-			},
-			set : function DENIED () {
-				gui.Spirit.DENY ( gui.Spirit.DENIAL + ": " + name + ":" + prop );
-			}
-		};	
-	},
-
-	/**
-	 * Standard propety access denial: User to access property 
-	 * post destruction, report that the spirit was terminated. 
+	 * User to access property post destruction, report that the spirit was terminated. 
+	 * This is used in {gui.debug} mode only, otherwise the property will simply be nulled.
+	 * @TODO: Investigate whether or not this makes any difference in memory consumption
 	 */
 	DENIED : {
 		enumerable : true,
 		configurable : true,
-		get : function DENIED () {
+		get : function () {
 			gui.Spirit.DENY ();
 		},
-		set : function DENIED () {
+		set : function () {
 			gui.Spirit.DENY ();
 		}
 	},
 
 	/**
-	 * Experimentally include whole stacktrace in error message 
-	 * for weirdo test robots that might omit all stacktraces.
-	 * @param @optional {String} message.
+	 * Obscure mechanism to include the whole stacktrace in the error message.
+	 * @see https://gist.github.com/jay3sh/1158940
 	 */
 	DENY : function ( message ) {
-		var stack, e = new Error ( message || gui.Spirit.DENIAL );
+		var stack, e = new Error ( gui.Spirit.DENIAL );
 		if ( !gui.Client.isExplorer && ( stack = e.stack )) {
 			if ( gui.Client.isWebKit ) {
 				stack = stack.replace ( /^[^\(]+?[\n$]/gm, "" ).
@@ -564,9 +547,9 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 		}
 	},
 
-
 	/**
-	 * Spirit was terminated.
+	 * To identify our exception in a try-catch scenario, look for 
+	 * this string in the *beginning* of the exception message. 
 	 * @type {String}
 	 */
 	DENIAL : "Attempt to handle destructed spirit"

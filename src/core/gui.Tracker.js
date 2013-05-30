@@ -29,6 +29,19 @@ gui.Tracker = gui.Plugin.extend ( "gui.Tracker", {
 	},
 
 	/**
+	 * Cleanup on destruction.
+	 */
+	ondestruct : function () {
+		var type, list;
+		this._super.ondestruct ();
+		gui.Object.each ( this._xxx, function ( type, list ) {
+			list.slice ( 0 ).forEach ( function ( checks ) {
+				this._cleanup ( type, checks );
+			}, this );
+		}, this );
+	},
+
+	/**
 	 * @TODO Toggle type(s).
 	 * @param {object} arg
 	 * @returns {gui.Tracker}
@@ -47,31 +60,6 @@ gui.Tracker = gui.Plugin.extend ( "gui.Tracker", {
 		return this._breakdown ( arg ).every ( function ( type ) {
 			return this._xxx [ type ];
 		}, this );
-		
-	},
-
-	/**
-	 * Cleanup on destruction.
-	 */
-	ondestruct : function () {
-		var type, list;
-		this._super.ondestruct ();
-		gui.Object.each ( this._xxx, function ( type, list ) {
-			list.slice ( 0 ).forEach ( function ( checks ) {
-				this._cleanup ( type, checks );
-			}, this );
-		}, this );
-	},
-
-	/**
-	 * Isolated for subclass to overwrite.
-	 * @param {String} type
-	 * @param {Array<object>} checks
-	 */
-	_cleanup : function ( type, checks ) {
-		if ( this._removechecks ( type, checks )) { 
-			// do cleanup here (perhaps overwrite all this to perform _removechecks elsewhere)
-		}
 	},
 	
 	
@@ -214,5 +202,17 @@ gui.Tracker = gui.Plugin.extend ( "gui.Tracker", {
 				break;
 		}
 		return result;
+	},
+
+	/**
+	 * Isolated for subclass to overwrite.
+	 * @param {String} type
+	 * @param {Array<object>} checks
+	 */
+	_cleanup : function ( type, checks ) {
+		if ( this._removechecks ( type, checks )) { 
+			// do cleanup here (perhaps overwrite all this to perform _removechecks elsewhere)
+		}
 	}
+
 });
