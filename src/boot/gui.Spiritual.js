@@ -106,7 +106,7 @@ gui.Spiritual.prototype = {
 				gui.DOMChanger.change ( this.context );
 				break;
 		}
-		gui.Tick.add ( gui.TICK_DESTRUCT_DETACHED, this, this.$contextid );
+		gui.Tick.add ([ gui.$TICK_INSIDE, gui.$TICK_OUTSIDE ], this, this.$contextid );
 		if ( this._configs !== null ) {
 			this._configs.forEach ( function ( config ) {
 				this.channel ( config.select, config.klass );
@@ -361,6 +361,7 @@ gui.Spiritual.prototype = {
 		var all = this._spirits;
 		var key = spirit.$instanceid;
 		delete all.inside [ key ];
+		delete all.incoming [ key ];
 		delete all.outside [ key ];
 	},
 	
@@ -368,7 +369,8 @@ gui.Spiritual.prototype = {
 	// Internal .................................................................
 
 	/**
-	 * Register spirit inside a main document.
+	 * Register spirit inside a main document. 
+	 * Evaluate new arrivals after 4 millisec.
 	 * @TODO move? rename? 
 	 * @param {gui.Spirit} spirit
 	 */
@@ -380,6 +382,8 @@ gui.Spiritual.prototype = {
 				delete all.outside [ key ];
 			}
 			all.inside [ key ] = spirit;
+			all.incoming [ key ] = spirit;
+			gui.Tick.dispatch ( gui.$TICK_INSIDE, 4, this.$contextid );
 		}
 	},
 
@@ -395,9 +399,10 @@ gui.Spiritual.prototype = {
 		if ( !all.outside [ key ]) {
 			if ( all.inside [ key ]) {
 				delete all.inside [ key ];
+				delete all.incoming [ key ];
 			}
 			all.outside [ key ] = spirit;
-			gui.Tick.dispatch ( gui.TICK_DESTRUCT_DETACHED, 0, this.$contextid );
+			gui.Tick.dispatch ( gui.$TICK_OUTSIDE, 0, this.$contextid );
 		}
 	},
 
@@ -406,19 +411,28 @@ gui.Spiritual.prototype = {
 	 * @param {gui.Tick} tick
 	 */
 	ontick : function ( tick ) {
-		if ( tick.type === gui.TICK_DESTRUCT_DETACHED ) {
-			gui.Object.each ( this._spirits.outside, function ( key, spirit ) {
-				return spirit;
-			}).filter ( function ( spirit ) {
-				return spirit.onexit () !== false;
-			}).map ( function ( spirit ) {
-				spirit.ondestruct ();
-				return spirit;
-			}).forEach ( function ( spirit ) {
-				spirit.$ondestruct ();
-			});
-			// @TODO do we want to loose track of potential non-exited spirits?
-			this._spirits.outside = Object.create ( null );
+		switch ( tick.type ) {
+			case gui.$TICK_INSIDE :
+				var spirits = this._spirits.incoming;
+				gui.Guide.afterattach ( gui.Object.each ( spirits, function ( id, spirit ) {
+					return spirit;
+				}));
+				this._spirits.incoming = Object.create ( null );
+				break;
+			case gui.$TICK_OUTSIDE :
+				gui.Object.each ( this._spirits.outside, function ( key, spirit ) {
+					return spirit;
+				}).filter ( function ( spirit ) {
+					return spirit.onexit () !== false;
+				}).map ( function ( spirit ) {
+					spirit.ondestruct ();
+					return spirit;
+				}).forEach ( function ( spirit ) {
+					spirit.$ondestruct ();
+				});
+				// @TODO do we want to loose track of potential non-exited spirits?
+				this._spirits.outside = Object.create ( null );
+				break;
 		}
 	},
 
@@ -429,7 +443,7 @@ gui.Spiritual.prototype = {
 	 * @TODO Think of more stuff to cleanup here...
 	 */
 	nameDestructAlreadyUsed : function () {
-		gui.Tick.remove ( gui.TICK_DESTRUCT_DETACHED, this, this.$contextid );
+		gui.Tick.remove ( gui.$TICK_OUTSIDE, this, this.$contextid );
 		[ 
 			"_spiritualaid", 
 			"context", 
@@ -489,7 +503,7 @@ gui.Spiritual.prototype = {
 	 * @type {Map<String,Map<String,gui.Spirit>>}
 	 */
 	_spirits : null,
- 
+
 	/**
 	 * The constructor gui.SpiritualAid does not exist after first instance gets declared, 
 	 * but we may keep something newable allocated by referencing the constructor here.
@@ -502,7 +516,6 @@ gui.Spiritual.prototype = {
 	 * @param {Window} win
 	 */
 	_construct : function ( context ) {
-
 		// patching features
 		this._spiritualaid.polyfill ( context );		
 		// compute $contextid (possibly identical to $instanceid of hosting iframe spirit)
@@ -515,17 +528,18 @@ gui.Spiritual.prototype = {
 				return gui.KeyMaster.generateKey ();	
 			}
 		}());
-		
 		// basic setup
 		this.context = context;
 		this.window = context.document ? context : null;
 		this.document = context.document || null;
 		this._inlines = Object.create ( null );
 		this._modules = Object.create ( null );
+		this._arrivals = Object.create ( null );
 		this._channels = [];
 		this._spaces = [ "gui" ];
 		this._spirits = {
 			inside : Object.create ( null ), // spirits positioned in page DOM ("entered" and "attached")
+			incoming : Object.create ( null ), // spiritis just entered the DOM (some milliseconds ago)
 			outside : Object.create ( null ) // spirits removed from page DOM (currently "detached")
 		};
 	},

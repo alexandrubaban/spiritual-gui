@@ -35,6 +35,14 @@ gui.Crawler.prototype = {
 	global : false,
 
 	/**
+	 * Identification.
+	 * @returns {String}
+	 */
+	toString : function () {
+		return "[object gui.Crawler]";
+	},
+
+	/**
 	 * Crawl DOM ascending.
 	 * @TODO ascendGlobal should do the global
 	 * @param {Element|gui.Spirit} start
@@ -48,6 +56,9 @@ gui.Crawler.prototype = {
 				if ( this.global ) {
 					win = elm.defaultView;
 					if ( win.parent !== win ) {
+						/*
+						 * @TODO: iframed document might have navigated elsewhere, stamp this in localstorage
+						 */
 						if ( win.location.search.contains ( gui.IframeSpirit.KEY_SIGNATURE )) {
 							elm = null;	
 							if ( gui.Type.isFunction ( handler.transcend )) {
@@ -87,6 +98,7 @@ gui.Crawler.prototype = {
 	ascendGlobal : function ( start, handler ) {
 		this.global = true;
 		this.ascend ( start, handler );
+		this.global = false;
 	},
 
 	/**
@@ -113,6 +125,7 @@ gui.Crawler.prototype = {
 	descendGlobal : function ( start, handler, arg ) {
 		this.global = true;
 		this.descend ( start, handler, arg );
+		this.global = false;
 	},
 
 

@@ -10,9 +10,12 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 	 */
 	onconstruct : function () {
 		this._super.onconstruct ();
-		this._dimension = new gui.Dimension ( 0, 0 );
-		this.action.addGlobal (gui.ACTION_DOCUMENT_FIT);
+		this._dimension = new gui.Dimension ();
 		this.event.add ( "message", this.window );
+		this.action.addGlobal ([ 
+			gui.ACTION_DOC_FIT,
+			gui.$ACTION_XFRAME_VISIBILITY
+		]);
 		Object.keys ( this._messages ).forEach ( function ( type ) {
 			var target = this.document;
 			switch ( type ) {
@@ -36,12 +39,14 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 		 * @TODO it appears we *must* listen for touch start events
 		 * for any spirit to subscribe to touch-end events only!!!!
 		 * @see {gui.SpiritTouch}
-		 */
+		 *
 		if ( gui.Type.isDefined ( this.touch )) {
 			this.touch.add ( gui.SpiritTouch.FINGER_START );
 		}
+		*/
+
 		// @TODO iframe hello.
-		this.action.dispatchGlobal ( gui.ACTION_DOCUMENT_CONSTRUCT );
+		this.action.dispatchGlobal ( gui.ACTION_DOC_ONCONSTRUCT );
 	},
 
 	/**
@@ -50,8 +55,8 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 	 */
 	onready : function () {
 		this._super.onready ();
-		this.action.dispatchGlobal ( gui.ACTION_DOCUMENT_READY );
-		if ( this.document.readyState === "complete" && !this._isLoaded ) {
+		this.action.dispatchGlobal ( gui.ACTION_DOC_ONSPIRITUALIZED );
+		if ( this.document.readyState === "complete" && !this._loaded ) {
 			this.onload ();
 		}
 	},
@@ -82,7 +87,7 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 						break;
 					case "load" :
 						e.stopPropagation ();
-						if ( !this._isLoaded ) {
+						if ( !this._loaded ) {
 							this._onload ();
 						}
 						break;
@@ -104,10 +109,19 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 	 */
 	onaction : function ( a ) {
 		this._super.onaction ( a );
+		this.action.$handleownaction = false;
 		switch ( a.type ) {
-			case gui.ACTION_DOCUMENT_FIT : // relay fit a, but claim ourselves as new a.target
+			case gui.ACTION_DOC_FIT : // relay fit, but claim ourselves as new target
 				a.consume ();
 				this.fit ( a.data === true );
+				break;
+			case gui.$ACTION_XFRAME_VISIBILITY : 
+				if ( a.data === true ) {
+					this.dom.govisible ();
+				} else {
+					this.dom.goinvisible ();
+				}
+				a.consume ();
 				break;
 		}
 	},
@@ -129,18 +143,24 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 	},
 
 	/**
+	 * Invoked OnDOMContentLoaded by the {gui.Guide}.
+	 * Intercepted by the hosting {gui.IframeSpirit}.
+	 */
+	ondom : function () {
+		this.action.dispatchGlobal ( gui.ACTION_DOC_ONDOMCONTENT );	
+	},
+
+	/**
 	 * Invoked onload by the {gui.Guide}.
+	 * Intercepted by the hosting {gui.IframeSpirit}.
 	 */
 	onload : function () {
-		// this.action.dispatch ( gui.ACTION_DOCUMENT_ONLOAD );
-		if ( !this._isLoaded ) {
-			this._isLoaded = true;
-			this.action.dispatchGlobal ( gui.ACTION_DOCUMENT_ONLOAD );
+		if ( !this._loaded ) {
+			this._loaded = true;
+			this.action.dispatchGlobal ( gui.ACTION_DOC_ONLOAD );
 			var that = this;
 			setTimeout ( function () {
 				that.fit ();
-				that.tick.add ( gui.TICK_FIT );
-				that.action.dispatchGlobal ( gui.ACTION_DOCUMENT_DONE );
 			}, gui.Client.STABLETIME );
 		} else {
 			console.warn ( "@TODO loaded twice..." );
@@ -149,23 +169,10 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 
 	/**
 	 * Invoked onunload by the {gui.Guide}.
+	 * Intercepted by the hosting {gui.IframeSpirit}.
 	 */
 	onunload : function () {
-		this.action.dispatchGlobal ( gui.ACTION_DOCUMENT_UNLOAD );
-	},
-
-	/**
-	 * Handle tick.
-	 * @param {gui.Tick} tick
-	 */
-	ontick : function ( tick ) {
-		this._super.ontick ( tick );
-		switch ( tick.type ) {
-			case gui.TICK_FIT :
-				console.log("Fit " + this.document.title + " : " + Math.random());
-				this.fit ( true );
-				break;
-		}
+		this.action.dispatchGlobal ( gui.ACTION_DOC_UNLOAD );
 	},
 
 	/**
@@ -174,7 +181,7 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 	 * height changes: Parent iframes will resize to fit content.
 	 */
 	fit : function ( force ) {
-		if ( this._isLoaded || force ) {
+		if ( this._loaded || force ) {
 			var dim = this._getDimension ();
 			if ( !gui.Dimension.isEqual ( this._dimension, dim )) {
 				this._dimension = dim;
@@ -215,7 +222,7 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 	 * Flipped on window.onload
 	 * @type {boolean}
 	 */
-	_isLoaded : false,
+	_loaded : false,
 
 	/**
 	 * Publish a global notification about an event in this document. This information 
@@ -267,6 +274,7 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 			if ( msg.startsWith ( pattern )) {
 				var a = gui.Action.parse ( msg );
 				if ( a.direction === gui.Action.DESCEND ) {
+					this.action.$handleownaction = true;
 					this.action.descendGlobal ( 
 						a.type, 
 						a.data
@@ -315,7 +323,7 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 	 */
 	_dispatchFit : function () {
 		var dim = this._dimension;
-		this.action.dispatchGlobal ( gui.ACTION_DOCUMENT_FIT, {
+		this.action.dispatchGlobal ( gui.ACTION_DOC_FIT, {
 			width : dim.w,
 			height : dim.h
 		});

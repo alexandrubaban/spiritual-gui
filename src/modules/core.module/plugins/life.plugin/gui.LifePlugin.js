@@ -45,18 +45,6 @@ gui.LifePlugin = gui.Tracker.extend ( "gui.LifePlugin", {
 	ready : false,
 
 	/**
-	 * Not hidden.
-	 * @type {boolean}
-	 */
-	visible : true,
-
-	/**
-	 * Not shown.
-	 * @type {boolean}
-	 */
-	invisible : false,
-
-	/**
 	 * Spirit was in page DOM, but has now been removed (ie. it was 
 	 * detached and not re-attached in the same execution stack). 
 	 * This schedules the spirit for destruction.
@@ -69,6 +57,18 @@ gui.LifePlugin = gui.Tracker.extend ( "gui.LifePlugin", {
 	 * @type {boolean}
 	 */
 	destructed : false,
+
+	/**
+	 * Is visible?
+	 * @type {boolean}
+	 */
+	visible : undefined,
+
+	/**
+	 * Is invisible?
+	 * @type {boolean}
+	 */
+	invisible : undefined,
 
 	/**
 	 * Construction time.

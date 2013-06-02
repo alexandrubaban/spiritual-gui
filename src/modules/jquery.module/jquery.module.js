@@ -46,7 +46,8 @@ gui.module ( "jquery", {
 			"spiritualizeOne",
 			"materialize", 
 			"materializeSub", 
-			"materializeOne" 
+			"materializeOne",
+			"detach"
 		].forEach ( function ( method ) {
 			jq.fn [ "__" + method ] = function () {
 				return this.each ( function ( i, el ) {
@@ -188,7 +189,7 @@ gui.module ( "jquery", {
 							break;
 						case "detach" :
 						case "remove" :
-							this.__materialize ();
+							this.__detach ();
 							res = suber ();
 							break;
 						case "replaceAll" :	
@@ -282,7 +283,7 @@ gui.module ( "jquery", {
 				var b = breakdown ( this.spirit );
 				if ( b.is$ ) {
 					if ( b.dom ) {
-						gui.Guide.materialize ( b.elm );
+						gui.Guide.detach ( b.elm );
 					}
 					res = gui.Observer.suspend ( b.elm, function () {
 						return old.apply ( this, args );

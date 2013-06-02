@@ -84,7 +84,7 @@ gui.Guide = {
 	 */
 	spiritualize : function ( target ) {
 		target = target instanceof gui.Spirit ? target.element : target;
-		this._spiritualize ( target, false, false );
+		this._maybespiritualize ( target, false, false );
 	},
 
 	/**
@@ -92,7 +92,7 @@ gui.Guide = {
 	 * @param {Element|gui.Spirit} target
 	 */
 	spiritualizeSub : function ( target ) {
-		this._spiritualize ( target, true, false );
+		this._maybespiritualize ( target, true, false );
 	},
 
 	/**
@@ -100,7 +100,7 @@ gui.Guide = {
 	 * @param {Element|gui.Spirit} target
 	 */
 	spiritualizeOne : function ( target ) {
-		this._spiritualize ( target, false, true );
+		this._maybespiritualize ( target, false, true );
 	},
 
 	/**
@@ -108,7 +108,7 @@ gui.Guide = {
 	 * @param {Element|gui.Spirit} target
 	 */
 	materialize : function ( target ) {
-		this._materialize ( target, false, false );
+		this._maybematerialize ( target, false, false );
 	},
 
 	/**
@@ -116,7 +116,7 @@ gui.Guide = {
 	 * @param {Element|gui.Spirit} target
 	 */
 	materializeSub : function ( target ) {
-		this._materialize ( target, true, false );
+		this._maybematerialize ( target, true, false );
 	},
 
 	/**
@@ -124,7 +124,15 @@ gui.Guide = {
 	 * @param {Element|gui.Spirit} target
 	 */
 	materializeOne : function ( target ) {
-		this._materialize ( target, false, true );
+		this._maybematerialize ( target, false, true );
+	},
+
+	/**
+	 * Invoke ondetach for element spirit and descendants spirits.
+	 * @param {Element|gui.Spirit} target
+	 */
+	detach : function ( target ) {
+		this._maybedetach ( target );
 	},
 
 	/**
@@ -162,6 +170,17 @@ gui.Guide = {
 		this._suspended = false;
 		return res;
 	},
+
+	/**
+	 * Invoked by {gui.Spiritual} some milliseconds after 
+	 * the spirits have been attached to the page DOM. 
+	 * Timeout allows the browser to repaint before we 
+	 * begin evaluating the spirits async lifecycle.
+	 * @param {Array<gui.Spirit>} spirits
+	 */
+	afterattach : function ( spirits ) {
+		this._visibility ( spirits );
+	},
 	
 	
 	 // Private .....................................................................
@@ -196,7 +215,9 @@ gui.Guide = {
 	 * @param {gui.EventSummary} sum
 	 */
 	_ondom : function ( sum ) {
-		gui.broadcastGlobal ( gui.BROADCAST_DOMCONTENT, sum );
+		if ( sum.documentspirit ) {
+			sum.documentspirit.ondom ();
+		}
 		if ( gui.autostart ) {
 			var meta = sum.document.querySelector ( "meta[name='gui.autostart']" );
 			if ( !meta || gui.Type.cast ( meta.getAttribute ( "content" )) !== false ) {
@@ -213,7 +234,6 @@ gui.Guide = {
 		if ( sum.documentspirit ) {
 			sum.documentspirit.onload ();
 		}
-		gui.broadcastGlobal ( gui.BROADCAST_ONLOAD, sum );
 	},
 
 	/**
@@ -225,7 +245,6 @@ gui.Guide = {
 		if ( sum.documentspirit ) {
 			sum.documentspirit.onunload ();
 		}
-		gui.broadcastGlobal ( gui.BROADCAST_UNLOAD, sum );
 		if ( sum.window.gui.portalled ) {
 			this._cleanup ( sum.window, sum.document );
 		}
@@ -300,7 +319,7 @@ gui.Guide = {
 	/**
 	 * Collect non-destructed spirits from element and descendants.
 	 * @param {Node} node
-	 * @param @optional {boolean} skip
+	 * @param @optional {boolean} skip Skip start element
 	 * @returns {Array<gui.Spirit>}
 	 */
 	_collect : function ( node, skip, id ) {
@@ -317,70 +336,63 @@ gui.Guide = {
 	},
 
 	/**
-	 * Attach spirits to element and subtree.
+	 * Spiritualize node.
+	 * @param {Node|gui.Spirit} node
+	 * @param {boolean} skip Skip the element?
+	 * @param {boolean} one Skip the subtree?
+	 */
+	_maybespiritualize : function ( node, skip, one ) {
+		node = node instanceof gui.Spirit ? node.element : node;
+		node = node.nodeType === Node.DOCUMENT_NODE ? node.documentElement : node;
+		if ( this._handles ( node )) {
+			this._spiritualize ( node );
+		}
+	},
+
+	/**
+	 * Evaluate spiritis for element and subtree.
 	 * 
 	 * - Construct spirits in document order
 	 * - Fire life cycle events except `ready` in document order
 	 * - Fire `ready` in reverse document order (innermost first)
-	 * @param {Node|gui.Spirit} elm
+	 * @param {Element} element
 	 * @param {boolean} skip Skip the element?
 	 * @param {boolean} one Skip the subtree?
 	 */
-	_spiritualize : function ( node, skip, one ) {
-		node = node instanceof gui.Spirit ? node.element : node;
-		node = node.nodeType === Node.DOCUMENT_NODE ? node.documentElement : node;
-		if ( this._handles ( node )) {
-			var attach = [];
-			var readys = [];
-			var hidden = this._hidden ( node );
-			new gui.Crawler ( gui.CRAWLER_ATTACH ).descend ( node, {
-				handleElement : function ( elm ) {
-					if ( !skip || elm !== node ) {
-						var spirit = elm.spirit;
-						if ( !spirit ) {
-							spirit = gui.Guide._evaluate ( elm );
-						}
-						if ( spirit !== null ) {
-							if ( !spirit.life.attached ) {
-								attach.push ( spirit );
-							}
+	_spiritualize : function ( element, skip, one ) {
+		var attach = [];
+		var readys = [];
+		new gui.Crawler ( gui.CRAWLER_ATTACH ).descend ( element, {
+			handleElement : function ( elm ) {
+				if ( !skip || elm !== element ) {
+					var spirit = elm.spirit;
+					if ( !spirit ) {
+						spirit = gui.Guide._evaluate ( elm );
+					}
+					if ( spirit !== null ) {
+						if ( !spirit.life.attached ) {
+							attach.push ( spirit );
 						}
 					}
-					return one ? gui.Crawler.STOP : gui.Crawler.CONTINUE;
 				}
-			});
-			attach.forEach ( function ( spirit ) {
-				if ( !spirit.life.configured ) {
-					spirit.onconfigure ();
-				}
-				/*
-				if ( this._invisible ( spirit )) {
-					if ( spirit.life.visible ) {
-						spirit.oninvisible ();
-					}
-				} else {
-					if ( spirit.life.invisible ) {
-						spirit.onvisible ();
-					}
-				}
-				*/
-				if ( hidden ) {
-					spirit.oninvisible ();
-				} else {
-					spirit.onvisible ();
-				}
-				if ( !spirit.life.entered ) {
-					spirit.onenter ();
-				}
-				spirit.onattach ();
-				if ( !spirit.life.ready ) {
-					readys.push ( spirit );
-				}
-			}, this );
-			readys.reverse ().forEach ( function ( spirit ) {
-				spirit.onready ();
-			}, this );
-		}
+				return one ? gui.Crawler.STOP : gui.Crawler.CONTINUE;
+			}
+		});
+		attach.forEach ( function ( spirit ) {
+			if ( !spirit.life.configured ) {
+				spirit.onconfigure ();
+			}
+			if ( !spirit.life.entered ) {
+				spirit.onenter ();
+			}
+			spirit.onattach ();
+			if ( !spirit.life.ready ) {
+				readys.push ( spirit );
+			}
+		}, this );
+		readys.reverse ().forEach ( function ( spirit ) {
+			spirit.onready ();
+		});
 	},
 
 	/**
@@ -391,18 +403,40 @@ gui.Guide = {
 	 * @param {boolean} one Skip the subtree?
 	 * @param {boolean} force
 	 */
-	_materialize : function ( node, skip, one, force ) {
+	_maybematerialize : function ( node, skip, one, force ) {
 		node = node instanceof gui.Spirit ? node.element : node;
 		node = node.nodeType === Node.DOCUMENT_NODE ? node.documentElement : node;
 		if ( force || this._handles ( node )) {
-			this._collect ( node, skip, gui.CRAWLER_DETACH ).filter ( function ( spirit ) {
-				if ( spirit.life.attached && !spirit.life.destructed ) {
-					spirit.ondestruct (); // API user should do cleanup here
-					return true;
-				}
-				return false;
-			}).forEach ( function ( spirit ) {
-				spirit.$ondestruct (); // framework nukes everything here
+			this._materialize ( node, skip, one );
+		}
+	},
+
+	/**
+	 * @TODO 'one' appears to be unsupported here???
+	 * @param {Element} element
+	 * @param {boolean} skip Skip the element?
+	 * @param {boolean} one Skip the subtree?
+	 */
+	_materialize : function ( element, skip, one ) {
+		this._collect ( element, skip, gui.CRAWLER_MATERIALIZE ).filter ( function ( spirit ) {
+			if ( spirit.life.attached && !spirit.life.destructed ) {
+				spirit.ondestruct (); // API user should do cleanup here
+				return true;
+			}
+			return false;
+		}).forEach ( function ( spirit ) {
+			spirit.$ondestruct (); // framework nukes everything here
+		});
+	},
+
+	/**
+	 * @param {Element|gui.Spirit} element
+	 */
+	_maybedetach : function ( element ) {
+		element = element instanceof gui.Spirit ? element.element : element;
+		if ( this._handles ( element )) {
+			this._collect ( element, false, gui.CRAWLER_DETACH ).forEach ( function ( spirit ) {
+				spirit.ondetach ();
 			});
 		}
 	},
@@ -427,16 +461,42 @@ gui.Guide = {
 	},
 
 	/**
+	 * Evaluate spirits visibility.
+	 * @TODO: Test for this stuff.
+	 * @param {Array<gui.Spirit>}
+	 */
+	_visibility : function ( spirits ) {
+		this._containerspirits ( spirits ).forEach ( function ( spirit ) {
+			var visible = !this._invisible ( spirit );
+			gui.Spirit.$visible ( spirit, visible );
+		}, this );
+	},
+
+	/**
+	 * Isolate from list all spirits that aren't contained by others (top spirits).
+	 * @param {Array<gui.Spirit>}
+	 * @returns {Array<gui.Spirit>}
+	 */
+	_containerspirits : function ( spirits ) {
+		var contains = Node.DOCUMENT_POSITION_CONTAINS + Node.DOCUMENT_POSITION_PRECEDING;
+		var spirit, groups = [];
+		while (( spirit = spirits.pop ())) {
+			if ( !spirits.length || spirits.every ( function ( other ) {
+				return spirit.dom.compare ( other ) !== contains;
+			})) {
+				groups.push ( spirit );
+			}
+		}
+		return groups;
+	},
+	
+	/**
 	 * Spirit is invisible? 
-	 * @TODO Costly stunt - only test for this if something is indeed invisible. 
-	 * 
-	 * @TODO hook into spiritualize-crawler and run this test for start node only !!!!!!!!
-	 * 
+	 * @TODO: Some kind of visibility module?
 	 * @param {gui.Spirit} spirit
 	 * @returns {boolean}
 	 */
 	_invisible : function ( spirit ) {
-		console.log ( "deprecated" );
 		return spirit.css.contains ( gui.CLASS_INVISIBLE ) || 
 		spirit.css.matches ( "." + gui.CLASS_INVISIBLE + " *" );
 	},
@@ -445,17 +505,18 @@ gui.Guide = {
 	 * Is element hidden?
 	 * @param {Element} elm
 	 * @returns {boolean}
-	 */
+	 *
 	_hidden : function ( elm ) {
 		return gui.CSSPlugin.contains ( elm, gui.CLASS_INVISIBLE ) || 
 		gui.CSSPlugin.matches ( elm, "." + gui.CLASS_INVISIBLE + " *" );
 	},
+	*/
 
 	/**
 	 * Destruct all spirits in document. Spirit instances, unless locally loaded, 
 	 * might be newed up in another context. Destruction will null all properties 
 	 * so that the spirit might be garbage collected sooner, let's hope it works. 
-	 * (not using _materialize because that might have been overloaded somehow)
+	 * (not using _maybematerialize because that might have been overloaded somehow)
 	 * @param {Window} win
 	 * @param {Document} doc
 	 */
@@ -483,3 +544,10 @@ gui.Guide = {
 		gui.BROADCAST_KICKSTART
 	], gui.Guide );
 })();
+
+/*
+var node1 = document.createElement ( "node1" );
+var node2 = node1.appendChild ( document.createElement ( "node2" ));
+document.documentElement.appendChild ( node1 );
+console.log ( "HEIL", node2.compareDocumentPosition ( node1 ));
+*/

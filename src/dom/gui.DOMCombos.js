@@ -50,7 +50,7 @@ gui.DOMCombos = {
 		});
 
 		/**
-		 * Attach node plus subtree.
+		 * Spiritualize node plus subtree.
 		 * @param {Node} node
 		 */
 		var spiritualizeAfter = combo.after ( function ( node ) {
@@ -58,15 +58,7 @@ gui.DOMCombos = {
 		});
 
 		/**
-		 * Detach node plus subtree.
-		 * @param {Node} node
-		 */
-		var materializeBefore = combo.before ( function ( node ) {
-			guide.materialize ( node );
-		});
-
-		/**
-		 * Attach new node plus subtree.
+		 * Spiritualize new node plus subtree.
 		 * @param {Node} newnode
 		 * @param {Node} oldnode
 		 */
@@ -75,12 +67,29 @@ gui.DOMCombos = {
 		});
 
 		/**
-		 * Detach old node plus subtree
+		 * Materialize node plus subtree.
+		 * @param {Node} node
+		 */
+		var materializeBefore = combo.before ( function ( node ) {
+			guide.materialize ( node );
+		});
+
+		/**
+		 * Materialize old node plus subtree
+		 * @TODO perhaps just detach oldnode instead???
 		 * @param {Node} newnode
 		 * @param {Node} oldnode
 		 */
 		var materializeOldBefore = combo.before ( function ( newnode, oldnode ) {
 			guide.materialize ( oldnode );
+		});
+
+		/**
+		 * Detach node plus subtree.
+		 * @param {Node} node
+		 */
+		var detachBefore = combo.before ( function ( node ) {
+			guide.detach ( node );
 		});
 
 		/**
@@ -189,7 +198,7 @@ gui.DOMCombos = {
 			removeChild : function ( base ) {
 				return (
 					ifEnabled ( 
-						ifEmbedded ( materializeBefore ( suspending ( base )),
+						ifEmbedded ( detachBefore ( suspending ( base )),
 						otherwise ( base )),
 					otherwise ( base ))
 				);
@@ -202,7 +211,7 @@ gui.DOMCombos = {
 					otherwise ( base ))
 				);
 			},
-			replaceChild : function ( base ) {
+			replaceChild : function ( base ) { // @TODO: detach instead (also in jquery module)
 				return (
 					ifEnabled ( 
 						ifEmbedded ( materializeOldBefore ( spiritualizeNewAfter ( patchAfter ( suspending ( base )))), 
