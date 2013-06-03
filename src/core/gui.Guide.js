@@ -478,12 +478,15 @@ gui.Guide = {
 	 * @returns {Array<gui.Spirit>}
 	 */
 	_containerspirits : function ( spirits ) {
-		var contains = Node.DOCUMENT_POSITION_CONTAINS + Node.DOCUMENT_POSITION_PRECEDING;
 		var spirit, groups = [];
+		function iscontainer ( target, others ) {
+			var contains = Node.DOCUMENT_POSITION_CONTAINS + Node.DOCUMENT_POSITION_PRECEDING;
+			return others.every ( function ( other ) {
+				return target.dom.compare ( other ) !== contains;
+			});
+		}
 		while (( spirit = spirits.pop ())) {
-			if ( !spirits.length || spirits.every ( function ( other ) {
-				return spirit.dom.compare ( other ) !== contains;
-			})) {
+			if ( !spirits.length || iscontainer ( spirit, spirits )) {
 				groups.push ( spirit );
 			}
 		}
