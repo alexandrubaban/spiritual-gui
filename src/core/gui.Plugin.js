@@ -62,11 +62,7 @@ gui.Plugin = gui.Class.create ( "gui.Plugin", Object.prototype, {
 		var nativ = this.spirit.window.Object;
 		for ( var prop in this ) {
 			if ( nativ [ prop ] === undefined ) {
-				if ( debug ) {
-					Object.defineProperty ( this, prop, gui.Spirit.DENIED );
-				} else {
-					this [ prop ] = null;
-				}
+				Object.defineProperty ( this, prop, gui.Spirit.DENIED );
 			}
 		}
 	}
