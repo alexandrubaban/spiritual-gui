@@ -237,32 +237,47 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	 * - null all properties and hope for the garbage collector to notice
 	 */
 	$ondestruct : function () {
+		// nuke lazy plugins so that next iteration won't instantiate them
 		var map = this.$lazyplugins;
 		gui.Object.each ( map, function ( prefix ) {
 			if ( map [ prefix ] === true ) {
 				this [ prefix ] = null;
 			}
 		}, this );
-		gui.Object.each ( this, function ( prop ) {
-			return this [ prop ];
-		}).filter ( function ( thing ) {
-			return gui.Type.isObject ( thing ) && thing instanceof gui.Plugin && thing !== this.life;
-		}, this ).sort ().map ( function ( plugin ) {
-			plugin.ondestruct ();
-			return plugin;
-		}).forEach ( function ( plugin ) {
-			plugin.$ondestruct ();
+		// collect all non-native properties
+		var nativ = this.window.Object;
+		var props = Object.keys ( this ).filter ( function ( key ) {
+			return nativ [ key ] === undefined;
 		});
+		// collect all plugins (except life)
+		var thing = null;
+		var plugs = props.filter ( function ( prop ) { // @TODO this.$plugins property
+			thing = this [ prop ];
+			return gui.Type.isObject ( thing ) && 
+				thing instanceof gui.Plugin && 
+				thing !== this.life;
+		}, this ).map ( function ( prop ) {
+			return this [ prop ];
+		}, this );
+		// destruct plugins in two phases
+		plugs.sort ().map ( function ( plug ) {
+			plug.ondestruct ();
+			return plug;
+		}).forEach ( function ( plug ) {
+			plug.$ondestruct ();
+		});
+		// destruct life last and null everything
 		this.life.ondestruct ();
 		this.life.$ondestruct ();
-		this.$null ();
+		this.$null ( props );
 	},
 
 	/**
-	 * Null everything. In debug mode, we replace everything with an accessor to throw exception.
+	 * Replace al properties with an accessor to throw an exception.
 	 * @TODO: scan property descriptor and skip unmutable properties (would throw in strict?)
+	 * @param {Array<String>} props
 	 */
-	$null : function () {
+	$null : function ( props ) {
 		var myelm = this.element;
 		var debug = this.window.gui.debug;
 		var nativ = this.window.Object;
@@ -271,15 +286,9 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 				myelm.spirit = null;
 			} catch ( denied ) {} // explorer may deny permission in frames, strange as that is
 		}
-		for ( var prop in this ) {
-			if ( nativ [ prop ] === undefined ) {
-				if ( debug ) {
-					Object.defineProperty ( this, prop, gui.Spirit.DENIED );
-				} else {
-					this [ prop ] = null;
-				}
-			}
-		}
+		props.forEach ( function ( prop ) {
+			Object.defineProperty ( this, prop, gui.Spirit.DENIED );
+		}, this );
 	},
 
 	/**
