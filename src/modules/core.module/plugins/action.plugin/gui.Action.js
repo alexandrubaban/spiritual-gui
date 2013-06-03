@@ -67,7 +67,7 @@ gui.Action.prototype = {
 	isCancelled : false,
 
 	/**
-	 * Which spirit consumed the action?
+	 * Spirit who (potentially) consumed the action.
 	 * @type {gui.Spirit}
 	 */
 	consumer : null,
@@ -124,6 +124,7 @@ gui.Action.dispatch = function dispatch ( target, type, data, direction, global 
 	crawler.global = global || false;
 	crawler [ direction || "ascend" ] ( target, {
 		/*
+		 * Evaluate action for spirit.
 		 * @param {gui.Spirit} spirit
 		 */
 		handleSpirit : function ( spirit ) {
@@ -138,7 +139,7 @@ gui.Action.dispatch = function dispatch ( target, type, data, direction, global 
 			return directive;
 		},
 		/*
-		 * Teleport action across domains (through iframe boundaries).
+		 * Teleport action across domains.
 		 * @see {gui.IframeSpirit}
 		 * @param {Window} win Remote window
 		 * @param {String} uri target origin

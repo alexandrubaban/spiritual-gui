@@ -44,7 +44,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	},
 	
 	
-	// Lifecycle .............................................................................
+	// Sync lifecycle (invoked when it happens ) ......................................
 
 	/**
 	 * You can safely overload or overwrite methods in the lifecycle section, 
@@ -87,8 +87,8 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	 * - the spirit element is attached to the DOM
 	 * - the element is already in DOM when the page loads and the spirit gets injected by the framework
 	 */
-	onattach : function () { // @TODO Check if spirit matchesselector gui.CLASS_INVISIBLE + " *"
-		this.window.gui.inside ( this );
+	onattach : function () {
+		this.window.gui.inside ( this ); // @TODO: this in {gui.Guide}
 		this.life.goattach ();
 	},
 	
@@ -101,24 +101,10 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	},
 
 	/**
-	 * `onvisible` has some explaining to do.
-	 */
-	onvisible : function () {
-		this.life.govisible ();
-	},
-
-	/**
-	 * `oninvisible` has some explaining to do.
-	 */
-	oninvisible : function () {
-		this.life.goinvisible ();
-	},
-
-	/**
 	 * `ondetach` gets callend whenever the spirit element is detached from the DOM tree. 
 	 */
 	ondetach : function () {
-		this.window.gui.outside ( this );
+		this.window.gui.outside ( this ); // @TODO: this in {gui.Guide}
 		this.life.godetach ();
 	},
 	
@@ -126,10 +112,10 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	 * `onexit` gets called when spirit is detached and not re-attached in the same 
 	 * execution stack. This triggers destruction unless you return `false`. In this 
 	 * case, make sure to manually dispose the spirit later (using method `dispose`).  
-	 * @returns {udenfined|boolean} False to stay alive
+	 * @returns {udenfined|boolean} Return false to stay alive
 	 */
 	onexit : function () {
-		this.life.goexit (); // do not call _super.onexit if you return false
+		this.life.goexit (); // do not call `_super.onexit` if you return false
 		return undefined;
 	},
 	
@@ -143,6 +129,23 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 		this.$debug ( false );
 		this.life.godestruct ();
 		// process continues in $ondestruct()
+	},
+
+
+	// Async lifecycle (invoked on milliseconds delay) .........................................
+	
+	/**
+	 * `onvisible` has some explaining to do.
+	 */
+	onvisible : function () {
+		this.life.govisible ();
+	},
+
+	/**
+	 * `oninvisible` has some explaining to do.
+	 */
+	oninvisible : function () {
+		this.life.goinvisible ();
 	},
 	
 
@@ -452,56 +455,53 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 }, { // Static .............................................................................
 
 	/**
-	 * Hello.
+	 * Mark spirit invisible.
 	 * @param {gui.Spirit} spirit
 	 * @returns {gui.Spirit}
 	 */
-	visible : function ( spirit ) {
-		if ( spirit.life.invisible ) {
-			this._setvisibility ( spirit, true );
-			spirit.css.remove ( gui.CLASS_INVISIBLE );
-		}
-		return spirit;
-	},
-
-	/**
-	 * Hello.
-	 * @param {gui.Spirit} spirit
-	 * @returns {gui.Spirit}
-	 */
-	invisible : function ( spirit ) {
+	goinvisible : function ( spirit ) {
 		if ( spirit.life.visible ) {
-			this._setvisibility ( spirit, false );
 			spirit.css.add ( gui.CLASS_INVISIBLE );
+			this.$visible ( spirit, false );
 		}
 		return spirit;
 	},
 
 	/**
-	 * Update spirit visibility. Recursively updagtes descendant spirits.
+	 * Mark spirit visible. The spirit must be marked invisible for this to have any effect.
 	 * @param {gui.Spirit} spirit
-	 * @param {boolean} show Visible or invisible?
-	 * @param {boolean} subtree Recurse?
+	 * @returns {gui.Spirit}
 	 */
-	_setvisibility : function ( start, show, subtree ) {
-		var id = show ? gui.CRAWLER_VISIBLE : gui.CRAWLER_INVISIBLE;
-		new gui.Crawler ( id ).descendGlobal ( start, {
+	govisible : function ( spirit ) {
+		var classname = gui.CLASS_INVISIBLE;
+		if ( spirit.css.contains ( classname )) {
+			spirit.css.remove ( classname );
+			this.$visible ( spirit, true );
+		}
+		return spirit;
+	},
+
+	/**
+	 * Recursively update spirit and descendants visibility. Cornercase for the 
+	 * {gui.DocumentSpirit} who needs to relay visibility from hosting document.
+	 * @param {gui.Spirit} start
+	 * @param {boolean} show
+	 */
+	$visible : function ( start, show ) {
+		var type = show ? gui.CRAWLER_VISIBLE : gui.CRAWLER_INVISIBLE;
+		var cornercase = start instanceof gui.DocumentSpirit;
+		new gui.Crawler ( type ).descendGlobal ( start, {
 			handleSpirit : function ( spirit ) {
-				if ( spirit === start ) {
-					if ( show ) {
-						spirit.css.remove ( gui.CLASS_INVISIBLE );
-					} else {
-						spirit.css.add ( gui.CLASS_INVISIBLE );				
-					}
+				if ( spirit !== start && spirit.css.contains ( gui.CLASS_INVISIBLE )) {
+					return gui.Crawler.STOP;
 				}
 				if ( show ) {
-					spirit.onvisible ();
+					if ( !spirit.life.visible || cornercase ) {
+						spirit.onvisible ();
+					}
 				} else {
-					spirit.oninvisible ();
-				}
-				if ( spirit.element !== start.element ) {
-					if ( show && spirit.css.contains ( gui.CLASS_INVISIBLE )) {
-						return gui.Crawler.STOP;
+					if ( !spirit.life.invisible || cornercase ) {
+						spirit.oninvisible ();
 					}
 				}
 				return gui.Crawler.CONTINUE;
@@ -535,7 +535,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 			if ( gui.Client.isWebKit ) {
 				stack = stack.replace ( /^[^\(]+?[\n$]/gm, "" ).
 					replace ( /^\s+at\s+/gm, "" ).
-					replace ( /^Object.<anonymous>\s*\(/gm, '{anonymous}()@' ).
+					replace ( /^Object.<anonymous>\s*\(/gm, "{anonymous}()@" ).
 					split ( "\n" );
 			} else {
 				stack = stack.split ( "\n" );

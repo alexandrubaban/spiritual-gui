@@ -24,6 +24,20 @@ gui.CoverSpirit = gui.Spirit.infuse ( "gui.CoverSpirit", {
 	},
 
 	/**
+	 * Position cover.
+	 * @TODO: inject default styling
+	 * @param {gui.Geometry} geo
+	 */
+	position : function ( geo ) {
+		this.css.style ({
+			top : geo.y,
+			left : geo.x,
+			width : geo.w,
+			height : geo.h
+		});
+	},
+
+	/**
 	 * Show and fade to no opacity.
 	 * @TODO promises goes here
 	 * @param {number} duration in ms
@@ -75,11 +89,15 @@ gui.CoverSpirit = gui.Spirit.infuse ( "gui.CoverSpirit", {
 	/**
 	 * Summon spirit.
 	 * @param {Document} doc
+	 * @param @optional {gui.Geometry} geo
 	 * @returns {gui.CoverSpirit}
 	 */
-	summon : function ( doc ) {
+	summon : function ( doc, geo ) {
 		var spirit = this.possess ( doc.createElement ( "div" ));
-		spirit.css.add ( "gui-cover" );
+		spirit.css.add ( gui.CLASS_COVER );
+		if ( geo ) {
+			spirit.position ( geo );
+		}
 		return spirit;
 	}
 });

@@ -1,6 +1,7 @@
 /** 
  * ActionPlugin.
  * @extends {gui.Tracker}
+ * @TODO 'one' and 'oneGlobal' methods
  * @using {gui.Arguments#confirmed}
  * @using {gui.Combo#chained}
  */
@@ -19,6 +20,13 @@ gui.ActionPlugin = ( function using ( confirmed, chained ) {
 		 * @type {Object}
 		 */
 		data : null,
+
+		/**
+		 * Flip to a mode where the spirit will handle it's own action. Corner case scenario: 
+		 * IframeSpirit watches an action while relaying the same action from external domain.
+		 * @type {boolean}
+		 */
+		$handleownaction : false,
 
 		/**
 		 * Add one or more action handlers.
@@ -169,10 +177,11 @@ gui.ActionPlugin = ( function using ( confirmed, chained ) {
 				list.forEach ( function ( checks ) {
 					var handler = checks [ 0 ];
 					var matches = checks [ 1 ] === action.global;
-					if ( matches && handler !== action.target ) {
+					var hacking = handler === this.spirit && this.$handleownaction;
+					if ( matches && ( handler !== action.target || hacking )) {
 						handler.onaction ( action );
 					}
-				});
+				}, this );
 			}
 		},
 
@@ -181,7 +190,6 @@ gui.ActionPlugin = ( function using ( confirmed, chained ) {
 		
 		/**
 		 * Remove delegated handlers. 
-		 * @TODO verify that this works
 		 * @overwrites {gui.Tracker#_cleanup}
 		 * @param {String} type
 		 * @param {Array<object>} checks

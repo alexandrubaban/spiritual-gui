@@ -77,23 +77,45 @@ gui.DOMPlugin = ( function using ( chained ) {
 		}),
 
 		/**
-		 * Show spirit element, recursively informing descendants.
-		 * @returns {gui.DOMPlugin}
-		 */
-		show : chained ( function () {
-			//this.spirit.css.remove("_gui-invisible");
-			//this.spirit.visible ();
-			gui.Spirit.visible ( this.spirit );
-		}),
-
-		/**
-		 * Hide spirit element, recursively informing descendants.
+		 * Hide spirit element and mark as invisible. Adds the `._gui-hidden` classname.
 		 * @returns {gui.DOMPlugin}
 		 */
 		hide : chained ( function () {
-			//this.spirit.css.add("_gui-invisible");
-			//this.spirit.invisible ();
-			gui.Spirit.invisible ( this.spirit );
+			if ( !this.spirit.css.contains ( gui.CLASS_HIDDEN )) {
+				this.spirit.css.add ( gui.CLASS_HIDDEN );
+				this.goinvisible ();
+			}
+		}),
+
+		/**
+		 * Show spirit element and mark as visible. Removes the `._gui-hidden` classname.
+		 * @returns {gui.DOMPlugin}
+		 */
+		show : chained ( function () {
+			if ( this.spirit.css.contains ( gui.CLASS_HIDDEN )) {
+				this.spirit.css.remove ( gui.CLASS_HIDDEN );
+				this.govisible ();
+			}
+		}),
+
+		/**
+		 * Mark spirit invisible. This will add the `._gui-invisible` 
+		 * classname and invoke `oninvisible` on spirit and descendants.
+		 */
+		goinvisible : chained ( function () {
+			//if ( this.spirit.life.visible ) {
+				gui.Spirit.goinvisible ( this.spirit );
+			//}
+		}),
+
+		/**
+		 * Mark spirit visible. This will remove the `._gui-invisible` 
+		 * classname and invoke `onvisible` on spirit and descendants.
+		 */
+		govisible : chained ( function () {
+			//if ( this.spirit.life.invisible ) {
+				gui.Spirit.govisible ( this.spirit );
+			//}
 		}),
 
 		/**
@@ -153,7 +175,17 @@ gui.DOMPlugin = ( function using ( chained ) {
 		 * @returns {number}
 		 */
 		ordinal : function () {
-			return gui.DOMPlugin.ordinal ( this.element );
+			return gui.DOMPlugin.ordinal ( this.spirit.element );
+		},
+
+		/**
+		 * Compare the DOM position of this spirit against something else.
+		 * @see http://www.w3.org/TR/DOM-Level-3-Core/core.html#Node3-compareDocumentPosition
+		 * @param {Element|gui.Spirit} other
+		 * @returns {number}
+		 */
+		compare : function ( other ) {
+			return gui.DOMPlugin.compare ( this.spirit.element, other );
 		}
 		
 		
@@ -248,13 +280,26 @@ gui.DOMPlugin = ( function using ( chained ) {
 		/**
 		 * Is node in found in page DOM? Otherwise probable createElement scenario.
 		 * @TODO comprehend https://developer.mozilla.org/en/JavaScript/Reference/Operators/Bitwise_Operators#Example:_Flags_and_bitmasks
-		 * @param {Element} element
+		 * @param {Element|gui.Spirit} node
 		 * @returns {boolean}
 		 */
 		embedded : function ( node ) {
 			node = node instanceof gui.Spirit ? node.element : node;
 			var check = Node.DOCUMENT_POSITION_CONTAINS + Node.DOCUMENT_POSITION_PRECEDING;
 			return node.compareDocumentPosition ( node.ownerDocument ) === check;
+		},
+
+		/**
+		 * Compare document position of two spirits or DOM nodes.
+		 * @see http://www.w3.org/TR/DOM-Level-3-Core/core.html#Node3-compareDocumentPosition
+		 * @param {Node|gui.Spirit} node1
+		 * @param {Node|gui.Spirit} node2
+		 * @returns {number}
+		 */
+		compare : function ( node1, node2 ) {
+			node1 = node1 instanceof gui.Spirit ? node1.element : node1;
+			node2 = node2 instanceof gui.Spirit ? node2.element : node2;
+			return node1.compareDocumentPosition ( node2 );
 		},
 
 		/**

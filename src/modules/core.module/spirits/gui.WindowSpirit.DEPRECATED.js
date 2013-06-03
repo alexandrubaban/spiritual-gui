@@ -32,7 +32,7 @@ gui.WindowSpirit = gui.Spirit.infuse ( "gui.WindowSpirit", {
 		this._super.onenter ();
 		this._cover = this.dom.prepend ( gui.CoverSpirit.summon ( this.document ));
 		this._frame = this.dom.prepend ( gui.IframeSpirit.summon ( this.document, this._src ));
-		this.action.addGlobal ([ gui.ACTION_DOCUMENT_DONE, gui.ACTION_DOCUMENT_FIT ]);
+		this.action.addGlobal ([ gui.ACTION_DOC_DONE, gui.ACTION_DOC_FIT ]);
 		this._frame.att.set ( "sandbox", this.att.get ( "sandbox" ));
 		if ( this.style ) {
 			this._style ();
@@ -64,11 +64,11 @@ gui.WindowSpirit = gui.Spirit.infuse ( "gui.WindowSpirit", {
 	onaction : function ( action ) {
 		this._super.onaction ( action );
 		switch ( action.type ) {
-			case gui.ACTION_DOCUMENT_DONE :
+			case gui.ACTION_DOC_DONE :
 				this._loaded ();
 				action.consume ();
 				break;
-			case gui.ACTION_DOCUMENT_FIT :
+			case gui.ACTION_DOC_FIT :
 				if ( this.fit ) {
 					this.css.height = action.data.height;
 					this.action.dispatchGlobal ( action.type, action.data.height );

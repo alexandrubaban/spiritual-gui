@@ -40,9 +40,9 @@ window.gui = {
 	 * @TODO harmonize some naming with action types
 	 */
 	BROADCAST_KICKSTART : "gui-broadcast-kickstart",
-	BROADCAST_DOMCONTENT : "gui-broadcast-document-domcontentloaded",
-	BROADCAST_ONLOAD : "gui-broadcast-window-onload",
-	BROADCAST_UNLOAD : "gui-broadcast-window-unload",
+	//BROADCAST_DOMCONTENT : "gui-broadcast-document-domcontentloaded",
+	//BROADCAST_ONLOAD : "gui-broadcast-window-onload",
+	//BROADCAST_UNLOAD : "gui-broadcast-window-unload",
 	BROADCAST_WILL_SPIRITUALIZE : "gui-broadcast-will-spiritualize",
 	BROADCAST_DID_SPIRITUALIZE : "gui-broadcast-did-spiritualize",
 	BROADCAST_MOUSECLICK  : "gui-broadcast-mouseevent-click",
@@ -81,12 +81,17 @@ window.gui = {
 	/** 
 	 * Global actions
 	 */
-	ACTION_DOCUMENT_CONSTRUCT : "gui-action-document-construct",
-	ACTION_DOCUMENT_READY : "gui-action-document-ready",
-	ACTION_DOCUMENT_ONLOAD : "gui-action-document-onload",
-	ACTION_DOCUMENT_UNLOAD : "gui-action-document-unload",
-	ACTION_DOCUMENT_FIT : "gui-action-document-fit",
-	ACTION_DOCUMENT_DONE : "gui-action-document-done",
+	ACTION_DOC_ONCONSTRUCT : "gui-action-document-construct",
+	ACTION_DOC_ONDOMCONTENT : "gui-action-document-domcontent",
+	ACTION_DOC_ONLOAD : "gui-action-document-onload",
+	ACTION_DOC_ONSPIRITUALIZED : "gui-action-document-spiritualized",
+	ACTION_DOC_UNLOAD : "gui-action-document-unload",
+	ACTION_DOC_FIT : "gui-action-document-fit",
+
+	/**
+	 * Framework internal actions of little use.
+	 */
+	$ACTION_XFRAME_VISIBILITY : "gui-action-xframe-visibility",
 
 	/**
 	 * Local actions.
@@ -95,41 +100,54 @@ window.gui = {
 	ACTION_WINDOW_LOADED : "gui-action-window-loaded",
 
 	/**
-	 * Lifecycle types.
+	 * Lifecycle types (all spirits)
+	 * @TODO: add _ON* to all these
 	 */
 	LIFE_CONSTRUCT : "gui-life-construct",
 	LIFE_CONFIGURE : "gui-life-configure",
 	LIFE_ENTER : "gui-life-enter",
 	LIFE_ATTACH : "gui-life-attach",
 	LIFE_READY : "gui-life-ready",
-	LIFE_SHOW : "gui-life-show",
-	LIFE_HIDE : "gui-life-hide",
+	//LIFE_SHOW : "gui-life-show",
+	//LIFE_HIDE : "gui-life-hide",
 	LIFE_DETACH : "gui-life-detach",
 	LIFE_EXIT	: "gui-life-exit",
 	LIFE_DESTRUCT : "life-destruct",
+	LIFE_VISIBLE : "life-visible",
+	LIFE_INVISIBLE : "life-invisible",
+
+	/**
+	 * Lifecycle types (some spirits)
+	 */
+	LIFE_IFRAME_CONSTRUCT : "life-iframe-construct",
+	LIFE_IFRAME_DOMCONTENT : "life-iframe-domcontent",
+	LIFE_IFRAME_ONLOAD : "life-iframe-construct",
+	LIFE_IFRAME_SPIRITUALIZED : "life-iframe-spiritualized",
+	LIFE_IFRAME_UNLOAD : "life-iframe-unload",
 
 	/**
 	 * Tick types (timed events)
 	 */
-	TICK_DESTRUCT_DETACHED : "gui-tick-destruct-detached",
-	TICK_SPIRIT_NULL : "gui-tick-spirit-null",
-	TICK_FIT : "gui-tick-fit",
+	$TICK_INSIDE : "gui-tick-spirits-inside",
+	$TICK_OUTSIDE : "gui-tick-spirits-outside",
 
 	/**
 	 * Crawler types
 	 */
-	CRAWLER_ATTACH : "gui-crawler-attach",
+	CRAWLER_ATTACH : "gui-crawler-attach", // SPIRI...
+	CRAWLER_MATERIALIZE : "gui-crawler-materialize",
 	CRAWLER_DETACH : "gui-crawler-detach",
-	CRAWLER_DISPOSE : "gui-crawler-dispose",
+	CRAWLER_DISPOSE : "gui-crawler-dispose", // ??????
 	CRAWLER_ACTION : "gui-crawler-action",
 	CRAWLER_VISIBLE : "gui-crawler-visible",
 	CRAWLER_INVISIBLE : "gui-crawler-invisible",
 
 	/** 
-	 * CSS classnames. Underscore indicates that the classname are managed by JS.
+	 * CSS classnames (underscore is to indicate that the classname are managed by JS)
 	 */
 	CLASS_INVISIBLE : "_gui-invisible",
 	CLASS_HIDDEN : "_gui-hidden",
+	CLASS_COVER : "_gui-cover",
 
 	/**
 	 * Device orientation.

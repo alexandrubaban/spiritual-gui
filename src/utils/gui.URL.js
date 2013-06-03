@@ -70,6 +70,24 @@ gui.URL.absolute = function ( base, href ) {
 };
 
 /**
+ * Is URL external to document (as in external host)?
+ * @TODO: fix IE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+ * @param {String} url
+ * @param {Document} doc
+ * @returns {boolean}
+ */
+gui.URL.external = function ( src, doc ) {
+	doc = doc || document;
+	var url = new gui.URL ( doc, src );
+	if ( gui.Client.isExplorer9 ) {
+		console.debug ( "TODO: Fix hardcoded assesment of external URL in IE9 (always false): " + src );
+		return false;
+	} else {
+		return url.host !== doc.location.host;
+	}
+};
+
+/**
  * Extract querystring parameter value from URL.
  * @param {String} url
  * @param {String} name

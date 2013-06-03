@@ -63,7 +63,6 @@
 	"src/utils/gui.Client.js",
 	
 	"src/modules/core.module/spirits/gui.DocumentSpirit.js",
-	"src/modules/core.module/spirits/gui.WindowSpirit.js",
 	"src/modules/core.module/spirits/gui.IframeSpirit.js",
 	"src/modules/core.module/spirits/gui.StyleSheetSpirit.js",
 	"src/modules/core.module/spirits/gui.ActionSpirit.js",

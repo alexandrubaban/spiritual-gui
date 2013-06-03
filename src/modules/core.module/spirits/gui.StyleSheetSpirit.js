@@ -32,7 +32,7 @@ gui.StyleSheetSpirit = gui.Spirit.infuse ( "gui.StyleSheetSpirit", {
 
 	/**
 	 * Add rules (by JSON object for now).
-	 * @param {Map<String,object>} rules
+	 * @param {Map<String,Map<String,String>>} rules
 	 */
 	addRules : function ( rules ) {
 		var sheet = this.element.sheet, index = sheet.cssRules.length;
