@@ -117,7 +117,7 @@ gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
 					gui.ACTION_DOC_ONDOMCONTENT,
 					gui.ACTION_DOC_ONLOAD,
 					gui.ACTION_DOC_ONSPIRITUALIZED
-				])
+				]);
 				a.consume ();
 				break;
 			case gui.ACTION_DOC_FIT :

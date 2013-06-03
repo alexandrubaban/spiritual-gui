@@ -116,6 +116,9 @@ gui.module ( "flex", {
 		}
 	}
 
+	/*
+	 * @TODO: public hooks for this kind of thing
+	 */
 	[ "_spiritualize", "_materialize" ].forEach ( function ( method ) {
 		gui.Function.decorateAfter ( guide, method, flexparent );
 	});
