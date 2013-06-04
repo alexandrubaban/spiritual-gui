@@ -345,7 +345,7 @@ gui.Guide = {
 		node = node instanceof gui.Spirit ? node.element : node;
 		node = node.nodeType === Node.DOCUMENT_NODE ? node.documentElement : node;
 		if ( this._handles ( node )) {
-			this._spiritualize ( node );
+			this._spiritualize ( node, skip, one );
 		}
 	},
 
