@@ -94,13 +94,16 @@ gui.DOMCombos = {
 
 		/**
 		 * Spirit-aware setattribute.
-		 * @param {String} att
-		 * @param {String} val
+		 * @param {String} name
+		 * @param {String} value
 		 */
-		var setAttAfter = combo.after ( function ( att, val ) {
+		var setAttBefore = combo.before ( function ( name, value ) {
+			this.spirit.att.set ( name, value );
+			/*
 			this.spirit.att.$suspend ( function () {
 				this.set ( att, val );
 			});
+			*/
 		});
 
 		/**
@@ -108,10 +111,13 @@ gui.DOMCombos = {
 		 * @TODO use the post combo?
 		 * @param {String} att
 		 */
-		var delAttAfter = combo.after ( function ( att ) {
+		var delAttBefore = combo.before( function ( name ) {
+			this.spirit.att.del ( name );
+			/*
 			this.spirit.att.$suspend ( function () {
 				this.del ( att );
 			});
+			*/
 		});
 
 		/**
@@ -223,7 +229,7 @@ gui.DOMCombos = {
 				return ( 
 					ifEnabled ( 
 						ifEmbedded ( 
-							ifSpirit ( setAttAfter ( base ), 
+							ifSpirit ( setAttBefore ( base ), 
 							otherwise ( base )),
 						otherwise ( base )),
 					otherwise ( base ))
@@ -233,7 +239,7 @@ gui.DOMCombos = {
 				return ( 
 					ifEnabled ( 
 						ifEmbedded ( 
-							ifSpirit ( delAttAfter ( base ),
+							ifSpirit ( delAttBefore ( base ),
 							otherwise ( base )),
 						otherwise ( base )),
 					otherwise ( base ))

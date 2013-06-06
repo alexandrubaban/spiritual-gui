@@ -28,9 +28,10 @@ gui.AttConfigPlugin = gui.Plugin.extend ( "gui.AttConfigPlugin", {
 	 * This should probably only ever be invoked by the {gui.AttPlugin}.
 	 * @param {String} name
 	 * @param {String} value
+	 * @returns {boolean} True when a configuration was performed (@TODO not used)
 	 */
 	configureone : function ( name, value ) {
-		this._evaluate ( this._lookup ( name ), value );
+		return this._evaluate ( this._lookup ( name ), value );
 	},
 
 
@@ -40,9 +41,11 @@ gui.AttConfigPlugin = gui.Plugin.extend ( "gui.AttConfigPlugin", {
 	 * Evaluate single attribute in search for "gui." prefix.
 	 * @param {String} name
 	 * @param {String} value
+	 * @returns {boolean} (@TODO not used)
 	 */
 	_evaluate : function ( name, value ) {
-		var prefix = "gui.",
+		var prefix = gui.AttConfigPlugin.PREFIX,
+			didconfigure = false,
 			struct = this.spirit,
 			success = true,
 			prop = null,
@@ -73,10 +76,12 @@ gui.AttConfigPlugin = gui.Plugin.extend ( "gui.AttConfigPlugin", {
 				} else {
 					struct [ prop ] = value;
 				}
+				didconfigure = true;
 			} else {
 				console.error ( "No definition for \"" + name + "\": " + this.spirit.toString ());
 			}
 		}
+		return didconfigure;
 	},
 
 	/**
@@ -86,7 +91,7 @@ gui.AttConfigPlugin = gui.Plugin.extend ( "gui.AttConfigPlugin", {
 	 * @returns {String}
 	 */
 	_lookup : function ( name ) {
-		var prefix = "gui.";
+		var prefix = gui.AttConfigPlugin.PREFIX;
 		if ( this.map && this.map.hasOwnProperty ( name )) {
 			name = this.map [ name ];
 			if ( !name.startsWith ( prefix )) {
@@ -99,6 +104,12 @@ gui.AttConfigPlugin = gui.Plugin.extend ( "gui.AttConfigPlugin", {
 
 }, { // Static ...............................................................
 
+
+	/**
+	 * Magic attribute prefix to trigger attconfig.
+	 * @type {String}
+	 */
+	PREFIX : "gui.",
 
 	/**
 	 * @type {boolean}

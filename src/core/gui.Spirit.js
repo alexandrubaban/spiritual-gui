@@ -309,9 +309,10 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 				case gui.ConfigPlugin :
 					break;
 				default :
-					if ( Plugin.lazy ) {
+					if ( Plugin.lazy ) { // ( this.life.plugins [ prefix ] = Plugin.lazy )
 						gui.Plugin.later ( Plugin, prefix, this, this.$lazyplugins );
 					} else {
+						alert ( prefix )
 						this [ prefix ] = new Plugin ( this );
 					}
 					prefixes.push ( prefix );
@@ -321,7 +322,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 		this.life.onconstruct ();
 		this.attconfig.onconstruct ();
 		prefixes.forEach ( function ( prefix ) {
-			if ( !this.$lazyplugins [ prefix ]) {
+			if ( !this.$lazyplugins [ prefix ]) { // this.life.plugins [ prefix ]
 				this [ prefix ].onconstruct ();
 			}
 		}, this );
@@ -454,6 +455,9 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 		}
 	},
 
+
+	// Secret ................................................................................
+	
 	/**
 	 * Mapping plugin constructor to plugin prefix.
 	 * @type {Map<String,function>}
@@ -469,7 +473,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	 * @returns {gui.Spirit}
 	 */
 	goinvisible : function ( spirit ) {
-		if ( spirit.life.visible ) {
+		if ( !spirit.life.invisible ) {
 			spirit.css.add ( gui.CLASS_INVISIBLE );
 			this.$visible ( spirit, false );
 		}
@@ -483,7 +487,8 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	 */
 	govisible : function ( spirit ) {
 		var classname = gui.CLASS_INVISIBLE;
-		if ( spirit.css.contains ( classname )) {
+		if ( true || spirit.css.contains ( classname )) {
+			console.log ( "hacked it" );
 			spirit.css.remove ( classname );
 			this.$visible ( spirit, true );
 		}
@@ -498,18 +503,17 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	 */
 	$visible : function ( start, show ) {
 		var type = show ? gui.CRAWLER_VISIBLE : gui.CRAWLER_INVISIBLE;
-		var cornercase = start instanceof gui.DocumentSpirit;
 		new gui.Crawler ( type ).descendGlobal ( start, {
 			handleSpirit : function ( spirit ) {
 				if ( spirit !== start && spirit.css.contains ( gui.CLASS_INVISIBLE )) {
 					return gui.Crawler.STOP;
 				}
 				if ( show ) {
-					if ( !spirit.life.visible || cornercase ) {
+					if ( !spirit.life.visible ) { // @TODO cornercase is obsolete???
 						spirit.onvisible ();
 					}
 				} else {
-					if ( !spirit.life.invisible || cornercase ) {
+					if ( !spirit.life.invisible ) {
 						spirit.oninvisible ();
 					}
 				}

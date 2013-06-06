@@ -130,7 +130,7 @@ gui.Action.dispatch = function dispatch ( target, type, data, direction, global 
 		handleSpirit : function ( spirit ) {
 			var directive = gui.Crawler.CONTINUE;
 			if ( spirit.action.contains ( type )) {
-				spirit.action.handleAction ( action );
+				spirit.action.$onaction ( action );
 				if ( action.isConsumed ) {
 					directive = gui.Crawler.STOP;
 					action.consumer = spirit;

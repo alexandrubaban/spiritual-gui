@@ -108,7 +108,7 @@ gui.Object = {
 
 	/**
 	 * Lookup object for string of type "my.ns.Thing" in given context. 
-	 * @param {String} opath Object path eg. "my.ns.Thing"
+	 * @param {String} opath Object path eg. "my.C.ns.Thing"
 	 * @param {Window} context
 	 * @returns {object}
 	 */

@@ -22,13 +22,6 @@ gui.ActionPlugin = ( function using ( confirmed, chained ) {
 		data : null,
 
 		/**
-		 * Flip to a mode where the spirit will handle it's own action. Corner case scenario: 
-		 * IframeSpirit watches an action while relaying the same action from external domain.
-		 * @type {boolean}
-		 */
-		$handleownaction : false,
-
-		/**
 		 * Add one or more action handlers.
 		 * @param {array|string} arg
 		 * @param @optional {object|function} handler
@@ -165,28 +158,8 @@ gui.ActionPlugin = ( function using ( confirmed, chained ) {
 			});
 		},
 
-		/**
-		 * Handle action. If it matches listeners, the action will be 
-		 * delegated to the spirit. Called by `gui.Action` crawler.
-		 * @see {gui.Action#dispatch}
-		 * @param {gui.Action} action
-		 */
-		handleAction : function ( action ) {
-			var list = this._xxx [ action.type ];
-			if ( list ) {
-				list.forEach ( function ( checks ) {
-					var handler = checks [ 0 ];
-					var matches = checks [ 1 ] === action.global;
-					var hacking = handler === this.spirit && this.$handleownaction;
-					if ( matches && ( handler !== action.target || hacking )) {
-						handler.onaction ( action );
-					}
-				}, this );
-			}
-		},
 
-
-		// Private ....................................................
+		// Private ............................................................................
 		
 		/**
 		 * Remove delegated handlers. 
@@ -200,6 +173,36 @@ gui.ActionPlugin = ( function using ( confirmed, chained ) {
 				this.removeGlobal ( type, handler );
 			} else {
 				this.remove ( type, handler );
+			}
+		},
+
+
+		// Secret ...........................................................................
+		
+		/**
+		 * Flip to a mode where the spirit will handle it's own action. Corner case scenario: 
+		 * IframeSpirit watches an action while relaying the same action from external domain.
+		 * @type {boolean}
+		 */
+		$handleownaction : false,
+
+		/**
+		 * Handle action. If it matches listeners, the action will be 
+		 * delegated to the spirit. Called by crawler in `gui.Action`.
+		 * @see {gui.Action#dispatch}
+		 * @param {gui.Action} action
+		 */
+		$onaction : function ( action ) {
+			var list = this._xxx [ action.type ];
+			if ( list ) {
+				list.forEach ( function ( checks ) {
+					var handler = checks [ 0 ];
+					var matches = checks [ 1 ] === action.global;
+					var hacking = handler === this.spirit && this.$handleownaction;
+					if ( matches && ( handler !== action.target || hacking )) {
+						handler.onaction ( action );
+					}
+				}, this );
 			}
 		}
 

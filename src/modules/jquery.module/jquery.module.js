@@ -95,7 +95,7 @@ gui.module ( "jquery", {
 			jq.fn [ name ] = function () {
 				var nam = arguments [ 0 ];
 				var val = arguments [ 1 ];
-				var res = naive [ name ].apply ( this, arguments );
+				//var res = naive [ name ].apply ( this, arguments );
 				var del = name === "removeAttr";
 				val = del ? null : val;
 				if ( val !== undefined || del ) {
@@ -103,14 +103,16 @@ gui.module ( "jquery", {
 						if ( elm.spirit ) {
 							if ( val !== undefined || del ) {
 								elm.spirit.att.set ( nam, val ); // trigger attribute setters
+								/*
 								if(!del){ // attribute was already set, must configure manually
 									elm.spirit.attconfig.configureone(nam,val);
 								}
+								*/
 							}
 						}
 					});
 				}
-				return res;
+				return naive [ name ].apply ( this, arguments );
 			};
 		});
 		[
@@ -383,6 +385,7 @@ gui.module ( "jquery", {
 
 	/**
 	 * JQuery replaceAll() and replaceWith().
+	 * @TODO Replicate setup in {gui.Guide-_containerspirits} to minimize crawling
 	 * @param {$} source
 	 * @param {$} target
 	 * @param {function} suber

@@ -48,6 +48,12 @@ gui.module ( "core", {
 		onaction : function ( action ) {},
 
 		/**
+		 * Handle attribute update.
+		 * @param {gui.Att} att
+		 */
+		onatt : function ( att ) {},		
+
+		/**
 		 * Handle broadcast.
 		 * @param {gui.Broadcast} broadcast
 		 */
@@ -83,7 +89,7 @@ gui.module ( "core", {
 		 * @param {Event} event
 		 */
 		handleEvent : function ( event ) {
-			this.onevent(event);
+			this.onevent ( event );
 		}
 	}
 

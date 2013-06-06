@@ -1,11 +1,12 @@
 /**
  * Spirit of the iframe.
+ * @TODO: Mechanism to whitelist xdomain hosts (postMessages)
  * @extends {gui.Spirit}
  */
 gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
 
 	/**
-	 * Flipped when the hosted document is loaded and spiritualized.
+	 * Flipped when the *hosted* document is loaded and spiritualized.
 	 * @type {boolean}
 	 */
 	spiritualized : false,
@@ -23,10 +24,10 @@ gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
 	fit : false,
 
 	/**
-	 * True when hosting xdomain stuff.
-	 * @type {boolean}
+	 * Cross domain origin of hosted document (if that's the case).
+	 * @type {String} `http://iframehost.com:8888`
 	 */
-	external : false,
+	xguest : null,
 
 	/**
 	 * Hosted window.
@@ -133,7 +134,7 @@ gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
 	 */
 	onevent : function ( e ) {
 		this._super.onevent ( e );
-		if ( e.type === "message" && this.external ) {
+		if ( e.type === "message" && this.xguest ) {
 			this._onmessage ( e.data );
 		}
 	},
@@ -164,9 +165,12 @@ gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
 	 * @param @optional {String} src
 	 */
 	src : function ( src ) {
+		var doc = this.document;
 		if ( gui.Type.isString ( src )) {
-			if (( this.external = this._external ( src ))) {
-				src = gui.IframeSpirit.sign ( src, this.document, this.$instanceid );
+			if ( gui.URL.external ( src, doc )) {
+				var url = new gui.URL ( doc, src );
+				this.xguest = url.protocol + "//" + url.host;
+				src = gui.IframeSpirit.sign ( src, doc, this.$instanceid );
 			}
 			this.element.src = src;
 		} else {
@@ -189,9 +193,7 @@ gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
 	 */
 	_onspiritualized : function () {
 		this.spiritualized = true;
-		if ( this.life.invisible ) {
-			this._visibility ();
-		}
+		this._visibility ();
 		if ( this.cover && !this.fit ) {
 			this._coverup ( false );
 		}
@@ -233,7 +235,7 @@ gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
 	 * @param {String} msg
 	 */
 	_onmessage : function ( msg ) {
-		if ( this.external && msg.startsWith ( "spiritual-action:" )) {
+		if ( this.xguest && msg.startsWith ( "spiritual-action:" )) {
 			var a = gui.Action.parse ( msg );
 			if ( a.direction === gui.Action.ASCEND ) {
 				if ( a.$instanceid === this.$instanceid ) {
@@ -249,15 +251,17 @@ gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
 	 * Action intercepted by the {gui.DocumentSpirit}.
 	 */
 	_visibility : function () {
-		this.action.descendGlobal ( gui.$ACTION_XFRAME_VISIBILITY, this.life.visible );
+		if ( this.life.visible || this.life.invisible ) {
+			this.action.descendGlobal ( gui.$ACTION_XFRAME_VISIBILITY, this.life.visible );
+		}
 	},
 
 	/**
-	 * Is external host?
+	 * Hosting external document?
 	 * @param {String} src
 	 * @returns {boolean}
 	 */
-	_external : function ( src ) {
+	_xguest : function ( src ) {
 		return this.att.get ( "sandbox" ) || gui.URL.external ( src, this.document );
 	},
 
@@ -292,9 +296,10 @@ gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
 		var spirit = this.possess ( iframe );
 		spirit.css.add ( "gui-iframe" );
 		if ( src ) {
-			if ( gui.URL.external ( src, doc )) { // should be moved to src() method!!!!!
+			if ( gui.URL.external ( src, doc )) { // should be moved to src() method (but fails)!!!!!
+				var url = new gui.URL ( doc, src );
+				spirit.xguest = url.protocol + "//" + url.host;
 				src = this.sign ( src, doc, spirit.$instanceid );
-				spirit.external = true;
 			}
 		} else {
 			src = this.SRC_DEFAULT;	
@@ -314,25 +319,20 @@ gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
 	SRC_DEFAULT : "javascript:void(false);",
 
 	/**
-	 * Overwrite this property to create a parameter name for  
-	 * signing that looks somewhat less like a spyware attack.
-	 * @type {String}
-	 */
-	KEY_SIGNATURE : "spiritual-contextid",
-
-	/**
 	 * Sign URL with cross-domain credentials 
 	 * and key to identify the IframeSpirit.
 	 * @param {String} url
 	 * @param {Document} doc
-	 * @param {String} key
+	 * @param {String} contextid
 	 * @returns {String}
 	 */
-	sign : function ( url, doc, key ) {
+	sign : function ( url, doc, contextid ) {
 		var loc = doc.location;
 		var uri = loc.protocol + "//" + loc.host;
-		var sig = uri + "/" + key;
-		return gui.URL.setParam ( url, this.KEY_SIGNATURE, sig );
+		var sig = uri + "/" + contextid;
+		url = gui.URL.setParam ( url, gui.PARAM_CONTEXTID, sig );
+		console.log ( "IframeSpirit", url );
+		return url;
 	},
 
 	/**
@@ -342,7 +342,7 @@ gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
 	 * @returns {String}
 	 */
 	unsign : function ( url ) {	
-		return gui.URL.setParam ( url, this.KEY_SIGNATURE, null );
+		return gui.URL.setParam ( url, gui.PARAM_CONTEXTID, null );
 	}
 
 });

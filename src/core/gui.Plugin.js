@@ -113,4 +113,30 @@ gui.Plugin = gui.Class.create ( "gui.Plugin", Object.prototype, {
 		});
 	}
 
+	/**
+	 * Lazy initialization stuff.
+	 * @experimental
+	 * @param {gui.Plugin} Plugin
+	 * @param {String} prefix
+	 * @param {gui.Spirit} spirit
+	 *
+	later : function ( Plugin, prefix, spirit, map ) {
+		map [ prefix ] = true;
+		Object.defineProperty ( spirit, prefix, {
+			enumerable : true,
+			configurable : true,
+			get : function () {
+				if ( map [ prefix ] === true ) {
+					map [ prefix ] = new Plugin ( spirit );
+					map [ prefix ].onconstruct ();
+				}
+				return map [ prefix ];
+			},
+			set : function ( x ) {
+				map [ prefix ] = x; // or what?
+			}
+		});
+	}
+	*/
+
 });
