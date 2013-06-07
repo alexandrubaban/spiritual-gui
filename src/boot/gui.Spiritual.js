@@ -9,7 +9,7 @@ gui.Spiritual = function Spiritual ( win ) {
 gui.Spiritual.prototype = {
 
 	/**
-	 * The constructor gui.Spiritual does not exist after first instance gets declared, 
+	 * The constructor {gui.Spiritual} does not exist after first instance gets declared, 
 	 * but we may keep something newable allocated by referencing it around here.
 	 * @type {function}
 	 */
@@ -18,7 +18,6 @@ gui.Spiritual.prototype = {
 	/**
 	 * Uniquely identifies this instance of `gui.Spiritual` 
 	 * knowing that other instances may exist in iframes.
-	 * @TODO rename guikey or windowkey or contextkey
 	 * @type {String}
 	 */
 	$contextid : null,
@@ -69,10 +68,27 @@ gui.Spiritual.prototype = {
 	autostart : true,
 
 	/**
-	 * Portalled?
+	 * Running inside an iframe?
+	 * @type {boolean}
+	 */
+	hosted : false,
+
+	/**
+	 * This instance was portalled into this context by a {gui.Spiritul} instance in the hosting iframe?
+	 * If true, members of the 'gui' namespace (spirits) might have been loaded in an ancestor context.
+	 * @see {gui.Spiritual#_portal}
 	 * @type {Boolean}
 	 */
 	portalled : false,
+
+	/**
+	 * Cross domain origin of containing iframe if:
+	 *
+	 * 1. We are loaded inside a {gui.IframeSpirit}
+	 * 2. Containing document is on an external host
+	 * @type {String} eg. `http://parenthost.com:8888`
+	 */
+	xhost : null,
 
 	/**
 	 * Identification.
@@ -517,21 +533,12 @@ gui.Spiritual.prototype = {
 	 */
 	_construct : function ( context ) {
 		// patching features
-		this._spiritualaid.polyfill ( context );		
-		// compute $contextid (possibly identical to $instanceid of hosting iframe spirit)
-		this.$contextid = ( function () {
-			var sig, url = location.href;
-			var key = "spiritual-$contextid"; // ouch, must remain configurable!
-			if ( url.contains ( key )) {
-				return gui.URL.getParam ( url, key ).split ( "/" ).pop ();
-			} else {
-				return gui.KeyMaster.generateKey ();	
-			}
-		}());
+		this._spiritualaid.polyfill ( context );
 		// basic setup
 		this.context = context;
 		this.window = context.document ? context : null;
 		this.document = context.document || null;
+		this.hosted = this.window && this.window !== this.window.parent;
 		this._inlines = Object.create ( null );
 		this._modules = Object.create ( null );
 		this._arrivals = Object.create ( null );
@@ -542,6 +549,30 @@ gui.Spiritual.prototype = {
 			incoming : Object.create ( null ), // spiritis just entered the DOM (some milliseconds ago)
 			outside : Object.create ( null ) // spirits removed from page DOM (currently "detached")
 		};
+
+		// additional properties may be found in querystring parameters
+		// @tODO not in sandbox!
+		this._params ( this.document.location.href );
+	},
+
+	/**
+	 * Resolve potential "gui-xhost" querystring parameter. This provides  a $contextid and a 
+	 * hostname to facilitate cross domain messaging. The $contextid equals the $instanceid of 
+	 * containing {gui.IframeSpirit}. If not present, we generate a random $contextid.
+	 * @param {String} url
+	 */
+	_params : function ( url ) {
+		var id, xhost, param = gui.PARAM_CONTEXTID;
+		if ( url.contains ( param )) {
+			var splits = gui.URL.getParam ( url, param ).split ( "/" );
+			id = splits.pop ();
+			xhost = splits.join ( "/" );
+		} else {
+			id = gui.KeyMaster.generateKey ();
+			xhost = null;
+		}
+		this.$contextid = id;
+		this.xhost = xhost;
 	},
 
 	/**

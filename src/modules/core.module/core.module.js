@@ -8,32 +8,32 @@ gui.module ( "core", {
 	 */
 	channels : [
 		
-		[ "html", "gui.DocumentSpirit" ],
-		[ ".gui-styles", "gui.StyleSheetSpirit" ], // @TODO fix or deprecate
-		[ ".gui-iframe", "gui.IframeSpirit" ],
-		[ ".gui-action", "gui.ActionSpirit" ], // @TODO fix or deprecate
-		[ ".gui-cover",  "gui.CoverSpirit" ],
-		[ ".gui-spirit", "gui.Spirit" ]
+		[ "html", gui.DocumentSpirit ],
+		[ ".gui-styles", gui.StyleSheetSpirit ], // @TODO fix or deprecate
+		[ ".gui-iframe", gui.IframeSpirit ],
+		[ ".gui-action", gui.ActionSpirit ], // @TODO fix or deprecate
+		[ ".gui-cover", gui.CoverSpirit ],
+		[ ".gui-spirit", gui.Spirit ]
 	],
 
 	/**
-	 * Assign plugins to prefixes.
+	 * Assign plugins to prefixes. 
 	 */
 	plugins : {
 		
-		action : gui.ActionPlugin,
-		att : gui.AttPlugin, 
-		attconfig : gui.AttConfigPlugin,
-		attention : gui.AttentionPlugin,
-		box : gui.BoxPlugin,
-		broadcast : gui.BroadcastPlugin,
-		css : gui.CSSPlugin,
-		dom : gui.DOMPlugin,
-		event : gui.EventPlugin,
-		life : gui.LifePlugin,
-		tick : gui.TickPlugin,
-		tween : gui.TweenPlugin,
-		transition : gui.TransitionPlugin
+		"action" : gui.ActionPlugin,
+		"att" : gui.AttPlugin, 
+		"attconfig" : gui.AttConfigPlugin,
+		"attention" : gui.AttentionPlugin,
+		"box" : gui.BoxPlugin,
+		"broadcast" : gui.BroadcastPlugin,
+		"css" : gui.CSSPlugin,
+		"dom" : gui.DOMPlugin,
+		"event" : gui.EventPlugin,
+		"life" : gui.LifePlugin,
+		"tick" : gui.TickPlugin,
+		"tween" : gui.TweenPlugin,
+		"transition" : gui.TransitionPlugin
  },
 
 	/**
@@ -48,10 +48,22 @@ gui.module ( "core", {
 		onaction : function ( action ) {},
 
 		/**
+		 * Handle attribute update.
+		 * @param {gui.Att} att
+		 */
+		onatt : function ( att ) {},		
+
+		/**
 		 * Handle broadcast.
 		 * @param {gui.Broadcast} broadcast
 		 */
 		onbroadcast : function ( broadcast ) {},
+
+		/**
+		 * Handle lifecycle event.
+		 * @param {gui.Life} life
+		 */
+		onlife : function ( life ) {},
 
 		/**
 		 * Handle tick.
@@ -83,7 +95,7 @@ gui.module ( "core", {
 		 * @param {Event} event
 		 */
 		handleEvent : function ( event ) {
-			this.onevent(event);
+			this.onevent ( event );
 		}
 	}
 

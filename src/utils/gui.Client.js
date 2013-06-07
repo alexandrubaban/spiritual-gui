@@ -1,7 +1,7 @@
 /**
  * Questionable browser identity and feature detection. Note that Chrome on iOS 
  * identifies itself as Safari (it basically is, so that shouldn't cause concern).
- * @TODO Load earlier by not using gui.Broadcast?
+ * @TODO Load earlier by not using gui.Broadcast
  * @TODO Lazycompute properties when requested.
  */
 gui.Client = ( new function Client () {

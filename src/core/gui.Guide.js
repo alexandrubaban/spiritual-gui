@@ -503,18 +503,7 @@ gui.Guide = {
 		return spirit.css.contains ( gui.CLASS_INVISIBLE ) || 
 		spirit.css.matches ( "." + gui.CLASS_INVISIBLE + " *" );
 	},
-
-	/**
-	 * Is element hidden?
-	 * @param {Element} elm
-	 * @returns {boolean}
-	 *
-	_hidden : function ( elm ) {
-		return gui.CSSPlugin.contains ( elm, gui.CLASS_INVISIBLE ) || 
-		gui.CSSPlugin.matches ( elm, "." + gui.CLASS_INVISIBLE + " *" );
-	},
-	*/
-
+	
 	/**
 	 * Destruct all spirits in document. Spirit instances, unless locally loaded, 
 	 * might be newed up in another context. Destruction will null all properties 
@@ -547,10 +536,3 @@ gui.Guide = {
 		gui.BROADCAST_KICKSTART
 	], gui.Guide );
 })();
-
-/*
-var node1 = document.createElement ( "node1" );
-var node2 = node1.appendChild ( document.createElement ( "node2" ));
-document.documentElement.appendChild ( node1 );
-console.log ( "HEIL", node2.compareDocumentPosition ( node1 ));
-*/

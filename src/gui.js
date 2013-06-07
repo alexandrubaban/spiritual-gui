@@ -36,6 +36,16 @@ window.gui = {
 	MODE_MANAGED : "managed",
 
 	/**
+	 * The {gui.IframeSpirit} will stamp this querystring parameter into any URL it loads. 
+	 * The value of the parameter matches the iframespirits '$contextid'. Value becomes the 
+	 * '$contextid' of the local 'gui' object (a {gui.Spiritual} instance). This establishes 
+	 * a relation between iframe and hosted document that can be used for xdomain stuff. 
+	 * @type {String}
+	 */
+	PARAM_CONTEXTID : "gui-contextid",
+	PARAM_XHOST : "gui-xhost",
+
+	/**
 	 * Global broadcasts
 	 * @TODO harmonize some naming with action types
 	 */
@@ -54,17 +64,17 @@ window.gui = {
 	BROADCAST_RESIZE_END : "gui-broadcast-window-resize-end",
 	BROADCAST_POPSTATE : "gui-broadcast-window-popstate",
 	BROADCAST_HASHCHANGE : "gui-broadcast-window-hashchange",
+	BROADCAST_ORIENTATIONCHANGE : "gui-broadcast-orientationchange",
 	BROADCAST_LOADING_CHANNELS : "gui-broadcast-loading-channels",
 	BROADCAST_CHANNELS_LOADED : "gui-broadcast-channels-loaded",
 	BROADCAST_TWEEN : "gui-broadcast-tween",
 
 	/** 
-	 * Plugin broadcast types
+	 * Plugin broadcast types that should leave core.
 	 */
-	BROADCAST_ORIENTATIONCHANGE : "gui-broadcast-orientationchange",
-	BROADCAST_ATTENTION_ENTER : "gui-broadcast-attention-on",
-	BROADCAST_ATTENTION_EXIT : "gui-broadcast-attention-off",
-	BROADCAST_ATTENTION_MOVE : "gui-broadcast-attention-go",
+	BROADCAST_ATTENTION_ENTER : "gui-broadcast-attention-enter",
+	BROADCAST_ATTENTION_EXIT : "gui-broadcast-attention-exit",
+	BROADCAST_ATTENTION_MOVE : "gui-broadcast-attention-move",
 
 	/*
 	 * @TODO: offload to modules
@@ -148,6 +158,11 @@ window.gui = {
 	CLASS_INVISIBLE : "_gui-invisible",
 	CLASS_HIDDEN : "_gui-hidden",
 	CLASS_COVER : "_gui-cover",
+
+	/**
+	 * Timeout in milliseconds before we decide that user is finished resizing the window.
+	 */
+	TIMEOUT_RESIZE_END : 250,
 
 	/**
 	 * Device orientation.

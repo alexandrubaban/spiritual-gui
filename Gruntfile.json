@@ -41,7 +41,9 @@
 	"src/modules/core.module/plugins/action.plugin/gui.Action.js",
 	"src/modules/core.module/plugins/action.plugin/gui.ActionPlugin.js",
 	"src/modules/core.module/plugins/action.plugin/gui.IActionHandler.js",
+	"src/modules/core.module/plugins/att.plugin/gui.Att.js",
 	"src/modules/core.module/plugins/att.plugin/gui.AttPlugin.js",
+	"src/modules/core.module/plugins/att.plugin/gui.IAttHandler.js",
 	"src/modules/core.module/plugins/box.plugin/gui.BoxPlugin.js",
 	"src/modules/core.module/plugins/broadcast.plugin/gui.Broadcast.js",
 	"src/modules/core.module/plugins/broadcast.plugin/gui.BroadcastPlugin.js",
@@ -58,7 +60,6 @@
 	"src/modules/core.module/plugins/transition.plugin/gui.TransitionPlugin.js",
 	"src/modules/core.module/plugins/transition.plugin/gui.Transition.js",
 	"src/modules/core.module/plugins/attention.plugin/gui.AttentionPlugin.js",
-	"src/modules/core.module/core.module.js",
 
 	"src/utils/gui.Client.js",
 	
@@ -67,6 +68,7 @@
 	"src/modules/core.module/spirits/gui.StyleSheetSpirit.js",
 	"src/modules/core.module/spirits/gui.ActionSpirit.js",
 	"src/modules/core.module/spirits/gui.CoverSpirit.js",
+	"src/modules/core.module/core.module.js",
 
 	"src/modules/jquery.module/jquery.module.js",
 

@@ -71,12 +71,20 @@ gui.LifePlugin = gui.Tracker.extend ( "gui.LifePlugin", {
 	invisible : undefined,
 
 	/**
+	 * Mapping plugin prefix to initialized status, 'false' 
+	 * is a lazy plugin that has not yet been constructed. 
+	 * @type {[type]}
+	 */
+	plugins : null,
+
+	/**
 	 * Construction time.
 	 * @overloads {gui.Tracker#construct}
 	 */
 	onconstruct : function () {
 		this._super.onconstruct ();
 		this._handlers = Object.create ( null );
+		this.plugins = Object.create ( null );
 	},
 
 	/**

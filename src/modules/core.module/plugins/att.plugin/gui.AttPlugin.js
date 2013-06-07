@@ -1,11 +1,12 @@
 /**
  * Methods to read and write DOM attributes.
  * @extends {gui.Tracker}
+ *  @using {gui.Arguments.confirmed}
  * @using {gui.Combo.chained}
  */
-gui.AttPlugin = ( function using ( chained ) {
+gui.AttPlugin = ( function using ( confirmed, chained ) {
 
-	return gui.Plugin.extend ( "gui.AttPlugin", {
+	return gui.Tracker.extend ( "gui.AttPlugin", {
 
 		/**
 		 * Get single element attribute cast to an inferred type.
@@ -34,7 +35,7 @@ gui.AttPlugin = ( function using ( chained ) {
 		 * @returns {boolean}
 		 */
 		has : function ( name ) {
-			gui.AttPlugin.has ( this.spirit.element, name );
+			return gui.AttPlugin.has ( this.spirit.element, name );
 		},
 
 		/**
@@ -74,6 +75,41 @@ gui.AttPlugin = ( function using ( chained ) {
 			gui.AttPlugin.setmap ( this.spirit.element, map );
 		},
 
+		/**
+		 * Add one or more action handlers.
+		 * @param {array|string} arg
+		 * @param @optional {object|function} handler
+		 * @returns {gui.ActionPlugin}
+		 */
+		add : confirmed ( "array|string", "(object|function)" ) (
+			chained ( function ( arg, handler ) {
+				handler = handler ? handler : this.spirit;
+				if ( gui.Interface.validate ( gui.IAttHandler, handler )) {
+					this._breakdown ( arg ).forEach ( function ( type ) {
+						this._addchecks ( type, [ handler ]);
+						this._onadd ( type );
+					}, this );
+				}
+			})
+		),
+
+		/**
+		 * Remove one or more action handlers.
+		 * @param {object} arg
+		 * @param @optional {object} handler
+		 * @returns {gui.ActionPlugin}
+		 */
+		remove : confirmed ( "array|string", "(object|function)" ) (
+			chained ( function ( arg, handler ) {
+				handler = handler ? handler : this.spirit;
+				if ( gui.Interface.validate ( gui.IAttHandler, handler )) {
+					this._breakdown ( arg ).forEach ( function ( type ) {
+						this._removechecks ( type, [ handler ]);
+					}, this );
+				}
+			})
+		),
+
 
 		// Secret .................................................
 
@@ -91,11 +127,52 @@ gui.AttPlugin = ( function using ( chained ) {
 		 */
 		$suspend : function ( action ) {
 			this.$suspended = true;
-			var res = action.apply ( this, arguments );
+			var res = action ();
 			this.$suspended = false;
 			return res;
+		},
+
+		/**
+		 * Lookup handler for attribute update.
+		 * @param {String} name
+		 * @param {String} value
+		 */
+		$onatt : function ( name, value ) {
+			var list, att, handler;
+			if ( name.startsWith ( gui.AttConfigPlugin.PREFIX )) {
+				this.spirit.attconfig.configureone ( name, value );
+			} else {
+				if (( list = this._xxx [ name ])) {
+					att = new gui.Att ( name, value );
+					list.forEach ( function ( checks ) {
+						handler = checks [ 0 ];
+						handler.onatt ( att );
+					}, this );
+				}
+			}
+		},
+
+
+		// Private .................................................
+		
+		/**
+		 * Resolve attribute listeners immediately when added.
+		 * @param {String} name
+		 */
+		_onadd : function ( name ) {
+			if ( this.has ( name )) {
+				var value = this.get ( name );
+				if ( name.startsWith ( gui.AttConfigPlugin.PREFIX )) {
+					this.spirit.attconfig.configureone ( name, value );
+				} else {
+					this.$onatt ( name, value );
+				}
+			}
 		}
 
+
+		// @TODO: Remember to think about _cleanup () !!!!!
+		
 		
 	}, {}, { // Static ...........................................
 
@@ -123,9 +200,13 @@ gui.AttPlugin = ( function using ( chained ) {
 			} else {
 				value = String ( value );
 				if ( elm.getAttribute ( name ) !== value ) {
-					elm.setAttribute ( name, value );
 					if ( spirit ) {
-						spirit.attconfig.configureone ( name, value );
+						spirit.att.$suspend ( function () {
+							elm.setAttribute ( name, value );	
+						});
+						spirit.att.$onatt ( name, value );
+					} else {
+						elm.setAttribute ( name, value );	
 					}
 				}
 			}
@@ -149,9 +230,15 @@ gui.AttPlugin = ( function using ( chained ) {
 		 */
 		del : chained ( function ( elm, name ) {
 			var spirit = elm.spirit;
-			elm.removeAttribute ( name );
 			if ( spirit ) {
-				spirit.attconfig.configureone ( name, null );
+				spirit.att.$suspend ( function () {
+					elm.removeAttribute ( name );
+				});
+				if ( !spirit.attconfig.configureone ( name, null )) {
+					spirit.att.$onatt ( name, null );
+				}
+			} else {
+				elm.removeAttribute ( name );
 			}
 		}),
 
@@ -193,4 +280,4 @@ gui.AttPlugin = ( function using ( chained ) {
 
 	});
 
-}( gui.Combo.chained ));
+}( gui.Arguments.confirmed, gui.Combo.chained ));

@@ -28,9 +28,12 @@ gui.AttConfigPlugin = gui.Plugin.extend ( "gui.AttConfigPlugin", {
 	 * This should probably only ever be invoked by the {gui.AttPlugin}.
 	 * @param {String} name
 	 * @param {String} value
+	 * @returns {boolean} True when a configuration was performed (@TODO not used)
 	 */
 	configureone : function ( name, value ) {
-		this._evaluate ( this._lookup ( name ), value );
+		if ( name.startsWith ( gui.AttConfigPlugin.PREFIX )) {
+			this._evaluate ( this._lookup ( name ), value );
+		}
 	},
 
 
@@ -42,40 +45,39 @@ gui.AttConfigPlugin = gui.Plugin.extend ( "gui.AttConfigPlugin", {
 	 * @param {String} value
 	 */
 	_evaluate : function ( name, value ) {
-		var prefix = "gui.",
+		var prefix = gui.AttConfigPlugin.PREFIX,
+			didconfigure = false,
 			struct = this.spirit,
 			success = true,
 			prop = null,
 			cuts = null;
-		if ( name.startsWith ( prefix )) {
-			name = name.split ( prefix )[ 1 ];
-			prop = name;
-			if ( name.indexOf ( "." ) >-1 ) {
-				cuts = name.split ( "." );
-				cuts.forEach ( function ( cut, i ) {
-					if ( gui.Type.isDefined ( struct )) {
-						if ( i < cuts.length - 1 ) {
-							struct = struct [ cut ];
-						} else {
-							prop = cut;
-						}
+		name = prop = name.split ( prefix )[ 1 ];
+		if ( name.indexOf ( "." ) >-1 ) {
+			cuts = name.split ( "." );
+			cuts.forEach ( function ( cut, i ) {
+				if ( gui.Type.isDefined ( struct )) {
+					if ( i < cuts.length - 1 ) {
+						struct = struct [ cut ];
 					} else {
-						success = false;
+						prop = cut;
 					}
-				});
-			}
-			if ( success && gui.Type.isDefined ( struct [ prop ])) {
-				// Autocast (string) value to an inferred type.
-				// "false" becomes boolean, "23" becomes number.
-				value = gui.Type.cast ( value );
-				if ( gui.Type.isFunction ( struct [ prop ])) {
-					struct [ prop ] ( value );
 				} else {
-					struct [ prop ] = value;
+					success = false;
 				}
+			});
+		}
+		if ( success && gui.Type.isDefined ( struct [ prop ])) {
+			// Autocast (string) value to an inferred type.
+			// "false" becomes boolean, "23" becomes number.
+			value = gui.Type.cast ( value );
+			if ( gui.Type.isFunction ( struct [ prop ])) {
+				struct [ prop ] ( value );
 			} else {
-				console.error ( "No definition for \"" + name + "\": " + this.spirit.toString ());
+				struct [ prop ] = value;
 			}
+			didconfigure = true;
+		} else {
+			console.error ( "No definition for \"" + name + "\": " + this.spirit.toString ());
 		}
 	},
 
@@ -86,7 +88,7 @@ gui.AttConfigPlugin = gui.Plugin.extend ( "gui.AttConfigPlugin", {
 	 * @returns {String}
 	 */
 	_lookup : function ( name ) {
-		var prefix = "gui.";
+		var prefix = gui.AttConfigPlugin.PREFIX;
 		if ( this.map && this.map.hasOwnProperty ( name )) {
 			name = this.map [ name ];
 			if ( !name.startsWith ( prefix )) {
@@ -99,6 +101,12 @@ gui.AttConfigPlugin = gui.Plugin.extend ( "gui.AttConfigPlugin", {
 
 }, { // Static ...............................................................
 
+
+	/**
+	 * Magic attribute prefix to trigger attconfig.
+	 * @type {String}
+	 */
+	PREFIX : "gui.",
 
 	/**
 	 * @type {boolean}

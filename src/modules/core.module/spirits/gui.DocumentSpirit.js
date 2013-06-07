@@ -1,7 +1,7 @@
 /**
  * Spirit of the root HTML element.
  * @extends {gui.Spirit}
- * Spirit of the HTML element.
+ * @TODO: Mechanism to whitelist xdomain hosts (postMessages)
  */
 gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 
@@ -12,49 +12,25 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 		this._super.onconstruct ();
 		this._dimension = new gui.Dimension ();
 		this.event.add ( "message", this.window );
-		this.action.addGlobal ([ 
-			gui.ACTION_DOC_FIT,
-			gui.$ACTION_XFRAME_VISIBILITY
-		]);
-		Object.keys ( this._messages ).forEach ( function ( type ) {
-			var target = this.document;
-			switch ( type ) {
-				case "scroll" :
-				case "resize" : // ??????
-				case "popstate" :
-				case "hashchange" :
-					var win = this.window;
-					target = win === top ? win : null;
-					break;
-			}
-			if ( target ) {
-				this.event.add ( type, target );
-			}
-		}, this );
+		this.action.addGlobal ( gui.ACTION_DOC_FIT );
+		this._broadcastevents ();
 		if ( this.document === document ) {
 			this._constructTop ();
 		}
-		/*
-		 * BUG!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-		 * @TODO it appears we *must* listen for touch start events
-		 * for any spirit to subscribe to touch-end events only!!!!
-		 * @see {gui.SpiritTouch}
-		 *
-		if ( gui.Type.isDefined ( this.touch )) {
-			this.touch.add ( gui.SpiritTouch.FINGER_START );
-		}
-		*/
-
 		// @TODO iframe hello.
 		this.action.dispatchGlobal ( gui.ACTION_DOC_ONCONSTRUCT );
 	},
 
 	/**
 	 * Get ready.
-	 * @TODO think more about late loading (module loading) scenario...
+	 * @TODO think more about late loading (module loading) scenario
+	 * @TODO let's go _waiting only if parent is a Spiritual document
 	 */
 	onready : function () {
 		this._super.onready ();
+		if (( this.waiting = this.window.gui.hosted )) {
+			this.action.addGlobal ( gui.$ACTION_XFRAME_VISIBILITY );
+		}
 		this.action.dispatchGlobal ( gui.ACTION_DOC_ONSPIRITUALIZED );
 		if ( this.document.readyState === "complete" && !this._loaded ) {
 			this.onload ();
@@ -88,7 +64,7 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 					case "load" :
 						e.stopPropagation ();
 						if ( !this._loaded ) {
-							this._onload ();
+							this._onload (); // @TODO huh? that doesn't exist!
 						}
 						break;
 					case "message" :
@@ -96,15 +72,15 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 						break;
 				}
 				// broadcast event globally?
-				var message = this._messages [ e.type ];
+				var message = gui.DocumentSpirit.broadcastevents [ e.type ];
 				if ( gui.Type.isDefined ( message )) {
-					this._broadcastEvent ( e, message );
+					this._broadcastevent ( e, message );
 				}
 		}
 	},
 
 	/**
-	 * Handle action.
+	 * Handle action.s
 	 * @param {gui.Action} a
 	 */
 	onaction : function ( a ) {
@@ -116,18 +92,35 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 				this.fit ( a.data === true );
 				break;
 			case gui.$ACTION_XFRAME_VISIBILITY : 
-				if ( a.data === true ) {
-					this.dom.govisible ();
-				} else {
-					this.dom.goinvisible ();
-				}
+				this._waiting = false;
+				gui.Spirit.$visible ( this, a.data );
 				a.consume ();
 				break;
 		}
 	},
 
 	/**
-	 * Relay visibility from ancestor frame.
+	 * Don't crawl for visibility inside iframed documents until 
+	 * hosting {gui.IframeSpirit} has reported visibility status.
+	 * @param {gui.Crawler} crawler
+	 */
+	oncrawler : function ( crawler ) {
+		var dir = this._super.oncrawler ( crawler );
+		if ( dir === gui.Crawler.CONTINUE ) {
+			switch ( crawler.type ) {
+				case gui.CRAWLER_VISIBLE : 
+				case gui.CRAWLER_INVISIBLE :
+					if ( this._waiting ) {
+						dir = gui.Crawler.STOP;
+					}
+					break;
+			}
+		}
+		return dir;
+	},
+
+	/**
+	 * Relay visibility from ancestor frame (match iframe visibility).
 	 */
 	onvisible : function () {
 		this.css.remove ( gui.CLASS_INVISIBLE );
@@ -135,7 +128,7 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 	},
 
 	/**
-	 * Relay visibility from ancestor frame.
+	 * Relay visibility from ancestor frame (match iframe visibility).
 	 */
 	oninvisible : function () {
 		this.css.add ( gui.CLASS_INVISIBLE );
@@ -205,7 +198,7 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 		var sup = win.parent;
 		if ( win !== sup ) {
 			this.dom.qall ( "iframe", gui.IframeSpirit ).forEach ( function ( iframe ) {
-				if ( iframe.external ) {
+				if ( iframe.xhost ) {
 					iframe.contentWindow.postMessage ( msg, "*" );
 				}
 			});
@@ -225,23 +218,60 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 	_loaded : false,
 
 	/**
-	 * Publish a global notification about an event in this document. This information 
-	 * will be broadcasted to all windows. This way, a click event in one iframe might 
-	 * close a menu in another iframe; and mousemove events can be listened for in all 
-	 * documents at once. Important: If you stopPropagate() an event so that the 
-	 * gui.DocumentSpirit cannot handle it, you should broadcast this stuff *manually*.
+	 * Waiting for hosting {gui.IframeSpirit} to relay visibility status?
+	 * @type {boolean}
+	 */
+	_waiting : false,
+
+	/**
+	 * Document width and height tracked in top document.
+	 * @type {gui.Dimension} 
+	 */
+	_dimension : null,
+
+	/**
+	 * Timeout before we broadcast window resize ended. 
+	 * This timeout cancels itself on each resize event.
+	 * @type {number}
+	 */
+	_timeout : null,
+
+	/**
+	 * Setup to fire global broadcasts on common DOM events.
+	 * @see {gui.DocumentSpirit#onevent}
+	 */
+	_broadcastevents : function () {
+		Object.keys ( gui.DocumentSpirit.broadcastevents ).forEach ( function ( type ) {
+			var target = this.document;
+			switch ( type ) {
+				case "scroll" :
+				case "resize" : // ??????
+				case "popstate" :
+				case "hashchange" :
+					var win = this.window;
+					target = win === top ? win : null;
+					break;
+			}
+			if ( target ) {
+				this.event.add ( type, target );
+			}
+		}, this );
+	},
+
+	/**
+	 * Fire global broadcast on DOM event.
 	 * @param {Event} e
 	 * @param {String} message
 	 */
-	_broadcastEvent : function ( e, message ) {
+	_broadcastevent : function ( e, message ) {
 		switch ( e.type ) {
 				case "mousemove" :
 				case "touchmove" :
 					try {
 						gui.broadcastGlobal ( message, e );
-					} catch ( x ) {
+					} catch ( exception ) {
 						this.event.remove ( e.type, e.target );
-						throw x;
+						throw exception;
 					}
 					break;
 				default :
@@ -274,48 +304,17 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 			if ( msg.startsWith ( pattern )) {
 				var a = gui.Action.parse ( msg );
 				if ( a.direction === gui.Action.DESCEND ) {
-					this.action.$handleownaction = true;
-					this.action.descendGlobal ( 
-						a.type, 
-						a.data
-					);
+					if ( a.$instanceid === this.window.gui.$contextid ) {
+						this.action.$handleownaction = true;
+						this.action.descendGlobal ( 
+							a.type, 
+							a.data
+						);
+					}
 				}
 			}
 		}
 	},
-
-	/**
-	 * Mapping DOM events to broadcast messages.
-	 * @type {Map<String,String>}
-	 */
-	_messages : {
-		"click" : gui.BROADCAST_MOUSECLICK,
-		"mousedown" : gui.BROADCAST_MOUSEDOWN,
-		"mouseup" : gui.BROADCAST_MOUSEUP,
-		"scroll" : gui.BROADCAST_SCROLL, // top ??????????
-		"resize" : gui.BROADCAST_RESIZE, // top ??????????
-		"hashchange" : gui.BROADCAST_HASHCHANGE, // top ??????????
-		"popstate" : gui.BROADCAST_POPSTATE // top ??????????
-		// "mousemove" : gui.BROADCAST_MOUSEMOVE,
-		// "touchstart" : gui.BROADCAST_TOUCHSTART,
-		//"touchend" : gui.BROADCAST_TOUCHEND,
-		//"touchcancel" : gui.BROADCAST_TOUCHCANCEL,
-		//"touchleave" : gui.BROADCAST_TOUCHLEAVE,
-		//"touchmove" : gui.BROADCAST_TOUCHMOVE,
-	},
-
-	/**
-	 * Document width and height tracked in top document.
-	 * @type {gui.Dimension} 
-	 */
-	_dimension : null,
-
-	/**
-	 * Timeout before we broadcast window resize ended. 
-	 * This timeout cancels itself on each resize event.
-	 * @type {number}
-	 */
-	_timeout : null,
 
 	/**
 	 * Dispatch document fit. Google Chrome may fail 
@@ -363,7 +362,7 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 		this.window.clearTimeout ( this._timeout );
 		this._timeout = this.window.setTimeout ( function () {
 			gui.broadcastGlobal ( gui.BROADCAST_RESIZE_END );
-		}, gui.DocumentSpirit.TIMEOUT_RESIZE_END );
+		}, gui.TIMEOUT_RESIZE_END );
 	},
 
 	/**
@@ -381,8 +380,17 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 }, {}, { // Static .............................................................
 
 	/**
-	 * Timeout in milliseconds before we decide 
-	 * that user is finished resizing the window.
+	 * Mapping DOM events to broadcast messages.
+	 * @type {Map<String,String>}
 	 */
-	TIMEOUT_RESIZE_END : 250
+	broadcastevents : {
+		"click" : gui.BROADCAST_MOUSECLICK,
+		"mousedown" : gui.BROADCAST_MOUSEDOWN,
+		"mouseup" : gui.BROADCAST_MOUSEUP,
+		"scroll" : gui.BROADCAST_SCROLL, // top ?
+		"resize" : gui.BROADCAST_RESIZE, // top ?
+		"hashchange" : gui.BROADCAST_HASHCHANGE, // top ?
+		"popstate" : gui.BROADCAST_POPSTATE // top ?
+		// "mousemove" : gui.BROADCAST_MOUSEMOVE (pending simplified gui.EventSummay)
+	}
 });
