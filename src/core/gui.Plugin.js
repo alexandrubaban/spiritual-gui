@@ -43,19 +43,17 @@ gui.Plugin = gui.Class.create ( "gui.Plugin", Object.prototype, {
 	// Secret ...........................................................
 
 	/**
-	 * Secret constructor. Can we identify the 
-	 * spirit and it's associated window? Not, 
-	 * then we are maybe inside a Web Worker.
+	 * Secret constructor. Called before onconstruct. 
 	 * @param {gui.Spirit} spirit
 	 */
 	$onconstruct : function ( spirit ) {
 		this.spirit = spirit || null;
-		this.context = spirit ? spirit.window : null;
+		this.context = spirit ? spirit.window : null; // web worker scenario
 		this.onconstruct ();
 	},
 
 	/**
-	 * Secret destructor.
+	 * Secret destructor. Called after ondestruct.
 	 */
 	$ondestruct : function () {
 		var debug = this.spirit.window.gui.debug;
@@ -89,54 +87,32 @@ gui.Plugin = gui.Class.create ( "gui.Plugin", Object.prototype, {
 }, { // Static ..................................................
 
 	/**
-	 * Lazy initialization stuff.
-	 * @experimental
-	 * @param {gui.Plugin} Plugin
-	 * @param {String} prefix
+	 * Lazy plugins are newed up only when needed. Let's create an 
+	 * accessor for the prefix that will instantiate the plugin and 
+	 * create a new accesor while we're at it. To detect if a plugin 
+	 * has been instantiated, check the {gui.LifePlugin#plugins} map, 
+	 * mapping prefixes to a boolean status.
 	 * @param {gui.Spirit} spirit
+	 * @param {String} prefix
+	 * @param {function} Plugin
 	 */
-	later : function ( Plugin, prefix, spirit, map ) {
-		map [ prefix ] = true;
+	runonaccessor : function ( spirit, prefix, Plugin ) {
 		Object.defineProperty ( spirit, prefix, {
 			enumerable : true,
 			configurable : true,
 			get : function () {
-				if ( map [ prefix ] === true ) {
-					map [ prefix ] = new Plugin ( spirit );
-					map [ prefix ].onconstruct ();
-				}
-				return map [ prefix ];
-			},
-			set : function ( x ) {
-				map [ prefix ] = x; // or what?
+				var plugin = new Plugin ( this );
+				this.life.plugins [ prefix ] = true;
+				Object.defineProperty ( this, prefix, {
+					enumerable : true,
+					configurable : true,
+					get : function () {
+						return plugin;
+					}
+				});
+				return plugin;
 			}
 		});
 	}
-
-	/**
-	 * Lazy initialization stuff.
-	 * @experimental
-	 * @param {gui.Plugin} Plugin
-	 * @param {String} prefix
-	 * @param {gui.Spirit} spirit
-	 *
-	later : function ( Plugin, prefix, spirit, map ) {
-		map [ prefix ] = true;
-		Object.defineProperty ( spirit, prefix, {
-			enumerable : true,
-			configurable : true,
-			get : function () {
-				if ( map [ prefix ] === true ) {
-					map [ prefix ] = new Plugin ( spirit );
-					map [ prefix ].onconstruct ();
-				}
-				return map [ prefix ];
-			},
-			set : function ( x ) {
-				map [ prefix ] = x; // or what?
-			}
-		});
-	}
-	*/
 
 });

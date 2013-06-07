@@ -44,7 +44,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	},
 	
 	
-	// Sync lifecycle (invoked when it happens ) ......................................
+	// Sync lifecycle .................................................................
 
 	/**
 	 * You can safely overload or overwrite methods in the lifecycle section, 
@@ -57,7 +57,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	 * element may not be positioned in the document DOM at this point. 
 	 */
 	onconstruct : function () {
-		this.$plugin ();
+		this.$pluginplugins ();
 		this.$debug ( true );
 		this.life.goconstruct ();
 	},
@@ -65,7 +65,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	/**
 	 * `onconfigure` gets callend immediately after construction. This 
 	 * instructs the spirit to parse configuration attributes in markup. 
-	 * @TODO Explain this
+	 * @see {gui.AttConfigPlugin}
 	 */
 	onconfigure : function () {
 		this.attconfig.configureall ();
@@ -115,8 +115,12 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	 * @returns {udenfined|boolean} Return false to stay alive
 	 */
 	onexit : function () {
-		this.life.goexit (); // do not call `_super.onexit` if you return false
+		this.life.goexit ();
 		return undefined;
+
+		// subclass: don't invoke `this._super.onexit` if you return false!
+		// TODO: don't relay on that, just get these step things out of here
+
 	},
 	
 	/**
@@ -132,7 +136,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	},
 
 
-	// Async lifecycle (invoked on milliseconds delay) .........................................
+	// Async lifecycle .......................................................................
 	
 	/**
 	 * `onvisible` has some explaining to do.
@@ -150,7 +154,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	
 
 	// Handlers ..............................................................................
-
+	
 	/**	
 	 * Handle crawler (tell me more)
 	 * @param {gui.Crawler} crawler
@@ -160,42 +164,13 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 		return gui.Crawler.CONTINUE;
 	},
 	
-	/**
-	 * Handle life (tell me more)
-	 * @param {gui.Life} life
-	 */
-	onlife : function ( life ) {},
-	
 	
 	// More stuff ............................................................................
 
 	/**
-	 * Mark spirit visible. THis adds the classname "_gui-invisible" and 
-	 * triggers a call to `oninvisible()` on this and all descendant spirits.
-	 *
-	 * @TODO: NOT IF INSIDE AN *IN*VISIBLE SECTION !!!!!!!!!!!!!!
-	 * @TODO: move this method to DOMPlugin
-	 * 
-	 * @returns {gui.Spirit}
-	 *
-	invisible : function () {
-		return gui.Spirit.invisible ( this );
-	},
-	
-	/**
-	 * Mark spirit visible. Removes the classname "_gui-invisible" and 
-	 * triggers a call to `onvisible()` on this and all descendant spirits.
-	 * @returns {gui.Spirit}
-	 *
-	visible : function () {
-		return gui.Spirit.visible ( this );
-	},
-	*/
-
-	/**
 	 * Terminate the spirit and remove the element (optionally keep it). 
 	 * @param {boolean} keep True to leave the element on stage.
-	 * @TODO Terrible boolean trap in this API
+	 * @TODO Terrible boolean trap in this API 
 	 */
 	dispose : function ( keep ) {
 		if ( !keep ) {
@@ -208,13 +183,8 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	// Secret ................................................................................
 	
 	/**
-	 * Mapping lazy plugins to prefixes.
-	 * @type {Map<String,gui.Plugin>}
-	 */
-	$lazyplugins : null,
-
-	/**
-	 * Secret constructor. The $instanceid is generated standard by the {gui.Class}
+	 * Secret constructor. Invoked before `onconstruct`. The 
+	 * `$instanceid` is generated standard by the {gui.Class}
 	 * @param {Element} elm
 	 * @param {Document} doc
 	 * @param {Window} win
@@ -229,47 +199,47 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	},
 
 	/**
-	 * Total destruction.
-	 * @TODO might be going a little overboard with this
+	 * Secret destructor. Invoked after `ondestruct`.
 	 *
-	 * - Null lazy plugins so that we don't accidentaly instantiate them
-	 * - destruct remaining plugins, saving {gui.Life} plugin for last
-	 * - null all properties and hope for the garbage collector to notice
+	 * - Nuke lazy plugins so that we don't accidentally instantiate them
+	 * - Destruct remaining plugins, saving {gui.Life} plugin for last
+	 * - Replace all properties with an accessor to throw an exception
 	 */
 	$ondestruct : function () {
-		// nuke lazy plugins so that next iteration won't instantiate them
-		var map = this.$lazyplugins;
-		gui.Object.each ( map, function ( prefix ) {
-			if ( map [ prefix ] === true ) {
-				this [ prefix ] = null;
+		var prefixes = [];
+		gui.Object.each ( this.life.plugins, function ( prefix, active ) {
+			if ( active ) {
+				if ( prefix !== "life" ) {
+					prefixes.push ( prefix );
+				}
+			} else {
+				Object.defineProperty ( this, prefix, {
+					enumerable : true,
+					configurable : true,
+					get : function () {},
+					set : function () {}
+				});
 			}
 		}, this );
-		// collect all non-native properties
-		var nativ = this.window.Object;
-		var props = Object.keys ( this ).filter ( function ( key ) {
-			return nativ [ key ] === undefined;
-		});
-		// collect all plugins (except life)
-		var thing = null;
-		var plugs = props.filter ( function ( prop ) { // @TODO this.$plugins property
-			thing = this [ prop ];
-			return gui.Type.isObject ( thing ) && 
-				thing instanceof gui.Plugin && 
-				thing !== this.life;
-		}, this ).map ( function ( prop ) {
-			return this [ prop ];
+		this.$nukeplugins ( prefixes.sort ());
+		this.$nukeplugins ([ "life" ]);
+		this.$nukeallofit ();
+	},
+
+	/**
+	 * Nuke plugins in two steps.
+	 * @param {Array<String>} prefixes
+	 */
+	$nukeplugins : function ( prefixes ) {
+		var plugins = prefixes.map ( function ( key ) {
+			return this [ key ];
 		}, this );
-		// destruct plugins in two phases
-		plugs.sort ().map ( function ( plug ) {
-			plug.ondestruct ();
-			return plug;
-		}).forEach ( function ( plug ) {
-			plug.$ondestruct ();
+		plugins.forEach ( function ( plugin ) {
+			plugin.ondestruct ();
 		});
-		// destruct life last and null everything
-		this.life.ondestruct ();
-		this.life.$ondestruct ();
-		this.$null ( props );
+		plugins.forEach ( function ( plugin ) {
+			plugin.$ondestruct ();
+		});
 	},
 
 	/**
@@ -277,53 +247,37 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	 * @TODO: scan property descriptor and skip unmutable properties (would throw in strict?)
 	 * @param {Array<String>} props
 	 */
-	$null : function ( props ) {
-		var myelm = this.element;
-		var debug = this.window.gui.debug;
+	$nukeallofit : function () {
+		try {
+			this.element.spirit = null;
+		} catch ( denied ) {} // explorer may deny permission in frames (still relevant?)
 		var nativ = this.window.Object;
-		if ( myelm ) {
-			try {
-				myelm.spirit = null;
-			} catch ( denied ) {} // explorer may deny permission in frames, strange as that is
+		for ( var prop in this ) {
+			if ( nativ [ prop ] === undefined ) {
+				Object.defineProperty ( this, prop, gui.Spirit.DENIED );
+			}
 		}
-		props.forEach ( function ( prop ) {
-			Object.defineProperty ( this, prop, gui.Spirit.DENIED );
-		}, this );
 	},
 
 	/**
-	 * Plug in the plugins.
+	 * Plug in the plugins. Lazy plugins will be newed up when needed.
 	 *
-	 * - life plugin first
-	 * - config plugin second
+	 * - {gui.LifePlugin} first
+	 * - {gui.AttConfigPlugin} second
 	 * - bonus plugins galore
 	 */
-	$plugin : function () {
+	$pluginplugins : function () {
+		var Plugin, now, plugins = this.constructor.$plugins;
 		this.life = new gui.LifePlugin ( this );
 		this.attconfig = new gui.AttConfigPlugin ( this );
-		this.$lazyplugins = Object.create ( null );
-		var prefixes = [], plugins = this.constructor.$plugins;
-		gui.Object.each ( plugins, function ( prefix, Plugin ) {
-			switch ( Plugin ) {
-				case gui.LifePlugin :
-				case gui.ConfigPlugin :
-					break;
-				default :
-					if ( Plugin.lazy ) { // ( this.life.plugins [ prefix ] = Plugin.lazy )
-						gui.Plugin.later ( Plugin, prefix, this, this.$lazyplugins );
-					} else {
-						alert ( prefix )
-						this [ prefix ] = new Plugin ( this );
-					}
-					prefixes.push ( prefix );
-					break;
-			}
-		}, this );
-		this.life.onconstruct ();
-		this.attconfig.onconstruct ();
-		prefixes.forEach ( function ( prefix ) {
-			if ( !this.$lazyplugins [ prefix ]) { // this.life.plugins [ prefix ]
-				this [ prefix ].onconstruct ();
+		Object.keys ( plugins ).filter ( function ( prefix ) {
+			return prefix !== "life" && prefix !== "attconfig";
+		}).sort ().forEach ( function ( prefix ) {
+			Plugin = plugins [ prefix ];
+			if (( this.life.plugins [ prefix ] = !Plugin.lazy )) {
+				this [ prefix ] = new Plugin ( this );
+			} else {
+				gui.Plugin.runonaccessor ( this, prefix, Plugin );
 			}
 		}, this );
 	},
@@ -459,7 +413,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	// Secret ................................................................................
 	
 	/**
-	 * Mapping plugin constructor to plugin prefix.
+	 * Mapping plugin prefix to plugin constructor.
 	 * @type {Map<String,function>}
 	 */
 	$plugins : Object.create ( null )
@@ -481,14 +435,14 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	},
 
 	/**
-	 * Mark spirit visible. The spirit must be marked invisible for this to have any effect.
+	 * Mark spirit visible. Once visibility has been resolved on startup, 
+	 * the spirit must have been marked invisible for this to have effect.
 	 * @param {gui.Spirit} spirit
 	 * @returns {gui.Spirit}
 	 */
 	govisible : function ( spirit ) {
 		var classname = gui.CLASS_INVISIBLE;
-		if ( true || spirit.css.contains ( classname )) {
-			console.log ( "hacked it" );
+		if ( spirit.life.visible === undefined || spirit.css.contains ( classname )) {
 			spirit.css.remove ( classname );
 			this.$visible ( spirit, true );
 		}
