@@ -31,7 +31,9 @@ gui.AttConfigPlugin = gui.Plugin.extend ( "gui.AttConfigPlugin", {
 	 * @returns {boolean} True when a configuration was performed (@TODO not used)
 	 */
 	configureone : function ( name, value ) {
-		return this._evaluate ( this._lookup ( name ), value );
+		if ( name.startsWith ( gui.AttConfigPlugin.PREFIX )) {
+			this._evaluate ( this._lookup ( name ), value );
+		}
 	},
 
 
@@ -41,7 +43,6 @@ gui.AttConfigPlugin = gui.Plugin.extend ( "gui.AttConfigPlugin", {
 	 * Evaluate single attribute in search for "gui." prefix.
 	 * @param {String} name
 	 * @param {String} value
-	 * @returns {boolean} (@TODO not used)
 	 */
 	_evaluate : function ( name, value ) {
 		var prefix = gui.AttConfigPlugin.PREFIX,
@@ -50,38 +51,34 @@ gui.AttConfigPlugin = gui.Plugin.extend ( "gui.AttConfigPlugin", {
 			success = true,
 			prop = null,
 			cuts = null;
-		if ( name.startsWith ( prefix )) {
-			name = name.split ( prefix )[ 1 ];
-			prop = name;
-			if ( name.indexOf ( "." ) >-1 ) {
-				cuts = name.split ( "." );
-				cuts.forEach ( function ( cut, i ) {
-					if ( gui.Type.isDefined ( struct )) {
-						if ( i < cuts.length - 1 ) {
-							struct = struct [ cut ];
-						} else {
-							prop = cut;
-						}
+		name = prop = name.split ( prefix )[ 1 ];
+		if ( name.indexOf ( "." ) >-1 ) {
+			cuts = name.split ( "." );
+			cuts.forEach ( function ( cut, i ) {
+				if ( gui.Type.isDefined ( struct )) {
+					if ( i < cuts.length - 1 ) {
+						struct = struct [ cut ];
 					} else {
-						success = false;
+						prop = cut;
 					}
-				});
-			}
-			if ( success && gui.Type.isDefined ( struct [ prop ])) {
-				// Autocast (string) value to an inferred type.
-				// "false" becomes boolean, "23" becomes number.
-				value = gui.Type.cast ( value );
-				if ( gui.Type.isFunction ( struct [ prop ])) {
-					struct [ prop ] ( value );
 				} else {
-					struct [ prop ] = value;
+					success = false;
 				}
-				didconfigure = true;
-			} else {
-				console.error ( "No definition for \"" + name + "\": " + this.spirit.toString ());
-			}
+			});
 		}
-		return didconfigure;
+		if ( success && gui.Type.isDefined ( struct [ prop ])) {
+			// Autocast (string) value to an inferred type.
+			// "false" becomes boolean, "23" becomes number.
+			value = gui.Type.cast ( value );
+			if ( gui.Type.isFunction ( struct [ prop ])) {
+				struct [ prop ] ( value );
+			} else {
+				struct [ prop ] = value;
+			}
+			didconfigure = true;
+		} else {
+			console.error ( "No definition for \"" + name + "\": " + this.spirit.toString ());
+		}
 	},
 
 	/**

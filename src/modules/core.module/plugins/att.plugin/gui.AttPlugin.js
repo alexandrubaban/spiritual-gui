@@ -35,7 +35,7 @@ gui.AttPlugin = ( function using ( confirmed, chained ) {
 		 * @returns {boolean}
 		 */
 		has : function ( name ) {
-			gui.AttPlugin.has ( this.spirit.element, name );
+			return gui.AttPlugin.has ( this.spirit.element, name );
 		},
 
 		/**
@@ -87,6 +87,7 @@ gui.AttPlugin = ( function using ( confirmed, chained ) {
 				if ( gui.Interface.validate ( gui.IAttHandler, handler )) {
 					this._breakdown ( arg ).forEach ( function ( type ) {
 						this._addchecks ( type, [ handler ]);
+						this._onadd ( type );
 					}, this );
 				}
 			})
@@ -137,16 +138,41 @@ gui.AttPlugin = ( function using ( confirmed, chained ) {
 		 * @param {String} value
 		 */
 		$onatt : function ( name, value ) {
-			var list = this._xxx [ name ];
-			if ( list ) {
-				var att = new gui.Att ( name, value );
-				list.forEach ( function ( checks ) {
-					var handler = checks [ 0 ];
-					handler.onatt ( att );
-				}, this );
+			var list, att, handler;
+			if ( name.startsWith ( gui.AttConfigPlugin.PREFIX )) {
+				this.spirit.attconfig.configureone ( name, value );
+			} else {
+				if (( list = this._xxx [ name ])) {
+					att = new gui.Att ( name, value );
+					list.forEach ( function ( checks ) {
+						handler = checks [ 0 ];
+						handler.onatt ( att );
+					}, this );
+				}
+			}
+		},
+
+
+		// Private .................................................
+		
+		/**
+		 * Resolve attribute listeners immediately when added.
+		 * @param {String} name
+		 */
+		_onadd : function ( name ) {
+			if ( this.has ( name )) {
+				var value = this.get ( name );
+				if ( name.startsWith ( gui.AttConfigPlugin.PREFIX )) {
+					this.spirit.attconfig.configureone ( name, value );
+				} else {
+					this.$onatt ( name, value );
+				}
 			}
 		}
 
+
+		// @TODO: Remember to think about _cleanup () !!!!!
+		
 		
 	}, {}, { // Static ...........................................
 
@@ -178,30 +204,11 @@ gui.AttPlugin = ( function using ( confirmed, chained ) {
 						spirit.att.$suspend ( function () {
 							elm.setAttribute ( name, value );	
 						});
-						if ( name.startsWith ( gui.AttConfigPlugin.PREFIX )) {
-							spirit.attconfig.configureone ( name, value );
-						} else {
-							spirit.att.$onatt ( name, value );
-						}
+						spirit.att.$onatt ( name, value );
 					} else {
 						elm.setAttribute ( name, value );	
 					}
 				}
-
-				/*
-				//if ( elm.getAttribute ( name ) !== value ) {
-				if ( spirit ) {
-					spirit.att.$suspend ( function () {
-						elm.setAttribute ( name, value );	
-					});
-					if ( !spirit.attconfig.configureone ( name, value )) {
-						spirit.att.$onatt ( name, value );
-					}
-				} else {
-					elm.setAttribute ( name, value );	
-				}
-				//}
-				*/
 			}
 		}),
 
