@@ -48,8 +48,18 @@ gui.module ( "flex", {
 	 * @param {Window} context
 	 */
 	onafterspiritualize : function ( context ) {
+		var root = context.document.documentElement.spirit;
 		if ( context.gui.flexmode === gui.FLEXMODE_EMULATED ) {
-			context.gui.reflex ();
+			try {
+				gui.CSSPlugin.compute ( root, "display" );
+				context.gui.reflex ();
+			} catch ( geckoexception ) {
+				/*
+				if ( !gui.Type.isDefined ( root.life.visibility )) {
+					root.life.add ( gui.LIFE_VISIBLE, this ); // doesn't work...
+				}
+				*/
+			}
 		}
 		gui.Broadcast.addGlobal ( gui.BROADCAST_RESIZE_END, {
 			onbroadcast : function () {
@@ -67,6 +77,20 @@ gui.module ( "flex", {
 	oncontextunload : function ( context ) {
 		gui.FlexCSS.unload ( context );
 	},
+
+	/**
+	 * Still no luck with Gecko unless we alert at this point :(
+	 * Perhaps onvisible not updated right in gui.DocumentSpirit?
+	 * @param {gui.Life} life
+	 *
+	onlife : function ( life ) {
+		if ( life.type === gui.LIFE_VISIBLE ) {
+			setTimeout(function(){
+				life.target.window.gui.reflex ();
+			},250);
+		}
+	},
+	*/
 
 
 	// Private ...................................................

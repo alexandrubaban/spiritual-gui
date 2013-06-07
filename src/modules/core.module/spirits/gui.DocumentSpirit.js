@@ -95,6 +95,12 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 				this._waiting = false;
 				gui.Spirit.$visible ( this, a.data );
 				a.consume ();
+				/*
+				 * @TODO: Could this be moved to 'onvisible' (not working now)?
+				 */
+				if ( this.window.gui.hasModule("flex")){
+					this.flex.reflex ();
+				}
 				break;
 		}
 	},
