@@ -227,7 +227,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	},
 
 	/**
-	 * Nuke plugins in two steps.
+	 * Nuke plugins in two steps to minimize access violations.
 	 * @param {Array<String>} prefixes
 	 */
 	$nukeplugins : function ( prefixes ) {
@@ -352,7 +352,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	/**
 	 * Associate Spirit instance to DOM element.
 	 * @param {Element} element
-	 * @returns {Spirit}
+	 * @returns {gui.Spirit}
 	 */
 	possess : function ( element ) {
 		return gui.Guide.possess ( element, this );
@@ -401,7 +401,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 				plugins [ prefix ] = plugin;
 				proto.prefix = null;
 				gui.Class.children ( this, function ( child ) {
-					child.plugin ( prefix, plugin, override ); // recurses to descendants
+					child.plugin ( prefix, plugin, override ); // recursing to descendants
 				});
 			}
 		} else {
@@ -477,9 +477,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	},
 
 	/**
-	 * User to access property post destruction, report that the spirit was terminated. 
-	 * This is used in {gui.debug} mode only, otherwise the property will simply be nulled.
-	 * @TODO: Investigate whether or not this makes any difference in memory consumption
+	 * User to access property post destruction, report that the spirit was terminated.
 	 */
 	DENIED : {
 		enumerable : true,
@@ -497,7 +495,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	 * @see https://gist.github.com/jay3sh/1158940
 	 */
 	DENY : function ( message ) {
-		var stack, e = new Error ( gui.Spirit.DENIAL );
+		var stack, e = new ReferenceError ( gui.Spirit.DENIAL );
 		if ( !gui.Client.isExplorer && ( stack = e.stack )) {
 			if ( gui.Client.isWebKit ) {
 				stack = stack.replace ( /^[^\(]+?[\n$]/gm, "" ).
@@ -508,7 +506,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 				stack = stack.split ( "\n" );
 			}
 			stack.shift (); stack.shift ();
-			throw new Error ( e.message + "\n" + stack );
+			throw new ReferenceError ( e.message + "\n" + stack );
 		} else {
 			throw e;
 		}

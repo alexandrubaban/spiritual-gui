@@ -151,15 +151,18 @@ gui.FlexPlugin = gui.Plugin.extend ( "gui.FlexPlugin", {
 	 * @returns {Array<gui.FlexBox>}
 	 */
 	_getflexboxes : function ( elm, disabled ) {
-		var boxes = [];
+		var display, boxes = [];
 		new gui.Crawler ( "flexcrawler" ).descend ( elm, {
 			handleElement : function ( elm ) {
-				if ( gui.CSSPlugin.compute ( elm, "display" ) !== "none" ) {
-					if ( gui.FlexPlugin._isflex ( elm, disabled )) {
-						boxes.push ( new gui.FlexBox ( elm ));
-					}
-				} else {
+				try {
+					display = gui.CSSPlugin.compute ( elm, "display" );
+				} catch ( geckoexception ) { // probably display:none
+					return gui.Crawler.STOP;
+				}
+				if ( display === "none" ) { 
 					return gui.Crawler.SKIP_CHILDREN;
+				} else if ( gui.FlexPlugin._isflex ( elm, disabled )) {
+					boxes.push ( new gui.FlexBox ( elm ));
 				}
 			}
 		});
