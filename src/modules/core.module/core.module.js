@@ -1,5 +1,5 @@
 /**
- * Injects methods into {gui.Spirit} and such.
+ * It's the core module.
  */
 gui.module ( "core", {
 
@@ -17,7 +17,7 @@ gui.module ( "core", {
 	],
 
 	/**
-	 * Assign plugins to prefixes. 
+	 * Assign plugins to prefixes for all {gui.Spirit}.
 	 */
 	plugins : {
 		
@@ -33,11 +33,12 @@ gui.module ( "core", {
 		"life" : gui.LifePlugin,
 		"tick" : gui.TickPlugin,
 		"tween" : gui.TweenPlugin,
-		"transition" : gui.TransitionPlugin
+		"transition" : gui.TransitionPlugin,
+		"visibility" : gui.VisibilityPlugin
  },
 
 	/**
-	 * Methods added to gui.Spirit.prototype
+	 * Methods added to {gui.Spirit.prototype}
 	 */
 	mixins : {
 
@@ -48,7 +49,7 @@ gui.module ( "core", {
 		onaction : function ( action ) {},
 
 		/**
-		 * Handle attribute update.
+		 * Handle attribute.
 		 * @param {gui.Att} att
 		 */
 		onatt : function ( att ) {},		
@@ -60,13 +61,19 @@ gui.module ( "core", {
 		onbroadcast : function ( broadcast ) {},
 
 		/**
+		 * Handle event.
+		 * @param {Event} event
+		 */
+		onevent : function ( event ) {},
+
+		/**
 		 * Handle lifecycle event.
 		 * @param {gui.Life} life
 		 */
 		onlife : function ( life ) {},
 
 		/**
-		 * Handle tick.
+		 * Handle tick (timed event).
 		 * @param {gui.Tick} tick
 		 */
 		ontick : function ( tick ) {},
@@ -84,10 +91,14 @@ gui.module ( "core", {
 		ontransition : function ( transition ) {},
 
 		/**
-		 * Handle event.
-		 * @param {Event} event
+		 * Handle visibility.
 		 */
-		onevent : function ( event ) {},
+		onvisible : function () {},
+
+		/**
+		 * Handle invisibility.
+		 */
+		oninvisible : function () {},
 
 		/**
 		 * Implements DOM2 EventListener only to forward the event to method onevent()

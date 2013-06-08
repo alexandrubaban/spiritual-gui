@@ -138,19 +138,8 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 
 	// Async lifecycle .......................................................................
 	
-	/**
-	 * `onvisible` has some explaining to do.
-	 */
-	onvisible : function () {
-		this.life.govisible ();
-	},
-
-	/**
-	 * `oninvisible` has some explaining to do.
-	 */
-	oninvisible : function () {
-		this.life.goinvisible ();
-	},
+	
+	// @TODO: onasyc goes here!
 	
 
 	// Handlers ..............................................................................
@@ -315,6 +304,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	
 	/**
 	 * Extends spirit and plugins (mutating plugins) plus updates getters/setters.
+	 * @TODO: validate that user isn't declaring non-primitives on the prototype (log warning).
 	 * @param {object} extension 
 	 * @param {object} recurring 
 	 * @param {object} statics 
@@ -425,8 +415,8 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	 * Mark spirit invisible.
 	 * @param {gui.Spirit} spirit
 	 * @returns {gui.Spirit}
-	 */
-	goinvisible : function ( spirit ) {
+	 *
+	off : function ( spirit ) {
 		if ( !spirit.life.invisible ) {
 			spirit.css.add ( gui.CLASS_INVISIBLE );
 			this.$visible ( spirit, false );
@@ -439,8 +429,8 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	 * the spirit must have been marked invisible for this to have effect.
 	 * @param {gui.Spirit} spirit
 	 * @returns {gui.Spirit}
-	 */
-	govisible : function ( spirit ) {
+	 *
+	on : function ( spirit ) {
 		var classname = gui.CLASS_INVISIBLE;
 		if ( spirit.life.visible === undefined || spirit.css.contains ( classname )) {
 			spirit.css.remove ( classname );
@@ -454,7 +444,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	 * {gui.DocumentSpirit} who needs to relay visibility from hosting document.
 	 * @param {gui.Spirit} start
 	 * @param {boolean} show
-	 */
+	 *
 	$visible : function ( start, show ) {
 		var type = show ? gui.CRAWLER_VISIBLE : gui.CRAWLER_INVISIBLE;
 		new gui.Crawler ( type ).descendGlobal ( start, {
@@ -475,6 +465,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 			}
 		});
 	},
+	*/
 
 	/**
 	 * User to access property post destruction, report that the spirit was terminated.

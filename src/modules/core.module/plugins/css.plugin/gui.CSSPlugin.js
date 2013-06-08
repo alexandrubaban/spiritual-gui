@@ -6,57 +6,6 @@
 gui.CSSPlugin = ( function using ( chained ) {
 
 	return gui.Plugin.extend ( "gui.CSSPlugin", {
-		
-		/**
-		 * Set single element.style.
-		 * @param {String} prop
-		 * @param {String} val
-		 * @returns {gui.CSSPlugin}
-		 */
-		set : chained ( function ( prop, val ) {
-			gui.CSSPlugin.set ( this.spirit.element, prop, val );
-		}),
-
-		/**
-		 * Get single element.style; see also compute method.
-		 * @param {String} prop
-		 * @returns {String}
-		 */
-		get : function ( prop ) {
-			return gui.CSSPlugin.get ( this.spirit.element, prop );
-		},
-
-		/**
-		 * Compute runtime style.
-		 * @param {String} prop
-		 * @returns {String}
-		 */
-		compute : function ( prop ) {
-			return gui.CSSPlugin.compute ( this.spirit.element, prop );
-		},
-
-		/**
-		 * Set multiple styles via key value map.
-		 * @param {Map<String,String>} map
-		 * @returns {gui.CSSPlugin}
-		 */
-		style : chained ( function ( map ) {
-			gui.CSSPlugin.style ( this.spirit.element, map );
-		}),
-
-		/**
-		 * Get or set (full) className.
-		 * @param @optional {String} name
-		 * @returns {String|gui.CSSPlugin}
-		 */
-		name : chained ( function ( name ) {
-			var result = this.spirit.element.className;
-			if ( name !== undefined ) {
-				this.spirit.element.className = name;
-				result = this.spirit;
-			}
-			return result;
-		}),
 
 		/**
 		 * classList.add
@@ -93,6 +42,57 @@ gui.CSSPlugin = ( function using ( chained ) {
 		contains : function ( name ) {
 			return gui.CSSPlugin.contains ( this.spirit.element, name );
 		}, 
+		
+		/**
+		 * Set single element.style.
+		 * @param {String} prop
+		 * @param {String} val
+		 * @returns {gui.CSSPlugin}
+		 */
+		set : chained ( function ( prop, val ) {
+			gui.CSSPlugin.set ( this.spirit.element, prop, val );
+		}),
+
+		/**
+		 * Set multiple styles via key value map.
+		 * @param {Map<String,String>} map
+		 * @returns {gui.CSSPlugin}
+		 */
+		style : chained ( function ( map ) {
+			gui.CSSPlugin.style ( this.spirit.element, map );
+		}),
+
+		/**
+		 * Get single element.style; see also compute method.
+		 * @param {String} prop
+		 * @returns {String}
+		 */
+		get : function ( prop ) {
+			return gui.CSSPlugin.get ( this.spirit.element, prop );
+		},
+
+		/**
+		 * Compute runtime style.
+		 * @param {String} prop
+		 * @returns {String}
+		 */
+		compute : function ( prop ) {
+			return gui.CSSPlugin.compute ( this.spirit.element, prop );
+		},
+
+		/**
+		 * Get or set (full) className.
+		 * @param @optional {String} name
+		 * @returns {String|gui.CSSPlugin}
+		 */
+		name : chained ( function ( name ) {
+			var result = this.spirit.element.className;
+			if ( name !== undefined ) {
+				this.spirit.element.className = name;
+				result = this.spirit;
+			}
+			return result;
+		}),
 
 		/**
 		 * Spirit element mathes selector?
@@ -376,8 +376,8 @@ gui.CSSPlugin = ( function using ( chained ) {
 
 		/**
 		 * Setter shorthands will autosuffix properties that require units 
-		 * in support of the syntax: this.css.width = 300;  * no method()
-		 * @TODO add tons of things to this list
+		 * in support of the syntax: this.css.width = 300 (no method call)
+		 * @TODO add more properties
 		 * @type {Map<String,String>
 		 */
 		_shorthands : {

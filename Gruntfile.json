@@ -60,6 +60,7 @@
 	"src/modules/core.module/plugins/transition.plugin/gui.TransitionPlugin.js",
 	"src/modules/core.module/plugins/transition.plugin/gui.Transition.js",
 	"src/modules/core.module/plugins/attention.plugin/gui.AttentionPlugin.js",
+	"src/modules/core.module/plugins/visibility.plugin/gui.VisibilityPlugin.js",
 
 	"src/utils/gui.Client.js",
 	

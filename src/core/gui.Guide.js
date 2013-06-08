@@ -467,8 +467,7 @@ gui.Guide = {
 	 */
 	_visibility : function ( spirits ) {
 		this._containerspirits ( spirits ).forEach ( function ( spirit ) {
-			var visible = !this._invisible ( spirit );
-			gui.Spirit.$visible ( spirit, visible );
+			gui.VisibilityPlugin.$init ( spirit );
 		}, this );
 	},
 
@@ -491,17 +490,6 @@ gui.Guide = {
 			}
 		}
 		return groups;
-	},
-	
-	/**
-	 * Spirit is invisible? 
-	 * @TODO: Some kind of visibility module?
-	 * @param {gui.Spirit} spirit
-	 * @returns {boolean}
-	 */
-	_invisible : function ( spirit ) {
-		return spirit.css.contains ( gui.CLASS_INVISIBLE ) || 
-		spirit.css.matches ( "." + gui.CLASS_INVISIBLE + " *" );
 	},
 	
 	/**
