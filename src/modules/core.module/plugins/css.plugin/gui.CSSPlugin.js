@@ -228,7 +228,7 @@ gui.CSSPlugin = ( function using ( chained ) {
 		},
 
 		/**
-		 * Set multiple element.style properties.
+		 * Set multiple element.style properties via hashmap.
 		 * @param {Element|gui.Spirit} thing Spirit or element.
 		 * @param {Map<String,String>} styles
 		 * @returns {Element|gui.Spirit}

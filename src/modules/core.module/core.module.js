@@ -101,12 +101,12 @@ gui.module ( "core", {
 		oninvisible : function () {},
 
 		/**
-		 * Implements DOM2 EventListener only to forward the event to method onevent()
-		 * @see http://www.w3.org/TR/DOM-Level-2-Events/events.html#Events-EventListener
-		 * @param {Event} event
+		 * Native DOM interface. We'll forward the event to the method `onevent`.
+		 * @see http://www.w3.org/TR/DOM-Level-3-Events/#interface-EventListener
+		 * @param {Event} e
 		 */
-		handleEvent : function ( event ) {
-			this.onevent ( event );
+		handleEvent : function ( e ) {
+			this.onevent ( e );
 		}
 	}
 

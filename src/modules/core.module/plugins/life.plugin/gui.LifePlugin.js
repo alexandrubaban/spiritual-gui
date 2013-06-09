@@ -13,7 +13,7 @@ gui.LifePlugin = gui.Tracker.extend ( "gui.LifePlugin", {
 	constructed : false,
 
 	/**
-	 * @TODO EXPERIMENT...
+	 * Spirit is configured?
 	 * @type {boolean}
 	 */
 	configured : false,
@@ -27,6 +27,7 @@ gui.LifePlugin = gui.Tracker.extend ( "gui.LifePlugin", {
 	/**
 	 * Is curently located in page DOM? 
 	 * False whenever detached is true. 
+	 * @TODO: make udefined on startup
 	 * @type {boolean}
 	 */
 	attached : false,
@@ -34,6 +35,7 @@ gui.LifePlugin = gui.Tracker.extend ( "gui.LifePlugin", {
 	/**
 	 * Is currently not located in page DOM? Note that this is initially 
 	 * true until the spirit has been discovered and registered as attached.
+	 * @TODO: make udefined on startup
 	 * @type {boolean}
 	 */
 	detached : true,
@@ -63,12 +65,6 @@ gui.LifePlugin = gui.Tracker.extend ( "gui.LifePlugin", {
 	 * @type {boolean}
 	 */
 	visible : undefined,
-
-	/**
-	 * Is invisible?
-	 * @type {boolean}
-	 */
-	invisible : undefined,
 
 	/**
 	 * Mapping plugin prefix to initialized status, 'false' 
@@ -163,7 +159,7 @@ gui.LifePlugin = gui.Tracker.extend ( "gui.LifePlugin", {
 /**
  * Generate methods to update life cycle status:
  * 1) Update booleans entered, attached, detached etc.
- * 2) Dispatch life-event gui.Life.ATTACH etc.
+ * 2) Dispatch life-event gui.Life.ATTACH, gui.LIFE_VISIBLE etc.
  */
 ( function generatecode () {
 	var states = {
@@ -173,19 +169,17 @@ gui.LifePlugin = gui.Tracker.extend ( "gui.LifePlugin", {
 		attach : gui.LIFE_ATTACH,
 		ready : gui.LIFE_READY,
 		visible : gui.LIFE_VISIBLE,
-		invisible : gui.LIFE_INVISIBLE,
 		detach : gui.LIFE_DETACH,
 		exit : gui.LIFE_EXIT,
 		destruct : gui.LIFE_DESTRUCT
 	};
 	// prefix methods with "on", suffix booleans with "ed"
 	gui.Object.each ( states, function ( state, event ) {
-		gui.LifePlugin.mixin ( "go" + state , function () {
+		gui.LifePlugin.mixin ( "go" + state , function ( arg ) {
 			var prop = state;
 			switch ( state ) {
 				case "ready" :
 				case "visible" :
-				case "invisible" :
 					break;
 				default :
 					prop += "ed";
@@ -201,10 +195,9 @@ gui.LifePlugin = gui.Tracker.extend ( "gui.LifePlugin", {
 					this.attached = false;
 					break;
 				case "visible" :
-					this.invisible = false;
-					break;
-				case "invisible" :
-					this.visible = false;
+					if ( ! ( this.visible = arg )) {
+						event = gui.LIFE_INVISIBLE;
+					}
 					break;
 			}
 			this.dispatch ( event );

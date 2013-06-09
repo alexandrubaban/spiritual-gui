@@ -145,17 +145,21 @@ gui.Guide = {
 		var doc = elm.ownerDocument;
 		var win = doc.defaultView;
 		var sig = win.gui.$contextid;
+		if ( elm.spirit ) {
+			throw new Error ( "Cannot repossess element with spirit " + elm.spirit + " (exorcise first)" );
+		}
 		return ( elm.spirit = new Spirit ( elm, doc, win, sig ));
 	},
 
 	/**
-	 * Immediately nukes the spirit. It's wise to leave this for the framework to manage since 
-	 * there is a risk of errors when we collapse the otherwise two-phased destruction sequence.
+	 * Disassociate DOM element from Spirit instance.
 	 * @param {gui.Spirit} spirit
 	 */
 	exorcise : function  ( spirit ) {
-		spirit.ondestruct (); // API user should cleanup here
-		spirit.$ondestruct (); // everything is destroyed here
+		if ( !spirit.life.destructed ) {
+			gui.Spirit.$destruct ( spirit ); // API user should cleanup here
+			gui.Spirit.$dispose ( spirit ); // everything is destroyed here
+		}
 	},
 
 	/**
@@ -173,12 +177,13 @@ gui.Guide = {
 
 	/**
 	 * Invoked by {gui.Spiritual} some milliseconds after 
-	 * the spirits have been attached to the page DOM. 
-	 * Timeout allows the browser to repaint before we 
-	 * begin evaluating the spirits async lifecycle.
+	 * the spirits have been attached to the page DOM.
 	 * @param {Array<gui.Spirit>} spirits
 	 */
 	afterattach : function ( spirits ) {
+		spirits.forEach ( function ( spirit ) {
+			gui.Spirit.$async ( spirit );
+		});
 		this._visibility ( spirits );
 	},
 	
@@ -380,18 +385,18 @@ gui.Guide = {
 		});
 		attach.forEach ( function ( spirit ) {
 			if ( !spirit.life.configured ) {
-				spirit.onconfigure ();
+				gui.Spirit.$configure ( spirit );
 			}
 			if ( !spirit.life.entered ) {
-				spirit.onenter ();
+				gui.Spirit.$enter ( spirit );
 			}
-			spirit.onattach ();
+			gui.Spirit.$attach ( spirit );
 			if ( !spirit.life.ready ) {
 				readys.push ( spirit );
 			}
 		}, this );
 		readys.reverse ().forEach ( function ( spirit ) {
-			spirit.onready ();
+			gui.Spirit.$ready ( spirit );
 		});
 	},
 
@@ -420,12 +425,12 @@ gui.Guide = {
 	_materialize : function ( element, skip, one ) {
 		this._collect ( element, skip, gui.CRAWLER_MATERIALIZE ).filter ( function ( spirit ) {
 			if ( spirit.life.attached && !spirit.life.destructed ) {
-				spirit.ondestruct (); // API user should do cleanup here
-				return true;
+				gui.Spirit.$destruct ( spirit );
+				return true; // @TODO: handle 'one' arg!
 			}
 			return false;
 		}).forEach ( function ( spirit ) {
-			spirit.$ondestruct (); // framework nukes everything here
+			gui.Spirit.$dispose ( spirit );
 		});
 	},
 
@@ -436,7 +441,7 @@ gui.Guide = {
 		element = element instanceof gui.Spirit ? element.element : element;
 		if ( this._handles ( element )) {
 			this._collect ( element, false, gui.CRAWLER_DETACH ).forEach ( function ( spirit ) {
-				spirit.ondetach ();
+				gui.Spirit.$detach ( spirit );
 			});
 		}
 	},
@@ -503,10 +508,12 @@ gui.Guide = {
 	_cleanup : function ( win, doc ) {
 		var spirits = this._collect ( doc, false );
 		spirits.forEach ( function ( spirit ) {
-			spirit.ondestruct (); // API user should cleanup here	
+			gui.Spirit.$destruct ( spirit );
+			//spirit.ondestruct (); // API user should cleanup here	
 		});
 		spirits.forEach ( function ( spirit ) {
-			spirit.$ondestruct (); // everything is destroyed here		
+			gui.Spirit.$dispose ( spirit );
+			//spirit.$ondestruct (); // everything is destroyed here		
 		});
 		win.gui.nameDestructAlreadyUsed ();
 	}

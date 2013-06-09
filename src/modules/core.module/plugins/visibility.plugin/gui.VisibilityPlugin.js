@@ -4,6 +4,8 @@
  * Current visibility status can be read in the {gui.LifePlugin}: `spirit.life.visible`.
  * Visibility is resolved async, so this property is `undefined` on startup. If you need 
  * to take an action that depends on visibility, just wait for `onvisible` to be invoked.
+ * @TODO: hook this up to http://www.w3.org/TR/page-visibility/
+ * @TODO: Make sure that visibility is updated after `appendChild` to another position.
  * @extends {gui.Plugin}
  * @using {gui.Combo.chained}
  */
@@ -66,6 +68,7 @@ gui.VisibilityPlugin = ( function using ( chained ) {
 		 
 		/**
 		 * Initialize spirit visibility. 
+		 * @TODO again after `appendChild` to another position.
 		 * Invoked by the {gui.Guide}.
 		 * @param {gui.Spirit} spirit
 		 */
@@ -103,12 +106,12 @@ gui.VisibilityPlugin = ( function using ( chained ) {
 					}
 					if ( visible ) {
 						if ( !spirit.life.visible || init ) {
-							spirit.life.govisible ();
+							spirit.life.govisible ( true ); // @TODO: call after 'onvisible'?
 							spirit.onvisible ();
 						}
 					} else {
 						if ( spirit.life.visible || init ) {
-							spirit.life.goinvisible ();
+							spirit.life.govisible ( false );
 							spirit.oninvisible ();
 						}
 					}

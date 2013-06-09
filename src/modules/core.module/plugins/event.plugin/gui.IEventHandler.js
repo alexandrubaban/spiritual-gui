@@ -1,7 +1,6 @@
 /**
- * Interface EventHandler. This is a real DOM interface, it's used for native event 
- * handling. We usually choose to forward the event to the spirits `onevent` method.
- * @see http://www.w3.org/TR/DOM-Level-3-Events/#interface-EventListener
+ * Interface EventHandler.
+ * 
  */
 gui.IEventHandler = {
 
@@ -14,8 +13,15 @@ gui.IEventHandler = {
 	},
 
 	/**
-	 * Handle event.
+	 * Native DOM interface. We'll forward the event to the method `onevent`.
+	 * @see http://www.w3.org/TR/DOM-Level-3-Events/#interface-EventListener
 	 * @param {Event} e
 	 */
-	handleEvent : function ( e ) {}
+	handleEvent : function ( e ) {},
+
+	/**
+	 * Conforms to other Spiritual event handlers.
+	 * @param {Event} e
+	 */
+	onevent : function ( e ) {}
 };

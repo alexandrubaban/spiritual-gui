@@ -1,6 +1,6 @@
 /**
- * Base class for all spirit plugins.
- * @TODO "context" should be required in constructor
+ * Base constructor for all plugins.
+ * @TODO "context" should be required in constructor (sandbox scenario)
  * @TODO Rename "gui.Plugin"
  * @TODO Rename *all* plugins to gui.SomethingPlugin :)
  */
@@ -30,7 +30,9 @@ gui.Plugin = gui.Class.create ( "gui.Plugin", Object.prototype, {
 	ondestruct : function () {},
 
 	/**
-	 * Implements DOM2 EventListener. Forwards to onevent().
+	 * Implements DOM2 EventListener (native event handling). 
+	 * We forwards the event to method 'onevent' IF that has 
+	 * been specified on the plugin.
 	 * @param {Event} e
 	 */
 	handleEvent : function ( e ) {
@@ -40,10 +42,10 @@ gui.Plugin = gui.Class.create ( "gui.Plugin", Object.prototype, {
 	},
 	
 	
-	// Secret ...........................................................
+	// Secret ............................................................
 
 	/**
-	 * Secret constructor. Called before onconstruct. 
+	 * Secret constructor. Called before `onconstruct`. 
 	 * @param {gui.Spirit} spirit
 	 */
 	$onconstruct : function ( spirit ) {
@@ -53,14 +55,14 @@ gui.Plugin = gui.Class.create ( "gui.Plugin", Object.prototype, {
 	},
 
 	/**
-	 * Secret destructor. Called after ondestruct.
+	 * Secret destructor. Called after `ondestruct`.
 	 */
 	$ondestruct : function () {
 		var debug = this.spirit.window.gui.debug;
 		var nativ = this.spirit.window.Object;
 		for ( var prop in this ) {
 			if ( nativ [ prop ] === undefined ) {
-				Object.defineProperty ( this, prop, gui.Spirit.DENIED );
+				Object.defineProperty ( this, prop, gui.GreatSpirit.DENIED );
 			}
 		}
 	}
@@ -87,11 +89,11 @@ gui.Plugin = gui.Class.create ( "gui.Plugin", Object.prototype, {
 }, { // Static ..................................................
 
 	/**
-	 * Lazy plugins are newed up only when needed. Let's create an 
+	 * Lazy plugins are newed up only when needed. We'll create an 
 	 * accessor for the prefix that will instantiate the plugin and 
-	 * create a new accesor while we're at it. To detect if a plugin 
-	 * has been instantiated, check the {gui.LifePlugin#plugins} map, 
-	 * mapping prefixes to a boolean status.
+	 * create a new accesor to return it. To detect if a plugin 
+	 * has been instantiated, check with {gui.LifePlugin#plugins}, 
+	 * a hashmap that maps prefixes to a boolean status.
 	 * @param {gui.Spirit} spirit
 	 * @param {String} prefix
 	 * @param {function} Plugin

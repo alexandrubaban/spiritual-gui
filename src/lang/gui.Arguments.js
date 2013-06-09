@@ -1,5 +1,5 @@
 /**
- * Function argument type checking studio.
+ * Function argument type checking and conversion studio.
  */
 gui.Arguments = {
 
