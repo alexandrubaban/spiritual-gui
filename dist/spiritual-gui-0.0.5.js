@@ -126,8 +126,6 @@ window.gui = {
 	LIFE_ENTER : "gui-life-enter",
 	LIFE_ATTACH : "gui-life-attach",
 	LIFE_READY : "gui-life-ready",
-	//LIFE_SHOW : "gui-life-show",
-	//LIFE_HIDE : "gui-life-hide",
 	LIFE_DETACH : "gui-life-detach",
 	LIFE_EXIT	: "gui-life-exit",
 	LIFE_DESTRUCT : "life-destruct",
@@ -1195,7 +1193,7 @@ gui.Spiritual.prototype = {
 
 	/**
 	 * Register spirit outside document. This schedules the spirit 
-	 * for destruction unless reinserted somewhere else, and soon.
+	 * for destruction unless reinserted somewhere else (and soon).
 	 * @TODO move? rename?
 	 * @param {gui.Spirit} spirit
 	 */
@@ -1208,35 +1206,37 @@ gui.Spiritual.prototype = {
 				delete all.incoming [ key ];
 			}
 			all.outside [ key ] = spirit;
-			gui.Tick.dispatch ( gui.$TICK_OUTSIDE, 0, this.$contextid );
+			gui.Tick.dispatch ( gui.$TICK_OUTSIDE, 0, this.$contextid ); // @TODO use 4 ms???
 		}
 	},
 
 	/**
-	 * Destruct all detached spirits.
+	 * Handle tick.
 	 * @param {gui.Tick} tick
 	 */
 	ontick : function ( tick ) {
+		var spirits;
 		switch ( tick.type ) {
 			case gui.$TICK_INSIDE :
-				var spirits = this._spirits.incoming;
+				spirits = this._spirits.incoming;
 				gui.Guide.afterattach ( gui.Object.each ( spirits, function ( id, spirit ) {
 					return spirit;
 				}));
 				this._spirits.incoming = Object.create ( null );
 				break;
 			case gui.$TICK_OUTSIDE :
-				gui.Object.each ( this._spirits.outside, function ( key, spirit ) {
+				spirits = gui.Object.each ( this._spirits.outside, function ( key, spirit ) {
 					return spirit;
-				}).filter ( function ( spirit ) {
-					return spirit.onexit () !== false;
-				}).map ( function ( spirit ) {
-					spirit.ondestruct ();
-					return spirit;
-				}).forEach ( function ( spirit ) {
-					spirit.$ondestruct ();
 				});
-				// @TODO do we want to loose track of potential non-exited spirits?
+				spirits.forEach ( function ( spirit ) {
+					gui.Spirit.$exit ( spirit );
+				});
+				spirits.forEach ( function ( spirit ) {
+					gui.Spirit.$destruct ( spirit );
+				});
+				spirits.forEach ( function ( spirit ) {
+					gui.Spirit.$dispose ( spirit );
+				});
 				this._spirits.outside = Object.create ( null );
 				break;
 		}
@@ -1830,7 +1830,7 @@ gui.Array = {
 
 
 /**
- * Function argument type checking studio.
+ * Function argument type checking and conversion studio.
  */
 gui.Arguments = {
 
@@ -4015,7 +4015,21 @@ gui.Request.prototype = {
 gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 
 	/**
-	 * Spirit DOM element.
+	 * Unique key for this spirit instance. Uppercase implies read-only.
+	 * @type {String}
+	 */
+	$instanceid : null,
+	
+	/**
+	 * Matches the property `$contextid` of the local `gui` object.
+	 * @TODO rename this property
+	 * @TODO perhapse deprecate?
+	 * @type {String}
+	 */
+	$contextid : null,
+
+	/**
+	 * Spirit element.
 	 * @type {Element} 
 	 */
 	element : null,
@@ -4031,20 +4045,6 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	 * @type {Window} 
 	 */
 	window : null,
-	
-	/**
-	 * Unique key for this spirit instance.
-	 * @type {String}
-	 */
-	$instanceid : null,
-	
-	/**
-	 * Matches the property `$contextid` of the local `gui` object.
-	 * @TODO rename this property
-	 * @TODO perhapse deprecate?
-	 * @type {String}
-	 */
-	$contextid : null,
 
 	/**
 	 * Identification.
@@ -4067,90 +4067,62 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	 * `onconstruct` gets called when the spirit is newed up. Spirit 
 	 * element may not be positioned in the document DOM at this point. 
 	 */
-	onconstruct : function () {
-		this.$pluginplugins ();
-		this.$debug ( true );
-		this.life.goconstruct ();
-	},
+	onconstruct : function () {},
 	
 	/**
 	 * `onconfigure` gets callend immediately after construction. This 
 	 * instructs the spirit to parse configuration attributes in markup. 
 	 * @see {gui.AttConfigPlugin}
 	 */
-	onconfigure : function () {
-		this.attconfig.configureall ();
-		this.life.goconfigure ();
-	},
+	onconfigure : function () {},
 	
 	/**
 	 * `onenter` gets called when the spirit element is first encounted in the page DOM. 
 	 * This is only called once in the lifecycle of a spirit (unlike `attach`, see below).
 	 */
-	onenter : function () {
-		this.window.gui.inside ( this );
-		this.life.goenter ();
-	},
+	onenter : function () {},
 	
 	/**
 	 * `onattach` gets called whenever
 	 * 
-	 * - the spirit element is attached to the DOM
+	 * - the spirit element is attached to the document DOM by some guy
 	 * - the element is already in DOM when the page loads and the spirit gets injected by the framework
 	 */
-	onattach : function () {
-		this.window.gui.inside ( this ); // @TODO: this in {gui.Guide}
-		this.life.goattach ();
-	},
+	onattach : function () {},
 	
 	/**
 	 * `onready` gets called (only once) when all descendant spirits are attached and 
 	 * ready. From a DOM tree perspective, this fires in reverse order, innermost first. 
 	 */
-	onready : function () {
-		this.life.goready ();
-	},
+	onready : function () {},
 
 	/**
-	 * `ondetach` gets callend whenever the spirit element is detached from the DOM tree. 
+	 * `ondetach` gets callend whenever the spirit element is about to be detached from the DOM tree. 
+	 * Unless the element is appended somewhere else, this will schedule the spirit for destruction.
 	 */
-	ondetach : function () {
-		this.window.gui.outside ( this ); // @TODO: this in {gui.Guide}
-		this.life.godetach ();
-	},
+	ondetach : function () {},
+
+	/**
+	 * `onexit` gets if the spirit element has been manually detached and not re-attached in 
+	 * the same execution stack. Spirit is not positioned in the document DOM at this point.
+	 */
+	onexit : function () {},
 	
 	/**
-	 * `onexit` gets called when spirit is detached and not re-attached in the same 
-	 * execution stack. This triggers destruction unless you return `false`. In this 
-	 * case, make sure to manually dispose the spirit later (using method `dispose`).  
-	 * @returns {udenfined|boolean} Return false to stay alive
+	 * Invoked when spirit is about to be destroyed. Code your last wishes here. 
+	 * Spirit element may not be positioned in the document DOM at this point. 
 	 */
-	onexit : function () {
-		this.life.goexit ();
-		return undefined;
-
-		// subclass: don't invoke `this._super.onexit` if you return false!
-		// TODO: don't relay on that, just get these step things out of here
-
-	},
-	
-	/**
-	 * Invoked when spirit gets disposed. Code your last wishes. Should only be 
-	 * called by the framework, please use `dispose()` to terminate the spirit.
-	 * @see {gui.Spirit#dispose}
-	 */
-	ondestruct : function () {
-		this.window.gui.destruct ( this );
-		this.$debug ( false );
-		this.life.godestruct ();
-		// process continues in $ondestruct()
-	},
+	ondestruct : function () {},
 
 
 	// Async lifecycle .......................................................................
-	
-	
-	// @TODO: onasyc goes here!
+
+	/**
+	 * Invoked some milliseconds after `onattach`. Postpone 
+	 * operations to here to give the browser a repaint break.
+	 * @TODO: this should be evaluated after 'appendChild' to another position.
+	 */
+	onasync : function () {},
 	
 
 	// Handlers ..............................................................................
@@ -4160,31 +4132,14 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	 * @param {gui.Crawler} crawler
 	 * @returns {number}
 	 */
-	oncrawler : function ( crawler ) {
-		return gui.Crawler.CONTINUE;
-	},
-	
-	
-	// More stuff ............................................................................
-
-	/**
-	 * Terminate the spirit and remove the element (optionally keep it). 
-	 * @param {boolean} keep True to leave the element on stage.
-	 * @TODO Terrible boolean trap in this API 
-	 */
-	dispose : function ( keep ) {
-		if ( !keep ) {
-			this.dom.remove ();
-		}
-		gui.Guide.materializeOne ( this );
-	},
+	oncrawler : function ( crawler ) {},
 	
 
 	// Secret ................................................................................
 	
 	/**
-	 * Secret constructor. Invoked before `onconstruct`. The 
-	 * `$instanceid` is generated standard by the {gui.Class}
+	 * Secret constructor. Invoked before `onconstruct`. The `$instanceid` has 
+	 * been set already at this point (as a standard property of any {gui.Class}).
 	 * @param {Element} elm
 	 * @param {Document} doc
 	 * @param {Window} win
@@ -4195,69 +4150,13 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 		this.document = doc;
 		this.window = win;
 		this.$contextid = sig;
-		this.onconstruct ();
+		gui.Spirit.$construct ( this );
 	},
 
 	/**
 	 * Secret destructor. Invoked after `ondestruct`.
-	 *
-	 * - Nuke lazy plugins so that we don't accidentally instantiate them
-	 * - Destruct remaining plugins, saving {gui.Life} plugin for last
-	 * - Replace all properties with an accessor to throw an exception
 	 */
-	$ondestruct : function () {
-		var prefixes = [];
-		gui.Object.each ( this.life.plugins, function ( prefix, active ) {
-			if ( active ) {
-				if ( prefix !== "life" ) {
-					prefixes.push ( prefix );
-				}
-			} else {
-				Object.defineProperty ( this, prefix, {
-					enumerable : true,
-					configurable : true,
-					get : function () {},
-					set : function () {}
-				});
-			}
-		}, this );
-		this.$nukeplugins ( prefixes.sort ());
-		this.$nukeplugins ([ "life" ]);
-		this.$nukeallofit ();
-	},
-
-	/**
-	 * Nuke plugins in two steps to minimize access violations.
-	 * @param {Array<String>} prefixes
-	 */
-	$nukeplugins : function ( prefixes ) {
-		var plugins = prefixes.map ( function ( key ) {
-			return this [ key ];
-		}, this );
-		plugins.forEach ( function ( plugin ) {
-			plugin.ondestruct ();
-		});
-		plugins.forEach ( function ( plugin ) {
-			plugin.$ondestruct ();
-		});
-	},
-
-	/**
-	 * Replace al properties with an accessor to throw an exception.
-	 * @TODO: scan property descriptor and skip unmutable properties (would throw in strict?)
-	 * @param {Array<String>} props
-	 */
-	$nukeallofit : function () {
-		try {
-			this.element.spirit = null;
-		} catch ( denied ) {} // explorer may deny permission in frames (still relevant?)
-		var nativ = this.window.Object;
-		for ( var prop in this ) {
-			if ( nativ [ prop ] === undefined ) {
-				Object.defineProperty ( this, prop, gui.Spirit.DENIED );
-			}
-		}
-	},
+	$ondestruct : function () {},
 
 	/**
 	 * Plug in the plugins. Lazy plugins will be newed up when needed.
@@ -4342,7 +4241,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	},
 
 	/**
-	 * Create DOM element and associate Spirit instance.
+	 * Create DOM element and associate gui.Spirit instance.
 	 * @param @optional {Document} doc
 	 * @returns {gui.Spirit}
 	 */
@@ -4351,7 +4250,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	},
 
 	/**
-	 * Associate Spirit instance to DOM element.
+	 * Associate gui.Spirit instance to DOM element.
 	 * @param {Element} element
 	 * @returns {gui.Spirit}
 	 */
@@ -4369,22 +4268,6 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 			'Spirits must use the "infuse" method and not "extend".\n' +
 			'This method extends both the spirit and it\'s plugins.'
 		);
-	},
-	
-	/**
-	 * Parse HTML string to DOM element in given document context. 
-	 * @TODO This should be either powerful or removed from core.
-	 * @TODO parent element awareness when inserted in document :)
-	 * @param {Document} doc
-	 * @param {String} html
-	 * @returns {Element}
-	 */
-	parse : function ( doc, html ) {
-		if ( doc.nodeType === Node.DOCUMENT_NODE ) {
-			return new gui.HTMLParser ( doc ).parse ( html )[ 0 ]; // @TODO parseOne?
-		} else {
-			throw new TypeError ( this + ".parse() expects a Document" );
-		}
 	},
 	
 	/**
@@ -4423,110 +4306,111 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 }, { // Static .............................................................................
 
 	/**
-	 * Mark spirit invisible.
+	 * Spirit construct. Called by the secret constructor {gui.Spirit#$onconstruct}.
 	 * @param {gui.Spirit} spirit
-	 * @returns {gui.Spirit}
-	 *
-	off : function ( spirit ) {
-		if ( !spirit.life.invisible ) {
-			spirit.css.add ( gui.CLASS_INVISIBLE );
-			this.$visible ( spirit, false );
-		}
-		return spirit;
+	 */
+	$construct : function ( spirit ) {
+		spirit.$pluginplugins ();
+		spirit.$debug ( true );
+		spirit.onconstruct ();
+		spirit.life.goconstruct ();
 	},
-
+	
 	/**
-	 * Mark spirit visible. Once visibility has been resolved on startup, 
-	 * the spirit must have been marked invisible for this to have effect.
+	 * Spirit configure.
 	 * @param {gui.Spirit} spirit
-	 * @returns {gui.Spirit}
-	 *
-	on : function ( spirit ) {
-		var classname = gui.CLASS_INVISIBLE;
-		if ( spirit.life.visible === undefined || spirit.css.contains ( classname )) {
-			spirit.css.remove ( classname );
-			this.$visible ( spirit, true );
-		}
-		return spirit;
-	},
-
-	/**
-	 * Recursively update spirit and descendants visibility. Cornercase for the 
-	 * {gui.DocumentSpirit} who needs to relay visibility from hosting document.
-	 * @param {gui.Spirit} start
-	 * @param {boolean} show
-	 *
-	$visible : function ( start, show ) {
-		var type = show ? gui.CRAWLER_VISIBLE : gui.CRAWLER_INVISIBLE;
-		new gui.Crawler ( type ).descendGlobal ( start, {
-			handleSpirit : function ( spirit ) {
-				if ( spirit !== start && spirit.css.contains ( gui.CLASS_INVISIBLE )) {
-					return gui.Crawler.STOP;
-				}
-				if ( show ) {
-					if ( !spirit.life.visible ) { // @TODO cornercase is obsolete???
-						spirit.onvisible ();
-					}
-				} else {
-					if ( !spirit.life.invisible ) {
-						spirit.oninvisible ();
-					}
-				}
-				return gui.Crawler.CONTINUE;
-			}
-		});
-	},
-	*/
-
-	/**
-	 * User to access property post destruction, report that the spirit was terminated.
 	 */
-	DENIED : {
-		enumerable : true,
-		configurable : true,
-		get : function () {
-			gui.Spirit.DENY ();
-		},
-		set : function () {
-			gui.Spirit.DENY ();
-		}
+	$configure : function ( spirit ) {
+		spirit.attconfig.configureall ();
+		spirit.onconfigure ();
+		spirit.life.goconfigure ();
+	},
+	
+	/**
+	 * Spirit enter.
+	 * @param {gui.Spirit} spirit
+	 */
+	$enter : function ( spirit ) {
+		spirit.window.gui.inside ( spirit );
+		spirit.onenter ();
+		spirit.life.goenter ();
+	},
+	
+	/**
+	 * Spirit attach.
+	 * @param {gui.Spirit} spirit
+	 */
+	$attach : function ( spirit ) {
+		spirit.window.gui.inside ( spirit );
+		spirit.onattach ();
+		spirit.life.goattach ();
+	},
+	
+	/**
+	 * Spirit ready.
+	 * @param {gui.Spirit} spirit
+	 */
+	$ready : function ( spirit ) {
+		spirit.onready ();
+		spirit.life.goready ();
 	},
 
 	/**
-	 * Obscure mechanism to include the whole stacktrace in the error message.
-	 * @see https://gist.github.com/jay3sh/1158940
+	 * Spirit detach.
+	 * @param {gui.Spirit} spirit
 	 */
-	DENY : function ( message ) {
-		var stack, e = new ReferenceError ( gui.Spirit.DENIAL );
-		if ( !gui.Client.isExplorer && ( stack = e.stack )) {
-			if ( gui.Client.isWebKit ) {
-				stack = stack.replace ( /^[^\(]+?[\n$]/gm, "" ).
-					replace ( /^\s+at\s+/gm, "" ).
-					replace ( /^Object.<anonymous>\s*\(/gm, "{anonymous}()@" ).
-					split ( "\n" );
-			} else {
-				stack = stack.split ( "\n" );
-			}
-			stack.shift (); stack.shift ();
-			throw new ReferenceError ( e.message + "\n" + stack );
-		} else {
-			throw e;
-		}
+	$detach : function ( spirit ) {
+		spirit.window.gui.outside ( spirit );
+		spirit.life.godetach ();
+		spirit.life.govisible ( false );
+		spirit.ondetach ();
+	},
+	
+	/**
+	 * Spirit exit.
+	 * @param {gui.Spirit} spirit
+	 */
+	$exit : function ( spirit ) {
+		spirit.life.goexit ();
+		spirit.onexit ();
+	},
+	
+	/**
+	 * Spirit destruct.
+	 * @param {gui.Spirit} spirit
+	 */
+	$destruct : function ( spirit ) {
+		spirit.window.gui.destruct ( spirit );
+		spirit.$debug ( false );
+		spirit.life.godestruct ();
+		spirit.ondestruct ();
 	},
 
 	/**
-	 * To identify our exception in a try-catch scenario, look for 
-	 * this string in the *beginning* of the exception message. 
-	 * @type {String}
+	 * Spirit dispose. This calls the secret destructor {gui.Spirit#$ondestruct}.
+	 * @see {gui.Spirit#$ondestruct}
+	 * @param {gui.Spirit} spirit
 	 */
-	DENIAL : "Attempt to handle destructed spirit"
+	$dispose : function ( spirit ) {
+		spirit.$ondestruct ();
+		gui.GreatSpirit.$meet ( spirit );
+	},
+
+	/**
+	 * Spirit async lifecycle.
+	 * @TODO: This should be evaluated after `appendChild` to another position.
+	 * @param {gui.Spirit} spirit
+	 */
+	$async : function ( spirit ) {
+		spirit.onasync ();
+	}
 
 });
 
 
 /**
- * Base class for all spirit plugins.
- * @TODO "context" should be required in constructor
+ * Base constructor for all plugins.
+ * @TODO "context" should be required in constructor (sandbox scenario)
  * @TODO Rename "gui.Plugin"
  * @TODO Rename *all* plugins to gui.SomethingPlugin :)
  */
@@ -4556,7 +4440,9 @@ gui.Plugin = gui.Class.create ( "gui.Plugin", Object.prototype, {
 	ondestruct : function () {},
 
 	/**
-	 * Implements DOM2 EventListener. Forwards to onevent().
+	 * Implements DOM2 EventListener (native event handling). 
+	 * We forwards the event to method 'onevent' IF that has 
+	 * been specified on the plugin.
 	 * @param {Event} e
 	 */
 	handleEvent : function ( e ) {
@@ -4566,10 +4452,10 @@ gui.Plugin = gui.Class.create ( "gui.Plugin", Object.prototype, {
 	},
 	
 	
-	// Secret ...........................................................
+	// Secret ............................................................
 
 	/**
-	 * Secret constructor. Called before onconstruct. 
+	 * Secret constructor. Called before `onconstruct`. 
 	 * @param {gui.Spirit} spirit
 	 */
 	$onconstruct : function ( spirit ) {
@@ -4579,14 +4465,14 @@ gui.Plugin = gui.Class.create ( "gui.Plugin", Object.prototype, {
 	},
 
 	/**
-	 * Secret destructor. Called after ondestruct.
+	 * Secret destructor. Called after `ondestruct`.
 	 */
 	$ondestruct : function () {
 		var debug = this.spirit.window.gui.debug;
 		var nativ = this.spirit.window.Object;
 		for ( var prop in this ) {
 			if ( nativ [ prop ] === undefined ) {
-				Object.defineProperty ( this, prop, gui.Spirit.DENIED );
+				Object.defineProperty ( this, prop, gui.GreatSpirit.DENIED );
 			}
 		}
 	}
@@ -4613,11 +4499,11 @@ gui.Plugin = gui.Class.create ( "gui.Plugin", Object.prototype, {
 }, { // Static ..................................................
 
 	/**
-	 * Lazy plugins are newed up only when needed. Let's create an 
+	 * Lazy plugins are newed up only when needed. We'll create an 
 	 * accessor for the prefix that will instantiate the plugin and 
-	 * create a new accesor while we're at it. To detect if a plugin 
-	 * has been instantiated, check the {gui.LifePlugin#plugins} map, 
-	 * mapping prefixes to a boolean status.
+	 * create a new accesor to return it. To detect if a plugin 
+	 * has been instantiated, check with {gui.LifePlugin#plugins}, 
+	 * a hashmap that maps prefixes to a boolean status.
 	 * @param {gui.Spirit} spirit
 	 * @param {String} prefix
 	 * @param {function} Plugin
@@ -4993,6 +4879,130 @@ gui.Module = gui.Class.create ( "gui.Module", Object.prototype, {
 
 
 /**
+ * Where spirits go to be garbage collected. Not for public 
+ * consumption: Please dispose of spirits via the {gui.Guide}.
+ * @see {gui.Guide#materialize}
+ * @see {gui.Guide#materializeOne}
+ * @see {gui.Guide#materializeSub}
+ */
+gui.GreatSpirit = {
+
+	/**
+	 * To identify our exception in a try-catch scenario, look for 
+	 * this string in the *beginning* of the exception message. 
+	 * @type {String}
+	 */
+	DENIAL : "Attempt to handle destructed spirit",
+
+	/**
+	 * Identification.
+	 * @returns {String}
+	 */
+	toString : function () {
+		return "[object gui.GreatSpirit]";
+	},
+
+
+	// Secrets ..........................................................................
+
+	/**
+	 * - Nuke lazy plugins so that we don't accidentally instantiate them
+	 * - Destruct remaining plugins, saving the {gui.Life} plugin for last
+	 * - Replace all properties with an accessor to throw an exception
+	 */
+	$meet : function ( spirit ) {
+		var prefixes = [], plugins = spirit.life.plugins;
+		gui.Object.each ( plugins, function ( prefix, instantiated ) {
+			if ( instantiated ) {
+				if ( prefix !== "life" ) {
+					prefixes.push ( prefix );
+				}
+			} else {
+				Object.defineProperty ( spirit, prefix, {
+					enumerable : true,
+					configurable : true,
+					get : function () {},
+					set : function () {}
+				});
+			}
+		});
+		this.$nukeplugins ( spirit, prefixes.sort ());
+		this.$nukeplugins ( spirit, [ "life" ]);
+		this.$nukeallofit ( spirit );
+	},
+
+	/**
+	 * Nuke plugins in two steps to minimize access violations.
+	 * @param {gui.Spirit} spirit
+	 * @param {Array<String>} prefixes
+	 */
+	$nukeplugins : function ( spirit, prefixes ) {
+		var plugins = prefixes.map ( function ( key ) {
+			return spirit [ key ];
+		}, this );
+		plugins.forEach ( function ( plugin ) {
+			plugin.ondestruct ();
+		});
+		plugins.forEach ( function ( plugin ) {
+			plugin.$ondestruct ();
+		});
+	},
+
+	/**
+	 * Replace al properties with an accessor to throw an exception.
+	 * @TODO: scan property descriptor and skip unmutable properties (would throw in strict?)
+	 */
+	$nukeallofit : function ( spirit ) {
+		var nativeprops = spirit.window.Object;
+		try {
+			spirit.element.spirit = null;
+		} catch ( denied ) {} // explorer may deny permission in frames (still relevant?)
+		for ( var prop in spirit ) {
+			if ( nativeprops [ prop ] === undefined ) {
+				Object.defineProperty ( spirit, prop, this.DENIED );
+			}
+		}
+	},
+
+	/**
+	 * User to access property post destruction, report that the spirit was terminated.
+	 */
+	DENIED : {
+		enumerable : true,
+		configurable : true,
+		get : function () {
+			gui.GreatSpirit.DENY ();
+		},
+		set : function () {
+			gui.GreatSpirit.DENY ();
+		}
+	},
+
+	/**
+	 * Obscure mechanism to include the whole stacktrace in the error message.
+	 * @see https://gist.github.com/jay3sh/1158940
+	 */
+	DENY : function ( message ) {
+		var stack, e = new ReferenceError ( gui.Spirit.DENIAL );
+		if ( !gui.Client.isExplorer && ( stack = e.stack )) {
+			if ( gui.Client.isWebKit ) {
+				stack = stack.replace ( /^[^\(]+?[\n$]/gm, "" ).
+					replace ( /^\s+at\s+/gm, "" ).
+					replace ( /^Object.<anonymous>\s*\(/gm, "{anonymous}()@" ).
+					split ( "\n" );
+			} else {
+				stack = stack.split ( "\n" );
+			}
+			stack.shift (); stack.shift (); // @TODO: shift one more now?
+			throw new ReferenceError ( e.message + "\n" + stack );
+		} else {
+			throw e;
+		}
+	}
+};
+
+
+/**
  * SpiritLife is a non-bubbling event type that covers the life cycle of a spirit.
  * @see {gui.LifePlugin}
  * @param {gui.Spirit} target
@@ -5040,7 +5050,7 @@ gui.LifePlugin = gui.Tracker.extend ( "gui.LifePlugin", {
 	constructed : false,
 
 	/**
-	 * @TODO EXPERIMENT...
+	 * Spirit is configured?
 	 * @type {boolean}
 	 */
 	configured : false,
@@ -5054,6 +5064,7 @@ gui.LifePlugin = gui.Tracker.extend ( "gui.LifePlugin", {
 	/**
 	 * Is curently located in page DOM? 
 	 * False whenever detached is true. 
+	 * @TODO: make udefined on startup
 	 * @type {boolean}
 	 */
 	attached : false,
@@ -5061,6 +5072,7 @@ gui.LifePlugin = gui.Tracker.extend ( "gui.LifePlugin", {
 	/**
 	 * Is currently not located in page DOM? Note that this is initially 
 	 * true until the spirit has been discovered and registered as attached.
+	 * @TODO: make udefined on startup
 	 * @type {boolean}
 	 */
 	detached : true,
@@ -5090,12 +5102,6 @@ gui.LifePlugin = gui.Tracker.extend ( "gui.LifePlugin", {
 	 * @type {boolean}
 	 */
 	visible : undefined,
-
-	/**
-	 * Is invisible?
-	 * @type {boolean}
-	 */
-	invisible : undefined,
 
 	/**
 	 * Mapping plugin prefix to initialized status, 'false' 
@@ -5190,7 +5196,7 @@ gui.LifePlugin = gui.Tracker.extend ( "gui.LifePlugin", {
 /**
  * Generate methods to update life cycle status:
  * 1) Update booleans entered, attached, detached etc.
- * 2) Dispatch life-event gui.Life.ATTACH etc.
+ * 2) Dispatch life-event gui.Life.ATTACH, gui.LIFE_VISIBLE etc.
  */
 ( function generatecode () {
 	var states = {
@@ -5200,19 +5206,17 @@ gui.LifePlugin = gui.Tracker.extend ( "gui.LifePlugin", {
 		attach : gui.LIFE_ATTACH,
 		ready : gui.LIFE_READY,
 		visible : gui.LIFE_VISIBLE,
-		invisible : gui.LIFE_INVISIBLE,
 		detach : gui.LIFE_DETACH,
 		exit : gui.LIFE_EXIT,
 		destruct : gui.LIFE_DESTRUCT
 	};
 	// prefix methods with "on", suffix booleans with "ed"
 	gui.Object.each ( states, function ( state, event ) {
-		gui.LifePlugin.mixin ( "go" + state , function () {
+		gui.LifePlugin.mixin ( "go" + state , function ( arg ) {
 			var prop = state;
 			switch ( state ) {
 				case "ready" :
 				case "visible" :
-				case "invisible" :
 					break;
 				default :
 					prop += "ed";
@@ -5228,10 +5232,9 @@ gui.LifePlugin = gui.Tracker.extend ( "gui.LifePlugin", {
 					this.attached = false;
 					break;
 				case "visible" :
-					this.invisible = false;
-					break;
-				case "invisible" :
-					this.visible = false;
+					if ( ! ( this.visible = arg )) {
+						event = gui.LIFE_INVISIBLE;
+					}
 					break;
 			}
 			this.dispatch ( event );
@@ -6926,7 +6929,7 @@ gui.CSSPlugin = ( function using ( chained ) {
 		},
 
 		/**
-		 * Set multiple element.style properties.
+		 * Set multiple element.style properties via hashmap.
 		 * @param {Element|gui.Spirit} thing Spirit or element.
 		 * @param {Map<String,String>} styles
 		 * @returns {Element|gui.Spirit}
@@ -8062,9 +8065,8 @@ gui.EventPlugin = ( function using ( chained ) {
 
 
 /**
- * Interface EventHandler. This is a real DOM interface, it's used for native event 
- * handling. We usually choose to forward the event to the spirits `onevent` method.
- * @see http://www.w3.org/TR/DOM-Level-3-Events/#interface-EventListener
+ * Interface EventHandler.
+ * 
  */
 gui.IEventHandler = {
 
@@ -8077,10 +8079,17 @@ gui.IEventHandler = {
 	},
 
 	/**
-	 * Handle event.
+	 * Native DOM interface. We'll forward the event to the method `onevent`.
+	 * @see http://www.w3.org/TR/DOM-Level-3-Events/#interface-EventListener
 	 * @param {Event} e
 	 */
-	handleEvent : function ( e ) {}
+	handleEvent : function ( e ) {},
+
+	/**
+	 * Conforms to other Spiritual event handlers.
+	 * @param {Event} e
+	 */
+	onevent : function ( e ) {}
 };
 
 
@@ -9391,6 +9400,8 @@ gui.AttentionPlugin = ( function using ( chained ) {
  * Current visibility status can be read in the {gui.LifePlugin}: `spirit.life.visible`.
  * Visibility is resolved async, so this property is `undefined` on startup. If you need 
  * to take an action that depends on visibility, just wait for `onvisible` to be invoked.
+ * @TODO: hook this up to http://www.w3.org/TR/page-visibility/
+ * @TODO: Make sure that visibility is updated after `appendChild` to another position.
  * @extends {gui.Plugin}
  * @using {gui.Combo.chained}
  */
@@ -9453,6 +9464,7 @@ gui.VisibilityPlugin = ( function using ( chained ) {
 		 
 		/**
 		 * Initialize spirit visibility. 
+		 * @TODO again after `appendChild` to another position.
 		 * Invoked by the {gui.Guide}.
 		 * @param {gui.Spirit} spirit
 		 */
@@ -9490,12 +9502,12 @@ gui.VisibilityPlugin = ( function using ( chained ) {
 					}
 					if ( visible ) {
 						if ( !spirit.life.visible || init ) {
-							spirit.life.govisible ();
+							spirit.life.govisible ( true ); // @TODO: call after 'onvisible'?
 							spirit.onvisible ();
 						}
 					} else {
 						if ( spirit.life.visible || init ) {
-							spirit.life.goinvisible ();
+							spirit.life.govisible ( false );
 							spirit.oninvisible ();
 						}
 					}
@@ -10896,12 +10908,12 @@ gui.module ( "core", {
 		oninvisible : function () {},
 
 		/**
-		 * Implements DOM2 EventListener only to forward the event to method onevent()
-		 * @see http://www.w3.org/TR/DOM-Level-2-Events/events.html#Events-EventListener
-		 * @param {Event} event
+		 * Native DOM interface. We'll forward the event to the method `onevent`.
+		 * @see http://www.w3.org/TR/DOM-Level-3-Events/#interface-EventListener
+		 * @param {Event} e
 		 */
-		handleEvent : function ( event ) {
-			this.onevent ( event );
+		handleEvent : function ( e ) {
+			this.onevent ( e );
 		}
 	}
 
@@ -12344,17 +12356,21 @@ gui.Guide = {
 		var doc = elm.ownerDocument;
 		var win = doc.defaultView;
 		var sig = win.gui.$contextid;
+		if ( elm.spirit ) {
+			throw new Error ( "Cannot repossess element with spirit " + elm.spirit + " (exorcise first)" );
+		}
 		return ( elm.spirit = new Spirit ( elm, doc, win, sig ));
 	},
 
 	/**
-	 * Immediately nukes the spirit. It's wise to leave this for the framework to manage since 
-	 * there is a risk of errors when we collapse the otherwise two-phased destruction sequence.
+	 * Disassociate DOM element from Spirit instance.
 	 * @param {gui.Spirit} spirit
 	 */
 	exorcise : function  ( spirit ) {
-		spirit.ondestruct (); // API user should cleanup here
-		spirit.$ondestruct (); // everything is destroyed here
+		if ( !spirit.life.destructed ) {
+			gui.Spirit.$destruct ( spirit ); // API user should cleanup here
+			gui.Spirit.$dispose ( spirit ); // everything is destroyed here
+		}
 	},
 
 	/**
@@ -12372,12 +12388,13 @@ gui.Guide = {
 
 	/**
 	 * Invoked by {gui.Spiritual} some milliseconds after 
-	 * the spirits have been attached to the page DOM. 
-	 * Timeout allows the browser to repaint before we 
-	 * begin evaluating the spirits async lifecycle.
+	 * the spirits have been attached to the page DOM.
 	 * @param {Array<gui.Spirit>} spirits
 	 */
 	afterattach : function ( spirits ) {
+		spirits.forEach ( function ( spirit ) {
+			gui.Spirit.$async ( spirit );
+		});
 		this._visibility ( spirits );
 	},
 	
@@ -12579,18 +12596,18 @@ gui.Guide = {
 		});
 		attach.forEach ( function ( spirit ) {
 			if ( !spirit.life.configured ) {
-				spirit.onconfigure ();
+				gui.Spirit.$configure ( spirit );
 			}
 			if ( !spirit.life.entered ) {
-				spirit.onenter ();
+				gui.Spirit.$enter ( spirit );
 			}
-			spirit.onattach ();
+			gui.Spirit.$attach ( spirit );
 			if ( !spirit.life.ready ) {
 				readys.push ( spirit );
 			}
 		}, this );
 		readys.reverse ().forEach ( function ( spirit ) {
-			spirit.onready ();
+			gui.Spirit.$ready ( spirit );
 		});
 	},
 
@@ -12619,12 +12636,12 @@ gui.Guide = {
 	_materialize : function ( element, skip, one ) {
 		this._collect ( element, skip, gui.CRAWLER_MATERIALIZE ).filter ( function ( spirit ) {
 			if ( spirit.life.attached && !spirit.life.destructed ) {
-				spirit.ondestruct (); // API user should do cleanup here
-				return true;
+				gui.Spirit.$destruct ( spirit );
+				return true; // @TODO: handle 'one' arg!
 			}
 			return false;
 		}).forEach ( function ( spirit ) {
-			spirit.$ondestruct (); // framework nukes everything here
+			gui.Spirit.$dispose ( spirit );
 		});
 	},
 
@@ -12635,7 +12652,7 @@ gui.Guide = {
 		element = element instanceof gui.Spirit ? element.element : element;
 		if ( this._handles ( element )) {
 			this._collect ( element, false, gui.CRAWLER_DETACH ).forEach ( function ( spirit ) {
-				spirit.ondetach ();
+				gui.Spirit.$detach ( spirit );
 			});
 		}
 	},
@@ -12702,10 +12719,12 @@ gui.Guide = {
 	_cleanup : function ( win, doc ) {
 		var spirits = this._collect ( doc, false );
 		spirits.forEach ( function ( spirit ) {
-			spirit.ondestruct (); // API user should cleanup here	
+			gui.Spirit.$destruct ( spirit );
+			//spirit.ondestruct (); // API user should cleanup here	
 		});
 		spirits.forEach ( function ( spirit ) {
-			spirit.$ondestruct (); // everything is destroyed here		
+			gui.Spirit.$dispose ( spirit );
+			//spirit.$ondestruct (); // everything is destroyed here		
 		});
 		win.gui.nameDestructAlreadyUsed ();
 	}
