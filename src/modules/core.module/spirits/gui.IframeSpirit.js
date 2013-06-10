@@ -251,7 +251,7 @@ gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
 	 * Action intercepted by the {gui.DocumentSpirit}.
 	 */
 	_visibility : function () {
-		if ( this.life.visible || this.life.invisible ) {
+		if ( gui.Type.isDefined ( this.life.visible )) {
 			this.action.descendGlobal ( gui.$ACTION_XFRAME_VISIBILITY, this.life.visible );
 		}
 	},

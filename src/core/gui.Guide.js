@@ -27,20 +27,24 @@ gui.Guide = {
 	 * @param {Event} e
 	 */
 	handleEvent : function ( e ) {
-		var sum = new gui.EventSummary ( e );
-		switch ( e.type ) {
-			case "DOMContentLoaded" :
-				this._ondom ( sum );
-				break;
-			case "load" :
-				this._onload ( sum );
-				break;
-			case "unload" :
-				this._unload ( sum );
-				break;
-		}
 		e.currentTarget.removeEventListener ( e.type, this, false );
 		e.stopPropagation ();
+		try {
+			var sum = new gui.EventSummary ( e ); // @TODO: "gui" might not exist in xdoman *nested* iframes...
+			switch ( e.type ) {
+				case "DOMContentLoaded" :
+					this._ondom ( sum );
+					break;
+				case "load" :
+					this._onload ( sum );
+					break;
+				case "unload" :
+					this._unload ( sum );
+					break;
+			}
+		} catch ( ex ) {
+			console.error ( "TODO: Strange xdomain nested iframes exception: " + ex.message );
+		}
 	},
 
 	/**
@@ -145,17 +149,21 @@ gui.Guide = {
 		var doc = elm.ownerDocument;
 		var win = doc.defaultView;
 		var sig = win.gui.$contextid;
+		if ( elm.spirit ) {
+			throw new Error ( "Cannot repossess element with spirit " + elm.spirit + " (exorcise first)" );
+		}
 		return ( elm.spirit = new Spirit ( elm, doc, win, sig ));
 	},
 
 	/**
-	 * Immediately nukes the spirit. It's wise to leave this for the framework to manage since 
-	 * there is a risk of errors when we collapse the otherwise two-phased destruction sequence.
+	 * Disassociate DOM element from Spirit instance.
 	 * @param {gui.Spirit} spirit
 	 */
 	exorcise : function  ( spirit ) {
-		spirit.ondestruct (); // API user should cleanup here
-		spirit.$ondestruct (); // everything is destroyed here
+		if ( !spirit.life.destructed ) {
+			gui.Spirit.$destruct ( spirit ); // API user should cleanup here
+			gui.Spirit.$dispose ( spirit ); // everything is destroyed here
+		}
 	},
 
 	/**
@@ -173,12 +181,13 @@ gui.Guide = {
 
 	/**
 	 * Invoked by {gui.Spiritual} some milliseconds after 
-	 * the spirits have been attached to the page DOM. 
-	 * Timeout allows the browser to repaint before we 
-	 * begin evaluating the spirits async lifecycle.
+	 * the spirits have been attached to the page DOM.
 	 * @param {Array<gui.Spirit>} spirits
 	 */
 	afterattach : function ( spirits ) {
+		spirits.forEach ( function ( spirit ) {
+			gui.Spirit.$async ( spirit );
+		});
 		this._visibility ( spirits );
 	},
 	
@@ -237,17 +246,21 @@ gui.Guide = {
 	},
 
 	/**
-	 * Fires on window unload. If Spiritual was portalled into the document 
-	 * from a parent frame, we must perform some manual memory management
+	 * Fires on window unload.
 	 * @param {gui.EventSummary} sum
 	 */
 	_unload : function ( sum ) {
 		if ( sum.documentspirit ) {
 			sum.documentspirit.onunload ();
 		}
-		if ( sum.window.gui.portalled ) {
-			this._cleanup ( sum.window, sum.document );
-		}
+		this._cleanup ( sum.window, sum.document );
+
+		/*
+		 * @TODO: this elsewhere...
+		 */
+		var win = sum.window;
+		win.gui.$die ();
+		win.gui = null;
 	},
 
 	/**
@@ -380,18 +393,18 @@ gui.Guide = {
 		});
 		attach.forEach ( function ( spirit ) {
 			if ( !spirit.life.configured ) {
-				spirit.onconfigure ();
+				gui.Spirit.$configure ( spirit );
 			}
 			if ( !spirit.life.entered ) {
-				spirit.onenter ();
+				gui.Spirit.$enter ( spirit );
 			}
-			spirit.onattach ();
+			gui.Spirit.$attach ( spirit );
 			if ( !spirit.life.ready ) {
 				readys.push ( spirit );
 			}
 		}, this );
 		readys.reverse ().forEach ( function ( spirit ) {
-			spirit.onready ();
+			gui.Spirit.$ready ( spirit );
 		});
 	},
 
@@ -420,12 +433,12 @@ gui.Guide = {
 	_materialize : function ( element, skip, one ) {
 		this._collect ( element, skip, gui.CRAWLER_MATERIALIZE ).filter ( function ( spirit ) {
 			if ( spirit.life.attached && !spirit.life.destructed ) {
-				spirit.ondestruct (); // API user should do cleanup here
-				return true;
+				gui.Spirit.$destruct ( spirit );
+				return true; // @TODO: handle 'one' arg!
 			}
 			return false;
 		}).forEach ( function ( spirit ) {
-			spirit.$ondestruct (); // framework nukes everything here
+			gui.Spirit.$dispose ( spirit );
 		});
 	},
 
@@ -436,7 +449,7 @@ gui.Guide = {
 		element = element instanceof gui.Spirit ? element.element : element;
 		if ( this._handles ( element )) {
 			this._collect ( element, false, gui.CRAWLER_DETACH ).forEach ( function ( spirit ) {
-				spirit.ondetach ();
+				gui.Spirit.$detach ( spirit );
 			});
 		}
 	},
@@ -467,8 +480,7 @@ gui.Guide = {
 	 */
 	_visibility : function ( spirits ) {
 		this._containerspirits ( spirits ).forEach ( function ( spirit ) {
-			var visible = !this._invisible ( spirit );
-			gui.Spirit.$visible ( spirit, visible );
+			gui.VisibilityPlugin.$init ( spirit );
 		}, this );
 	},
 
@@ -494,17 +506,6 @@ gui.Guide = {
 	},
 	
 	/**
-	 * Spirit is invisible? 
-	 * @TODO: Some kind of visibility module?
-	 * @param {gui.Spirit} spirit
-	 * @returns {boolean}
-	 */
-	_invisible : function ( spirit ) {
-		return spirit.css.contains ( gui.CLASS_INVISIBLE ) || 
-		spirit.css.matches ( "." + gui.CLASS_INVISIBLE + " *" );
-	},
-	
-	/**
 	 * Destruct all spirits in document. Spirit instances, unless locally loaded, 
 	 * might be newed up in another context. Destruction will null all properties 
 	 * so that the spirit might be garbage collected sooner, let's hope it works. 
@@ -515,10 +516,12 @@ gui.Guide = {
 	_cleanup : function ( win, doc ) {
 		var spirits = this._collect ( doc, false );
 		spirits.forEach ( function ( spirit ) {
-			spirit.ondestruct (); // API user should cleanup here	
+			gui.Spirit.$destruct ( spirit );
+			//spirit.ondestruct (); // API user should cleanup here	
 		});
 		spirits.forEach ( function ( spirit ) {
-			spirit.$ondestruct (); // everything is destroyed here		
+			gui.Spirit.$dispose ( spirit );
+			//spirit.$ondestruct (); // everything is destroyed here		
 		});
 		win.gui.nameDestructAlreadyUsed ();
 	}

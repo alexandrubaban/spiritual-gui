@@ -93,12 +93,13 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 				break;
 			case gui.$ACTION_XFRAME_VISIBILITY : 
 				this._waiting = false;
-				gui.Spirit.$visible ( this, a.data );
+				if ( a.data === true ) {
+					this.visibility.on ();
+				} else {
+					this.visibility.off ();
+				}
 				a.consume ();
-				/*
-				 * @TODO: Could this be moved to 'onvisible' (not working now)?
-				 */
-				if ( this.window.gui.hasModule("flex")){
+				if ( this.window.gui.hasModule ( "flex" )){
 					this.flex.reflex ();
 				}
 				break;

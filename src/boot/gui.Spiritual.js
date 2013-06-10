@@ -405,7 +405,7 @@ gui.Spiritual.prototype = {
 
 	/**
 	 * Register spirit outside document. This schedules the spirit 
-	 * for destruction unless reinserted somewhere else, and soon.
+	 * for destruction unless reinserted somewhere else (and soon).
 	 * @TODO move? rename?
 	 * @param {gui.Spirit} spirit
 	 */
@@ -418,35 +418,45 @@ gui.Spiritual.prototype = {
 				delete all.incoming [ key ];
 			}
 			all.outside [ key ] = spirit;
-			gui.Tick.dispatch ( gui.$TICK_OUTSIDE, 0, this.$contextid );
+			gui.Tick.dispatch ( gui.$TICK_OUTSIDE, 0, this.$contextid ); // @TODO use 4 ms???
 		}
 	},
 
 	/**
-	 * Destruct all detached spirits.
+	 * @TODO: formalize this
+	 */
+	$die : function () {
+		gui.Tick.remove ([ gui.$TICK_INSIDE, gui.$TICK_OUTSIDE ], this, this.$contextid );
+		gui.GreatSpirit.$nukeallofit ( this, this.window )
+	},
+
+	/**
+	 * Handle tick.
 	 * @param {gui.Tick} tick
 	 */
 	ontick : function ( tick ) {
+		var spirits;
 		switch ( tick.type ) {
 			case gui.$TICK_INSIDE :
-				var spirits = this._spirits.incoming;
+				spirits = this._spirits.incoming;
 				gui.Guide.afterattach ( gui.Object.each ( spirits, function ( id, spirit ) {
 					return spirit;
 				}));
 				this._spirits.incoming = Object.create ( null );
 				break;
 			case gui.$TICK_OUTSIDE :
-				gui.Object.each ( this._spirits.outside, function ( key, spirit ) {
+				spirits = gui.Object.each ( this._spirits.outside, function ( key, spirit ) {
 					return spirit;
-				}).filter ( function ( spirit ) {
-					return spirit.onexit () !== false;
-				}).map ( function ( spirit ) {
-					spirit.ondestruct ();
-					return spirit;
-				}).forEach ( function ( spirit ) {
-					spirit.$ondestruct ();
 				});
-				// @TODO do we want to loose track of potential non-exited spirits?
+				spirits.forEach ( function ( spirit ) {
+					gui.Spirit.$exit ( spirit );
+				});
+				spirits.forEach ( function ( spirit ) {
+					gui.Spirit.$destruct ( spirit );
+				});
+				spirits.forEach ( function ( spirit ) {
+					gui.Spirit.$dispose ( spirit );
+				});
 				this._spirits.outside = Object.create ( null );
 				break;
 		}

@@ -6,6 +6,42 @@
 gui.CSSPlugin = ( function using ( chained ) {
 
 	return gui.Plugin.extend ( "gui.CSSPlugin", {
+
+		/**
+		 * Add classname.
+		 * @param {String} name
+		 * @returns {gui.CSSPlugin}
+		 */
+		add : chained ( function ( name ) {
+			gui.CSSPlugin.add ( this.spirit.element, name );
+		}),
+
+		/**
+		 * Remove classname.
+		 * @param {String} name
+		 * @returns {gui.CSSPlugin}
+		 */
+		remove : chained ( function ( name ) {
+			gui.CSSPlugin.remove ( this.spirit.element, name );
+		}),
+
+		/**
+		 * Toggle classname.
+		 * @param {String} name
+		 * @returns {gui.CSSPlugin}
+		 */
+		toggle : chained ( function ( name ) {
+			gui.CSSPlugin.toggle ( this.spirit.element, name );
+		}),
+
+		/**
+		 * Contains classname?
+		 * @param {String} name
+		 * @returns {boolean}
+		 */
+		contains : function ( name ) {
+			return gui.CSSPlugin.contains ( this.spirit.element, name );
+		}, 
 		
 		/**
 		 * Set single element.style.
@@ -15,6 +51,15 @@ gui.CSSPlugin = ( function using ( chained ) {
 		 */
 		set : chained ( function ( prop, val ) {
 			gui.CSSPlugin.set ( this.spirit.element, prop, val );
+		}),
+
+		/**
+		 * Set multiple styles via key value map.
+		 * @param {Map<String,String>} map
+		 * @returns {gui.CSSPlugin}
+		 */
+		style : chained ( function ( map ) {
+			gui.CSSPlugin.style ( this.spirit.element, map );
 		}),
 
 		/**
@@ -36,15 +81,6 @@ gui.CSSPlugin = ( function using ( chained ) {
 		},
 
 		/**
-		 * Set multiple styles via key value map.
-		 * @param {Map<String,String>} map
-		 * @returns {gui.CSSPlugin}
-		 */
-		style : chained ( function ( map ) {
-			gui.CSSPlugin.style ( this.spirit.element, map );
-		}),
-
-		/**
 		 * Get or set (full) className.
 		 * @param @optional {String} name
 		 * @returns {String|gui.CSSPlugin}
@@ -57,42 +93,6 @@ gui.CSSPlugin = ( function using ( chained ) {
 			}
 			return result;
 		}),
-
-		/**
-		 * classList.add
-		 * @param {String} name
-		 * @returns {gui.CSSPlugin}
-		 */
-		add : chained ( function ( name ) {
-			gui.CSSPlugin.add ( this.spirit.element, name );
-		}),
-
-		/**
-		 * classList.remove
-		 * @param {String} name
-		 * @returns {gui.CSSPlugin}
-		 */
-		remove : chained ( function ( name ) {
-			gui.CSSPlugin.remove ( this.spirit.element, name );
-		}),
-
-		/**
-		 * classList.toggle
-		 * @param {String} name
-		 * @returns {gui.CSSPlugin}
-		 */
-		toggle : chained ( function ( name ) {
-			gui.CSSPlugin.toggle ( this.spirit.element, name );
-		}),
-
-		/**
-		 * classList.contains
-		 * @param {String} name
-		 * @returns {boolean}
-		 */
-		contains : function ( name ) {
-			return gui.CSSPlugin.contains ( this.spirit.element, name );
-		}, 
 
 		/**
 		 * Spirit element mathes selector?
@@ -195,7 +195,7 @@ gui.CSSPlugin = ( function using ( chained ) {
 		},
 
 		 /**
-		 * Set single element.style property (use style() for multiple)
+		 * Set single CSS property. Use style() for multiple properties.
 		 * @TODO also automate shorthands such as "10px 20px 10px 20px"
 		 * @param {Element}
 		 * @param {String} prop
@@ -228,7 +228,8 @@ gui.CSSPlugin = ( function using ( chained ) {
 		},
 
 		/**
-		 * Set multiple element.style properties.
+		 * Set multiple element.style properties via hashmap. Note that 
+		 * this method returns the element (ie. it is not chainable).
 		 * @param {Element|gui.Spirit} thing Spirit or element.
 		 * @param {Map<String,String>} styles
 		 * @returns {Element|gui.Spirit}
@@ -376,8 +377,8 @@ gui.CSSPlugin = ( function using ( chained ) {
 
 		/**
 		 * Setter shorthands will autosuffix properties that require units 
-		 * in support of the syntax: this.css.width = 300;  * no method()
-		 * @TODO add tons of things to this list
+		 * in support of the syntax: this.css.width = 300 (no method call)
+		 * @TODO add more properties
 		 * @type {Map<String,String>
 		 */
 		_shorthands : {

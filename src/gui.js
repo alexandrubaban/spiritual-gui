@@ -118,8 +118,6 @@ window.gui = {
 	LIFE_ENTER : "gui-life-enter",
 	LIFE_ATTACH : "gui-life-attach",
 	LIFE_READY : "gui-life-ready",
-	//LIFE_SHOW : "gui-life-show",
-	//LIFE_HIDE : "gui-life-hide",
 	LIFE_DETACH : "gui-life-detach",
 	LIFE_EXIT	: "gui-life-exit",
 	LIFE_DESTRUCT : "life-destruct",

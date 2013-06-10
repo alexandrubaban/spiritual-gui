@@ -83,7 +83,7 @@ gui.DOMPlugin = ( function using ( chained ) {
 		hide : chained ( function () {
 			if ( !this.spirit.css.contains ( gui.CLASS_HIDDEN )) {
 				this.spirit.css.add ( gui.CLASS_HIDDEN );
-				this.goinvisible ();
+				this.spirit.visibility.off ();
 			}
 		}),
 
@@ -94,28 +94,8 @@ gui.DOMPlugin = ( function using ( chained ) {
 		show : chained ( function () {
 			if ( this.spirit.css.contains ( gui.CLASS_HIDDEN )) {
 				this.spirit.css.remove ( gui.CLASS_HIDDEN );
-				this.govisible ();
+				this.spirit.visibility.on ();
 			}
-		}),
-
-		/**
-		 * Mark spirit invisible. This will add the `._gui-invisible` 
-		 * classname and invoke `oninvisible` on spirit and descendants.
-		 */
-		goinvisible : chained ( function () {
-			//if ( this.spirit.life.visible ) {
-				gui.Spirit.goinvisible ( this.spirit );
-			//}
-		}),
-
-		/**
-		 * Mark spirit visible. This will remove the `._gui-invisible` 
-		 * classname and invoke `onvisible` on spirit and descendants.
-		 */
-		govisible : chained ( function () {
-			//if ( this.spirit.life.invisible ) {
-				gui.Spirit.govisible ( this.spirit );
-			//}
 		}),
 
 		/**
@@ -130,7 +110,6 @@ gui.DOMPlugin = ( function using ( chained ) {
 			var elm = this.spirit.element;
 			if ( name ) {
 				res = doc.createElement ( name );
-
 				// @TODO "text" > "child" and let gui.DOMPlugin handle the rest....
 				if ( gui.Type.isString ( text )) {
 					res.appendChild ( 
@@ -192,10 +171,12 @@ gui.DOMPlugin = ( function using ( chained ) {
 	}, {}, { // Static ...............................................................
 
 		/**
-		 * Spiritual-aware innerHTML with special setup for WebKit.
-		 * Parse markup to node(s)
-		 * Detach spirits and remove old nodes
-		 * Append new nodes and spiritualize spirits
+		 * Spiritual-aware innerHTML with special setup for bad WebKit.
+		 * @see http://code.google.com/p/chromium/issues/detail?id=13175
+		 * 
+		 * - Parse markup to node(s)
+		 * - Detach spirits and remove old nodes
+		 * - Append new nodes and spiritualize spirits
 		 * @param {Element} element
 		 * @param @optional {String} markup
 		 */
@@ -464,6 +445,7 @@ gui.Object.each ({
 /**
  * DOM navigation methods accept an optional spirit constructor as 
  * argument. They return a spirit, an element or an array of either.
+ * @TODO: Support two arguments + arguments magic for all of these :/
  */
 gui.Object.each ({
 

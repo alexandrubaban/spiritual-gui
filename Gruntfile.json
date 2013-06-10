@@ -33,6 +33,7 @@
 	"src/core/gui.Plugin.js",
 	"src/core/gui.Tracker.js",
 	"src/core/gui.Module.js",
+	"src/core/gui.GreatSpirit.js",
 
 	"src/modules/core.module/plugins/life.plugin/gui.Life.js",
 	"src/modules/core.module/plugins/life.plugin/gui.LifePlugin.js",
@@ -60,6 +61,7 @@
 	"src/modules/core.module/plugins/transition.plugin/gui.TransitionPlugin.js",
 	"src/modules/core.module/plugins/transition.plugin/gui.Transition.js",
 	"src/modules/core.module/plugins/attention.plugin/gui.AttentionPlugin.js",
+	"src/modules/core.module/plugins/visibility.plugin/gui.VisibilityPlugin.js",
 
 	"src/utils/gui.Client.js",
 	
