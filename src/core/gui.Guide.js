@@ -31,7 +31,7 @@ gui.Guide = {
 		e.stopPropagation ();
 		if ( e.type ==="unload" ) {
 			try { // @TODO: 'gui' might nit exist now in iframes :/
-				gui.EventSummary; 
+				var test = gui.EventSummary; 
 			} catch ( exception ) {
 				console.warn ( "TODO: Esoteric iframe dysfunction:", exception.message );
 				return;

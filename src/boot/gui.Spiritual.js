@@ -427,7 +427,7 @@ gui.Spiritual.prototype = {
 	 */
 	$die : function () {
 		gui.Tick.remove ([ gui.$TICK_INSIDE, gui.$TICK_OUTSIDE ], this, this.$contextid );
-		gui.GreatSpirit.$nukeallofit ( this, this.window )
+		gui.GreatSpirit.$nukeallofit ( this, this.window );
 	},
 
 	/**
