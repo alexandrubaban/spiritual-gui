@@ -242,17 +242,25 @@ gui.Guide = {
 	},
 
 	/**
-	 * Fires on window unload. If Spiritual was portalled into the document 
-	 * from a parent frame, we must perform some manual memory management
+	 * Fires on window unload.
 	 * @param {gui.EventSummary} sum
 	 */
 	_unload : function ( sum ) {
 		if ( sum.documentspirit ) {
 			sum.documentspirit.onunload ();
 		}
-		if ( sum.window.gui.portalled ) {
-			this._cleanup ( sum.window, sum.document );
-		}
+		this._cleanup ( sum.window, sum.document );
+
+		/*
+		 * @TODO: this elsewhere...
+		 */
+		var win = sum.window;
+		win.gui.$die ();
+		win.gui = null;
+		
+		win.document.removeEventListener ( "DOMContentLoaded", this, false );
+		win.removeEventListener ( "load", this, false );
+		win.removeEventListener ( "unload", this, false );
 	},
 
 	/**

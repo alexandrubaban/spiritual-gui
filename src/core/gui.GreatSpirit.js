@@ -49,7 +49,7 @@ gui.GreatSpirit = {
 		this.$nukeplugins ( spirit, prefixes.sort ());
 		this.$nukeplugins ( spirit, [ "life" ]);
 		this.$nukeelement ( spirit );
-		this.$nukeallofit ( spirit );
+		this.$nukeallofit ( spirit, spirit.window );
 	},
 
 	/**
@@ -70,8 +70,9 @@ gui.GreatSpirit = {
 	},
 
 	/**
-	 * Unreference spirit from the element. Explorer 
-	 * may deny permission in frames (still relevant?)
+	 * Unreference spirit associated element. 
+	 * Explorer may deny permission in frames.
+	 * @TODO: Is IE exception still relevant?
 	 */
 	$nukeelement : function ( spirit ) {
 		try {
@@ -81,13 +82,18 @@ gui.GreatSpirit = {
 
 	/**
 	 * Replace al properties with an accessor to throw an exception.
-	 * @TODO: scan property descriptor and skip unmutable properties (would throw in strict?)
+	 * @TODO: keep track of non-enumerables and nuke those as well :/
+	 * @param {object} thing
+	 * @param {Window} context
 	 */
-	$nukeallofit : function ( spirit ) {
-		var nativeprops = spirit.window.Object.prototype;
-		for ( var prop in spirit ) {
+	$nukeallofit : function ( thing, context ) {
+		var nativeprops = context.Object.prototype;
+		for ( var prop in thing ) {
 			if ( nativeprops [ prop ] === undefined ) {
-				Object.defineProperty ( spirit, prop, this.DENIED );
+				var desc = Object.getOwnPropertyDescriptor ( thing, prop );
+				if ( !desc || desc.configurable ) {
+					Object.defineProperty ( thing, prop, this.DENIED );
+				}
 			}
 		}
 	},

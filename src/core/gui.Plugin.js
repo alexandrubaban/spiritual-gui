@@ -56,16 +56,9 @@ gui.Plugin = gui.Class.create ( "gui.Plugin", Object.prototype, {
 
 	/**
 	 * Secret destructor. Called after `ondestruct`.
-	 * @TODO: transfer to gui.GreatSpirit perhaps...
 	 */
 	$ondestruct : function () {
-		var debug = this.spirit.window.gui.debug;
-		var nativ = this.spirit.window.Object.prototype;
-		for ( var prop in this ) {
-			if ( nativ [ prop ] === undefined ) {
-				Object.defineProperty ( this, prop, gui.GreatSpirit.DENIED );
-			}
-		}
+		gui.GreatSpirit.$nukeallofit ( this, this.spirit.window );
 	}
 	
 
