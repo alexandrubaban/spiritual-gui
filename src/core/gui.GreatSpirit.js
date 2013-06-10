@@ -48,6 +48,7 @@ gui.GreatSpirit = {
 		});
 		this.$nukeplugins ( spirit, prefixes.sort ());
 		this.$nukeplugins ( spirit, [ "life" ]);
+		this.$nukeelement ( spirit );
 		this.$nukeallofit ( spirit );
 	},
 
@@ -69,14 +70,21 @@ gui.GreatSpirit = {
 	},
 
 	/**
+	 * Unreference spirit from the element. Explorer 
+	 * may deny permission in frames (still relevant?)
+	 */
+	$nukeelement : function ( spirit ) {
+		try {
+			spirit.element.spirit = null;
+		} catch ( denied ) {}
+	},
+
+	/**
 	 * Replace al properties with an accessor to throw an exception.
 	 * @TODO: scan property descriptor and skip unmutable properties (would throw in strict?)
 	 */
 	$nukeallofit : function ( spirit ) {
 		var nativeprops = spirit.window.Object.prototype;
-		try {
-			spirit.element.spirit = null;
-		} catch ( denied ) {} // explorer may deny permission in frames (still relevant?)
 		for ( var prop in spirit ) {
 			if ( nativeprops [ prop ] === undefined ) {
 				Object.defineProperty ( spirit, prop, this.DENIED );
