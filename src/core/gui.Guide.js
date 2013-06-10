@@ -30,10 +30,10 @@ gui.Guide = {
 		e.currentTarget.removeEventListener ( e.type, this, false );
 		e.stopPropagation ();
 		if ( e.type ==="unload" ) {
-			try { // @TODO: now 'gui' might not exist in xdoman nested iframes :/
-				gui.EventSummary; 
+			try { // @TODO: 'gui' might nit exist now in iframes :/
+				var test = gui.EventSummary; 
 			} catch ( exception ) {
-				console.error ( "Esoteric iframe dysfunction:", exception.message );
+				console.warn ( "TODO: Esoteric iframe dysfunction:", exception.message );
 				return;
 			}
 		}
