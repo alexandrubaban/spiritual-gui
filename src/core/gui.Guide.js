@@ -29,21 +29,25 @@ gui.Guide = {
 	handleEvent : function ( e ) {
 		e.currentTarget.removeEventListener ( e.type, this, false );
 		e.stopPropagation ();
-		try {
-			var sum = new gui.EventSummary ( e ); // @TODO: "gui" might not exist in xdoman *nested* iframes...
-			switch ( e.type ) {
-				case "DOMContentLoaded" :
-					this._ondom ( sum );
-					break;
-				case "load" :
-					this._onload ( sum );
-					break;
-				case "unload" :
-					this._unload ( sum );
-					break;
+		if ( e.type ==="unload" ) {
+			try { // @TODO: now 'gui' might not exist in xdoman nested iframes :/
+				gui.EventSummary; 
+			} catch ( exception ) {
+				console.error ( "Esoteric iframe dysfunction:", exception.message );
+				return;
 			}
-		} catch ( ex ) {
-			console.error ( "TODO: Strange xdomain nested iframes exception: " + ex.message );
+		}
+		var sum = new gui.EventSummary ( e );
+		switch ( e.type ) {
+			case "DOMContentLoaded" :
+				this._ondom ( sum );
+				break;
+			case "load" :
+				this._onload ( sum );
+				break;
+			case "unload" :
+				this._unload ( sum );
+				break;
 		}
 	},
 
