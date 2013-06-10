@@ -1211,6 +1211,14 @@ gui.Spiritual.prototype = {
 	},
 
 	/**
+	 * @TODO: formalize this
+	 */
+	$die : function () {
+		gui.Tick.remove ([ gui.$TICK_INSIDE, gui.$TICK_OUTSIDE ], this, this.$contextid );
+		gui.GreatSpirit.$nukeallofit ( this, this.window );
+	},
+
+	/**
 	 * Handle tick.
 	 * @param {gui.Tick} tick
 	 */
@@ -4468,13 +4476,7 @@ gui.Plugin = gui.Class.create ( "gui.Plugin", Object.prototype, {
 	 * Secret destructor. Called after `ondestruct`.
 	 */
 	$ondestruct : function () {
-		var debug = this.spirit.window.gui.debug;
-		var nativ = this.spirit.window.Object;
-		for ( var prop in this ) {
-			if ( nativ [ prop ] === undefined ) {
-				Object.defineProperty ( this, prop, gui.GreatSpirit.DENIED );
-			}
-		}
+		gui.GreatSpirit.$nukeallofit ( this, this.spirit.window );
 	}
 	
 
@@ -4928,7 +4930,8 @@ gui.GreatSpirit = {
 		});
 		this.$nukeplugins ( spirit, prefixes.sort ());
 		this.$nukeplugins ( spirit, [ "life" ]);
-		this.$nukeallofit ( spirit );
+		this.$nukeelement ( spirit );
+		this.$nukeallofit ( spirit, spirit.window );
 	},
 
 	/**
@@ -4949,17 +4952,30 @@ gui.GreatSpirit = {
 	},
 
 	/**
-	 * Replace al properties with an accessor to throw an exception.
-	 * @TODO: scan property descriptor and skip unmutable properties (would throw in strict?)
+	 * Unreference spirit associated element. 
+	 * Explorer may deny permission in frames.
+	 * @TODO: Is IE exception still relevant?
 	 */
-	$nukeallofit : function ( spirit ) {
-		var nativeprops = spirit.window.Object;
+	$nukeelement : function ( spirit ) {
 		try {
 			spirit.element.spirit = null;
-		} catch ( denied ) {} // explorer may deny permission in frames (still relevant?)
-		for ( var prop in spirit ) {
+		} catch ( denied ) {}
+	},
+
+	/**
+	 * Replace al properties with an accessor to throw an exception.
+	 * @TODO: keep track of non-enumerables and nuke those as well :/
+	 * @param {object} thing
+	 * @param {Window} context
+	 */
+	$nukeallofit : function ( thing, context ) {
+		var nativeprops = context.Object.prototype;
+		for ( var prop in thing ) {
 			if ( nativeprops [ prop ] === undefined ) {
-				Object.defineProperty ( spirit, prop, this.DENIED );
+				var desc = Object.getOwnPropertyDescriptor ( thing, prop );
+				if ( !desc || desc.configurable ) {
+					Object.defineProperty ( thing, prop, this.DENIED );
+				}
 			}
 		}
 	},
@@ -6709,7 +6725,7 @@ gui.CSSPlugin = ( function using ( chained ) {
 	return gui.Plugin.extend ( "gui.CSSPlugin", {
 
 		/**
-		 * classList.add
+		 * Add classname.
 		 * @param {String} name
 		 * @returns {gui.CSSPlugin}
 		 */
@@ -6718,7 +6734,7 @@ gui.CSSPlugin = ( function using ( chained ) {
 		}),
 
 		/**
-		 * classList.remove
+		 * Remove classname.
 		 * @param {String} name
 		 * @returns {gui.CSSPlugin}
 		 */
@@ -6727,7 +6743,7 @@ gui.CSSPlugin = ( function using ( chained ) {
 		}),
 
 		/**
-		 * classList.toggle
+		 * Toggle classname.
 		 * @param {String} name
 		 * @returns {gui.CSSPlugin}
 		 */
@@ -6736,7 +6752,7 @@ gui.CSSPlugin = ( function using ( chained ) {
 		}),
 
 		/**
-		 * classList.contains
+		 * Contains classname?
 		 * @param {String} name
 		 * @returns {boolean}
 		 */
@@ -6896,7 +6912,7 @@ gui.CSSPlugin = ( function using ( chained ) {
 		},
 
 		 /**
-		 * Set single element.style property (use style() for multiple)
+		 * Set single CSS property. Use style() for multiple properties.
 		 * @TODO also automate shorthands such as "10px 20px 10px 20px"
 		 * @param {Element}
 		 * @param {String} prop
@@ -6929,7 +6945,8 @@ gui.CSSPlugin = ( function using ( chained ) {
 		},
 
 		/**
-		 * Set multiple element.style properties via hashmap.
+		 * Set multiple element.style properties via hashmap. Note that 
+		 * this method returns the element (ie. it is not chainable).
 		 * @param {Element|gui.Spirit} thing Spirit or element.
 		 * @param {Map<String,String>} styles
 		 * @returns {Element|gui.Spirit}
@@ -7324,10 +7341,12 @@ gui.DOMPlugin = ( function using ( chained ) {
 	}, {}, { // Static ...............................................................
 
 		/**
-		 * Spiritual-aware innerHTML with special setup for WebKit.
-		 * Parse markup to node(s)
-		 * Detach spirits and remove old nodes
-		 * Append new nodes and spiritualize spirits
+		 * Spiritual-aware innerHTML with special setup for bad WebKit.
+		 * @see http://code.google.com/p/chromium/issues/detail?id=13175
+		 * 
+		 * - Parse markup to node(s)
+		 * - Detach spirits and remove old nodes
+		 * - Append new nodes and spiritualize spirits
 		 * @param {Element} element
 		 * @param @optional {String} markup
 		 */
@@ -7596,6 +7615,7 @@ gui.Object.each ({
 /**
  * DOM navigation methods accept an optional spirit constructor as 
  * argument. They return a spirit, an element or an array of either.
+ * @TODO: Support two arguments + arguments magic for all of these :/
  */
 gui.Object.each ({
 
@@ -12238,6 +12258,16 @@ gui.Guide = {
 	 * @param {Event} e
 	 */
 	handleEvent : function ( e ) {
+		e.currentTarget.removeEventListener ( e.type, this, false );
+		e.stopPropagation ();
+		if ( e.type ==="unload" ) {
+			try { // @TODO: 'gui' might nit exist now in iframes :/
+				var test = gui.EventSummary; 
+			} catch ( exception ) {
+				console.warn ( "TODO: Esoteric iframe dysfunction:", exception.message );
+				return;
+			}
+		}
 		var sum = new gui.EventSummary ( e );
 		switch ( e.type ) {
 			case "DOMContentLoaded" :
@@ -12250,8 +12280,6 @@ gui.Guide = {
 				this._unload ( sum );
 				break;
 		}
-		e.currentTarget.removeEventListener ( e.type, this, false );
-		e.stopPropagation ();
 	},
 
 	/**
@@ -12453,17 +12481,21 @@ gui.Guide = {
 	},
 
 	/**
-	 * Fires on window unload. If Spiritual was portalled into the document 
-	 * from a parent frame, we must perform some manual memory management
+	 * Fires on window unload.
 	 * @param {gui.EventSummary} sum
 	 */
 	_unload : function ( sum ) {
 		if ( sum.documentspirit ) {
 			sum.documentspirit.onunload ();
 		}
-		if ( sum.window.gui.portalled ) {
-			this._cleanup ( sum.window, sum.document );
-		}
+		this._cleanup ( sum.window, sum.document );
+
+		/*
+		 * @TODO: this elsewhere...
+		 */
+		var win = sum.window;
+		win.gui.$die ();
+		win.gui = null;
 	},
 
 	/**
