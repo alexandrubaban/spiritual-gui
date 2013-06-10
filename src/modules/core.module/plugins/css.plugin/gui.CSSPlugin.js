@@ -8,7 +8,7 @@ gui.CSSPlugin = ( function using ( chained ) {
 	return gui.Plugin.extend ( "gui.CSSPlugin", {
 
 		/**
-		 * classList.add
+		 * Add classname.
 		 * @param {String} name
 		 * @returns {gui.CSSPlugin}
 		 */
@@ -17,7 +17,7 @@ gui.CSSPlugin = ( function using ( chained ) {
 		}),
 
 		/**
-		 * classList.remove
+		 * Remove classname.
 		 * @param {String} name
 		 * @returns {gui.CSSPlugin}
 		 */
@@ -26,7 +26,7 @@ gui.CSSPlugin = ( function using ( chained ) {
 		}),
 
 		/**
-		 * classList.toggle
+		 * Toggle classname.
 		 * @param {String} name
 		 * @returns {gui.CSSPlugin}
 		 */
@@ -35,7 +35,7 @@ gui.CSSPlugin = ( function using ( chained ) {
 		}),
 
 		/**
-		 * classList.contains
+		 * Contains classname?
 		 * @param {String} name
 		 * @returns {boolean}
 		 */
@@ -195,7 +195,7 @@ gui.CSSPlugin = ( function using ( chained ) {
 		},
 
 		 /**
-		 * Set single element.style property (use style() for multiple)
+		 * Set single CSS property. Use style() for multiple properties.
 		 * @TODO also automate shorthands such as "10px 20px 10px 20px"
 		 * @param {Element}
 		 * @param {String} prop
@@ -228,7 +228,8 @@ gui.CSSPlugin = ( function using ( chained ) {
 		},
 
 		/**
-		 * Set multiple element.style properties via hashmap.
+		 * Set multiple element.style properties via hashmap. Note that 
+		 * this method returns the element (ie. it is not chainable).
 		 * @param {Element|gui.Spirit} thing Spirit or element.
 		 * @param {Map<String,String>} styles
 		 * @returns {Element|gui.Spirit}

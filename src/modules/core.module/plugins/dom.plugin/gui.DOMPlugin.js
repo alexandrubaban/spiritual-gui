@@ -171,10 +171,12 @@ gui.DOMPlugin = ( function using ( chained ) {
 	}, {}, { // Static ...............................................................
 
 		/**
-		 * Spiritual-aware innerHTML with special setup for WebKit.
-		 * Parse markup to node(s)
-		 * Detach spirits and remove old nodes
-		 * Append new nodes and spiritualize spirits
+		 * Spiritual-aware innerHTML with special setup for bad WebKit.
+		 * @see http://code.google.com/p/chromium/issues/detail?id=13175
+		 * 
+		 * - Parse markup to node(s)
+		 * - Detach spirits and remove old nodes
+		 * - Append new nodes and spiritualize spirits
 		 * @param {Element} element
 		 * @param @optional {String} markup
 		 */
@@ -443,6 +445,7 @@ gui.Object.each ({
 /**
  * DOM navigation methods accept an optional spirit constructor as 
  * argument. They return a spirit, an element or an array of either.
+ * @TODO: Support two arguments + arguments magic for all of these :/
  */
 gui.Object.each ({
 
