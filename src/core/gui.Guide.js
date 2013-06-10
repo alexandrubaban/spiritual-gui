@@ -27,20 +27,24 @@ gui.Guide = {
 	 * @param {Event} e
 	 */
 	handleEvent : function ( e ) {
-		var sum = new gui.EventSummary ( e );
-		switch ( e.type ) {
-			case "DOMContentLoaded" :
-				this._ondom ( sum );
-				break;
-			case "load" :
-				this._onload ( sum );
-				break;
-			case "unload" :
-				this._unload ( sum );
-				break;
-		}
 		e.currentTarget.removeEventListener ( e.type, this, false );
 		e.stopPropagation ();
+		try {
+			var sum = new gui.EventSummary ( e ); // @TODO: "gui" might not exist in xdoman *nested* iframes...
+			switch ( e.type ) {
+				case "DOMContentLoaded" :
+					this._ondom ( sum );
+					break;
+				case "load" :
+					this._onload ( sum );
+					break;
+				case "unload" :
+					this._unload ( sum );
+					break;
+			}
+		} catch ( ex ) {
+			console.error ( "TODO: Strange xdomain nested iframes exception: " + ex.message );
+		}
 	},
 
 	/**
@@ -257,10 +261,6 @@ gui.Guide = {
 		var win = sum.window;
 		win.gui.$die ();
 		win.gui = null;
-		
-		win.document.removeEventListener ( "DOMContentLoaded", this, false );
-		win.removeEventListener ( "load", this, false );
-		win.removeEventListener ( "unload", this, false );
 	},
 
 	/**
