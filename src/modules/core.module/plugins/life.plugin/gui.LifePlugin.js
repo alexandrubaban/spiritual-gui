@@ -160,7 +160,7 @@ gui.LifePlugin = gui.Tracker.extend ( "gui.LifePlugin", {
  * Generate methods to update life cycle status:
  * 1) Update booleans entered, attached, detached etc.
  * 2) Dispatch life-event gui.Life.ATTACH, gui.LIFE_VISIBLE etc.
- */
+ *
 ( function generatecode () {
 	var states = {
 		construct : gui.LIFE_CONSTRUCT,
@@ -204,3 +204,4 @@ gui.LifePlugin = gui.Tracker.extend ( "gui.LifePlugin", {
 		});
 	});
 })();
+*/

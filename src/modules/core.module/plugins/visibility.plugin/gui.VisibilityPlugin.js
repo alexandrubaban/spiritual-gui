@@ -106,12 +106,14 @@ gui.VisibilityPlugin = ( function using ( chained ) {
 					}
 					if ( visible ) {
 						if ( !spirit.life.visible || init ) {
-							spirit.life.govisible ( true ); // @TODO: call after 'onvisible'?
+							spirit.life.visible = true;
+							spirit.life.dispatch ( gui.LIFE_VISIBLE ); // TODO: somehow after the fact!
 							spirit.onvisible ();
 						}
 					} else {
 						if ( spirit.life.visible || init ) {
-							spirit.life.govisible ( false );
+							spirit.life.visible = false;
+							spirit.life.dispatch ( gui.LIFE_INVISIBLE );
 							spirit.oninvisible ();
 						}
 					}

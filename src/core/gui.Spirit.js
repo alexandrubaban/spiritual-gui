@@ -294,6 +294,18 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	
 }, { // Static .............................................................................
 
+	/*
+	construct : gui.LIFE_CONSTRUCT,
+		configure : gui.LIFE_CONFIGURE,
+		enter : gui.LIFE_ENTER,
+		attach : gui.LIFE_ATTACH,
+		ready : gui.LIFE_READY,
+		visible : gui.LIFE_VISIBLE,
+		detach : gui.LIFE_DETACH,
+		exit : gui.LIFE_EXIT,
+		destruct : gui.LIFE_DESTRUCT
+	*/
+
 	/**
 	 * Spirit construct. Called by the secret constructor {gui.Spirit#$onconstruct}.
 	 * @param {gui.Spirit} spirit
@@ -301,8 +313,9 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	$construct : function ( spirit ) {
 		spirit.$pluginplugins ();
 		spirit.$debug ( true );
+		spirit.life.constructed = true;
 		spirit.onconstruct ();
-		spirit.life.goconstruct ();
+		spirit.life.dispatch ( gui.LIFE_CONSTRUCT );
 	},
 	
 	/**
@@ -311,8 +324,9 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	 */
 	$configure : function ( spirit ) {
 		spirit.attconfig.configureall ();
+		spirit.life.configured = true;
 		spirit.onconfigure ();
-		spirit.life.goconfigure ();
+		spirit.life.dispatch ( gui.LIFE_CONFIGURE );
 	},
 	
 	/**
@@ -321,8 +335,9 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	 */
 	$enter : function ( spirit ) {
 		spirit.window.gui.inside ( spirit );
+		spirit.life.entered = true;
 		spirit.onenter ();
-		spirit.life.goenter ();
+		spirit.life.dispatch ( gui.LIFE_ENTER );
 	},
 	
 	/**
@@ -331,8 +346,9 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	 */
 	$attach : function ( spirit ) {
 		spirit.window.gui.inside ( spirit );
+		spirit.life.attached = true;
 		spirit.onattach ();
-		spirit.life.goattach ();
+		spirit.life.dispatch ( gui.LIFE_ATTACH );
 	},
 	
 	/**
@@ -340,8 +356,9 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	 * @param {gui.Spirit} spirit
 	 */
 	$ready : function ( spirit ) {
+		spirit.life.ready = true;
 		spirit.onready ();
-		spirit.life.goready ();
+		spirit.life.dispatch ( gui.LIFE_READY );
 	},
 
 	/**
@@ -350,9 +367,11 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	 */
 	$detach : function ( spirit ) {
 		spirit.window.gui.outside ( spirit );
+		spirit.life.detached = true;
+		spirit.life.visible = false;
+		spirit.life.dispatch ( gui.LIFE_DETACH );
+		spirit.life.dispatch ( gui.LIFE_INVISIBLE );
 		spirit.life.godetach ();
-		spirit.life.govisible ( false );
-		spirit.ondetach ();
 	},
 	
 	/**
@@ -360,7 +379,8 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	 * @param {gui.Spirit} spirit
 	 */
 	$exit : function ( spirit ) {
-		spirit.life.goexit ();
+		spirit.life.exited = true;
+		spirit.life.dispatch ( gui.LIFE_EXIT );
 		spirit.onexit ();
 	},
 	
@@ -371,7 +391,8 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	$destruct : function ( spirit ) {
 		spirit.window.gui.destruct ( spirit );
 		spirit.$debug ( false );
-		spirit.life.godestruct ();
+		spirit.life.destructed = true;
+		spirit.life.dispatch ( gui.LIFE_DESTRUCT );
 		spirit.ondestruct ();
 	},
 
@@ -391,7 +412,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	 * @param {gui.Spirit} spirit
 	 */
 	$async : function ( spirit ) {
-		spirit.onasync ();
+		spirit.onasync (); // TODO: life cycle stuff goes here
 	}
 
 });
