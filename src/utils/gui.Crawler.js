@@ -3,19 +3,7 @@
  * @TODO method <code>descendSub</code> to skip start element (and something similar for ascend)
  * @param @optional {String} type
  */
-gui.Crawler = function ( type ) {
-	this.type = type || null;
-	return this;
-};
-
-gui.Crawler.prototype = {
-
-	/**
-	 * Recursion directives.
-	 * @TODO skip children, skip element etc
-	 */
-	CONTINUE: 0,
-	STOP : 1,
+gui.Crawler = gui.Class.create ( "gui.Crawler ", {
 
 	/**
 	 * Identifies crawler. @TODO spirit support for this!
@@ -43,6 +31,14 @@ gui.Crawler.prototype = {
 	},
 
 	/**
+	 * Constructor.
+	 * @param {String} type
+	 */
+	onconstruct : function ( type ) {
+		this.type = type || null;
+	},
+
+	/**
 	 * Crawl DOM ascending.
 	 * @TODO ascendGlobal should do the global
 	 * @param {Element|gui.Spirit} start
@@ -58,6 +54,7 @@ gui.Crawler.prototype = {
 					if ( win.parent !== win ) {
 						/*
 						 * @TODO: iframed document might have navigated elsewhere, stamp this in localstorage
+						 * @TODO: sit down and wonder if localstorage is even available in sandboxed iframes...
 						 */
 						if ( win.gui.xhost ) {
 							elm = null;	
@@ -76,16 +73,14 @@ gui.Crawler.prototype = {
 			}
 			if ( elm ) {
 				var directive = this._handleElement ( elm, handler );
-				if ( !directive ) {
-					elm = elm.parentNode;
-				} else {
-					switch ( directive ) {
-						case gui.Crawler.STOP :
-							elm = null;
-							break;
-					}
+				switch ( directive ) {
+					case gui.Crawler.STOP :
+						elm = null;
+						break;
+					default :
+						elm = elm.parentNode;
+						break;
 				}
-				
 			}
 		} while ( elm );
 	},
@@ -140,9 +135,9 @@ gui.Crawler.prototype = {
 	_descend : function ( elm, handler, arg, start ) {
 		var win, spirit, directive = this._handleElement ( elm, handler, arg );
 		switch ( directive ) {
-			case 0 :
-			case 2 :
-				if ( directive !== 2 ) {
+			case gui.Crawler.CONTINUE :
+			case gui.Crawler.SKIP_CHILDREN :
+				if ( directive !== gui.Crawler.SKIP_CHILDREN ) {
 					if ( elm.childElementCount ) {
 						this._descend ( elm.firstElementChild, handler, arg, false );
 					} else if ( this.global && elm.localName === "iframe" ) {
@@ -188,14 +183,10 @@ gui.Crawler.prototype = {
 				if ( gui.Type.isFunction ( handler.handleElement )) {
 					directive = handler.handleElement ( element, arg );
 				}
-				switch ( directive ) {
-					case 1 :
-						break;
-					default :
-						if ( spirit && gui.Type.isFunction ( handler.handleSpirit )) {
-							directive = this._handleSpirit ( spirit, handler );
-						}
-						break;
+				if ( directive !== gui.Crawler.STOP ) {
+					if ( spirit && gui.Type.isFunction ( handler.handleSpirit )) {
+						directive = this._handleSpirit ( spirit, handler );
+					}
 				}	
 			}
 		}
@@ -214,18 +205,15 @@ gui.Crawler.prototype = {
 	_handleSpirit : function ( spirit, handler ) {
 		return handler.handleSpirit ( spirit );
 	}
-};
 
 
-// Static ..............................................................
+}, {}, { // Static ..............................................................
 
-gui.Crawler.ASCENDING = "ascending";
-gui.Crawler.DESCENDING = "descending";
+	ASCENDING : "ascending",
+	DESCENDING : "descending",
+	CONTINUE : 0,
+	STOP : 1,
+	SKIP: 2, // @TODO: support this
+	SKIP_CHILDREN : 4
 
-/**
- * Bitmask setup supposed to be going on here.
- * @TODO TELEPORT_ELSEWEHERE stuff.
- */
-gui.Crawler.CONTINUE = 0;
-gui.Crawler.STOP = 1;
-gui.Crawler.SKIP_CHILDREN = 2;
+});

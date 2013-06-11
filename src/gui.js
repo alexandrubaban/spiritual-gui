@@ -127,11 +127,11 @@ window.gui = {
 	/**
 	 * Lifecycle types (some spirits)
 	 */
-	LIFE_IFRAME_CONSTRUCT : "life-iframe-construct",
-	LIFE_IFRAME_DOMCONTENT : "life-iframe-domcontent",
-	LIFE_IFRAME_ONLOAD : "life-iframe-construct",
-	LIFE_IFRAME_SPIRITUALIZED : "life-iframe-spiritualized",
-	LIFE_IFRAME_UNLOAD : "life-iframe-unload",
+	LIFE_IFRAME_CONSTRUCT : "gui-life-iframe-construct",
+	LIFE_IFRAME_DOMCONTENT : "gui-life-iframe-domcontent",
+	LIFE_IFRAME_ONLOAD : "gui-life-iframe-construct",
+	LIFE_IFRAME_SPIRITUALIZED : "gui-life-iframe-spiritualized",
+	LIFE_IFRAME_UNLOAD : "gui-life-iframe-unload",
 
 	/**
 	 * Tick types (timed events)
@@ -142,13 +142,14 @@ window.gui = {
 	/**
 	 * Crawler types
 	 */
-	CRAWLER_ATTACH : "gui-crawler-attach", // SPIRI...
+	CRAWLER_SPIRITUALIZE : "gui-crawler-spiritualize",
 	CRAWLER_MATERIALIZE : "gui-crawler-materialize",
 	CRAWLER_DETACH : "gui-crawler-detach",
 	CRAWLER_DISPOSE : "gui-crawler-dispose", // ??????
 	CRAWLER_ACTION : "gui-crawler-action",
 	CRAWLER_VISIBLE : "gui-crawler-visible",
 	CRAWLER_INVISIBLE : "gui-crawler-invisible",
+	CRAWLER_DOMPATCHER : "gui-crawler-webkit-dompatcher",
 
 	/** 
 	 * CSS classnames (underscore is to indicate that the classname are managed by JS)
