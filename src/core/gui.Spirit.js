@@ -92,7 +92,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	ondetach : function () {},
 
 	/**
-	 * `onexit` gets if the spirit element has been manually detached and not re-attached in 
+	 * `onexit` gets if the spirit element has been *manually* detached and not re-attached in 
 	 * the same execution stack. Spirit is not positioned in the document DOM at this point.
 	 */
 	onexit : function () {},
@@ -100,6 +100,9 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	/**
 	 * Invoked when spirit is about to be destroyed. Code your last wishes here. 
 	 * Spirit element may not be positioned in the document DOM at this point. 
+	 * @TODO: This method currently is NOT CALLED during window.unload, in 
+	 * that case we skip directly to {gui.GreatSpirit}. Would be nice if the 
+	 * spirit could eg. save stuff to localstorage at this point...
 	 */
 	ondestruct : function () {},
 
