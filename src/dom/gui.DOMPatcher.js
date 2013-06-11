@@ -27,7 +27,7 @@ gui.DOMPatcher = {
 	 */
 	patch : function ( node ) {
 		if ( gui.DOMChanger.innerhtml.local ) {
-			new gui.Crawler ( "crawler-webkit-patch" ).descend ( node, this );
+			new gui.Crawler ( gui.CRAWLER_DOMPATCHER ).descend ( node, this );
 		} else {
 			throw new Error ( "Somehow JQuery mode should have handled this :(" );
 		}

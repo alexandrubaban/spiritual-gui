@@ -27,16 +27,6 @@ gui.Guide = {
 	 * @param {Event} e
 	 */
 	handleEvent : function ( e ) {
-		e.currentTarget.removeEventListener ( e.type, this, false );
-		e.stopPropagation ();
-		if ( e.type ==="unload" ) {
-			try { // @TODO: 'gui' might nit exist now in iframes :/
-				var test = gui.EventSummary; 
-			} catch ( exception ) {
-				console.warn ( "TODO: Esoteric iframe dysfunction:", exception.message );
-				return;
-			}
-		}
 		var sum = new gui.EventSummary ( e );
 		switch ( e.type ) {
 			case "DOMContentLoaded" :
@@ -49,6 +39,8 @@ gui.Guide = {
 				this._unload ( sum );
 				break;
 		}
+		e.currentTarget.removeEventListener ( e.type, this, false );
+		e.stopPropagation ();
 	},
 
 	/**
@@ -258,13 +250,6 @@ gui.Guide = {
 			sum.documentspirit.onunload ();
 		}
 		this._cleanup ( sum.window, sum.document );
-
-		/*
-		 * @TODO: this elsewhere...
-		 */
-		var win = sum.window;
-		win.gui.$die ();
-		win.gui = null;
 	},
 
 	/**
@@ -379,7 +364,7 @@ gui.Guide = {
 	_spiritualize : function ( element, skip, one ) {
 		var attach = [];
 		var readys = [];
-		new gui.Crawler ( gui.CRAWLER_ATTACH ).descend ( element, {
+		new gui.Crawler ( gui.CRAWLER_SPIRITUALIZE ).descend ( element, {
 			handleElement : function ( elm ) {
 				if ( !skip || elm !== element ) {
 					var spirit = elm.spirit;
@@ -458,7 +443,7 @@ gui.Guide = {
 		}
 	},
 
-	/**
+	/**½
 	 * If possible, construct and return spirit for element.
 	 * @TODO what's this? http://code.google.com/p/chromium/issues/detail?id=20773
 	 * @TODO what's this? http://forum.jquery.com/topic/elem-ownerdocument-defaultview-breaks-when-elem-iframe-document

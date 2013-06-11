@@ -80,6 +80,7 @@
 
 	"src/dev/gui.Observer.js",
 	"src/core/gui.Guide.js",
+	"src/core/gui.GuideCrawler.js",
 
 	"src/modules/keys.module/gui.Key.js",	
 	"src/modules/keys.module/gui.KeyPlugin.js",	

@@ -423,14 +423,6 @@ gui.Spiritual.prototype = {
 	},
 
 	/**
-	 * @TODO: formalize this
-	 */
-	$die : function () {
-		gui.Tick.remove ([ gui.$TICK_INSIDE, gui.$TICK_OUTSIDE ], this, this.$contextid );
-		gui.GreatSpirit.$nukeallofit ( this, this.window );
-	},
-
-	/**
 	 * Handle tick.
 	 * @param {gui.Tick} tick
 	 */
@@ -483,6 +475,15 @@ gui.Spiritual.prototype = {
 			this [ thing ] = null;
 		}, this );
 	},
+
+	/**
+	 * @TODO: Perhaps do this some day...
+	 *
+	$cleanup : function () {
+		gui.Tick.remove ([ gui.$TICK_INSIDE, gui.$TICK_OUTSIDE ], this, this.$contextid );
+		gui.GreatSpirit.$nukeallofit ( this, this.window );
+	},
+	*/
 	
 
 	// Private .................................................................
