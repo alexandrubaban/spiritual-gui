@@ -135,11 +135,11 @@ window.gui = {
 	/**
 	 * Lifecycle types (some spirits)
 	 */
-	LIFE_IFRAME_CONSTRUCT : "life-iframe-construct",
-	LIFE_IFRAME_DOMCONTENT : "life-iframe-domcontent",
-	LIFE_IFRAME_ONLOAD : "life-iframe-construct",
-	LIFE_IFRAME_SPIRITUALIZED : "life-iframe-spiritualized",
-	LIFE_IFRAME_UNLOAD : "life-iframe-unload",
+	LIFE_IFRAME_CONSTRUCT : "gui-life-iframe-construct",
+	LIFE_IFRAME_DOMCONTENT : "gui-life-iframe-domcontent",
+	LIFE_IFRAME_ONLOAD : "gui-life-iframe-construct",
+	LIFE_IFRAME_SPIRITUALIZED : "gui-life-iframe-spiritualized",
+	LIFE_IFRAME_UNLOAD : "gui-life-iframe-unload",
 
 	/**
 	 * Tick types (timed events)
@@ -150,13 +150,14 @@ window.gui = {
 	/**
 	 * Crawler types
 	 */
-	CRAWLER_ATTACH : "gui-crawler-attach", // SPIRI...
+	CRAWLER_SPIRITUALIZE : "gui-crawler-spiritualize",
 	CRAWLER_MATERIALIZE : "gui-crawler-materialize",
 	CRAWLER_DETACH : "gui-crawler-detach",
 	CRAWLER_DISPOSE : "gui-crawler-dispose", // ??????
 	CRAWLER_ACTION : "gui-crawler-action",
 	CRAWLER_VISIBLE : "gui-crawler-visible",
 	CRAWLER_INVISIBLE : "gui-crawler-invisible",
+	CRAWLER_DOMPATCHER : "gui-crawler-webkit-dompatcher",
 
 	/** 
 	 * CSS classnames (underscore is to indicate that the classname are managed by JS)
@@ -1211,14 +1212,6 @@ gui.Spiritual.prototype = {
 	},
 
 	/**
-	 * @TODO: formalize this
-	 */
-	$die : function () {
-		gui.Tick.remove ([ gui.$TICK_INSIDE, gui.$TICK_OUTSIDE ], this, this.$contextid );
-		gui.GreatSpirit.$nukeallofit ( this, this.window );
-	},
-
-	/**
 	 * Handle tick.
 	 * @param {gui.Tick} tick
 	 */
@@ -1271,6 +1264,15 @@ gui.Spiritual.prototype = {
 			this [ thing ] = null;
 		}, this );
 	},
+
+	/**
+	 * @TODO: Perhaps do this some day...
+	 *
+	$cleanup : function () {
+		gui.Tick.remove ([ gui.$TICK_INSIDE, gui.$TICK_OUTSIDE ], this, this.$contextid );
+		gui.GreatSpirit.$nukeallofit ( this, this.window );
+	},
+	*/
 	
 
 	// Private .................................................................
@@ -3619,19 +3621,7 @@ gui.EventSummary.prototype = {
  * @TODO method <code>descendSub</code> to skip start element (and something similar for ascend)
  * @param @optional {String} type
  */
-gui.Crawler = function ( type ) {
-	this.type = type || null;
-	return this;
-};
-
-gui.Crawler.prototype = {
-
-	/**
-	 * Recursion directives.
-	 * @TODO skip children, skip element etc
-	 */
-	CONTINUE: 0,
-	STOP : 1,
+gui.Crawler = gui.Class.create ( "gui.Crawler ", {
 
 	/**
 	 * Identifies crawler. @TODO spirit support for this!
@@ -3659,6 +3649,14 @@ gui.Crawler.prototype = {
 	},
 
 	/**
+	 * Constructor.
+	 * @param {String} type
+	 */
+	onconstruct : function ( type ) {
+		this.type = type || null;
+	},
+
+	/**
 	 * Crawl DOM ascending.
 	 * @TODO ascendGlobal should do the global
 	 * @param {Element|gui.Spirit} start
@@ -3674,6 +3672,7 @@ gui.Crawler.prototype = {
 					if ( win.parent !== win ) {
 						/*
 						 * @TODO: iframed document might have navigated elsewhere, stamp this in localstorage
+						 * @TODO: sit down and wonder if localstorage is even available in sandboxed iframes...
 						 */
 						if ( win.gui.xhost ) {
 							elm = null;	
@@ -3692,16 +3691,14 @@ gui.Crawler.prototype = {
 			}
 			if ( elm ) {
 				var directive = this._handleElement ( elm, handler );
-				if ( !directive ) {
-					elm = elm.parentNode;
-				} else {
-					switch ( directive ) {
-						case gui.Crawler.STOP :
-							elm = null;
-							break;
-					}
+				switch ( directive ) {
+					case gui.Crawler.STOP :
+						elm = null;
+						break;
+					default :
+						elm = elm.parentNode;
+						break;
 				}
-				
 			}
 		} while ( elm );
 	},
@@ -3756,9 +3753,9 @@ gui.Crawler.prototype = {
 	_descend : function ( elm, handler, arg, start ) {
 		var win, spirit, directive = this._handleElement ( elm, handler, arg );
 		switch ( directive ) {
-			case 0 :
-			case 2 :
-				if ( directive !== 2 ) {
+			case gui.Crawler.CONTINUE :
+			case gui.Crawler.SKIP_CHILDREN :
+				if ( directive !== gui.Crawler.SKIP_CHILDREN ) {
 					if ( elm.childElementCount ) {
 						this._descend ( elm.firstElementChild, handler, arg, false );
 					} else if ( this.global && elm.localName === "iframe" ) {
@@ -3804,14 +3801,10 @@ gui.Crawler.prototype = {
 				if ( gui.Type.isFunction ( handler.handleElement )) {
 					directive = handler.handleElement ( element, arg );
 				}
-				switch ( directive ) {
-					case 1 :
-						break;
-					default :
-						if ( spirit && gui.Type.isFunction ( handler.handleSpirit )) {
-							directive = this._handleSpirit ( spirit, handler );
-						}
-						break;
+				if ( directive !== gui.Crawler.STOP ) {
+					if ( spirit && gui.Type.isFunction ( handler.handleSpirit )) {
+						directive = this._handleSpirit ( spirit, handler );
+					}
 				}	
 			}
 		}
@@ -3830,21 +3823,18 @@ gui.Crawler.prototype = {
 	_handleSpirit : function ( spirit, handler ) {
 		return handler.handleSpirit ( spirit );
 	}
-};
 
 
-// Static ..............................................................
+}, {}, { // Static ..............................................................
 
-gui.Crawler.ASCENDING = "ascending";
-gui.Crawler.DESCENDING = "descending";
+	ASCENDING : "ascending",
+	DESCENDING : "descending",
+	CONTINUE : 0,
+	STOP : 1,
+	SKIP: 2, // @TODO: support this
+	SKIP_CHILDREN : 4
 
-/**
- * Bitmask setup supposed to be going on here.
- * @TODO TELEPORT_ELSEWEHERE stuff.
- */
-gui.Crawler.CONTINUE = 0;
-gui.Crawler.STOP = 1;
-gui.Crawler.SKIP_CHILDREN = 2;
+});
 
 
 /**
@@ -4313,6 +4303,18 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	
 }, { // Static .............................................................................
 
+	/*
+	construct : gui.LIFE_CONSTRUCT,
+		configure : gui.LIFE_CONFIGURE,
+		enter : gui.LIFE_ENTER,
+		attach : gui.LIFE_ATTACH,
+		ready : gui.LIFE_READY,
+		visible : gui.LIFE_VISIBLE,
+		detach : gui.LIFE_DETACH,
+		exit : gui.LIFE_EXIT,
+		destruct : gui.LIFE_DESTRUCT
+	*/
+
 	/**
 	 * Spirit construct. Called by the secret constructor {gui.Spirit#$onconstruct}.
 	 * @param {gui.Spirit} spirit
@@ -4320,8 +4322,9 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	$construct : function ( spirit ) {
 		spirit.$pluginplugins ();
 		spirit.$debug ( true );
+		spirit.life.constructed = true;
 		spirit.onconstruct ();
-		spirit.life.goconstruct ();
+		spirit.life.dispatch ( gui.LIFE_CONSTRUCT );
 	},
 	
 	/**
@@ -4330,8 +4333,9 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	 */
 	$configure : function ( spirit ) {
 		spirit.attconfig.configureall ();
+		spirit.life.configured = true;
 		spirit.onconfigure ();
-		spirit.life.goconfigure ();
+		spirit.life.dispatch ( gui.LIFE_CONFIGURE );
 	},
 	
 	/**
@@ -4340,8 +4344,9 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	 */
 	$enter : function ( spirit ) {
 		spirit.window.gui.inside ( spirit );
+		spirit.life.entered = true;
 		spirit.onenter ();
-		spirit.life.goenter ();
+		spirit.life.dispatch ( gui.LIFE_ENTER );
 	},
 	
 	/**
@@ -4350,8 +4355,9 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	 */
 	$attach : function ( spirit ) {
 		spirit.window.gui.inside ( spirit );
+		spirit.life.attached = true;
 		spirit.onattach ();
-		spirit.life.goattach ();
+		spirit.life.dispatch ( gui.LIFE_ATTACH );
 	},
 	
 	/**
@@ -4359,8 +4365,9 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	 * @param {gui.Spirit} spirit
 	 */
 	$ready : function ( spirit ) {
+		spirit.life.ready = true;
 		spirit.onready ();
-		spirit.life.goready ();
+		spirit.life.dispatch ( gui.LIFE_READY );
 	},
 
 	/**
@@ -4369,9 +4376,11 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	 */
 	$detach : function ( spirit ) {
 		spirit.window.gui.outside ( spirit );
+		spirit.life.detached = true;
+		spirit.life.visible = false;
+		spirit.life.dispatch ( gui.LIFE_DETACH );
+		spirit.life.dispatch ( gui.LIFE_INVISIBLE );
 		spirit.life.godetach ();
-		spirit.life.govisible ( false );
-		spirit.ondetach ();
 	},
 	
 	/**
@@ -4379,7 +4388,8 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	 * @param {gui.Spirit} spirit
 	 */
 	$exit : function ( spirit ) {
-		spirit.life.goexit ();
+		spirit.life.exited = true;
+		spirit.life.dispatch ( gui.LIFE_EXIT );
 		spirit.onexit ();
 	},
 	
@@ -4390,7 +4400,8 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	$destruct : function ( spirit ) {
 		spirit.window.gui.destruct ( spirit );
 		spirit.$debug ( false );
-		spirit.life.godestruct ();
+		spirit.life.destructed = true;
+		spirit.life.dispatch ( gui.LIFE_DESTRUCT );
 		spirit.ondestruct ();
 	},
 
@@ -4410,7 +4421,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	 * @param {gui.Spirit} spirit
 	 */
 	$async : function ( spirit ) {
-		spirit.onasync ();
+		spirit.onasync (); // TODO: life cycle stuff goes here
 	}
 
 });
@@ -5213,7 +5224,7 @@ gui.LifePlugin = gui.Tracker.extend ( "gui.LifePlugin", {
  * Generate methods to update life cycle status:
  * 1) Update booleans entered, attached, detached etc.
  * 2) Dispatch life-event gui.Life.ATTACH, gui.LIFE_VISIBLE etc.
- */
+ *
 ( function generatecode () {
 	var states = {
 		construct : gui.LIFE_CONSTRUCT,
@@ -5257,6 +5268,7 @@ gui.LifePlugin = gui.Tracker.extend ( "gui.LifePlugin", {
 		});
 	});
 })();
+*/
 
 
 /**
@@ -9522,12 +9534,14 @@ gui.VisibilityPlugin = ( function using ( chained ) {
 					}
 					if ( visible ) {
 						if ( !spirit.life.visible || init ) {
-							spirit.life.govisible ( true ); // @TODO: call after 'onvisible'?
+							spirit.life.visible = true;
+							spirit.life.dispatch ( gui.LIFE_VISIBLE ); // TODO: somehow after the fact!
 							spirit.onvisible ();
 						}
 					} else {
 						if ( spirit.life.visible || init ) {
-							spirit.life.govisible ( false );
+							spirit.life.visible = false;
+							spirit.life.dispatch ( gui.LIFE_INVISIBLE );
 							spirit.oninvisible ();
 						}
 					}
@@ -11994,7 +12008,7 @@ gui.DOMPatcher = {
 	 */
 	patch : function ( node ) {
 		if ( gui.DOMChanger.innerhtml.local ) {
-			new gui.Crawler ( "crawler-webkit-patch" ).descend ( node, this );
+			new gui.Crawler ( gui.CRAWLER_DOMPATCHER ).descend ( node, this );
 		} else {
 			throw new Error ( "Somehow JQuery mode should have handled this :(" );
 		}
@@ -12258,16 +12272,6 @@ gui.Guide = {
 	 * @param {Event} e
 	 */
 	handleEvent : function ( e ) {
-		e.currentTarget.removeEventListener ( e.type, this, false );
-		e.stopPropagation ();
-		if ( e.type ==="unload" ) {
-			try { // @TODO: 'gui' might nit exist now in iframes :/
-				var test = gui.EventSummary; 
-			} catch ( exception ) {
-				console.warn ( "TODO: Esoteric iframe dysfunction:", exception.message );
-				return;
-			}
-		}
 		var sum = new gui.EventSummary ( e );
 		switch ( e.type ) {
 			case "DOMContentLoaded" :
@@ -12280,6 +12284,8 @@ gui.Guide = {
 				this._unload ( sum );
 				break;
 		}
+		e.currentTarget.removeEventListener ( e.type, this, false );
+		e.stopPropagation ();
 	},
 
 	/**
@@ -12489,13 +12495,6 @@ gui.Guide = {
 			sum.documentspirit.onunload ();
 		}
 		this._cleanup ( sum.window, sum.document );
-
-		/*
-		 * @TODO: this elsewhere...
-		 */
-		var win = sum.window;
-		win.gui.$die ();
-		win.gui = null;
 	},
 
 	/**
@@ -12610,7 +12609,7 @@ gui.Guide = {
 	_spiritualize : function ( element, skip, one ) {
 		var attach = [];
 		var readys = [];
-		new gui.Crawler ( gui.CRAWLER_ATTACH ).descend ( element, {
+		new gui.Crawler ( gui.CRAWLER_SPIRITUALIZE ).descend ( element, {
 			handleElement : function ( elm ) {
 				if ( !skip || elm !== element ) {
 					var spirit = elm.spirit;
@@ -12689,7 +12688,7 @@ gui.Guide = {
 		}
 	},
 
-	/**
+	/**½
 	 * If possible, construct and return spirit for element.
 	 * @TODO what's this? http://code.google.com/p/chromium/issues/detail?id=20773
 	 * @TODO what's this? http://forum.jquery.com/topic/elem-ownerdocument-defaultview-breaks-when-elem-iframe-document
@@ -12775,6 +12774,31 @@ gui.Guide = {
 	], gui.Guide );
 })();
 
+
+
+/**
+ * @TODO !
+ * @extends {gui.Crawler}
+ */
+gui.GuideCrawler = gui.Crawler.extend ( "gui.GuideCrawler", {
+
+	descend : function ( start, handler ) {
+		this._hans ( start );
+		this._super.descend ( start, handler );
+	},
+
+	_hans : function ( elm ) {
+		elm = elm instanceof gui.Spirit ? elm.element : elm;
+		elm.setAttribute ( "data-gui-crawler", this.type );
+		var id = elm.ownerDocument.defaultView.gui.$contextid;
+		gui.Tick.add ( "john", {
+			ontick : function () {
+				elm.removeAttribute ( "data-gui-crawler" );
+			}
+		}, id ).dispatch ( "john", 0, id );
+	}
+
+});
 
 
 /**
