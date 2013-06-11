@@ -152,6 +152,14 @@ gui.LifePlugin = gui.Tracker.extend ( "gui.LifePlugin", {
 	 * @TODO move declaration to super or something (?)
 	 * @type {Map<String,Array<object>}
 	 */
-	_handlers : null
+	_handlers : null,
+
+	/**
+	 * Cleanup.
+	 */
+	_cleanup : function ( type, checks ) {
+		var handler = checks [ 0 ];
+		this.remove ( type, handler );
+	}
 
 });

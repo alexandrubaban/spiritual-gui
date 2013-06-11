@@ -117,7 +117,7 @@ gui.GreatSpirit = {
 	 * @see https://gist.github.com/jay3sh/1158940
 	 */
 	DENY : function ( message ) {
-		var stack, e = new ReferenceError ( gui.Spirit.DENIAL );
+		var stack, e = new Error ( gui.Spirit.DENIAL );
 		if ( !gui.Client.isExplorer && ( stack = e.stack )) {
 			if ( gui.Client.isWebKit ) {
 				stack = stack.replace ( /^[^\(]+?[\n$]/gm, "" ).
@@ -128,7 +128,7 @@ gui.GreatSpirit = {
 				stack = stack.split ( "\n" );
 			}
 			stack.shift (); stack.shift (); // @TODO: shift one more now?
-			throw new ReferenceError ( e.message + "\n" + stack );
+			throw new Error ( e.message + "\n" + stack );
 		} else {
 			throw e;
 		}

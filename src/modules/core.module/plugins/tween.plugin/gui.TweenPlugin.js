@@ -35,7 +35,13 @@ gui.TweenPlugin = ( function using ( chained ) {
 			var sig = this._global ? null : this._sig;
 			var message = gui.BROADCAST_TWEEN;
 			this._breakdown ( arg ).forEach ( function ( type ) {
-				this._removechecks ( type, [ this._global ]);
+				if ( this._removechecks ( type, [ this._global ])) {
+					if ( this._global ) {
+						gui.Broadcast.removeGlobal ( message, this );
+					} else {
+						gui.Broadcast.remove ( message, this, sig );
+					}
+				}
 			}, this );
 		}),
 
@@ -101,7 +107,7 @@ gui.TweenPlugin = ( function using ( chained ) {
 				case gui.BROADCAST_TWEEN :
 					var tween = b.data;
 					if ( this._containschecks ( tween.type, [ b.isGlobal ])) {
-						this.spirit.ontween ( tween );
+						this.spirit.ontween ( tween ); // @TODO: try-catch for destructed spirit
 					}
 					break;
 			}
