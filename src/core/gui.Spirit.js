@@ -293,19 +293,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 
 	
 }, { // Static .............................................................................
-
-	/*
-	construct : gui.LIFE_CONSTRUCT,
-		configure : gui.LIFE_CONFIGURE,
-		enter : gui.LIFE_ENTER,
-		attach : gui.LIFE_ATTACH,
-		ready : gui.LIFE_READY,
-		visible : gui.LIFE_VISIBLE,
-		detach : gui.LIFE_DETACH,
-		exit : gui.LIFE_EXIT,
-		destruct : gui.LIFE_DESTRUCT
-	*/
-
+	
 	/**
 	 * Spirit construct. Called by the secret constructor {gui.Spirit#$onconstruct}.
 	 * @param {gui.Spirit} spirit
@@ -371,7 +359,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 		spirit.life.visible = false;
 		spirit.life.dispatch ( gui.LIFE_DETACH );
 		spirit.life.dispatch ( gui.LIFE_INVISIBLE );
-		spirit.life.godetach ();
+		spirit.ondetach ();
 	},
 	
 	/**
