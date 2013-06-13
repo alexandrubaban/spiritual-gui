@@ -4,7 +4,8 @@
 gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 
 	/**
-	 * Unique key for this spirit instance. Uppercase implies read-only.
+	 * Unique key for this spirit instance.
+	 * @TODO: Uppercase to imply read-only.
 	 * @type {String}
 	 */
 	$instanceid : null,
@@ -107,8 +108,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	// Async lifecycle .......................................................................
 
 	/**
-	 * Invoked some milliseconds after `onattach`. Postpone 
-	 * operations to here to give the browser a repaint break.
+	 * Invoked some milliseconds after `onattach` to give the browser a repaint break.
 	 * @TODO: this should be evaluated after 'appendChild' to another position.
 	 */
 	onasync : function () {},
@@ -371,6 +371,17 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 		spirit.life.dispatch ( gui.LIFE_EXIT );
 		spirit.onexit ();
 	},
+
+	/**
+	 * Spirit async.
+	 * @TODO: This should be evaluated after `appendChild` to another position.
+	 * @param {gui.Spirit} spirit
+	 */
+	$async : function ( spirit ) {
+		spirit.life.async = true;
+		spirit.onasync (); // TODO: life cycle stuff goes here
+		spirit.life.dispatch ( gui.LIFE_ASYNC );
+	},
 	
 	/**
 	 * Spirit destruct.
@@ -392,15 +403,6 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	$dispose : function ( spirit ) {
 		spirit.$ondestruct ();
 		gui.GreatSpirit.$meet ( spirit );
-	},
-
-	/**
-	 * Spirit async lifecycle.
-	 * @TODO: This should be evaluated after `appendChild` to another position.
-	 * @param {gui.Spirit} spirit
-	 */
-	$async : function ( spirit ) {
-		spirit.onasync (); // TODO: life cycle stuff goes here
 	}
 
 });

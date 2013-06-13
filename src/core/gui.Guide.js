@@ -326,7 +326,7 @@ gui.Guide = {
 	 */
 	_collect : function ( node, skip, id ) {
 		var list = [];
-		new gui.Crawler ( id ).descend ( node, {
+		new gui.GuideCrawler ( id ).descend ( node, {
 		   handleSpirit : function ( spirit ) {
 			   if ( skip && spirit.element === node ) {}
 			   else if ( !spirit.life.destructed ) {
@@ -364,7 +364,7 @@ gui.Guide = {
 	_spiritualize : function ( element, skip, one ) {
 		var attach = [];
 		var readys = [];
-		new gui.Crawler ( gui.CRAWLER_SPIRITUALIZE ).descend ( element, {
+		new gui.GuideCrawler ( gui.CRAWLER_SPIRITUALIZE ).descend ( element, {
 			handleElement : function ( elm ) {
 				if ( !skip || elm !== element ) {
 					var spirit = elm.spirit;
@@ -468,7 +468,7 @@ gui.Guide = {
 	 * @param {Array<gui.Spirit>}
 	 */
 	_visibility : function ( spirits ) {
-		this._containerspirits ( spirits ).forEach ( function ( spirit ) {
+		gui.DOMPlugin.group ( spirits ).forEach ( function ( spirit ) {
 			gui.VisibilityPlugin.$init ( spirit );
 		}, this );
 	},
@@ -477,7 +477,7 @@ gui.Guide = {
 	 * Isolate from list all spirits that aren't contained by others (top spirits).
 	 * @param {Array<gui.Spirit>}
 	 * @returns {Array<gui.Spirit>}
-	 */
+	 *
 	_containerspirits : function ( spirits ) {
 		var spirit, groups = [];
 		function iscontainer ( target, others ) {
@@ -493,6 +493,7 @@ gui.Guide = {
 		}
 		return groups;
 	},
+	*/
 	
 	/**
 	 * Destruct all spirits in document. Spirit instances, unless locally loaded, 

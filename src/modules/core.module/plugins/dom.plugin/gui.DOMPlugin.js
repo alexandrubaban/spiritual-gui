@@ -259,19 +259,7 @@ gui.DOMPlugin = ( function using ( chained ) {
 		},
 
 		/**
-		 * Is node in found in page DOM? Otherwise probable createElement scenario.
-		 * @TODO comprehend https://developer.mozilla.org/en/JavaScript/Reference/Operators/Bitwise_Operators#Example:_Flags_and_bitmasks
-		 * @param {Element|gui.Spirit} node
-		 * @returns {boolean}
-		 */
-		embedded : function ( node ) {
-			node = node instanceof gui.Spirit ? node.element : node;
-			var check = Node.DOCUMENT_POSITION_CONTAINS + Node.DOCUMENT_POSITION_PRECEDING;
-			return node.compareDocumentPosition ( node.ownerDocument ) === check;
-		},
-
-		/**
-		 * Compare document position of two spirits or DOM nodes.
+		 * Compare document position of two nodes.
 		 * @see http://www.w3.org/TR/DOM-Level-3-Core/core.html#Node3-compareDocumentPosition
 		 * @param {Node|gui.Spirit} node1
 		 * @param {Node|gui.Spirit} node2
@@ -281,6 +269,66 @@ gui.DOMPlugin = ( function using ( chained ) {
 			node1 = node1 instanceof gui.Spirit ? node1.element : node1;
 			node2 = node2 instanceof gui.Spirit ? node2.element : node2;
 			return node1.compareDocumentPosition ( node2 );
+		},
+
+		/**
+		 * Node contains other node?
+		 * @param {Node|gui.Spirit} node
+		 * @param {Node|gui.Spirit} othernode
+		 * @returns {boolean}
+		 */
+		contains : function ( node, othernode ) {
+			var check = Node.DOCUMENT_POSITION_CONTAINS + Node.DOCUMENT_POSITION_PRECEDING;
+			return this.compare ( othernode, node ) === check;
+		},
+
+		/**
+		 * Other node is a following sibling to node?
+		 * @param {Node|gui.Spirit} node
+		 * @param {Node|gui.Spirit} othernode
+		 * @returns {boolean}
+		 */
+		follows : function ( node, othernode ) {
+			return this.compare ( othernode, node ) === Node.DOCUMENT_POSITION_FOLLOWING;
+		},
+
+		/**
+		 * Other node is a preceding sibling to node?
+		 * @param {Node|gui.Spirit} node
+		 * @param {Node|gui.Spirit} othernode
+		 * @returns {boolean}
+		 */
+		precedes : function ( node, othernode ) {
+			return this.compare ( othernode, node ) === Node.DOCUMENT_POSITION_PRECEDING;
+		},
+
+		/**
+		 * Is node positioned in page DOM?
+		 * @TODO comprehend https://developer.mozilla.org/en/JavaScript/Reference/Operators/Bitwise_Operators#Example:_Flags_and_bitmasks
+		 * @param {Element|gui.Spirit} node
+		 * @returns {boolean}
+		 */
+		embedded : function ( node ) {
+			node = node instanceof gui.Spirit ? node.element : node;
+			return this.contains ( node.ownerDocument, node );
+		},
+
+		/**
+		 * Remove from list all nodes that are contained by others.
+		 * @param {Array<Element|gui.Spirit>} nodes
+		 * @returns {Array<Element|gui.Spirit>}
+		 */
+		group : function ( nodes ) {
+			var node, groups = [];
+			function 
+			while (( node = nodes.pop ())) {
+				if ( !nodes.some ( function ( other ) {
+					return gui.DOMPlugin.contains ( other, node );
+				})) {
+					groups.push ( node );
+				}
+			}
+			return groups;
 		},
 
 		/**
@@ -802,3 +850,13 @@ gui.Object.each ({
 		return things;
 	});
 });
+
+/*
+var node1 = document.createElement ( "div" );
+var node2 = node1.appendChild ( document.createElement ( "div" ));
+var node3 = node1.appendChild ( document.createElement ( "div" ));
+alert ( gui.DOMPlugin.contains ( node1, node3 ));
+alert ( gui.DOMPlugin.precedes ( node2, node3 ));
+alert ( gui.DOMPlugin.follows ( node3, node2 ));
+alert ( gui.DOMPlugin.group ([ node2, node3, node1 ])[ 0 ] === node1 );
+*/

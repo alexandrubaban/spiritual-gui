@@ -120,6 +120,7 @@ window.gui = {
 	LIFE_READY : "gui-life-ready",
 	LIFE_DETACH : "gui-life-detach",
 	LIFE_EXIT	: "gui-life-exit",
+	LIFE_EXIT	: "gui-life-async",
 	LIFE_DESTRUCT : "life-destruct",
 	LIFE_VISIBLE : "life-visible",
 	LIFE_INVISIBLE : "life-invisible",

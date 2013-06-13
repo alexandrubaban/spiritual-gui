@@ -1,5 +1,6 @@
 /**
  * Do what Spiritual does by overloading JQuery methods instead of native DOM methods.
+ * @TODO reduce crawled collections using compareDocumentPosition (also on following and preceding)
  * @TODO (Angular special) handle function replaceWith, "a special jqLite.replaceWith, which can replace items which have no parents"
  * @TODO Henrik says "$(iframe.contentDocument).remove() før man skifter URL eller fjerner iframen" (jQuery.cache og jQuery.fragments)
  */
@@ -34,7 +35,8 @@ gui.module ( "jquery", {
 	// Private .............................................................
 
 	/**
-	 * Generating spirit management methods.
+	 * Generating spirit management methods. 
+	 * Note that we add a double underscore.
 	 * @param {jQuery} jq
 	 */
 	_expandos : function ( jq ) {
@@ -50,9 +52,17 @@ gui.module ( "jquery", {
 			"detach"
 		].forEach ( function ( method ) {
 			jq.fn [ "__" + method ] = function () {
+				/*
 				return this.each ( function ( i, el ) {
 					gui.Guide [ method ] ( el );
 				});
+				*/
+				gui.DOMPlugin.group ( Array.map ( this, function ( elm ) {
+					return elm; // this.toArray () doesn't seem to compute :/
+				})).forEach ( function ( elm ) {
+					gui.Guide [ method ] ( elm );
+				});
+				return this;
 			};
 		});
 	},
@@ -95,7 +105,6 @@ gui.module ( "jquery", {
 			jq.fn [ name ] = function () {
 				var nam = arguments [ 0 ];
 				var val = arguments [ 1 ];
-				//var res = naive [ name ].apply ( this, arguments );
 				var del = name === "removeAttr";
 				val = del ? null : val;
 				if ( val !== undefined || del ) {
@@ -103,16 +112,11 @@ gui.module ( "jquery", {
 						if ( elm.spirit ) {
 							if ( val !== undefined || del ) {
 								elm.spirit.att.set ( nam, val ); // trigger attribute setters
-								/*
-								if(!del){ // attribute was already set, must configure manually
-									elm.spirit.attconfig.configureone(nam,val);
-								}
-								*/
 							}
 						}
 					});
 				}
-				return naive [ name ].apply ( this, arguments );
+				return naive [ name ].apply ( this, arguments ); // @TODO: before spirit.att.set?
 			};
 		});
 		[
@@ -214,13 +218,13 @@ gui.module ( "jquery", {
 							}
 							break;
 						case "unwrap" :
-							// note: materialize is skipped here!
+							// note: materialize(sub) is skipped here!
 							this.parent ().__materializeOne ();
 							res = suber ();
 							break;
 						case "wrap" :
 						case "wrapAll" :
-							// note: materialize is skipped here!
+							// note: materialize(sub) is skipped here!
 							res = suber ();
 							this.parent ().__spiritualizeOne ();
 							break;
