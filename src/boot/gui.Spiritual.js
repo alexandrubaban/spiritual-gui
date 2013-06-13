@@ -479,9 +479,12 @@ gui.Spiritual.prototype = {
 	 */
 	nameDestructAlreadyUsed : function () {
 		gui.Tick.remove ( gui.$TICK_OUTSIDE, this, this.$contextid );
+		gui.Object.each ( this._spirits.inside, function ( id, spirit ) {
+			gui.GreatSpirit.$meet ( spirit );
+		});
 		[ 
 			"_spiritualaid", 
-			"context", 
+			"context", // window ?
 			"document", 
 			"_channels", 
 			"_inlines",

@@ -249,7 +249,7 @@ gui.Guide = {
 		if ( sum.documentspirit ) {
 			sum.documentspirit.onunload ();
 		}
-		this._cleanup ( sum.window, sum.document );
+		sum.window.gui.nameDestructAlreadyUsed ();
 	},
 
 	/**
@@ -502,7 +502,7 @@ gui.Guide = {
 	 * (not using _maybematerialize because that might have been overloaded somehow)
 	 * @param {Window} win
 	 * @param {Document} doc
-	 */
+	 *
 	_cleanup : function ( win, doc ) {
 		var spirits = this._collect ( doc, false );
 		spirits.forEach ( function ( spirit ) {
@@ -515,6 +515,7 @@ gui.Guide = {
 		});
 		win.gui.nameDestructAlreadyUsed ();
 	}
+	*/
 
 };
 
