@@ -133,7 +133,7 @@ gui.Crawler = gui.Class.create ( "gui.Crawler", {
 	 * @param {boolean} start
 	 */
 	_descend : function ( elm, handler, arg, start ) {
-		var win, spirit, directive = this._handleElement ( elm, handler, arg );
+		var win, doc, root, spirit, directive = this._handleElement ( elm, handler, arg );
 		switch ( directive ) {
 			case gui.Crawler.CONTINUE :
 			case gui.Crawler.SKIP_CHILDREN :
@@ -148,8 +148,7 @@ gui.Crawler = gui.Class.create ( "gui.Crawler", {
 									handler.transcend ( spirit.contentWindow, spirit.xguest, spirit.$instanceid );// win.gui.$contextid
 								}
 							} else {
-								var root = elm.contentDocument.documentElement;
-								if ( root ) {
+								if (( doc = elm.contentDocument ) && ( root = doc.documentElement )) {
 									this._descend ( root, handler, arg, false );
 								}
 							}
