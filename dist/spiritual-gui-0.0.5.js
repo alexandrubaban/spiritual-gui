@@ -127,7 +127,8 @@ window.gui = {
 	LIFE_ATTACH : "gui-life-attach",
 	LIFE_READY : "gui-life-ready",
 	LIFE_DETACH : "gui-life-detach",
-	LIFE_EXIT	: "gui-life-exit",
+	LIFE_EXIT : "gui-life-exit",
+	LIFE_ASYNC : "gui-life-async",
 	LIFE_DESTRUCT : "life-destruct",
 	LIFE_VISIBLE : "life-visible",
 	LIFE_INVISIBLE : "life-invisible",
@@ -1166,8 +1167,9 @@ gui.Spiritual.prototype = {
 		var all = this._spirits;
 		var key = spirit.$instanceid;
 		delete all.inside [ key ];
-		delete all.incoming [ key ];
 		delete all.outside [ key ];
+		//delete all.incoming [ key ];
+		this._jensen ( spirit );
 	},
 	
 	
@@ -1187,7 +1189,8 @@ gui.Spiritual.prototype = {
 				delete all.outside [ key ];
 			}
 			all.inside [ key ] = spirit;
-			all.incoming [ key ] = spirit;
+			//all.incoming [ key ] = spirit;
+			all.incoming.push ( spirit );
 			gui.Tick.dispatch ( gui.$TICK_INSIDE, 4, this.$contextid );
 		}
 	},
@@ -1204,10 +1207,21 @@ gui.Spiritual.prototype = {
 		if ( !all.outside [ key ]) {
 			if ( all.inside [ key ]) {
 				delete all.inside [ key ];
-				delete all.incoming [ key ];
+				//delete all.incoming [ key ];
+				this._jensen ( spirit );
 			}
 			all.outside [ key ] = spirit;
 			gui.Tick.dispatch ( gui.$TICK_OUTSIDE, 0, this.$contextid ); // @TODO use 4 ms???
+		}
+	},
+
+	_jensen : function ( spirit ) {
+		var incoming = this._spirits.incoming;
+		if ( incoming.length ) {
+			var i = incoming.indexOf ( spirit );
+			if ( i > -1 ) {
+				gui.Array.remove ( incoming, i );
+			}
 		}
 	},
 
@@ -1219,11 +1233,15 @@ gui.Spiritual.prototype = {
 		var spirits;
 		switch ( tick.type ) {
 			case gui.$TICK_INSIDE :
+				gui.Guide.afterattach ( this._spirits.incoming );
+				this._spirits.incoming = [];
+				/*
 				spirits = this._spirits.incoming;
 				gui.Guide.afterattach ( gui.Object.each ( spirits, function ( id, spirit ) {
 					return spirit;
 				}));
 				this._spirits.incoming = Object.create ( null );
+				*/
 				break;
 			case gui.$TICK_OUTSIDE :
 				spirits = gui.Object.each ( this._spirits.outside, function ( key, spirit ) {
@@ -1251,9 +1269,12 @@ gui.Spiritual.prototype = {
 	 */
 	nameDestructAlreadyUsed : function () {
 		gui.Tick.remove ( gui.$TICK_OUTSIDE, this, this.$contextid );
+		gui.Object.each ( this._spirits.inside, function ( id, spirit ) {
+			gui.GreatSpirit.$meet ( spirit );
+		});
 		[ 
 			"_spiritualaid", 
-			"context", 
+			"context", // window ?
 			"document", 
 			"_channels", 
 			"_inlines",
@@ -1345,12 +1366,12 @@ gui.Spiritual.prototype = {
 		this._channels = [];
 		this._spaces = [ "gui" ];
 		this._spirits = {
+			incoming : [], // spirits just entered the DOM (some milliseconds ago)
 			inside : Object.create ( null ), // spirits positioned in page DOM ("entered" and "attached")
-			incoming : Object.create ( null ), // spiritis just entered the DOM (some milliseconds ago)
 			outside : Object.create ( null ) // spirits removed from page DOM (currently "detached")
 		};
 
-		// additional properties may be found in querystring parameters
+		// magic properties may be found in querystring parameters
 		// @tODO not in sandbox!
 		this._params ( this.document.location.href );
 	},
@@ -3621,7 +3642,7 @@ gui.EventSummary.prototype = {
  * @TODO method <code>descendSub</code> to skip start element (and something similar for ascend)
  * @param @optional {String} type
  */
-gui.Crawler = gui.Class.create ( "gui.Crawler ", {
+gui.Crawler = gui.Class.create ( "gui.Crawler", {
 
 	/**
 	 * Identifies crawler. @TODO spirit support for this!
@@ -3759,7 +3780,7 @@ gui.Crawler = gui.Class.create ( "gui.Crawler ", {
 					if ( elm.childElementCount ) {
 						this._descend ( elm.firstElementChild, handler, arg, false );
 					} else if ( this.global && elm.localName === "iframe" ) {
-						if (( spirit = elm.spirit )) { // @TODO && spirit instanceof gui.IframeSpirit
+						if (( spirit = elm.spirit ) && ( spirit instanceof gui.IframeSpirit )) {
 							if ( spirit.xguest ) {
 								win = elm.ownerDocument.defaultView;
 								if ( gui.Type.isFunction ( handler.transcend )) {
@@ -4013,7 +4034,8 @@ gui.Request.prototype = {
 gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 
 	/**
-	 * Unique key for this spirit instance. Uppercase implies read-only.
+	 * Unique key for this spirit instance.
+	 * @TODO: Uppercase to imply read-only.
 	 * @type {String}
 	 */
 	$instanceid : null,
@@ -4101,7 +4123,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	ondetach : function () {},
 
 	/**
-	 * `onexit` gets if the spirit element has been manually detached and not re-attached in 
+	 * `onexit` gets if the spirit element has been *manually* detached and not re-attached in 
 	 * the same execution stack. Spirit is not positioned in the document DOM at this point.
 	 */
 	onexit : function () {},
@@ -4109,6 +4131,9 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	/**
 	 * Invoked when spirit is about to be destroyed. Code your last wishes here. 
 	 * Spirit element may not be positioned in the document DOM at this point. 
+	 * @TODO: This method currently is NOT CALLED during window.unload, in 
+	 * that case we skip directly to {gui.GreatSpirit}. Would be nice if the 
+	 * spirit could eg. save stuff to localstorage at this point...
 	 */
 	ondestruct : function () {},
 
@@ -4116,8 +4141,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	// Async lifecycle .......................................................................
 
 	/**
-	 * Invoked some milliseconds after `onattach`. Postpone 
-	 * operations to here to give the browser a repaint break.
+	 * Invoked some milliseconds after `onattach` to give the browser a repaint break.
 	 * @TODO: this should be evaluated after 'appendChild' to another position.
 	 */
 	onasync : function () {},
@@ -4302,19 +4326,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 
 	
 }, { // Static .............................................................................
-
-	/*
-	construct : gui.LIFE_CONSTRUCT,
-		configure : gui.LIFE_CONFIGURE,
-		enter : gui.LIFE_ENTER,
-		attach : gui.LIFE_ATTACH,
-		ready : gui.LIFE_READY,
-		visible : gui.LIFE_VISIBLE,
-		detach : gui.LIFE_DETACH,
-		exit : gui.LIFE_EXIT,
-		destruct : gui.LIFE_DESTRUCT
-	*/
-
+	
 	/**
 	 * Spirit construct. Called by the secret constructor {gui.Spirit#$onconstruct}.
 	 * @param {gui.Spirit} spirit
@@ -4380,7 +4392,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 		spirit.life.visible = false;
 		spirit.life.dispatch ( gui.LIFE_DETACH );
 		spirit.life.dispatch ( gui.LIFE_INVISIBLE );
-		spirit.life.godetach ();
+		spirit.ondetach ();
 	},
 	
 	/**
@@ -4391,6 +4403,17 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 		spirit.life.exited = true;
 		spirit.life.dispatch ( gui.LIFE_EXIT );
 		spirit.onexit ();
+	},
+
+	/**
+	 * Spirit async.
+	 * @TODO: This should be evaluated after `appendChild` to another position.
+	 * @param {gui.Spirit} spirit
+	 */
+	$async : function ( spirit ) {
+		spirit.life.async = true;
+		spirit.onasync (); // TODO: life cycle stuff goes here
+		spirit.life.dispatch ( gui.LIFE_ASYNC );
 	},
 	
 	/**
@@ -4413,15 +4436,6 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	$dispose : function ( spirit ) {
 		spirit.$ondestruct ();
 		gui.GreatSpirit.$meet ( spirit );
-	},
-
-	/**
-	 * Spirit async lifecycle.
-	 * @TODO: This should be evaluated after `appendChild` to another position.
-	 * @param {gui.Spirit} spirit
-	 */
-	$async : function ( spirit ) {
-		spirit.onasync (); // TODO: life cycle stuff goes here
 	}
 
 });
@@ -5010,7 +5024,7 @@ gui.GreatSpirit = {
 	 * @see https://gist.github.com/jay3sh/1158940
 	 */
 	DENY : function ( message ) {
-		var stack, e = new ReferenceError ( gui.Spirit.DENIAL );
+		var stack, e = new Error ( gui.Spirit.DENIAL );
 		if ( !gui.Client.isExplorer && ( stack = e.stack )) {
 			if ( gui.Client.isWebKit ) {
 				stack = stack.replace ( /^[^\(]+?[\n$]/gm, "" ).
@@ -5021,7 +5035,7 @@ gui.GreatSpirit = {
 				stack = stack.split ( "\n" );
 			}
 			stack.shift (); stack.shift (); // @TODO: shift one more now?
-			throw new ReferenceError ( e.message + "\n" + stack );
+			throw new Error ( e.message + "\n" + stack );
 		} else {
 			throw e;
 		}
@@ -5216,59 +5230,17 @@ gui.LifePlugin = gui.Tracker.extend ( "gui.LifePlugin", {
 	 * @TODO move declaration to super or something (?)
 	 * @type {Map<String,Array<object>}
 	 */
-	_handlers : null
+	_handlers : null,
+
+	/**
+	 * Cleanup.
+	 */
+	_cleanup : function ( type, checks ) {
+		var handler = checks [ 0 ];
+		this.remove ( type, handler );
+	}
 
 });
-
-/**
- * Generate methods to update life cycle status:
- * 1) Update booleans entered, attached, detached etc.
- * 2) Dispatch life-event gui.Life.ATTACH, gui.LIFE_VISIBLE etc.
- *
-( function generatecode () {
-	var states = {
-		construct : gui.LIFE_CONSTRUCT,
-		configure : gui.LIFE_CONFIGURE,
-		enter : gui.LIFE_ENTER,
-		attach : gui.LIFE_ATTACH,
-		ready : gui.LIFE_READY,
-		visible : gui.LIFE_VISIBLE,
-		detach : gui.LIFE_DETACH,
-		exit : gui.LIFE_EXIT,
-		destruct : gui.LIFE_DESTRUCT
-	};
-	// prefix methods with "on", suffix booleans with "ed"
-	gui.Object.each ( states, function ( state, event ) {
-		gui.LifePlugin.mixin ( "go" + state , function ( arg ) {
-			var prop = state;
-			switch ( state ) {
-				case "ready" :
-				case "visible" :
-					break;
-				default :
-					prop += "ed";
-					break;
-			}
-			this [ prop ] = true;
-			switch ( state ) {
-				case "enter" :
-				case "attach" :
-					this.detached = false;
-					break;
-				case "detach" :
-					this.attached = false;
-					break;
-				case "visible" :
-					if ( ! ( this.visible = arg )) {
-						event = gui.LIFE_INVISIBLE;
-					}
-					break;
-			}
-			this.dispatch ( event );
-		});
-	});
-})();
-*/
 
 
 /**
@@ -7441,19 +7413,7 @@ gui.DOMPlugin = ( function using ( chained ) {
 		},
 
 		/**
-		 * Is node in found in page DOM? Otherwise probable createElement scenario.
-		 * @TODO comprehend https://developer.mozilla.org/en/JavaScript/Reference/Operators/Bitwise_Operators#Example:_Flags_and_bitmasks
-		 * @param {Element|gui.Spirit} node
-		 * @returns {boolean}
-		 */
-		embedded : function ( node ) {
-			node = node instanceof gui.Spirit ? node.element : node;
-			var check = Node.DOCUMENT_POSITION_CONTAINS + Node.DOCUMENT_POSITION_PRECEDING;
-			return node.compareDocumentPosition ( node.ownerDocument ) === check;
-		},
-
-		/**
-		 * Compare document position of two spirits or DOM nodes.
+		 * Compare document position of two nodes.
 		 * @see http://www.w3.org/TR/DOM-Level-3-Core/core.html#Node3-compareDocumentPosition
 		 * @param {Node|gui.Spirit} node1
 		 * @param {Node|gui.Spirit} node2
@@ -7463,6 +7423,68 @@ gui.DOMPlugin = ( function using ( chained ) {
 			node1 = node1 instanceof gui.Spirit ? node1.element : node1;
 			node2 = node2 instanceof gui.Spirit ? node2.element : node2;
 			return node1.compareDocumentPosition ( node2 );
+		},
+
+		/**
+		 * Node contains other node?
+		 * @param {Node|gui.Spirit} node
+		 * @param {Node|gui.Spirit} othernode
+		 * @returns {boolean}
+		 */
+		contains : function ( node, othernode ) {
+			var check = Node.DOCUMENT_POSITION_CONTAINS + Node.DOCUMENT_POSITION_PRECEDING;
+			return this.compare ( othernode, node ) === check;
+		},
+
+		/**
+		 * Other node is a following sibling to node?
+		 * @param {Node|gui.Spirit} node
+		 * @param {Node|gui.Spirit} othernode
+		 * @returns {boolean}
+		 */
+		follows : function ( node, othernode ) {
+			return this.compare ( othernode, node ) === Node.DOCUMENT_POSITION_FOLLOWING;
+		},
+
+		/**
+		 * Other node is a preceding sibling to node?
+		 * @param {Node|gui.Spirit} node
+		 * @param {Node|gui.Spirit} othernode
+		 * @returns {boolean}
+		 */
+		precedes : function ( node, othernode ) {
+			return this.compare ( othernode, node ) === Node.DOCUMENT_POSITION_PRECEDING;
+		},
+
+		/**
+		 * Is node positioned in page DOM?
+		 * @TODO comprehend https://developer.mozilla.org/en/JavaScript/Reference/Operators/Bitwise_Operators#Example:_Flags_and_bitmasks
+		 * @param {Element|gui.Spirit} node
+		 * @returns {boolean}
+		 */
+		embedded : function ( node ) {
+			node = node instanceof gui.Spirit ? node.element : node;
+			return this.contains ( node.ownerDocument, node );
+		},
+
+		/**
+		 * Remove from list all nodes that are contained by others.
+		 * @param {Array<Element|gui.Spirit>} nodes
+		 * @returns {Array<Element|gui.Spirit>}
+		 */
+		group : function ( nodes ) {
+			var node, groups = [];
+			function containedby ( target, others ) {
+				return others.some ( function ( other ) {
+					return gui.DOMPlugin.contains ( other, target );
+				});
+			}
+			while (( node = nodes.pop ())) {
+				if ( !containedby ( node, nodes )) {
+					groups.push ( node );
+				}
+			}
+			return groups;
 		},
 
 		/**
@@ -8721,7 +8743,13 @@ gui.TweenPlugin = ( function using ( chained ) {
 			var sig = this._global ? null : this._sig;
 			var message = gui.BROADCAST_TWEEN;
 			this._breakdown ( arg ).forEach ( function ( type ) {
-				this._removechecks ( type, [ this._global ]);
+				if ( this._removechecks ( type, [ this._global ])) {
+					if ( this._global ) {
+						gui.Broadcast.removeGlobal ( message, this );
+					} else {
+						gui.Broadcast.remove ( message, this, sig );
+					}
+				}
 			}, this );
 		}),
 
@@ -8787,7 +8815,7 @@ gui.TweenPlugin = ( function using ( chained ) {
 				case gui.BROADCAST_TWEEN :
 					var tween = b.data;
 					if ( this._containschecks ( tween.type, [ b.isGlobal ])) {
-						this.spirit.ontween ( tween );
+						this.spirit.ontween ( tween ); // @TODO: try-catch for destructed spirit
 					}
 					break;
 			}
@@ -10956,6 +10984,7 @@ gui.module ( "core", {
 
 /**
  * Do what Spiritual does by overloading JQuery methods instead of native DOM methods.
+ * @TODO reduce crawled collections using compareDocumentPosition (also on following and preceding)
  * @TODO (Angular special) handle function replaceWith, "a special jqLite.replaceWith, which can replace items which have no parents"
  * @TODO Henrik says "$(iframe.contentDocument).remove() før man skifter URL eller fjerner iframen" (jQuery.cache og jQuery.fragments)
  */
@@ -10990,7 +11019,8 @@ gui.module ( "jquery", {
 	// Private .............................................................
 
 	/**
-	 * Generating spirit management methods.
+	 * Generating spirit management methods. 
+	 * Note that we add a double underscore.
 	 * @param {jQuery} jq
 	 */
 	_expandos : function ( jq ) {
@@ -11006,9 +11036,17 @@ gui.module ( "jquery", {
 			"detach"
 		].forEach ( function ( method ) {
 			jq.fn [ "__" + method ] = function () {
+				/*
 				return this.each ( function ( i, el ) {
 					gui.Guide [ method ] ( el );
 				});
+				*/
+				gui.DOMPlugin.group ( Array.map ( this, function ( elm ) {
+					return elm; // this.toArray () doesn't seem to compute :/
+				})).forEach ( function ( elm ) {
+					gui.Guide [ method ] ( elm );
+				});
+				return this;
 			};
 		});
 	},
@@ -11051,7 +11089,6 @@ gui.module ( "jquery", {
 			jq.fn [ name ] = function () {
 				var nam = arguments [ 0 ];
 				var val = arguments [ 1 ];
-				//var res = naive [ name ].apply ( this, arguments );
 				var del = name === "removeAttr";
 				val = del ? null : val;
 				if ( val !== undefined || del ) {
@@ -11059,16 +11096,11 @@ gui.module ( "jquery", {
 						if ( elm.spirit ) {
 							if ( val !== undefined || del ) {
 								elm.spirit.att.set ( nam, val ); // trigger attribute setters
-								/*
-								if(!del){ // attribute was already set, must configure manually
-									elm.spirit.attconfig.configureone(nam,val);
-								}
-								*/
 							}
 						}
 					});
 				}
-				return naive [ name ].apply ( this, arguments );
+				return naive [ name ].apply ( this, arguments ); // @TODO: before spirit.att.set?
 			};
 		});
 		[
@@ -11170,13 +11202,13 @@ gui.module ( "jquery", {
 							}
 							break;
 						case "unwrap" :
-							// note: materialize is skipped here!
+							// note: materialize(sub) is skipped here!
 							this.parent ().__materializeOne ();
 							res = suber ();
 							break;
 						case "wrap" :
 						case "wrapAll" :
-							// note: materialize is skipped here!
+							// note: materialize(sub) is skipped here!
 							res = suber ();
 							this.parent ().__spiritualizeOne ();
 							break;
@@ -12494,7 +12526,7 @@ gui.Guide = {
 		if ( sum.documentspirit ) {
 			sum.documentspirit.onunload ();
 		}
-		this._cleanup ( sum.window, sum.document );
+		sum.window.gui.nameDestructAlreadyUsed ();
 	},
 
 	/**
@@ -12571,7 +12603,7 @@ gui.Guide = {
 	 */
 	_collect : function ( node, skip, id ) {
 		var list = [];
-		new gui.Crawler ( id ).descend ( node, {
+		new gui.GuideCrawler ( id ).descend ( node, {
 		   handleSpirit : function ( spirit ) {
 			   if ( skip && spirit.element === node ) {}
 			   else if ( !spirit.life.destructed ) {
@@ -12609,7 +12641,7 @@ gui.Guide = {
 	_spiritualize : function ( element, skip, one ) {
 		var attach = [];
 		var readys = [];
-		new gui.Crawler ( gui.CRAWLER_SPIRITUALIZE ).descend ( element, {
+		new gui.GuideCrawler ( gui.CRAWLER_SPIRITUALIZE ).descend ( element, {
 			handleElement : function ( elm ) {
 				if ( !skip || elm !== element ) {
 					var spirit = elm.spirit;
@@ -12713,53 +12745,10 @@ gui.Guide = {
 	 * @param {Array<gui.Spirit>}
 	 */
 	_visibility : function ( spirits ) {
-		this._containerspirits ( spirits ).forEach ( function ( spirit ) {
+		gui.DOMPlugin.group ( spirits ).forEach ( function ( spirit ) {
 			gui.VisibilityPlugin.$init ( spirit );
 		}, this );
-	},
-
-	/**
-	 * Isolate from list all spirits that aren't contained by others (top spirits).
-	 * @param {Array<gui.Spirit>}
-	 * @returns {Array<gui.Spirit>}
-	 */
-	_containerspirits : function ( spirits ) {
-		var spirit, groups = [];
-		function iscontainer ( target, others ) {
-			var contains = Node.DOCUMENT_POSITION_CONTAINS + Node.DOCUMENT_POSITION_PRECEDING;
-			return others.every ( function ( other ) {
-				return target.dom.compare ( other ) !== contains;
-			});
-		}
-		while (( spirit = spirits.pop ())) {
-			if ( !spirits.length || iscontainer ( spirit, spirits )) {
-				groups.push ( spirit );
-			}
-		}
-		return groups;
-	},
-	
-	/**
-	 * Destruct all spirits in document. Spirit instances, unless locally loaded, 
-	 * might be newed up in another context. Destruction will null all properties 
-	 * so that the spirit might be garbage collected sooner, let's hope it works. 
-	 * (not using _maybematerialize because that might have been overloaded somehow)
-	 * @param {Window} win
-	 * @param {Document} doc
-	 */
-	_cleanup : function ( win, doc ) {
-		var spirits = this._collect ( doc, false );
-		spirits.forEach ( function ( spirit ) {
-			gui.Spirit.$destruct ( spirit );
-			//spirit.ondestruct (); // API user should cleanup here	
-		});
-		spirits.forEach ( function ( spirit ) {
-			gui.Spirit.$dispose ( spirit );
-			//spirit.$ondestruct (); // everything is destroyed here		
-		});
-		win.gui.nameDestructAlreadyUsed ();
 	}
-
 };
 
 /**
@@ -12777,26 +12766,93 @@ gui.Guide = {
 
 
 /**
- * @TODO !
+ * Mechanism to skip DOM subtree already being crawled.
+ * @TODO: Perhaps support this feaure for all crawlers?
  * @extends {gui.Crawler}
  */
 gui.GuideCrawler = gui.Crawler.extend ( "gui.GuideCrawler", {
 
-	descend : function ( start, handler ) {
-		this._hans ( start );
-		this._super.descend ( start, handler );
+	/**
+	 * Stamp start element.
+	 * @param {Element} start
+	 * @param {ICrawlerHandler} handler (TODO: create this thing)
+	 * @param @optional {object} arg
+	 */
+	descend : function ( start, handler, arg ) {
+		if ( start.nodeType !== Node.DOCUMENT_NODE ) {
+			var sig = start.ownerDocument.defaultView.gui.$contextid; // eh!
+			gui.Tick.add ( this._TICK, this, sig ).dispatch ( this._TICK, 0, sig );
+			this._stamp (( this._startelement = start ), true );
+		}
+		this._super.descend ( start, handler, arg );
 	},
 
-	_hans : function ( elm ) {
+	/**
+	 * Remove stamp.
+	 * @TODO: handle element potentially nuked
+	 * @param {gui.Tick} tick
+	 */
+	ontick : function ( tick ) {
+		if ( tick.type === this._TICK ) {
+			this._stamp ( this._startelement, false );
+		}
+	},
+
+	// Private ...............................................................
+	
+	/**
+	 * Attribute name.
+	 * @type {String}
+	 */
+	_ATTRIBUTE : "data-gui-crawler",
+
+	/**
+	 * Tick type.
+	 * @type {String}
+	 */
+	_TICK : "gui-tick-crawler-done",
+
+	/**
+	 * Start element.
+	 * @type {Element}
+	 */
+	_startelement : null,
+
+	/**
+	 * Stamp that element.
+	 * @param {Element} elm
+	 * @param {boolean} doit
+	 */
+	_stamp : function ( elm, doit ) {
 		elm = elm instanceof gui.Spirit ? elm.element : elm;
-		elm.setAttribute ( "data-gui-crawler", this.type );
-		var id = elm.ownerDocument.defaultView.gui.$contextid;
-		gui.Tick.add ( "john", {
-			ontick : function () {
-				elm.removeAttribute ( "data-gui-crawler" );
-			}
-		}, id ).dispatch ( "john", 0, id );
+		var name = this._ATTRIBUTE;
+		var type = this.type;
+		if ( doit ) {
+			elm.setAttribute ( name, type );
+		} else {
+			elm.removeAttribute ( name, type );
+		}
+	},
+
+	/**
+	 * Skip element children (@TODO and element) if already crawled.
+	 * @param {Element} elm
+	 * @param {ICrawlerHandler} handler
+	 * @param @optional {object} arg
+	 */
+	_handleElement : function ( elm, handler, arg ) {
+		var type = elm.getAttribute ( this._ATTRIBUTE );
+		if ( elm !== this._startelement && type && type.contains ( this.type )) {
+			return gui.Crawler.SKIP_CHILDREN; // + gui.Crawler.SKIP @TODO
+		} else {
+			return this._super._handleElement ( elm, handler, arg );
+		}
 	}
+
+
+}, {}, { // Static .............................................
+
+	
 
 });
 
