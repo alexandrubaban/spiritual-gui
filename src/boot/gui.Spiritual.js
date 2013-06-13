@@ -377,8 +377,9 @@ gui.Spiritual.prototype = {
 		var all = this._spirits;
 		var key = spirit.$instanceid;
 		delete all.inside [ key ];
-		delete all.incoming [ key ];
 		delete all.outside [ key ];
+		//delete all.incoming [ key ];
+		this._jensen ( spirit );
 	},
 	
 	
@@ -398,7 +399,8 @@ gui.Spiritual.prototype = {
 				delete all.outside [ key ];
 			}
 			all.inside [ key ] = spirit;
-			all.incoming [ key ] = spirit;
+			//all.incoming [ key ] = spirit;
+			all.incoming.push ( spirit );
 			gui.Tick.dispatch ( gui.$TICK_INSIDE, 4, this.$contextid );
 		}
 	},
@@ -415,10 +417,21 @@ gui.Spiritual.prototype = {
 		if ( !all.outside [ key ]) {
 			if ( all.inside [ key ]) {
 				delete all.inside [ key ];
-				delete all.incoming [ key ];
+				//delete all.incoming [ key ];
+				this._jensen ( spirit );
 			}
 			all.outside [ key ] = spirit;
 			gui.Tick.dispatch ( gui.$TICK_OUTSIDE, 0, this.$contextid ); // @TODO use 4 ms???
+		}
+	},
+
+	_jensen : function ( spirit ) {
+		var incoming = this._spirits.incoming;
+		if ( incoming.length ) {
+			var i = incoming.indexOf ( spirit );
+			if ( i > -1 ) {
+				gui.Array.remove ( incoming, i );
+			}
 		}
 	},
 
@@ -430,11 +443,15 @@ gui.Spiritual.prototype = {
 		var spirits;
 		switch ( tick.type ) {
 			case gui.$TICK_INSIDE :
+				gui.Guide.afterattach ( this._spirits.incoming );
+				this._spirits.incoming = [];
+				/*
 				spirits = this._spirits.incoming;
 				gui.Guide.afterattach ( gui.Object.each ( spirits, function ( id, spirit ) {
 					return spirit;
 				}));
 				this._spirits.incoming = Object.create ( null );
+				*/
 				break;
 			case gui.$TICK_OUTSIDE :
 				spirits = gui.Object.each ( this._spirits.outside, function ( key, spirit ) {
@@ -559,12 +576,12 @@ gui.Spiritual.prototype = {
 		this._channels = [];
 		this._spaces = [ "gui" ];
 		this._spirits = {
+			incoming : [], // spirits just entered the DOM (some milliseconds ago)
 			inside : Object.create ( null ), // spirits positioned in page DOM ("entered" and "attached")
-			incoming : Object.create ( null ), // spiritis just entered the DOM (some milliseconds ago)
 			outside : Object.create ( null ) // spirits removed from page DOM (currently "detached")
 		};
 
-		// additional properties may be found in querystring parameters
+		// magic properties may be found in querystring parameters
 		// @tODO not in sandbox!
 		this._params ( this.document.location.href );
 	},

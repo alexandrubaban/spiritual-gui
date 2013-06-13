@@ -141,7 +141,7 @@ gui.Crawler = gui.Class.create ( "gui.Crawler", {
 					if ( elm.childElementCount ) {
 						this._descend ( elm.firstElementChild, handler, arg, false );
 					} else if ( this.global && elm.localName === "iframe" ) {
-						if (( spirit = elm.spirit )) { // @TODO && spirit instanceof gui.IframeSpirit
+						if (( spirit = elm.spirit ) && ( spirit instanceof gui.IframeSpirit )) {
 							if ( spirit.xguest ) {
 								win = elm.ownerDocument.defaultView;
 								if ( gui.Type.isFunction ( handler.transcend )) {

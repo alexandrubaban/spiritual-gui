@@ -326,7 +326,7 @@ gui.Guide = {
 	 */
 	_collect : function ( node, skip, id ) {
 		var list = [];
-		new gui.Crawler ( id ).descend ( node, {
+		new gui.GuideCrawler ( id ).descend ( node, {
 		   handleSpirit : function ( spirit ) {
 			   if ( skip && spirit.element === node ) {}
 			   else if ( !spirit.life.destructed ) {
@@ -364,7 +364,7 @@ gui.Guide = {
 	_spiritualize : function ( element, skip, one ) {
 		var attach = [];
 		var readys = [];
-		new gui.Crawler ( gui.CRAWLER_SPIRITUALIZE ).descend ( element, {
+		new gui.GuideCrawler ( gui.CRAWLER_SPIRITUALIZE ).descend ( element, {
 			handleElement : function ( elm ) {
 				if ( !skip || elm !== element ) {
 					var spirit = elm.spirit;
@@ -468,54 +468,10 @@ gui.Guide = {
 	 * @param {Array<gui.Spirit>}
 	 */
 	_visibility : function ( spirits ) {
-		this._containerspirits ( spirits ).forEach ( function ( spirit ) {
+		gui.DOMPlugin.group ( spirits ).forEach ( function ( spirit ) {
 			gui.VisibilityPlugin.$init ( spirit );
 		}, this );
-	},
-
-	/**
-	 * Isolate from list all spirits that aren't contained by others (top spirits).
-	 * @param {Array<gui.Spirit>}
-	 * @returns {Array<gui.Spirit>}
-	 */
-	_containerspirits : function ( spirits ) {
-		var spirit, groups = [];
-		function iscontainer ( target, others ) {
-			var contains = Node.DOCUMENT_POSITION_CONTAINS + Node.DOCUMENT_POSITION_PRECEDING;
-			return others.every ( function ( other ) {
-				return target.dom.compare ( other ) !== contains;
-			});
-		}
-		while (( spirit = spirits.pop ())) {
-			if ( !spirits.length || iscontainer ( spirit, spirits )) {
-				groups.push ( spirit );
-			}
-		}
-		return groups;
-	},
-	
-	/**
-	 * Destruct all spirits in document. Spirit instances, unless locally loaded, 
-	 * might be newed up in another context. Destruction will null all properties 
-	 * so that the spirit might be garbage collected sooner, let's hope it works. 
-	 * (not using _maybematerialize because that might have been overloaded somehow)
-	 * @param {Window} win
-	 * @param {Document} doc
-	 *
-	_cleanup : function ( win, doc ) {
-		var spirits = this._collect ( doc, false );
-		spirits.forEach ( function ( spirit ) {
-			gui.Spirit.$destruct ( spirit );
-			//spirit.ondestruct (); // API user should cleanup here	
-		});
-		spirits.forEach ( function ( spirit ) {
-			gui.Spirit.$dispose ( spirit );
-			//spirit.$ondestruct (); // everything is destroyed here		
-		});
-		win.gui.nameDestructAlreadyUsed ();
 	}
-	*/
-
 };
 
 /**
