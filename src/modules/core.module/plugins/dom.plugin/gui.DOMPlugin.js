@@ -320,11 +320,13 @@ gui.DOMPlugin = ( function using ( chained ) {
 		 */
 		group : function ( nodes ) {
 			var node, groups = [];
-			function 
+			function containedby ( target, others ) {
+				return others.some ( function ( other ) {
+					return gui.DOMPlugin.contains ( other, target );
+				});
+			}
 			while (( node = nodes.pop ())) {
-				if ( !nodes.some ( function ( other ) {
-					return gui.DOMPlugin.contains ( other, node );
-				})) {
+				if ( !containedby ( node, nodes )) {
 					groups.push ( node );
 				}
 			}
@@ -850,13 +852,3 @@ gui.Object.each ({
 		return things;
 	});
 });
-
-/*
-var node1 = document.createElement ( "div" );
-var node2 = node1.appendChild ( document.createElement ( "div" ));
-var node3 = node1.appendChild ( document.createElement ( "div" ));
-alert ( gui.DOMPlugin.contains ( node1, node3 ));
-alert ( gui.DOMPlugin.precedes ( node2, node3 ));
-alert ( gui.DOMPlugin.follows ( node3, node2 ));
-alert ( gui.DOMPlugin.group ([ node2, node3, node1 ])[ 0 ] === node1 );
-*/
