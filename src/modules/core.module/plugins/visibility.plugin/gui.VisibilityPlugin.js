@@ -102,9 +102,8 @@ gui.VisibilityPlugin = ( function using ( chained ) {
 				handleSpirit : function ( spirit ) {
 					var init = spirit.life.visible === undefined;
 					if ( spirit !== first && spirit.css.contains ( gui.CLASS_INVISIBLE )) {
-						return gui.Crawler.STOP;
-					}
-					if ( visible ) {
+						return gui.Crawler.SKIP_CHILDREN;
+					} else if ( visible ) {
 						if ( !spirit.life.visible || init ) {
 							spirit.life.visible = true;
 							spirit.life.dispatch ( gui.LIFE_VISIBLE ); // TODO: somehow after the fact!
