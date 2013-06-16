@@ -326,7 +326,7 @@ gui.Guide = {
 	 */
 	_collect : function ( node, skip, id ) {
 		var list = [];
-		new gui.GuideCrawler ( id ).descend ( node, {
+		new gui.Crawler ( id ).descend ( node, {
 		   handleSpirit : function ( spirit ) {
 			   if ( skip && spirit.element === node ) {}
 			   else if ( !spirit.life.destructed ) {
@@ -364,7 +364,7 @@ gui.Guide = {
 	_spiritualize : function ( element, skip, one ) {
 		var attach = [];
 		var readys = [];
-		new gui.GuideCrawler ( gui.CRAWLER_SPIRITUALIZE ).descend ( element, {
+		new gui.Crawler ( gui.CRAWLER_SPIRITUALIZE ).descend ( element, {
 			handleElement : function ( elm ) {
 				if ( !skip || elm !== element ) {
 					var spirit = elm.spirit;
