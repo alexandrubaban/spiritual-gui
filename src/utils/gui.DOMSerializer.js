@@ -1,10 +1,16 @@
 /**
- * Serialize DOM element to XHTML string.
- * @TODO work on the HTML without XML...
+ * Serialize DOM elements to XHTML strings (for now).
+ * @TODO: Work on the HTML (without XML)
  */
-gui.DOMSerializer = function DOMSerializer () {};
-	
-gui.DOMSerializer.prototype = {
+gui.DOMSerializer = {
+
+	/**
+	 * Identification.
+	 * @returns {String}
+	 */
+	toString : function () {
+		return "[object gui.DOMParser]";
+	},
 
 	/**
 	 * Serialize element to XHTML string.
@@ -20,7 +26,7 @@ gui.DOMSerializer.prototype = {
 	/**
 	 * Exclude element itself from serialized result.
 	 * This is considered a temporary patch for the 
-	 * missing access to innerHTML setter in WebKit.
+	 * missing access to innerHTML getter in WebKit.
 	 * @param {Element} element
 	 * @returns {String}
 	 */

@@ -163,7 +163,7 @@ gui.Guide = {
 	},
 
 	/**
-	 * Suspend spirit attachment/detachment during operation.
+	 * Suspend spiritualization and materialization during operation.
 	 * @param {function} operation
 	 * @param @optional {object} thisp
 	 * @returns {object}
@@ -177,10 +177,10 @@ gui.Guide = {
 
 	/**
 	 * Invoked by {gui.Spiritual} some milliseconds after 
-	 * the spirits have been attached to the page DOM.
+	 * all spirits have been attached to the page DOM.
 	 * @param {Array<gui.Spirit>} spirits
 	 */
-	afterattach : function ( spirits ) {
+	$goasync : function ( spirits ) {
 		spirits.forEach ( function ( spirit ) {
 			gui.Spirit.$async ( spirit );
 		});

@@ -40,7 +40,7 @@ gui.URL.prototype = {
 };
 
 
-// Statics ....................................................................
+// Statics ..............................................................................................
 
 /**
  * Convert relative path to absolute path in context of base where base is a document or an absolute path.
@@ -52,7 +52,7 @@ gui.URL.prototype = {
 gui.URL.absolute = function ( base, href ) {
 	if ( base.nodeType === Node.DOCUMENT_NODE ) {
 		return new gui.URL ( base, href ).href;
-	} else if ( typeof base === "string" ) { // TODO: load gui.Type first...
+	} else if ( typeof base === "string" ) {
 		var stack = base.split ( "/" );
 		var parts = href.split ( "/" );
 		stack.pop();// remove current filename (or empty string) (omit if "base" is the current folder without trailing slash)

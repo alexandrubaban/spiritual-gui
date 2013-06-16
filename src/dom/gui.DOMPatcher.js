@@ -52,7 +52,7 @@ gui.DOMPatcher = {
 	 */
 	_innerHTML : {	
 		get : function () {
-			return new gui.DOMSerializer ().subserialize ( this );
+			return gui.DOMSerializer.subserialize ( this );
 		},
 		set : function ( html ) {
 			gui.DOMPlugin.html ( this, html );
@@ -65,7 +65,7 @@ gui.DOMPatcher = {
 	 */
 	_outerHTML : {
 		get : function () {
-			return new gui.DOMSerializer ().serialize ( this );
+			return gui.DOMSerializer.serialize ( this );
 		},
 		set : function ( html ) {
 			gui.DOMPlugin.outerHtml ( this, html );

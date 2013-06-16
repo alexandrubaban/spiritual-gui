@@ -443,15 +443,8 @@ gui.Spiritual.prototype = {
 		var spirits;
 		switch ( tick.type ) {
 			case gui.$TICK_INSIDE :
-				gui.Guide.afterattach ( this._spirits.incoming );
+				gui.Guide.$goasync ( this._spirits.incoming );
 				this._spirits.incoming = [];
-				/*
-				spirits = this._spirits.incoming;
-				gui.Guide.afterattach ( gui.Object.each ( spirits, function ( id, spirit ) {
-					return spirit;
-				}));
-				this._spirits.incoming = Object.create ( null );
-				*/
 				break;
 			case gui.$TICK_OUTSIDE :
 				spirits = gui.Object.each ( this._spirits.outside, function ( key, spirit ) {
