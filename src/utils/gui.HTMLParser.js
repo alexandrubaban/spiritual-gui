@@ -20,7 +20,7 @@ gui.HTMLParser = {
 	 */
 	parseToDocument : function ( markup ) {
 		return gui.Guide.suspend ( function () {
-			doc = document.implementation.createHTMLDocument ( "" );
+			var doc = document.implementation.createHTMLDocument ( "" );
 			if ( markup.toLowerCase().contains ( "<!doctype" )) {
 				doc.documentElement.innerHTML = markup;
 			} else {
@@ -40,10 +40,10 @@ gui.HTMLParser = {
 		var elm, doc = this._document || 
 			( this._document = document.implementation.createHTMLDocument ( "" ));
 		return gui.Guide.suspend ( function () {
-			doc.body.innerHTML = this._desanitize ( markup );
+			doc.body.innerHTML = this._insaneitize ( markup );
 			elm = doc.querySelector ( "." + this._classname ) || doc.body;
 			return Array.map ( elm.childNodes, function ( node ) {
-				return targetdoc ? targetdoc.importNode ( node, true ) : node
+				return targetdoc ? targetdoc.importNode ( node, true ) : node;
 			});
 		}, this );
 	},
@@ -82,7 +82,8 @@ gui.HTMLParser = {
 	 * @param {String} markup
 	 * @returns {String}
 	 */
-	_desanitize : function ( markup ) {
+	_insaneitize : function ( markup ) {
+		var match, fix;
 		markup = markup.trim ().replace ( this._comments, "" );
 		if (( match = markup.match ( this._firsttag ))) {
 			if (( fix = this._fixes [ match [ 1 ]])) {
