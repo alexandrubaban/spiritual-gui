@@ -224,7 +224,7 @@ gui.URL.prototype = {
 };
 
 
-// Statics ....................................................................
+// Statics ..............................................................................................
 
 /**
  * Convert relative path to absolute path in context of base where base is a document or an absolute path.
@@ -236,7 +236,7 @@ gui.URL.prototype = {
 gui.URL.absolute = function ( base, href ) {
 	if ( base.nodeType === Node.DOCUMENT_NODE ) {
 		return new gui.URL ( base, href ).href;
-	} else if ( typeof base === "string" ) { // TODO: load gui.Type first...
+	} else if ( typeof base === "string" ) {
 		var stack = base.split ( "/" );
 		var parts = href.split ( "/" );
 		stack.pop();// remove current filename (or empty string) (omit if "base" is the current folder without trailing slash)
@@ -1233,15 +1233,8 @@ gui.Spiritual.prototype = {
 		var spirits;
 		switch ( tick.type ) {
 			case gui.$TICK_INSIDE :
-				gui.Guide.afterattach ( this._spirits.incoming );
+				gui.Guide.$goasync ( this._spirits.incoming );
 				this._spirits.incoming = [];
-				/*
-				spirits = this._spirits.incoming;
-				gui.Guide.afterattach ( gui.Object.each ( spirits, function ( id, spirit ) {
-					return spirit;
-				}));
-				this._spirits.incoming = Object.create ( null );
-				*/
 				break;
 			case gui.$TICK_OUTSIDE :
 				spirits = gui.Object.each ( this._spirits.outside, function ( key, spirit ) {
@@ -3228,127 +3221,138 @@ gui.Then.prototype = {
 
 
 /**
- * Parse HTML string to DOM node(s) in given document context. 
- * Adapted from https://github.com/petermichaux/arbutus
- * @TODO High level awareness of HTMLparser elements. Plugin ui.SpiritDOM and ui.Spirit.parse should know about added historic HTML chrome and strip when inserted.
- * @param {Document} doc
- * @TODO: make this whole thing static
+ * Parsing markup strings to DOM objects.
  */
-gui.HTMLParser = function HTMLParser ( doc ) {
-	if ( doc && doc.nodeType ) {
-		this._document = doc;
-	} else {
-		throw new TypeError ( "Document expected" );
-	}
-};
-
-gui.HTMLParser.prototype = {
+gui.HTMLParser = {
 
 	/**
-	 * Context document.
-	 * @type {Document}
+	 * Identification.
+	 * @returns {String}
+	 */
+	toString : function () {
+		return "[object gui.HTMLParser]";
+	},
+
+	/**
+	 * Parse to document. Bear in mind that the 
+	 * document.defaultView of this thing is null.
+	 * @TODO: Use DOMParser for text/html supporters
+	 * @param {String} markup
+	 * @returns {HTMLDocument}
+	 */
+	parseToDocument : function ( markup ) {
+		return gui.Guide.suspend ( function () {
+			var doc = document.implementation.createHTMLDocument ( "" );
+			if ( markup.toLowerCase().contains ( "<!doctype" )) {
+				doc.documentElement.innerHTML = markup;
+			} else {
+				doc.body.innerHTML = markup;
+			}
+			return doc;
+		});
+	},
+
+	/**
+	 * Parse to array of one or more nodes.
+	 * @param {String} markup
+	 * @param @optional {Document} targetdoc
+	 * @returns {Array<Node>}
+	 */
+	parseToNodes : function ( markup, targetdoc ) {
+		var elm, doc = this._document || 
+			( this._document = document.implementation.createHTMLDocument ( "" ));
+		return gui.Guide.suspend ( function () {
+			doc.body.innerHTML = this._insaneitize ( markup );
+			elm = doc.querySelector ( "." + this._classname ) || doc.body;
+			return Array.map ( elm.childNodes, function ( node ) {
+				return targetdoc ? targetdoc.importNode ( node, true ) : node;
+			});
+		}, this );
+	},
+
+
+	// Private ...............................................................................
+	
+	/**
+	 * Classname for obscure wrapping containers.
+	 * @type {String}
+	 */
+	_classname : "_gui-htmlparser",
+
+	/**
+	 * Match comments.
+	 * @type {RegExp}
+	 */
+	_comments : /<!--[\s\S]*?-->/g,
+
+	/**
+	 * Match first tag.
+	 * @type {RegExp}
+	 */
+	_firsttag : /^<([a-z]+)/i,
+
+	/**
+	 * Recycled for parseToNodes operations.
+	 * @TODO Create on first demand 
+	 * @type {HTMLDocument}
 	 */
 	_document : null,
 
 	/**
-	 * Parse HTML to DOM node(s). Note that this always returns an array.
-	 * @param {String} html
-	 * @param @optional {Element} element
-	 * @returns {Array<Node>}
+	 * Some elements must be created in obscure markup 
+	 * structures in order to be rendered correctly.
+	 * @param {String} markup
+	 * @returns {String}
 	 */
-	parse : function ( html, element ) {
-		var match, fix, temp, frag, path,
-			fixes = gui.HTMLParser._fixes,
-			comments = gui.HTMLParser._comments,
-			firsttag = gui.HTMLParser._firsttag,
-			doc = this._document;
-		// HTML needs wrapping in obscure structure for historic reasons?
-		html = html.trim ().replace ( comments, "" );
-		if (( match = html.match ( firsttag ))) {
-			if (( fix = fixes.get ( match [ 1 ]))) {
-				html = fix.replace ( "${html}", html );
+	_insaneitize : function ( markup ) {
+		var match, fix;
+		markup = markup.trim ().replace ( this._comments, "" );
+		if (( match = markup.match ( this._firsttag ))) {
+			if (( fix = this._fixes [ match [ 1 ]])) {
+				markup = fix.
+					replace ( "${class}", this._classname ).
+					replace ( "${markup}", markup );
 			}
 		}
-		// Parse HTML to DOM nodes.
-		temp = doc.createElement ( "div" );
-		temp.innerHTML = html;
-		// Extract elements from obscure structure for historic reasons?
-		var nodes = temp.childNodes;
-		if ( fix && element ) {
-			var name = element.localName;
-			if ( fixes.has ( name )) {
-				var node = temp;
-				while ( node ) {
-					node = node.firstElementChild;
-					if ( node.localName === name ) {
-						nodes = node.childNodes;
-						node = null;
-					}
-				}	
-			}
-		}
-		// convert from nodelist to array of nodes
-		return Array.map ( nodes, function ( node ) {
-			return node;
+		return markup;
+	},
+
+	/**
+	 * Mapping tag names to miminum viable tag structure.
+	 * @see https://github.com/petermichaux/arbutus
+	 * @TODO "without the option in the next line, the parsed option will always be selected."
+	 * @type {Map<String,String>}
+	 */
+	_fixes : ( function () {
+		var map = {
+			"td" : '<table><tbody><tr class="${class}">${markup}</tr></tbody></table>',
+			"tr" : '<table><tbody class="${class}">${markup}</tbody></table>',
+			"tbody" : '<table class="${class}">${markup}</table>',
+			"col" : '<table><colgroup class="${class}">${markup}</colgroup></table>',
+			"option" : '<select class="${class}"><option>a</option>${markup}</select>' 
+		};
+		map [ "th" ] = map [ "td" ]; // duplucate fixes.
+		[ "thead", "tfoot", "caption", "colgroup" ].forEach ( function ( tag ) {
+			map [ tag ] = map [ "tbody" ];
 		});
-	}
+		return map;
+	}())
 };
 
-/**
- * Match comments.
- * @type {RegExp}
- */
-gui.HTMLParser._comments = /<!--[\s\S]*?-->/g;
 
 /**
- * Match first tag.
- * @type {RegExp}
+ * Serialize DOM elements to XHTML strings (for now).
+ * @TODO: Work on the HTML (without XML)
  */
-gui.HTMLParser._firsttag = /^<([a-z]+)/i;
+gui.DOMSerializer = {
 
-/**
- * Mapping tag names to miminum viable tag structure.
- * Considerable foresight has decided that text/html 
- * must forever remain backwards compatible with IE5.
- * @type {Map<String,String>}
- */
-gui.HTMLParser._fixes = new Map ();
-
-/**
- * Populate fixes.
- * @TODO "without the option in the next line, the parsed option will always be selected."
- */
-( function () {
-	gui.Object.each ({
-		"td" : "<table><tbody><tr>${html}</tr></tbody></table>",
-		"tr" : "<table><tbody>${html}</tbody></table>",
-		"tbody" : "<table>${html}</table>",
-		"col" : "<table><colgroup>${html}</colgroup></table>",
-		"option" : "<select><option>a</option>${html}</select>" 
-	}, function ( tag, fix ) {
-		gui.HTMLParser._fixes.set ( tag, fix );
-	});
-}());
-
-/**
- * Populate duplicated fixes.
- */
-( function () {
-	var fixes = gui.HTMLParser._fixes;
-	fixes.set ( "th", fixes.get ( "td" ));
-	[ "thead", "tfoot", "caption", "colgroup" ].forEach ( function ( tag ) {
-		gui.HTMLParser._fixes.set ( tag, fixes.get ( "tbody" ));
-	});
-}());
-
-
-/**
- * Serialize DOM element to XHTML string.
- * @TODO work on the HTML without XML...
- */
-gui.DOMSerializer = function DOMSerializer () {};
-	
-gui.DOMSerializer.prototype = {
+	/**
+	 * Identification.
+	 * @returns {String}
+	 */
+	toString : function () {
+		return "[object gui.DOMParser]";
+	},
 
 	/**
 	 * Serialize element to XHTML string.
@@ -3364,7 +3368,7 @@ gui.DOMSerializer.prototype = {
 	/**
 	 * Exclude element itself from serialized result.
 	 * This is considered a temporary patch for the 
-	 * missing access to innerHTML setter in WebKit.
+	 * missing access to innerHTML getter in WebKit.
 	 * @param {Element} element
 	 * @returns {String}
 	 */
@@ -3772,7 +3776,7 @@ gui.Crawler = gui.Class.create ( "gui.Crawler", {
 	 * @param {boolean} start
 	 */
 	_descend : function ( elm, handler, arg, start ) {
-		var win, spirit, directive = this._handleElement ( elm, handler, arg );
+		var win, doc, root, spirit, directive = this._handleElement ( elm, handler, arg );
 		switch ( directive ) {
 			case gui.Crawler.CONTINUE :
 			case gui.Crawler.SKIP_CHILDREN :
@@ -3787,8 +3791,7 @@ gui.Crawler = gui.Class.create ( "gui.Crawler", {
 									handler.transcend ( spirit.contentWindow, spirit.xguest, spirit.$instanceid );// win.gui.$contextid
 								}
 							} else {
-								var root = elm.contentDocument.documentElement;
-								if ( root ) {
+								if (( doc = elm.contentDocument ) && ( root = doc.documentElement )) {
 									this._descend ( root, handler, arg, false );
 								}
 							}
@@ -7327,20 +7330,14 @@ gui.DOMPlugin = ( function using ( chained ) {
 		/**
 		 * Spiritual-aware innerHTML with special setup for bad WebKit.
 		 * @see http://code.google.com/p/chromium/issues/detail?id=13175
-		 * 
-		 * - Parse markup to node(s)
-		 * - Detach spirits and remove old nodes
-		 * - Append new nodes and spiritualize spirits
 		 * @param {Element} element
 		 * @param @optional {String} markup
 		 */
 		html : function ( element, markup ) {
-			var guide = gui.Guide;
+			var nodes, guide = gui.Guide;
 			if ( element.nodeType === Node.ELEMENT_NODE ) {
 				if ( gui.Type.isString ( markup )) {
-					var nodes = new gui.HTMLParser ( 
-						element.ownerDocument 
-					).parse ( markup, element );
+					nodes = gui.HTMLParser.parseToNodes ( markup, element.ownerDocument );
 					guide.materializeSub ( element );
 					guide.suspend ( function () {
 						gui.Observer.suspend ( element, function () {
@@ -7361,20 +7358,18 @@ gui.DOMPlugin = ( function using ( chained ) {
 		},
 
 		/**
-		 * Spiritual-aware outerHTML, special setup for WebKit.
+		 * Spiritual-aware outerHTML with special setup for WebKit.
 		 * @TODO can outerHTML carry multiple nodes???
 		 * @param {Element} element
 		 * @param @optional {String} markup
 		 */
 		outerHtml : function ( element, markup ) {
-			var res = element.outerHTML;
+			var nodes, parent, res = element.outerHTML;
 			var guide = gui.Guide;
 			if ( element.nodeType ) {
 				if ( gui.Type.isString ( markup )) {
-					var nodes = new gui.HTMLParser ( 
-						element.ownerDocument 
-					).parse ( markup, element );
-					var parent = element.parentNode;
+					nodes = gui.HTMLParser.parseToNodes ( markup, element.ownerDocument );
+					parent = element.parentNode;
 					guide.materialize ( element );
 					guide.suspend ( function () {
 						gui.Observer.suspend ( parent, function () {
@@ -9011,8 +9006,8 @@ gui.TransitionPlugin = gui.Plugin.extend ( "gui.TransitionPlugin", {
 		if ( this._endevent === null ) {
 			var names = {
 				"webkit" : "webkitTransitionEnd",
-				"explorer" : "MSTransitionEnd",
-				"gecko" : "transitionend", // "MozTransitionEnd" or what?
+				"explorer" : "transitionend",
+				"gecko" : "transitionend",
 				"opera" : "oTransitionEnd"
 			};
 			this._endevent = names [ gui.Client.agent ] || "transitionend";
@@ -9558,9 +9553,8 @@ gui.VisibilityPlugin = ( function using ( chained ) {
 				handleSpirit : function ( spirit ) {
 					var init = spirit.life.visible === undefined;
 					if ( spirit !== first && spirit.css.contains ( gui.CLASS_INVISIBLE )) {
-						return gui.Crawler.STOP;
-					}
-					if ( visible ) {
+						return gui.Crawler.SKIP_CHILDREN;
+					} else if ( visible ) {
 						if ( !spirit.life.visible || init ) {
 							spirit.life.visible = true;
 							spirit.life.dispatch ( gui.LIFE_VISIBLE ); // TODO: somehow after the fact!
@@ -11836,11 +11830,6 @@ gui.DOMCombos = {
 		 */
 		var setAttBefore = combo.before ( function ( name, value ) {
 			this.spirit.att.set ( name, value );
-			/*
-			this.spirit.att.$suspend ( function () {
-				this.set ( att, val );
-			});
-			*/
 		});
 
 		/**
@@ -11850,11 +11839,6 @@ gui.DOMCombos = {
 		 */
 		var delAttBefore = combo.before( function ( name ) {
 			this.spirit.att.del ( name );
-			/*
-			this.spirit.att.$suspend ( function () {
-				this.del ( att );
-			});
-			*/
 		});
 
 		/**
@@ -11909,11 +11893,16 @@ gui.DOMCombos = {
 		});
 
 		/**
-		 * Pretend nothing happened when running in "managed" mode.
+		 * Pretend nothing happened when running in managed mode.
 		 * @TODO Simply mirror this prop with an internal boolean
 		 */
 		var ifEnabled = combo.provided ( function () {
-			return this.ownerDocument.defaultView.gui.mode !== gui.MODE_MANAGED;
+			var win = this.ownerDocument.defaultView;
+			if ( win ) {
+				return win.gui.mode !== gui.MODE_MANAGED;
+			} else {
+				return false; // abstract HTMLDocument might adopt DOM combos
+			}
 		});
 
 		/**
@@ -12065,7 +12054,7 @@ gui.DOMPatcher = {
 	 */
 	_innerHTML : {	
 		get : function () {
-			return new gui.DOMSerializer ().subserialize ( this );
+			return gui.DOMSerializer.subserialize ( this );
 		},
 		set : function ( html ) {
 			gui.DOMPlugin.html ( this, html );
@@ -12078,7 +12067,7 @@ gui.DOMPatcher = {
 	 */
 	_outerHTML : {
 		get : function () {
-			return new gui.DOMSerializer ().serialize ( this );
+			return gui.DOMSerializer.serialize ( this );
 		},
 		set : function ( html ) {
 			gui.DOMPlugin.outerHtml ( this, html );
@@ -12440,7 +12429,7 @@ gui.Guide = {
 	},
 
 	/**
-	 * Suspend spirit attachment/detachment during operation.
+	 * Suspend spiritualization and materialization during operation.
 	 * @param {function} operation
 	 * @param @optional {object} thisp
 	 * @returns {object}
@@ -12454,10 +12443,10 @@ gui.Guide = {
 
 	/**
 	 * Invoked by {gui.Spiritual} some milliseconds after 
-	 * the spirits have been attached to the page DOM.
+	 * all spirits have been attached to the page DOM.
 	 * @param {Array<gui.Spirit>} spirits
 	 */
-	afterattach : function ( spirits ) {
+	$goasync : function ( spirits ) {
 		spirits.forEach ( function ( spirit ) {
 			gui.Spirit.$async ( spirit );
 		});
@@ -12603,7 +12592,7 @@ gui.Guide = {
 	 */
 	_collect : function ( node, skip, id ) {
 		var list = [];
-		new gui.GuideCrawler ( id ).descend ( node, {
+		new gui.Crawler ( id ).descend ( node, {
 		   handleSpirit : function ( spirit ) {
 			   if ( skip && spirit.element === node ) {}
 			   else if ( !spirit.life.destructed ) {
@@ -12641,7 +12630,7 @@ gui.Guide = {
 	_spiritualize : function ( element, skip, one ) {
 		var attach = [];
 		var readys = [];
-		new gui.GuideCrawler ( gui.CRAWLER_SPIRITUALIZE ).descend ( element, {
+		new gui.Crawler ( gui.CRAWLER_SPIRITUALIZE ).descend ( element, {
 			handleElement : function ( elm ) {
 				if ( !skip || elm !== element ) {
 					var spirit = elm.spirit;
