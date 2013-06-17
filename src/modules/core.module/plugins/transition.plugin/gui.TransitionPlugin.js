@@ -164,8 +164,8 @@ gui.TransitionPlugin = gui.Plugin.extend ( "gui.TransitionPlugin", {
 		if ( this._endevent === null ) {
 			var names = {
 				"webkit" : "webkitTransitionEnd",
-				"explorer" : "MSTransitionEnd",
-				"gecko" : "transitionend", // "MozTransitionEnd" or what?
+				"explorer" : "transitionend",
+				"gecko" : "transitionend",
 				"opera" : "oTransitionEnd"
 			};
 			this._endevent = names [ gui.Client.agent ] || "transitionend";
