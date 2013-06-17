@@ -80,7 +80,9 @@ gui.URL.external = function ( src, doc ) {
 	doc = doc || document;
 	var url = new gui.URL ( doc, src );
 	if ( gui.Client.isExplorer9 ) {
-		console.log ( "TODO: Fix hardcoded assesment of external URL in IE9 (always false): " + src );
+		if(gui.debug){
+			console.log ( "TODO: Fix hardcoded assesment of external URL in IE9 (always false): " + src );
+		}
 		return false;
 	} else {
 		return url.host !== doc.location.host;
