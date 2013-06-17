@@ -365,7 +365,7 @@ gui.Spiritual.prototype = {
 		this._channels.forEach ( function ( channel ) {
 			out += "\n" + channel [ 0 ] + " : " + channel [ 1 ];
 		});
-		console.debug ( out + "\n\n" );
+		console.log ( out + "\n\n" );
 	},
 
 	/**
