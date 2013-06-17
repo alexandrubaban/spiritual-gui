@@ -190,7 +190,7 @@ gui.DOMChanger = {
 				if ( this.innerhtml.missing ) {
 					win.gui.mode = gui.MODE_JQUERY;
 					if ( this._jquery ( win ) && win.gui.debug ) {
-						console.debug ( 
+						console.log ( 
 							title + ": Spiritual runs in JQuery mode. To keep spirits " +
 							"in synch, use JQuery or Spiritual to perform DOM updates."
 						);
@@ -198,7 +198,7 @@ gui.DOMChanger = {
 				} else {
 					win.gui.mode = gui.MODE_NATIVE;
 					if ( win.gui.debug ) {
-						console.debug ( title + ": Spiritual runs in native mode" );
+						console.log ( title + ": Spiritual runs in native mode" );
 					}
 				}
 				break;
