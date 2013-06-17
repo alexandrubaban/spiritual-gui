@@ -1,113 +1,118 @@
 /**
- * Parse HTML string to DOM node(s) in given document context. 
- * Adapted from https://github.com/petermichaux/arbutus
- * @TODO High level awareness of HTMLparser elements. Plugin ui.SpiritDOM and ui.Spirit.parse should know about added historic HTML chrome and strip when inserted.
- * @param {Document} doc
- * @TODO: make this whole thing static
+ * Parsing markup strings to DOM objects.
  */
-gui.HTMLParser = function HTMLParser ( doc ) {
-	if ( doc && doc.nodeType ) {
-		this._document = doc;
-	} else {
-		throw new TypeError ( "Document expected" );
-	}
-};
-
-gui.HTMLParser.prototype = {
+gui.HTMLParser = {
 
 	/**
-	 * Context document.
-	 * @type {Document}
+	 * Identification.
+	 * @returns {String}
+	 */
+	toString : function () {
+		return "[object gui.HTMLParser]";
+	},
+
+	/**
+	 * Parse to document. Bear in mind that the 
+	 * document.defaultView of this thing is null.
+	 * @TODO: Use DOMParser for text/html supporters
+	 * @param {String} markup
+	 * @returns {HTMLDocument}
+	 */
+	parseToDocument : function ( markup ) {
+		return gui.Guide.suspend ( function () {
+			var doc = document.implementation.createHTMLDocument ( "" );
+			if ( markup.toLowerCase().contains ( "<!doctype" )) {
+				doc.documentElement.innerHTML = markup;
+			} else {
+				doc.body.innerHTML = markup;
+			}
+			return doc;
+		});
+	},
+
+	/**
+	 * Parse to array of one or more nodes.
+	 * @param {String} markup
+	 * @param @optional {Document} targetdoc
+	 * @returns {Array<Node>}
+	 */
+	parseToNodes : function ( markup, targetdoc ) {
+		var elm, doc = this._document || 
+			( this._document = document.implementation.createHTMLDocument ( "" ));
+		return gui.Guide.suspend ( function () {
+			doc.body.innerHTML = this._insaneitize ( markup );
+			elm = doc.querySelector ( "." + this._classname ) || doc.body;
+			return Array.map ( elm.childNodes, function ( node ) {
+				return targetdoc ? targetdoc.importNode ( node, true ) : node;
+			});
+		}, this );
+	},
+
+
+	// Private ...............................................................................
+	
+	/**
+	 * Classname for obscure wrapping containers.
+	 * @type {String}
+	 */
+	_classname : "_gui-htmlparser",
+
+	/**
+	 * Match comments.
+	 * @type {RegExp}
+	 */
+	_comments : /<!--[\s\S]*?-->/g,
+
+	/**
+	 * Match first tag.
+	 * @type {RegExp}
+	 */
+	_firsttag : /^<([a-z]+)/i,
+
+	/**
+	 * Recycled for parseToNodes operations.
+	 * @TODO Create on first demand 
+	 * @type {HTMLDocument}
 	 */
 	_document : null,
 
 	/**
-	 * Parse HTML to DOM node(s). Note that this always returns an array.
-	 * @param {String} html
-	 * @param @optional {Element} element
-	 * @returns {Array<Node>}
+	 * Some elements must be created in obscure markup 
+	 * structures in order to be rendered correctly.
+	 * @param {String} markup
+	 * @returns {String}
 	 */
-	parse : function ( html, element ) {
-		var match, fix, temp, frag, path,
-			fixes = gui.HTMLParser._fixes,
-			comments = gui.HTMLParser._comments,
-			firsttag = gui.HTMLParser._firsttag,
-			doc = this._document;
-		// HTML needs wrapping in obscure structure for historic reasons?
-		html = html.trim ().replace ( comments, "" );
-		if (( match = html.match ( firsttag ))) {
-			if (( fix = fixes.get ( match [ 1 ]))) {
-				html = fix.replace ( "${html}", html );
+	_insaneitize : function ( markup ) {
+		var match, fix;
+		markup = markup.trim ().replace ( this._comments, "" );
+		if (( match = markup.match ( this._firsttag ))) {
+			if (( fix = this._fixes [ match [ 1 ]])) {
+				markup = fix.
+					replace ( "${class}", this._classname ).
+					replace ( "${markup}", markup );
 			}
 		}
-		// Parse HTML to DOM nodes.
-		temp = doc.createElement ( "div" );
-		temp.innerHTML = html;
-		// Extract elements from obscure structure for historic reasons?
-		var nodes = temp.childNodes;
-		if ( fix && element ) {
-			var name = element.localName;
-			if ( fixes.has ( name )) {
-				var node = temp;
-				while ( node ) {
-					node = node.firstElementChild;
-					if ( node.localName === name ) {
-						nodes = node.childNodes;
-						node = null;
-					}
-				}	
-			}
-		}
-		// convert from nodelist to array of nodes
-		return Array.map ( nodes, function ( node ) {
-			return node;
+		return markup;
+	},
+
+	/**
+	 * Mapping tag names to miminum viable tag structure.
+	 * @see https://github.com/petermichaux/arbutus
+	 * @TODO "without the option in the next line, the parsed option will always be selected."
+	 * @type {Map<String,String>}
+	 */
+	_fixes : ( function () {
+		var map = {
+			"td" : '<table><tbody><tr class="${class}">${markup}</tr></tbody></table>',
+			"tr" : '<table><tbody class="${class}">${markup}</tbody></table>',
+			"tbody" : '<table class="${class}">${markup}</table>',
+			"col" : '<table><colgroup class="${class}">${markup}</colgroup></table>',
+			"option" : '<select class="${class}"><option>a</option>${markup}</select>' 
+		};
+		map [ "th" ] = map [ "td" ]; // duplucate fixes.
+		[ "thead", "tfoot", "caption", "colgroup" ].forEach ( function ( tag ) {
+			map [ tag ] = map [ "tbody" ];
 		});
-	}
+		return map;
+	}())
 };
-
-/**
- * Match comments.
- * @type {RegExp}
- */
-gui.HTMLParser._comments = /<!--[\s\S]*?-->/g;
-
-/**
- * Match first tag.
- * @type {RegExp}
- */
-gui.HTMLParser._firsttag = /^<([a-z]+)/i;
-
-/**
- * Mapping tag names to miminum viable tag structure.
- * Considerable foresight has decided that text/html 
- * must forever remain backwards compatible with IE5.
- * @type {Map<String,String>}
- */
-gui.HTMLParser._fixes = new Map ();
-
-/**
- * Populate fixes.
- * @TODO "without the option in the next line, the parsed option will always be selected."
- */
-( function () {
-	gui.Object.each ({
-		"td" : "<table><tbody><tr>${html}</tr></tbody></table>",
-		"tr" : "<table><tbody>${html}</tbody></table>",
-		"tbody" : "<table>${html}</table>",
-		"col" : "<table><colgroup>${html}</colgroup></table>",
-		"option" : "<select><option>a</option>${html}</select>" 
-	}, function ( tag, fix ) {
-		gui.HTMLParser._fixes.set ( tag, fix );
-	});
-}());
-
-/**
- * Populate duplicated fixes.
- */
-( function () {
-	var fixes = gui.HTMLParser._fixes;
-	fixes.set ( "th", fixes.get ( "td" ));
-	[ "thead", "tfoot", "caption", "colgroup" ].forEach ( function ( tag ) {
-		gui.HTMLParser._fixes.set ( tag, fixes.get ( "tbody" ));
-	});
-}());

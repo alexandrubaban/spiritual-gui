@@ -173,20 +173,14 @@ gui.DOMPlugin = ( function using ( chained ) {
 		/**
 		 * Spiritual-aware innerHTML with special setup for bad WebKit.
 		 * @see http://code.google.com/p/chromium/issues/detail?id=13175
-		 * 
-		 * - Parse markup to node(s)
-		 * - Detach spirits and remove old nodes
-		 * - Append new nodes and spiritualize spirits
 		 * @param {Element} element
 		 * @param @optional {String} markup
 		 */
 		html : function ( element, markup ) {
-			var guide = gui.Guide;
+			var nodes, guide = gui.Guide;
 			if ( element.nodeType === Node.ELEMENT_NODE ) {
 				if ( gui.Type.isString ( markup )) {
-					var nodes = new gui.HTMLParser ( 
-						element.ownerDocument 
-					).parse ( markup, element );
+					nodes = gui.HTMLParser.parseToNodes ( markup, element.ownerDocument );
 					guide.materializeSub ( element );
 					guide.suspend ( function () {
 						gui.Observer.suspend ( element, function () {
@@ -207,20 +201,18 @@ gui.DOMPlugin = ( function using ( chained ) {
 		},
 
 		/**
-		 * Spiritual-aware outerHTML, special setup for WebKit.
+		 * Spiritual-aware outerHTML with special setup for WebKit.
 		 * @TODO can outerHTML carry multiple nodes???
 		 * @param {Element} element
 		 * @param @optional {String} markup
 		 */
 		outerHtml : function ( element, markup ) {
-			var res = element.outerHTML;
+			var nodes, parent, res = element.outerHTML;
 			var guide = gui.Guide;
 			if ( element.nodeType ) {
 				if ( gui.Type.isString ( markup )) {
-					var nodes = new gui.HTMLParser ( 
-						element.ownerDocument 
-					).parse ( markup, element );
-					var parent = element.parentNode;
+					nodes = gui.HTMLParser.parseToNodes ( markup, element.ownerDocument );
+					parent = element.parentNode;
 					guide.materialize ( element );
 					guide.suspend ( function () {
 						gui.Observer.suspend ( parent, function () {

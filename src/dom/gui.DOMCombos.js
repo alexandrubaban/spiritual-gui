@@ -99,11 +99,6 @@ gui.DOMCombos = {
 		 */
 		var setAttBefore = combo.before ( function ( name, value ) {
 			this.spirit.att.set ( name, value );
-			/*
-			this.spirit.att.$suspend ( function () {
-				this.set ( att, val );
-			});
-			*/
 		});
 
 		/**
@@ -113,11 +108,6 @@ gui.DOMCombos = {
 		 */
 		var delAttBefore = combo.before( function ( name ) {
 			this.spirit.att.del ( name );
-			/*
-			this.spirit.att.$suspend ( function () {
-				this.del ( att );
-			});
-			*/
 		});
 
 		/**
@@ -172,11 +162,16 @@ gui.DOMCombos = {
 		});
 
 		/**
-		 * Pretend nothing happened when running in "managed" mode.
+		 * Pretend nothing happened when running in managed mode.
 		 * @TODO Simply mirror this prop with an internal boolean
 		 */
 		var ifEnabled = combo.provided ( function () {
-			return this.ownerDocument.defaultView.gui.mode !== gui.MODE_MANAGED;
+			var win = this.ownerDocument.defaultView;
+			if ( win ) {
+				return win.gui.mode !== gui.MODE_MANAGED;
+			} else {
+				return false; // abstract HTMLDocument might adopt DOM combos
+			}
 		});
 
 		/**
