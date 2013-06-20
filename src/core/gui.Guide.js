@@ -220,7 +220,7 @@ gui.Guide = {
 	 * @param {gui.EventSummary} sum
 	 */
 	_ondom : function ( sum ) {
-		if ( sum.documentspirit ) {
+		if(sum.documentspirit){
 			sum.documentspirit.ondom ();
 		}
 		if ( gui.autostart ) {
@@ -236,7 +236,7 @@ gui.Guide = {
 	 * @param {gui.EventSummary} sum
 	 */
 	_onload : function ( sum ) {
-		if ( sum.documentspirit ) {
+		if(sum.documentspirit){
 			sum.documentspirit.onload ();
 		}
 	},
@@ -246,9 +246,10 @@ gui.Guide = {
 	 * @param {gui.EventSummary} sum
 	 */
 	_unload : function ( sum ) {
-		if ( sum.documentspirit ) {
+		if(sum.documentspirit){
 			sum.documentspirit.onunload ();
 		}
+		this.materialize(sum.document);
 		sum.window.gui.nameDestructAlreadyUsed ();
 	},
 
@@ -327,12 +328,12 @@ gui.Guide = {
 	_collect : function ( node, skip, id ) {
 		var list = [];
 		new gui.Crawler ( id ).descend ( node, {
-		   handleSpirit : function ( spirit ) {
-			   if ( skip && spirit.element === node ) {}
-			   else if ( !spirit.life.destructed ) {
-				   list.push ( spirit );
-			   }
-		   }
+			handleSpirit : function ( spirit ) {
+				if ( skip && spirit.element === node ) {}
+				else if ( !spirit.life.destructed ) {
+				 list.push ( spirit );
+				}
+			}
 		});
 		return list;
 	},

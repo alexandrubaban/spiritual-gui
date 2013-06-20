@@ -134,7 +134,11 @@ gui.module ( "flex", {
 			if ( gui.DOMPlugin.embedded ( child )) {
 				child = child === doc.documentElement ? child : child.parentNode;
 				gui.Tick.next ( function () {
-					gui.FlexPlugin.reflex ( child );
+					try {
+						gui.FlexPlugin.reflex ( child );
+					} catch ( unloadedexception ) {
+						// TODO: Don't go here
+					}
 				});
 			}
 		}

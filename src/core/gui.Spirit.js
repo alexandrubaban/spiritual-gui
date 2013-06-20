@@ -391,7 +391,6 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	 * @param {gui.Spirit} spirit
 	 */
 	$destruct : function ( spirit ) {
-		spirit.window.gui.destruct ( spirit );
 		spirit.$debug ( false );
 		spirit.life.destructed = true;
 		spirit.life.dispatch ( gui.LIFE_DESTRUCT );
@@ -405,6 +404,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	 */
 	$dispose : function ( spirit ) {
 		spirit.$ondestruct ();
+		spirit.window.gui.destruct ( spirit );
 		gui.GreatSpirit.$meet ( spirit );
 	}
 
