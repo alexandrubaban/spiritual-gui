@@ -167,7 +167,7 @@ gui.FlexBox.prototype = {
 	},
 
 	/**
-	 * Collect child flexes. disableed members enter as 0.
+	 * Collect child flexes. Disabled members enter as 0.
 	 * @return {Array<number>}
 	 */
 	_childflexes : function () {

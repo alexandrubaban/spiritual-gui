@@ -415,13 +415,15 @@ gui.Guide = {
 	},
 
 	/**
+	 * Nuke spirits in reverse document order. This to allow an ascending {gui.Action} to escape 
+	 * from the subtree of a spirit that decides to remove itself from the DOM during destruction.
 	 * @TODO 'one' appears to be unsupported here???
 	 * @param {Element} element
 	 * @param {boolean} skip Skip the element?
 	 * @param {boolean} one Skip the subtree?
 	 */
 	_materialize : function ( element, skip, one ) {
-		this._collect ( element, skip, gui.CRAWLER_MATERIALIZE ).filter ( function ( spirit ) {
+		this._collect ( element, skip, gui.CRAWLER_MATERIALIZE ).reverse ().filter ( function ( spirit ) {
 			if ( spirit.life.attached && !spirit.life.destructed ) {
 				gui.Spirit.$destruct ( spirit );
 				return true; // @TODO: handle 'one' arg!
