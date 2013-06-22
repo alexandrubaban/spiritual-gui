@@ -364,7 +364,7 @@ gui.Spiritual.prototype = {
 		this._channels.forEach ( function ( channel ) {
 			out += "\n" + channel [ 0 ] + " : " + channel [ 1 ];
 		});
-		console.debug ( out + "\n\n" );
+		console.log ( out + "\n\n" );
 	},
 
 	/**
@@ -467,9 +467,11 @@ gui.Spiritual.prototype = {
 	 */
 	nameDestructAlreadyUsed : function () {
 		gui.Tick.remove ( gui.$TICK_OUTSIDE, this, this.$contextid );
+		/*
 		gui.Object.each ( this._spirits.inside, function ( id, spirit ) {
 			gui.GreatSpirit.$meet ( spirit );
 		});
+		*/
 		[ 
 			"_spiritualaid", 
 			"context", // window ?

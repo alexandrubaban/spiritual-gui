@@ -143,7 +143,7 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 	},
 
 	/**
-	 * Invoked OnDOMContentLoaded by the {gui.Guide}.
+	 * Invoked onDOMContentLoaded by the {gui.Guide}.
 	 * Intercepted by the hosting {gui.IframeSpirit}.
 	 */
 	ondom : function () {
@@ -151,7 +151,7 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 	},
 
 	/**
-	 * Invoked onload by the {gui.Guide}.
+	 * Invoked at window.onload by the {gui.Guide}.
 	 * Intercepted by the hosting {gui.IframeSpirit}.
 	 */
 	onload : function () {
@@ -168,7 +168,7 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 	},
 
 	/**
-	 * Invoked onunload by the {gui.Guide}.
+	 * Invoked at window.onunload by the {gui.Guide}.
 	 * Intercepted by the hosting {gui.IframeSpirit}.
 	 */
 	onunload : function () {

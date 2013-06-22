@@ -40,7 +40,6 @@ gui.Crawler = gui.Class.create ( "gui.Crawler", {
 
 	/**
 	 * Crawl DOM ascending.
-	 * @TODO ascendGlobal should do the global
 	 * @param {Element|gui.Spirit} start
 	 * @param {object} handler
 	 */

@@ -1,10 +1,12 @@
 /**
  * Blob file loader. Work in progress.
+ * @TODO: loadStyleSheet method
  */
 gui.BlobLoader = {
 
 	 /**
 	 * Load script into document from given source code.
+	 * @TODO: Refactor to use {gui.Then} instead
 	 * @param {Document} doc
 	 * @param {String} source
 	 * @param {function} callback
@@ -25,7 +27,7 @@ gui.BlobLoader = {
 		}
 	},
 
-	// Private .............................
+	// Private .....................................................
 
 	/**
 	 * Weirdo URL object.
