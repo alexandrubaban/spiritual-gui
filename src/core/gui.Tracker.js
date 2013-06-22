@@ -5,13 +5,14 @@
 gui.Tracker = gui.Plugin.extend ( "gui.Tracker", {
 
 	/**
-	 * Bookkeeping assigned types and handlers.
+	 * Bookkeeping types and handlers.
 	 * @type {Map<String,Array<object>}
 	 */
-	_xxx : null,
+	_trackedtypes : null,
 
 	/**
 	 * Containing window's gui.$contextid.
+	 * @TODO: Get rid of it
 	 * @type {String}
 	 */
 	_sig : null,
@@ -22,7 +23,7 @@ gui.Tracker = gui.Plugin.extend ( "gui.Tracker", {
 	 */
 	onconstruct : function () {
 		this._super.onconstruct ();
-		this._xxx = Object.create ( null );
+		this._trackedtypes = Object.create ( null );
 		if ( this.spirit ) {
 			this._sig = this.spirit.window.gui.$contextid;
 		}
@@ -34,7 +35,7 @@ gui.Tracker = gui.Plugin.extend ( "gui.Tracker", {
 	ondestruct : function () {
 		var type, list;
 		this._super.ondestruct ();
-		gui.Object.each ( this._xxx, function ( type, list ) {
+		gui.Object.each ( this._trackedtypes, function ( type, list ) {
 			list.slice ( 0 ).forEach ( function ( checks ) {
 				this._cleanup ( type, checks );
 			}, this );
@@ -58,7 +59,7 @@ gui.Tracker = gui.Plugin.extend ( "gui.Tracker", {
 	 */
 	contains : function ( arg ) {
 		return this._breakdown ( arg ).every ( function ( type ) {
-			return this._xxx [ type ];
+			return this._trackedtypes [ type ];
 		}, this );
 	},
 	
@@ -92,9 +93,9 @@ gui.Tracker = gui.Plugin.extend ( "gui.Tracker", {
 	 */
 	_addchecks : function ( type, checks ) {
 		var result = false;
-		var list = this._xxx [ type ];
+		var list = this._trackedtypes [ type ];
 		if ( !list ) {
-			list = this._xxx [ type ] = [];
+			list = this._trackedtypes [ type ] = [];
 			result = true;
 		} else {
 			result = !this._haschecks ( list, checks );
@@ -113,13 +114,13 @@ gui.Tracker = gui.Plugin.extend ( "gui.Tracker", {
 	 */
 	_removechecks : function ( type, checks ) {
 		var result = false;
-		var list = this._xxx [ type ];
+		var list = this._trackedtypes [ type ];
 		if ( list ) {
 			var index = this._checksindex ( list, checks );
 			if ( index > -1 ) {
 				result = true;
 				if ( gui.Array.remove ( list, index ) === 0 ) {
-					delete this._xxx [ type ];
+					delete this._trackedtypes [ type ];
 				}
 			}
 		}
@@ -133,7 +134,7 @@ gui.Tracker = gui.Plugin.extend ( "gui.Tracker", {
 	 */
 	_containschecks : function ( type, checks ) {
 		var result = false;
-		var list = this._xxx [ type ];
+		var list = this._trackedtypes [ type ];
 		if ( list ) {
 			result = this._haschecks ( list, checks );
 		}
@@ -164,7 +165,7 @@ gui.Tracker = gui.Plugin.extend ( "gui.Tracker", {
 	 * @returns {boolean}
 	 */
 	_hashandlers : function () {
-		return Object.keys ( this._xxx ).length > 0;
+		return Object.keys ( this._trackedtypes ).length > 0;
 	},
 
 	/**

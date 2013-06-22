@@ -131,19 +131,18 @@ gui.Spiritual.prototype = {
 	},
 
 	/**
-	 * Get spirit for argument (argument expected to be a `$instanceid` for now).
+	 * Get spirit for argument.
+	 * @TODO argument expected to be an `$instanceid` for now.
 	 * @TODO fuzzy resolver to accept elements and queryselectors
-	 * @param {object} arg
+	 * @param {String|Element} arg
 	 * @returns {gui.Spirit}
 	 */
 	get : function ( arg ) {
 		var spirit = null;
-		var inside = this._spirits.inside;
-		var outside = this._spirits.outside;
 		switch ( gui.Type.of ( arg )) {
 			case "string" :
 				if ( gui.KeyMaster.isKey ( arg )) {
-					spirit = inside [ arg ] || outside [ arg ] || null;
+					spirit = this._spirits.inside [ arg ] || null;
 				} else {
 					var element = this.document.querySelector ( arg );
 					spirit = element ? element.spirit : null;
@@ -369,8 +368,7 @@ gui.Spiritual.prototype = {
 	},
 
 	/**
-	 * Stop tracking the spirit. Called 
-	 * by the spirit when it destructs.
+	 * Stop tracking the spirit.
 	 * @param {gui.Spirit} spirit
 	 */
 	destruct : function ( spirit ) {
@@ -378,7 +376,6 @@ gui.Spiritual.prototype = {
 		var key = spirit.$instanceid;
 		delete all.inside [ key ];
 		delete all.outside [ key ];
-		//delete all.incoming [ key ];
 		this._jensen ( spirit );
 	},
 	
@@ -399,7 +396,6 @@ gui.Spiritual.prototype = {
 				delete all.outside [ key ];
 			}
 			all.inside [ key ] = spirit;
-			//all.incoming [ key ] = spirit;
 			all.incoming.push ( spirit );
 			gui.Tick.dispatch ( gui.$TICK_INSIDE, 4, this.$contextid );
 		}
@@ -417,7 +413,6 @@ gui.Spiritual.prototype = {
 		if ( !all.outside [ key ]) {
 			if ( all.inside [ key ]) {
 				delete all.inside [ key ];
-				//delete all.incoming [ key ];
 				this._jensen ( spirit );
 			}
 			all.outside [ key ] = spirit;

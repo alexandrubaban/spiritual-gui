@@ -18,6 +18,11 @@ gui.URL = function ( doc, href ) {
 		this.id = this.hash ? this.hash.substring ( 1 ) : null;
 		this.location = this.href.split ( "#" )[ 0 ];
 		this.external = this.location !== String ( doc.location ).split ( "#" )[ 0 ];
+
+		var parts = this.href.split ( "/" );
+		parts.pop();
+		parts.push("");
+		this.pathbase = parts.join ( "/" );
 	} else {
 		throw new TypeError ( "Document expected" );
 	}
@@ -29,10 +34,11 @@ gui.URL.prototype = {
 	hostname : null, // www.example.com
 	href : null, // http://www.example.com:80/search?q=devmo#test
 	pathname : null, // search
+	pathbase : null, // (experimental)
 	port : null, // 80
 	protocol : null, // http:
 	search : null, // ?q=devmo
-	id : null,	// test
+	id : null,	// test,
 	external : false, // external relative to the *document*, not the server host!!! (rename "outbound" to clear this up?)
 	toString : function () { // behave somewhat like window.location ....
 		return this.href;
@@ -44,12 +50,13 @@ gui.URL.prototype = {
 
 /**
  * Convert relative path to absolute path in context of base where base is a document or an absolute path.
- * @see  http://stackoverflow.com/questions/14780350/convert-relative-path-to-absolute-using-javascript
+ * @see http://stackoverflow.com/questions/14780350/convert-relative-path-to-absolute-using-javascript
  * @param {String|Document} base
  * @param {String} href
  * @returns {String}
  */
-gui.URL.absolute = function ( base, href ) {
+gui.URL.absolute = function ( base, href ) { // return /(^data:)|(^http[s]?:)|(^\/)/.test(inUrl);
+	href = href || "";
 	if ( base.nodeType === Node.DOCUMENT_NODE ) {
 		return new gui.URL ( base, href ).href;
 	} else if ( typeof base === "string" ) {

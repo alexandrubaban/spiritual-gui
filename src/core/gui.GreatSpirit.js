@@ -81,7 +81,9 @@ gui.GreatSpirit = {
 	},
 
 	/**
-	 * Replace al properties with an accessor to throw an exception.
+	 * Replace own properties with an accessor to throw an exception. 
+	 * In 'gui.debug' mode we replace all props, not just own props, 
+	 * so that we may fail fast on attempt to handle destructed spirit.
 	 * @TODO: keep track of non-enumerables and nuke those as well :/
 	 * @param {object} thing
 	 * @param {Window} context
@@ -89,10 +91,12 @@ gui.GreatSpirit = {
 	$nukeallofit : function ( thing, context ) {
 		var nativeprops = context.Object.prototype;
 		for ( var prop in thing ) {
-			if ( nativeprops [ prop ] === undefined ) {
-				var desc = Object.getOwnPropertyDescriptor ( thing, prop );
-				if ( !desc || desc.configurable ) {
-					Object.defineProperty ( thing, prop, this.DENIED );
+			if ( thing.hasOwnProperty ( prop ) || gui.debug ) {
+				if ( nativeprops [ prop ] === undefined ) {
+					var desc = Object.getOwnPropertyDescriptor ( thing, prop );
+					if ( !desc || desc.configurable ) {
+						Object.defineProperty ( thing, prop, this.DENIED );
+					}
 				}
 			}
 		}
