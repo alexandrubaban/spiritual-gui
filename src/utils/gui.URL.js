@@ -16,13 +16,18 @@ gui.URL = function ( doc, href ) {
 			}
 		}, this );
 		this.id = this.hash ? this.hash.substring ( 1 ) : null;
+
+		/*
+		 * @TODO: what is "location" supposed to mean?
+		 */
 		this.location = this.href.split ( "#" )[ 0 ];
 		this.external = this.location !== String ( doc.location ).split ( "#" )[ 0 ];
-
+		/*
 		var parts = this.href.split ( "/" );
 		parts.pop();
 		parts.push("");
 		this.pathbase = parts.join ( "/" );
+		*/
 	} else {
 		throw new TypeError ( "Document expected" );
 	}
@@ -34,7 +39,7 @@ gui.URL.prototype = {
 	hostname : null, // www.example.com
 	href : null, // http://www.example.com:80/search?q=devmo#test
 	pathname : null, // search
-	pathbase : null, // (experimental)
+	//pathbase : null, // (experimental)
 	port : null, // 80
 	protocol : null, // http:
 	search : null, // ?q=devmo

@@ -4,7 +4,7 @@
 gui.Object = {
 
 	/**
-	 * Convenient facade for Object.create to default all the property descriptors. 
+	 * Object.create with default property descriptors. 
 	 * @see http://wiki.ecmascript.org/doku.php?id=strawman:define_properties_operator
 	 * @param {object} proto
 	 * @param {object} props
@@ -108,7 +108,7 @@ gui.Object = {
 
 	/**
 	 * Lookup object for string of type "my.ns.Thing" in given context. 
-	 * @param {String} opath Object path eg. "my.C.ns.Thing"
+	 * @param {String} opath Object path eg. "my.ns.Thing"
 	 * @param {Window} context
 	 * @returns {object}
 	 */
@@ -188,6 +188,7 @@ gui.Object = {
 		} else {
 			try {
 				if ( gui.Type.isDefined ( object.length ) && ( "0" in Object ( object ))) {
+					// @TODO: investigate all round usefulness of [].slice.call ( object )
 					result = Array.map ( object, function ( thing ) {
 						return thing;
 					});
