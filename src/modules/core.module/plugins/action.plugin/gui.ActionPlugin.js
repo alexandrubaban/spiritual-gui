@@ -193,7 +193,7 @@ gui.ActionPlugin = ( function using ( confirmed, chained ) {
 		 * @param {gui.Action} action
 		 */
 		$onaction : function ( action ) {
-			var list = this._xxx [ action.type ];
+			var list = this._trackedtypes [ action.type ];
 			if ( list ) {
 				list.forEach ( function ( checks ) {
 					var handler = checks [ 0 ];

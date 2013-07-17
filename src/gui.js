@@ -137,6 +137,7 @@ window.gui = {
 	/**
 	 * Tick types (timed events)
 	 */
+	TICK_DOC_FIT : "gui-tick-document-fit", // @TODO: this in DocumentSpirit
 	$TICK_INSIDE : "gui-tick-spirits-inside",
 	$TICK_OUTSIDE : "gui-tick-spirits-outside",
 

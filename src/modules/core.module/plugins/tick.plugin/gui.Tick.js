@@ -81,6 +81,7 @@
 
 	/**
 	 * Schedule action for next available execution stack.
+	 * @TODO: deprecate setImmedate polyfix and kove the fix here
 	 * @param {function} action
 	 * @param @optional {object} thisp
 	 */
@@ -97,10 +98,7 @@
 	 * @returns {function}
 	 */
 	gui.Tick.remove = function ( type, handler, sig ) {
-		if ( !sig ) {
-			console.error ( "SIG REQUIRED for tick of type: " + type );
-		}
-		return this._remove ( type, handler, sig );
+		return this._remove ( type, handler,  sig || gui.$contextid );
 	};
 
 	/**
@@ -130,10 +128,7 @@
 	 * @returns {gui.Tick}
 	 */
 	gui.Tick.dispatch = function ( type, time, sig ) {
-		if ( !sig ) {
-			console.error ( "SIG REQUIRED for tick of type: " + type );
-		}
-		return this._dispatch ( type, time, sig );
+		return this._dispatch ( type, time, sig || gui.$contextid );
 	};
 
 	/**

@@ -80,7 +80,7 @@ gui.KeyPlugin = ( function using ( confirmed, chained ) {
 			var list, checks, handler, isglobal;
 			if ( b.type === gui.BROADCAST_KEYEVENT ) {
 				var down = b.data.down, type = b.data.type;
-				if (( list = ( this._xxx [ type ]))) {
+				if (( list = ( this._trackedtypes [ type ]))) {
 					list.forEach ( function ( checks ) {
 						handler = checks [ 0 ];
 						isglobal = checks [ 1 ];

@@ -19,6 +19,7 @@ gui.HTMLParser = {
 	 * @returns {HTMLDocument}
 	 */
 	parseToDocument : function ( markup ) {
+		markup = markup || "";
 		return gui.Guide.suspend ( function () {
 			var doc = document.implementation.createHTMLDocument ( "" );
 			if ( markup.toLowerCase().contains ( "<!doctype" )) {

@@ -1,8 +1,14 @@
 /**
  * Encapsulates a callback for future use. 
  * @TODO mimic DOM Futures to some degree.
+ * @param @optional {function} callback
+ * @param @optional {object} thisp
  */
-gui.Then = function Then () {};
+gui.Then = function Then ( callback, thisp ) {
+  if ( callback ) {
+    this.then ( callback, thisp );
+  }
+};
 
 gui.Then.prototype = {
 
@@ -46,13 +52,13 @@ gui.Then.prototype = {
   // Private .................................................
 
   /**
-   * Callback to execute when transition is done.
+   * Callback to execute.
    * @type {function}
    */
   _callback : null,
 
   /**
-   * Preserve integrity of "this" keyword in callback function.
+   * "this" keyword in callback.
    * @type {object}
    */
   _pointer : null,

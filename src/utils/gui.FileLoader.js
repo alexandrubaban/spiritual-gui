@@ -2,6 +2,7 @@
  * We load a text file from the server. This might be used instead 
  * of a XMLHttpRequest to cache the result and save repeated lookups.
  * @TODO custom protocol handlers to load from localstorage
+ * @TODO perhaps rename to TextLoader or something...
  */
 gui.FileLoader = gui.Class.create ( "gui.FileLoader", Object.prototype, {
 

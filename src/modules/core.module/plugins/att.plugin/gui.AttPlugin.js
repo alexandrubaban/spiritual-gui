@@ -142,7 +142,7 @@ gui.AttPlugin = ( function using ( confirmed, chained ) {
 			if ( name.startsWith ( gui.AttConfigPlugin.PREFIX )) {
 				this.spirit.attconfig.configureone ( name, value );
 			} else {
-				if (( list = this._xxx [ name ])) {
+				if (( list = this._trackedtypes [ name ])) {
 					att = new gui.Att ( name, value );
 					list.forEach ( function ( checks ) {
 						handler = checks [ 0 ];
