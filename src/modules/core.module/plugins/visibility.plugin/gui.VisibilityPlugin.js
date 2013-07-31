@@ -4,6 +4,7 @@
  * Current visibility status can be read in the {gui.LifePlugin}: `spirit.life.visible`.
  * Visibility is resolved async, so this property is `undefined` on startup. If you need 
  * to take an action that depends on visibility, just wait for `onvisible` to be invoked.
+ * @TODO: Figure out if document.elementFromPoint() could be used to detect hidden stuff.
  * @TODO: hook this up to http://www.w3.org/TR/page-visibility/
  * @TODO: Make sure that visibility is updated after `appendChild` to another position.
  * @extends {gui.Plugin}

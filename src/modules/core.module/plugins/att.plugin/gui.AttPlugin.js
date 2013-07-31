@@ -195,8 +195,25 @@ gui.AttPlugin = ( function using ( confirmed, chained ) {
 		 */
 		set : chained ( function ( elm, name, value ) {
 			var spirit = elm.spirit;
-			if ( value === null ) {
+			var change = false;
+			// checkbox or radio?
+			if ( this._ischecked ( elm, name )) {
+				change = elm.checked !== value;
+				elm.checked = String ( value ) === "false" ? false : value !== null;
+				if ( change ) {
+					spirit.att.$onatt ( name, value );
+				}
+			// input value?
+			} else if ( this._isvalue ( elm, name )) {
+				change = elm.value !== String ( value );
+				if ( change ) {
+					elm.value = String ( value );
+					spirit.att.$onatt ( name, value );
+				}
+			// deleted?
+			} else if ( value === null ) {
 				this.del ( elm, name );
+			// added or changed
 			} else {
 				value = String ( value );
 				if ( elm.getAttribute ( name ) !== value ) {
@@ -211,6 +228,14 @@ gui.AttPlugin = ( function using ( confirmed, chained ) {
 				}
 			}
 		}),
+
+		_ischecked : function ( elm, name ) {
+			return elm.type && elm.checked !== undefined && name === "checked";
+		},
+
+		_isvalue : function ( elm, name ) {
+			return elm.value !== undefined && name === "value";
+		},
 
 		/**
 		 * Element has attribute?
@@ -230,15 +255,21 @@ gui.AttPlugin = ( function using ( confirmed, chained ) {
 		 */
 		del : chained ( function ( elm, name ) {
 			var spirit = elm.spirit;
-			if ( spirit ) {
-				spirit.att.$suspend ( function () {
-					elm.removeAttribute ( name );
-				});
-				if ( !spirit.attconfig.configureone ( name, null )) {
-					spirit.att.$onatt ( name, null );
-				}
+			if ( this._ischecked ( elm, name )) {
+				elm.checked = false;
+			} else if ( this._isvalue ( elm, name )) {
+				elm.value = ""; // or what?
 			} else {
-				elm.removeAttribute ( name );
+				if ( spirit ) {
+					spirit.att.$suspend ( function () {
+						elm.removeAttribute ( name );
+					});
+					if ( !spirit.attconfig.configureone ( name, null )) {
+						spirit.att.$onatt ( name, null );
+					}
+				} else {
+					elm.removeAttribute ( name );
+				}
 			}
 		}),
 
