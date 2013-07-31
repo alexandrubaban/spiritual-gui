@@ -97,6 +97,11 @@ gui.FlexCSS.emulated =  {
 		"width" : "100%",
 		"height" : "100%"
 	},
+	/*
+	".flexcol > .flexrow" : { // hmm...
+		"height" : "100%"
+	},
+	*/
 	".flexrow" : {
 		"white-space" : "nowrap"
 	},

@@ -96,6 +96,7 @@ gui.CSSPlugin = ( function using ( chained ) {
 
 		/**
 		 * Spirit element mathes selector?
+		 * @TODO: move to gui.DOMPlugin!
 		 * @param {String} selector
 		 * @returns {boolean}
 		 */

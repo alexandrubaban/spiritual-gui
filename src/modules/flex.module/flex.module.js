@@ -28,7 +28,6 @@ gui.module ( "flex", {
 	oncontextinitialize : function ( context ) {
 		context.gui._flexmode = gui.FLEXMODE_OPTIMIZED;
 		context.Object.defineProperties ( context.gui, gui.FlexMode );
-		this._edbsetup ( context );
 	},
 
 	/**
@@ -37,6 +36,7 @@ gui.module ( "flex", {
 	 * @param {Window} context
 	 */
 	onbeforespiritualize : function ( context ) {
+		this._edbsetup ( context );
 		if ( !context.gui.flexloaded ) { // @see {gui.FlexCSS}
 			gui.FlexCSS.load ( context, context.gui.flexmode );
 		}
@@ -105,6 +105,10 @@ gui.module ( "flex", {
 			var script = context.edb.ScriptPlugin.prototype;
 			gui.Function.decorateAfter ( script, "write", function () {
 				if ( this.spirit.window.gui.flexmode === gui.FLEXMODE_EMULATED ) {
+					/* 
+					 * @TODO: We think that some kind of DOM-hookin will do this 
+					 * again after some milliseconds, it should only happen once.
+					 */
 					this.spirit.flex.reflex ();
 				}
 			});
