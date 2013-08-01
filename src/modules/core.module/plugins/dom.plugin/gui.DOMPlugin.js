@@ -737,6 +737,7 @@ gui.Object.each ({
 
 	/**
 	 * Adding methods to gui.DOMPlugin.prototype
+	 * @TODO test for undefined type (spelling mistake etc.)
 	 * @param {String} name
 	 * @param {function} method
 	 */
