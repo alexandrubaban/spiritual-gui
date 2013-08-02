@@ -2,7 +2,7 @@
  * Spirit of the key combo listener.
  * <meta content="key" value="Control s" onkey="alert(this)"/>
  */
-gui.KeySpirit = gui.Spirit.infuse ( "gui.KeySpirit", {
+gui.KeySpirit = gui.Spirit.extend ( "gui.KeySpirit", {
 
 	/**
 	 * Get ready.

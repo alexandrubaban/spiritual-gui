@@ -54,12 +54,6 @@ gui.Spiritual.prototype = {
 	mode : "optimize", // recommended setting for iOS support
 
 	/**
-	 * Development mode? Enable this to log more console messages or something.
-	 * @type {boolean}
-	 */
-	debug : false,
-
-	/**
 	 * Automatically run on DOMContentLoaded? 
 	 * If set to false, run using kickstart().
 	 * @TODO: rename this to something
@@ -103,17 +97,8 @@ gui.Spiritual.prototype = {
 	 * Called by the {gui.Guide}
 	 * @see {gui.Guide}
 	 */
-	go : function () {
+	start : function () {
 		this._gone = true;
-		if ( this.debug ) {
-			if ( this.mode === gui.MODE_JQUERY ) {
-				gui.Tick.next ( function () {  // @TODO somehow not conflict with http://stackoverflow.com/questions/11406515/domnodeinserted-behaves-weird-when-performing-dom-manipulation-on-body
-					gui.Observer.observe ( this.context ); // @idea move all of _step2 to next stack?
-				}, this );
-			} else {
-				gui.Observer.observe ( this.context );
-			}
-		}
 		switch ( this.mode ) {
 			case gui.MODE_NATIVE :
 			case gui.MODE_JQUERY :
@@ -122,11 +107,25 @@ gui.Spiritual.prototype = {
 				gui.DOMChanger.change ( this.context );
 				break;
 		}
+		this._experimental ();
 		gui.Tick.add ([ gui.$TICK_INSIDE, gui.$TICK_OUTSIDE ], this, this.$contextid );
 		if ( this._configs !== null ) {
 			this._configs.forEach ( function ( config ) {
 				this.channel ( config.select, config.klass );
 			}, this );
+		}
+	},
+
+	/**
+	 * Kickstart Spiritual manuallay. Use this if you somehow 
+	 * load Spiritual after DOMContentLoaded event has fired.
+	 */
+	kickstart : function () {
+		switch ( document.readyState ) {
+			case "interactive" :
+			case "complete" :
+				gui.Broadcast.dispatchGlobal ( null, gui.BROADCAST_KICKSTART );
+				break;
 		}
 	},
 
@@ -261,19 +260,6 @@ gui.Spiritual.prototype = {
 			}, this );
 			// Here we go
 			gui.Guide.observe ( sub );
-		}
-	},
-
-	/**
-	 * Kickstart Spiritual manuallay. Use this if you somehow 
-	 * load Spiritual after DOMContentLoaded event has fired.
-	 */
-	kickstart : function () {
-		switch ( document.readyState ) {
-			case "interactive" :
-			case "complete" :
-				gui.Broadcast.dispatchGlobal ( null, gui.BROADCAST_KICKSTART );
-				break;
 		}
 	},
 
@@ -633,7 +619,103 @@ gui.Spiritual.prototype = {
 			}
 		}
 		return indexes;
+	},
+
+
+	// Work in progress .............................................................
+
+	/**
+	 * @TODO action required. This methoud would enable the mutation 
+	 * observer. We should remove this whole thing from Spiritual core.
+	 */
+	_movethismethod : function () {
+		if ( this.mode === gui.MODE_JQUERY ) {
+			gui.Tick.next ( function () {  // @TODO somehow not conflict with http://stackoverflow.com/questions/11406515/domnodeinserted-behaves-weird-when-performing-dom-manipulation-on-body
+				gui.Observer.observe ( this.context ); // @idea move all of _step2 to next stack?
+			}, this );
+		} else {
+			gui.Observer.observe ( this.context );
+		}
+	},
+
+	/**
+	 * Experimental.
+	 */
+	_experimental : function () {
+		this._spaces.forEach ( function ( ns ) {
+			window.TEMP = [];
+			var d = Date.now ();
+			this._questionable ( gui.Object.lookup ( ns, this.window ), ns );
+			console.log ( Date.now () - d );
+			console.log ( window.TEMP.sort ().join ( "\n" ));
+		}, this );
+		/*
+		setTimeout ( function () {
+			alert ( document.documentElement.spirit );
+		}, 500 );
+		*/
+	},
+
+	/**
+	 * Questionable.
+	 */
+	_questionable : function ( home, name ) {
+		var key;
+		var val;
+		for ( key in home ) {
+			if ( !home.hasOwnProperty || home.hasOwnProperty ( key )) {
+				if ( key !== "$superclass" ) {
+					val = home [ key ];
+					switch ( gui.Type.of ( val )) {
+						case "function" :
+							if ( val.$classid ) {
+								//name = name + "." + key;
+								//
+								if ( val.$classname === gui.Class.ANONYMOUS ) {
+									//gui.Class.$nameclass ( val, name + "." + key );
+									val.$classname = name + "." + key;
+									window.TEMP.push ( name + "." + key + ": " + val.toString ());
+								}
+								this._questionable ( val, name + "." + key );
+							}
+							break;
+						case "object" :
+							//this._questionable ( val, name + "." + key );
+							break;
+					}
+				}
+			}
+		}
 	}
+
+	/**
+	 * Name constructor and instance.
+	 * @param {gui.Class} C
+	 * @param {String} name
+	 * @returns {function}
+	 *
+	_nameclass : function ( C, name ) {
+		this._namedthing ( C, "function", name );
+		this._namedthing ( C.prototype, "object", name );
+		return C;
+	},
+
+	/**
+	 * Name constructor or instance.
+	 * @param {object} what
+	 * @param {String} type
+	 * @param {String} name
+	 *
+	_namedthing : function ( what, type, name ) {
+		//this._displayname ( what, name );
+		if ( !what.hasOwnProperty ( "toString" )) {
+			what.toString = function toString () {
+				return "[" + type + " " + name + "]";
+			};
+		}
+	}
+	*/
+
 };
 
 /** 

@@ -3,7 +3,7 @@
  * @TODO use this name?
  * @extends {gui.Spirit}
  */
-gui.WindowSpirit = gui.Spirit.infuse ( "gui.WindowSpirit", {
+gui.WindowSpirit = gui.Spirit.extend ( "gui.WindowSpirit", {
 
 	/**
 	 * When to hide the loading splash cover. 

@@ -3,7 +3,7 @@
  * @extends {gui.Spirit}
  * @TODO: Mechanism to whitelist xdomain hosts (postMessages)
  */
-gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
+gui.DocumentSpirit = gui.Spirit.extend ( "gui.DocumentSpirit", {
 
 	/**
 	 * Construct.

@@ -3,7 +3,7 @@
  * @TODO: Mechanism to whitelist xdomain hosts (postMessages)
  * @extends {gui.Spirit}
  */
-gui.IframeSpirit = gui.Spirit.infuse ( "gui.IframeSpirit", {
+gui.IframeSpirit = gui.Spirit.extend ( "gui.IframeSpirit", {
 
 	/**
 	 * Flipped when the *hosted* document is loaded and spiritualized.

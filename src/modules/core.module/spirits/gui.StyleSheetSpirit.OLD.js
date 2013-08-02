@@ -2,7 +2,7 @@
  *Spirit of the stylesheet. To be refactored.
  * @extends {gui.Spirit}
  */
-gui.StyleSheetSpirit = gui.Spirit.infuse ( "gui.StyleSheetSpirit", {
+gui.StyleSheetSpirit = gui.Spirit.extend ( "gui.StyleSheetSpirit", {
 
 	/**
 	 * Strip lines starting with @ character (for now).

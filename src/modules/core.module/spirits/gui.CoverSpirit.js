@@ -3,7 +3,7 @@
  * be fitted with a background-color in CSS in order to actually cover stuff.
  * @extends {gui.Spirit}
  */
-gui.CoverSpirit = gui.Spirit.infuse ( "gui.CoverSpirit", {
+gui.CoverSpirit = gui.Spirit.extend ( "gui.CoverSpirit", {
 
 	/**
 	 * Show the cover.

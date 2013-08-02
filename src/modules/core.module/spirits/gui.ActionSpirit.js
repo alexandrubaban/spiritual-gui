@@ -5,7 +5,7 @@
  * @TODO Support ENTER for onaction.
  * @TODO move to some kind of plugin.
  */
-gui.ActionSpirit = gui.Spirit.infuse ( "gui.ActionSpirit", {
+gui.ActionSpirit = gui.Spirit.extend ( "gui.ActionSpirit", {
 
 	/**
 	 * Enter.
