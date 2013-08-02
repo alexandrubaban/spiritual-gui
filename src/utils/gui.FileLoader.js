@@ -65,7 +65,7 @@ gui.FileLoader = gui.Class.create ( "gui.FileLoader", Object.prototype, {
 	 */
 	_request : function ( url, callback, thisp ) {
 		this._cache.set ( url.location, null );
-		new gui.Request ( url.href ).get ( function ( status, text ) {
+		new gui.Request ( url.href ).acceptText ().get ().then ( function ( status, text ) {
 			this.onload ( text, url, callback, thisp );
 			this._cache.set ( url.location, text );
 			gui.FileLoader.unqueue ( url.location );

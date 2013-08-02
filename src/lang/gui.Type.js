@@ -87,7 +87,7 @@ gui.Type = {
 	 * @returns {boolean}
 	 */
 	isConstructor : function ( what ) {
-		return this.isFunction ( what ) && Object.keys ( what.prototype ).length > 0;
+		return this.isFunction ( what ) && Object.keys ( what.prototype ).length;
 	},
 
 	/**
@@ -141,6 +141,7 @@ gui.Type = {
 
 /**
  * Generate methods for isArray, isFunction, isBoolean etc.
+ * @TODO can we do a "isError" here?
  */
 ( function generatecode () {
 	[	"array", 
