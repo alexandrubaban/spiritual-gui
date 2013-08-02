@@ -357,7 +357,7 @@ gui.DOMPlugin = ( function using ( chained ) {
 		qall : function ( node, selector, type ) {
 			var result = [];
 			return this._qualify ( node, selector )( function ( node, selector ) {
-				result = gui.Array.toArray ( node.querySelectorAll ( selector ));
+				result = gui.Object.toArray ( node.querySelectorAll ( selector ));
 				if ( type ) {
 					result = result.filter ( function ( el )  {
 						return el.spirit && el.spirit instanceof type;
