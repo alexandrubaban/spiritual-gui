@@ -643,17 +643,8 @@ gui.Spiritual.prototype = {
 	 */
 	_experimental : function () {
 		this._spaces.forEach ( function ( ns ) {
-			window.TEMP = [];
-			var d = Date.now ();
 			this._questionable ( gui.Object.lookup ( ns, this.window ), ns );
-			console.log ( Date.now () - d );
-			console.log ( window.TEMP.sort ().join ( "\n" ));
 		}, this );
-		/*
-		setTimeout ( function () {
-			alert ( document.documentElement.spirit );
-		}, 500 );
-		*/
 	},
 
 	/**
@@ -669,52 +660,20 @@ gui.Spiritual.prototype = {
 					switch ( gui.Type.of ( val )) {
 						case "function" :
 							if ( val.$classid ) {
-								//name = name + "." + key;
-								//
 								if ( val.$classname === gui.Class.ANONYMOUS ) {
-									//gui.Class.$nameclass ( val, name + "." + key );
 									val.$classname = name + "." + key;
-									window.TEMP.push ( name + "." + key + ": " + val.toString ());
 								}
 								this._questionable ( val, name + "." + key );
 							}
 							break;
 						case "object" :
-							//this._questionable ( val, name + "." + key );
+							// questionable?
 							break;
 					}
 				}
 			}
 		}
 	}
-
-	/**
-	 * Name constructor and instance.
-	 * @param {gui.Class} C
-	 * @param {String} name
-	 * @returns {function}
-	 *
-	_nameclass : function ( C, name ) {
-		this._namedthing ( C, "function", name );
-		this._namedthing ( C.prototype, "object", name );
-		return C;
-	},
-
-	/**
-	 * Name constructor or instance.
-	 * @param {object} what
-	 * @param {String} type
-	 * @param {String} name
-	 *
-	_namedthing : function ( what, type, name ) {
-		//this._displayname ( what, name );
-		if ( !what.hasOwnProperty ( "toString" )) {
-			what.toString = function toString () {
-				return "[" + type + " " + name + "]";
-			};
-		}
-	}
-	*/
 
 };
 

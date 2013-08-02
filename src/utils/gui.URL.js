@@ -196,6 +196,8 @@ gui.URL._createLink = function ( doc, href ) {
 /**
  * Temp IE hotfix...
  * @see http://blog.stevenlevithan.com/archives/parseuri
+ * @TODO https://github.com/websanova/js-url
+ * @TODO https://github.com/allmarkedup/purl
  */
 gui.URL.parseUri = function ( str ) {
 	var	o = gui.URL.parseOptions,

@@ -169,10 +169,13 @@ gui.DocumentSpirit = gui.Spirit.extend ( "gui.DocumentSpirit", {
 
 	/**
 	 * Invoked at window.onunload by the {gui.Guide}.
-	 * Intercepted by the hosting {gui.IframeSpirit}.
+	 * Action intercepted by the hosting {gui.IframeSpirit}.
+	 * Broadcast intercepted by whoever might need to know. 
+	 * @TODO broadcast into global space?
 	 */
 	onunload : function () {
 		this.action.dispatchGlobal ( gui.ACTION_DOC_UNLOAD );
+		this.broadcast.dispatchGlobal ( gui.BROADCAST_UNLOAD, this.window.gui.$contextid );
 	},
 
 	/**

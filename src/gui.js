@@ -50,9 +50,6 @@ window.gui = {
 	 * @TODO harmonize some naming with action types
 	 */
 	BROADCAST_KICKSTART : "gui-broadcast-kickstart",
-	//BROADCAST_DOMCONTENT : "gui-broadcast-document-domcontentloaded",
-	//BROADCAST_ONLOAD : "gui-broadcast-window-onload",
-	//BROADCAST_UNLOAD : "gui-broadcast-window-unload",
 	BROADCAST_WILL_SPIRITUALIZE : "gui-broadcast-will-spiritualize",
 	BROADCAST_DID_SPIRITUALIZE : "gui-broadcast-did-spiritualize",
 	BROADCAST_MOUSECLICK  : "gui-broadcast-mouseevent-click",
@@ -68,6 +65,7 @@ window.gui = {
 	BROADCAST_LOADING_CHANNELS : "gui-broadcast-loading-channels",
 	BROADCAST_CHANNELS_LOADED : "gui-broadcast-channels-loaded",
 	BROADCAST_TWEEN : "gui-broadcast-tween",
+	BROADCAST_UNLOAD : "gui-broadcast-unload",
 
 	/** 
 	 * Plugin broadcast types that should leave core.
