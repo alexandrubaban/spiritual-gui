@@ -5,7 +5,7 @@
  */
 gui.CSSPlugin = ( function using ( chained ) {
 
-	return gui.Plugin.extend ( "gui.CSSPlugin", {
+	return gui.Plugin.extend ({
 
 		/**
 		 * Add classname.

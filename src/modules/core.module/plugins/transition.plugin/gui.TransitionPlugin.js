@@ -3,7 +3,7 @@
  * @extends {gui.Plugin}
  * @TODO Just add the transitonend listener on construct?
  */
-gui.TransitionPlugin = gui.Plugin.extend ( "gui.TransitionPlugin", {
+gui.TransitionPlugin = gui.Plugin.extend ({
 
 	/**
 	 * Handle event.

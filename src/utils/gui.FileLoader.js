@@ -4,7 +4,7 @@
  * @TODO custom protocol handlers to load from localstorage
  * @TODO perhaps rename to TextLoader or something...
  */
-gui.FileLoader = gui.Class.create ( "gui.FileLoader", Object.prototype, {
+gui.FileLoader = gui.Class.create ( Object.prototype, {
 
 	/**
 	 * Construction time again.

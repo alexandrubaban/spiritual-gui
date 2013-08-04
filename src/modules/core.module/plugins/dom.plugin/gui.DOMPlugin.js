@@ -6,7 +6,7 @@
  */
 gui.DOMPlugin = ( function using ( chained ) {
 
-	return gui.Plugin.extend ( "gui.DOMPlugin", {
+	return gui.Plugin.extend ({
 
 		/**
 		 * Set or get element id.

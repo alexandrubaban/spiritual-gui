@@ -5,7 +5,7 @@
  */
 gui.BroadcastPlugin = ( function using ( chained ) {
 
-	return gui.Tracker.extend ( "gui.BroadcastPlugin", {
+	return gui.Tracker.extend ({
 
 		/**
 		 * Add one or more broadcast handlers.

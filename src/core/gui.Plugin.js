@@ -4,7 +4,7 @@
  * @TODO Rename "gui.Plugin"
  * @TODO Rename *all* plugins to gui.SomethingPlugin :)
  */
-gui.Plugin = gui.Class.create ( "gui.Plugin", Object.prototype, {
+gui.Plugin = gui.Class.create ( Object.prototype, {
 
 	/**
 	 * Associated spirit.

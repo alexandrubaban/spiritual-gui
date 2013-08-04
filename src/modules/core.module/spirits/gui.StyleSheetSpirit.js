@@ -3,7 +3,7 @@
  * @see http://www.quirksmode.org/dom/w3c_css.html
  * @extends {gui.Spirit}
  */
-gui.StyleSheetSpirit = gui.Spirit.extend ( "gui.StyleSheetSpirit", {
+gui.StyleSheetSpirit = gui.Spirit.extend ({
 
 	/**
 	 * Sheet not accessible before we hit the document.

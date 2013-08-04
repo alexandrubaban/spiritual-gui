@@ -5,6 +5,12 @@
 window.gui = {
 
 	/**
+	 * @TODO comment on 'gui.Namespace' goes here.
+	 * @type {boolean}
+	 */
+	portals : true,
+
+	/**
 	 * Spiritual version. Hardcoded for now.
 	 * @TODO Deprecate or generate buildtime.
 	 * @type {String}
@@ -73,19 +79,7 @@ window.gui = {
 	BROADCAST_ATTENTION_ENTER : "gui-broadcast-attention-enter",
 	BROADCAST_ATTENTION_EXIT : "gui-broadcast-attention-exit",
 	BROADCAST_ATTENTION_MOVE : "gui-broadcast-attention-move",
-
-	/*
-	 * @TODO: offload to modules
-	 */
-	// BROADCAST_TOUCHSTART : "gui-broadcast-touchstart",
-	// BROADCAST_TOUCHEND : "gui-broadcast-touchend",
-	// BROADCAST_TOUCHCANCEL : "gui-broadcast-touchcancel",
-	// BROADCAST_TOUCHLEAVE : "gui-broadcast-touchleave",
-	// BROADCAST_TOUCHMOVE : "gui-broadcast-touchmove",
-	// BROADCAST_DRAG_START : "gui-broadcast-drag-start",
-	// BROADCAST_DRAG_END : "gui-broadcast-drag-end",
-	// BROADCAST_DRAG_DROP : "gui-broadcast-drag-drop",
-
+	
 	/** 
 	 * Global actions
 	 */

@@ -8,7 +8,7 @@
  */
 gui.EventPlugin = ( function using ( chained ) {
 
-	return gui.Tracker.extend ( "gui.EventPlugin", {
+	return gui.Tracker.extend ({
 
 		/**
 		 * Add one or more DOM event handlers.

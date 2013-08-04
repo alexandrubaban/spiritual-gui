@@ -12,7 +12,7 @@
  */
 gui.VisibilityPlugin = ( function using ( chained ) {
 
-	return gui.Plugin.extend ( "gui.VisibilityPlugin", {
+	return gui.Plugin.extend ({
 
 		/**
 		 * Mark spirit visible.

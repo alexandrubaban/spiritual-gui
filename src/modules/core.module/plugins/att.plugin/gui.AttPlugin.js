@@ -6,7 +6,7 @@
  */
 gui.AttPlugin = ( function using ( confirmed, chained ) {
 
-	return gui.Tracker.extend ( "gui.AttPlugin", {
+	return gui.Tracker.extend ({
 
 		/**
 		 * Get single element attribute cast to an inferred type.

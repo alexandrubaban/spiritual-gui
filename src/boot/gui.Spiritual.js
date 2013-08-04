@@ -225,26 +225,32 @@ gui.Spiritual.prototype = {
 			var indexes = [];
 			// mark as portalled
 			subgui.portalled = true;
-			// portal custom namespaces and members.
-			subgui._spaces = this._spaces.slice ();
+			// portal gui members + custom namespaces and members.
+			subgui._spaces = this._spaces.filter ( function ( ns ) {
+				var nso = gui.Object.lookup ( ns, this.context );
+				return nso.portals;
+			}, this );
+			// create object structures in remote context
 			this._spaces.forEach ( function ( ns ) {
-				 // declare (nested) namespace in external context @TODO use gui.Object.assert
-				var external = sub, internal = this.context;
-				ns.split ( "." ).forEach ( function ( part ) {
-				  if ( !gui.Type.isDefined ( external [ part ])) {
-					 external [ part ] = internal [ part ];
-				  }
-				  external = external [ part ];
-				  internal = internal [ part ];
-			  });
-			  // channel spirits from this namespace preserving local channeling order
-				this._index ( 
-					internal, 
-					external, 
-					this._channels 
-				).forEach ( function ( i ){
-					indexes.push ( i );	
-				});
+				var namespace = this.window [ ns ]; // @TODO: formalize something...
+				if ( namespace.portals ) {
+					var external = sub, internal = this.context;
+					ns.split ( "." ).forEach ( function ( part ) {
+					  if ( !gui.Type.isDefined ( external [ part ])) {
+						 external [ part ] = internal [ part ];
+					  }
+					  external = external [ part ];
+					  internal = internal [ part ];
+				  });
+				  // channel spirits from this namespace preserving local channeling order
+					this._index ( 
+						internal, 
+						external, 
+						this._channels 
+					).forEach ( function ( i ){
+						indexes.push ( i );	
+					});
+				}
 			}, this );
 			// Portal modules to initialize the sub context
 			// @TODO portal only the relevant init method?
@@ -264,20 +270,24 @@ gui.Spiritual.prototype = {
 	},
 
 	/**
-	 * @TODO: Require "portals" as a nsobject prop!!!!!
-	 * Members of given namespace will be migrated 
-	 * to descendant iframes via the portal method.
+	 * Declare something as a namespace.
 	 * @param {String} ns
-	 * @param {object} nsobject
+	 * @param {object} defs
 	 * @returns {object}
 	 */
-	namespace : function ( ns, nsobject ) {	
-		if ( gui.Type.isString ( ns )) { // @TODO must it be a string?
-			this._spaces.push ( ns );
+	namespace : function ( ns, defs ) {
+		defs = defs || {};
+		if ( gui.Type.isString ( ns )) {
+			if ( this._spaces.indexOf ( ns ) >-1 ) {
+				return gui.Object.lookup ( ns, this.context );
+			} else {
+				this._spaces.push ( ns );
+				defs = new gui.Namespace ( this.context, ns, defs );
+			}
 		} else {
-			throw new TypeError ( "Expected a string: gui.namespace" );
+			throw new TypeError ( "Expected a namespace string" );
 		}
-		return nsobject;
+		return defs;
 	},
 
 	/**
@@ -662,8 +672,8 @@ gui.Spiritual.prototype = {
 							if ( val.$classid ) {
 								if ( val.$classname === gui.Class.ANONYMOUS ) {
 									val.$classname = name + "." + key;
+									this._questionable ( val, name + "." + key );
 								}
-								this._questionable ( val, name + "." + key );
 							}
 							break;
 						case "object" :

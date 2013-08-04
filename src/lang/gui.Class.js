@@ -132,6 +132,7 @@ gui.Class = {
 	 * @returns {function}
 	 */
 	_createclass : function ( SuperC, proto, name ) {
+		// if ( name ) { console.debug ( name );} ... intend to deprecate ...
 		name = name || gui.Class.ANONYMOUS;
 		var C = gui.Function.create ( name, null, this._namedbody ( name ));
 		C.$classid = gui.KeyMaster.generateKey ( "class" );

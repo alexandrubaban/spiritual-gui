@@ -1,7 +1,7 @@
 /**
  * Module base.
  */
-gui.Module = gui.Class.create ( "gui.Module", Object.prototype, {
+gui.Module = gui.Class.create ( Object.prototype, {
 
 	/**
 	 * Plugins for all spirits.

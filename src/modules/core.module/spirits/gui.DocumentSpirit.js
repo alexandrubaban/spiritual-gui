@@ -1,9 +1,8 @@
 /**
  * Spirit of the root HTML element.
  * @extends {gui.Spirit}
- * @TODO: Mechanism to whitelist xdomain hosts (postMessages)
  */
-gui.DocumentSpirit = gui.Spirit.extend ( "gui.DocumentSpirit", {
+gui.DocumentSpirit = gui.Spirit.extend ({
 
 	/**
 	 * Construct.

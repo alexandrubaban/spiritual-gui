@@ -1,7 +1,7 @@
 /**
  * Base constructor for all spirits
  */
-gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
+gui.Spirit = gui.Class.create ( Object.prototype, {
 
 	/**
 	 * Unique key for this spirit instance.
@@ -183,7 +183,7 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 		var val, elm = this.element;
 		if ( constructing ) {
 			if ( !elm.hasAttribute ( "gui" )) {
-				val = "[" + this.displayName + "]";
+				val = "[" + this.constructor.$classname + "]";
 				elm.setAttribute ( "gui", val );
 			}
 		} else {

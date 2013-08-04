@@ -6,7 +6,7 @@
  */
 gui.TickPlugin = ( function using ( chained ) {
 
-	return gui.Tracker.extend ( "gui.TickPlugin", {
+	return gui.Tracker.extend ({
 
 		/**
 		 * Add one or more tick handlers.

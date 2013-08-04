@@ -3,7 +3,7 @@
  * @TODO Support optional data argument
  * @extends {gui.Tracker}
  */
-gui.LifePlugin = gui.Tracker.extend ( "gui.LifePlugin", {
+gui.LifePlugin = gui.Tracker.extend ({
 
 	/**
 	 * Spirit is constructed? This is almost certainly true by 

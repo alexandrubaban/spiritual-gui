@@ -9,7 +9,7 @@
  */
 gui.AttentionPlugin = ( function using ( chained ) {
 
-	return gui.Plugin.extend ( "gui.AttentionPlugin", {
+	return gui.Plugin.extend ({
 
 		/**
 		 * Trapping TAB navigation inside the spirit subtree.
