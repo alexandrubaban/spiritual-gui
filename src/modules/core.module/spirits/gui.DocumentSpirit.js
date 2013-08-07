@@ -174,6 +174,7 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 	 */
 	onunload : function () {
 		this.action.dispatchGlobal ( gui.ACTION_DOC_UNLOAD );
+		this.broadcast.dispatchGlobal ( gui.BROADCAST_WILL_UNLOAD, this.window.gui.$contextid );
 		this.broadcast.dispatchGlobal ( gui.BROADCAST_UNLOAD, this.window.gui.$contextid );
 	},
 

@@ -71,6 +71,7 @@ window.gui = {
 	BROADCAST_LOADING_CHANNELS : "gui-broadcast-loading-channels",
 	BROADCAST_CHANNELS_LOADED : "gui-broadcast-channels-loaded",
 	BROADCAST_TWEEN : "gui-broadcast-tween",
+	BROADCAST_WILL_UNLOAD : "gui-broadcast-will-unload",
 	BROADCAST_UNLOAD : "gui-broadcast-unload",
 
 	/** 

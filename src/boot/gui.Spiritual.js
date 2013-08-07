@@ -85,6 +85,12 @@ gui.Spiritual.prototype = {
 	xhost : null,
 
 	/**
+	 * Magic attributes to trigger spirit association and configuration. 
+	 * By default we support "gui" but you may prefer to use "data-gui".
+	 */
+	attributes : [ "gui" ],
+
+	/**
 	 * Identification.
 	 * @returns {String}
 	 */
@@ -306,30 +312,19 @@ gui.Spiritual.prototype = {
 	 * @param {Element} element
 	 * @returns {function} Spirit constructor
 	 */
-	evaluate : function ( element ) {
+	evaluate : function ( elm ) {
 		var res = null;
-		if ( element.nodeType === Node.ELEMENT_NODE ) {
-			var doc = element.ownerDocument;
+		if ( elm.nodeType === Node.ELEMENT_NODE ) {
+			var doc = elm.ownerDocument;
 			var win = doc.defaultView;
-			var att = element.getAttribute ( "gui" ); // @TODO "data-gui"
-			// test for "gui" attribute in markup. "[" accounts for {gui.Spirit#$debug}
-			if ( gui.Type.isString ( att ) && !att.startsWith ( "[" )) {
-				if ( att !== "" ) { // no spirit for empty string
-					res = win.gui._inlines [ att ];
-					if ( !gui.Type.isDefined ( res )) {
-						res = gui.Object.lookup ( att, win );
-					}
-					if ( res ) {
-						win.gui._inlines [ att ] = res;
-					} else {
-						console.error ( att + " is not defined." );
-					}
-				}
-			} else { // channel spirit via CSS selectors
+			if ( win.gui.attributes.every ( function ( fix ) {
+				res = this._evaluateinline ( elm, win, fix );
+				return res === null;
+			}, this )) {
 				win.gui._channels.every ( function ( def ) {
 					var select = def [ 0 ];
 					var spirit = def [ 1 ];
-					if ( gui.CSSPlugin.matches ( element, select )) {
+					if ( gui.CSSPlugin.matches ( elm, select )) {
 						res = spirit;
 					}
 					return res === null;
@@ -570,6 +565,35 @@ gui.Spiritual.prototype = {
 		// magic properties may be found in querystring parameters
 		// @tODO not in sandbox!
 		this._params ( this.document.location.href );
+	},
+
+	/**
+	 * Test for spirit assigned using HTML inline attribute.
+	 * Special test for "[" accounts for {gui.Spirit#$debug}
+	 * @param {Element} elm
+	 * @param {Window} win
+	 * @param {String} fix
+	 * @returns {function} Spirit constructor
+	 */
+	_evaluateinline : function ( elm, win, fix ) {
+		var res = null;
+		var att = elm.getAttribute ( fix );
+		if ( gui.Type.isString ( att ) && !att.startsWith ( "[" )) {
+			if ( att !== "" ) {
+				res = win.gui._inlines [ att ];
+				if ( !gui.Type.isDefined ( res )) {
+					res = gui.Object.lookup ( att, win );
+				}
+				if ( res ) {
+					win.gui._inlines [ att ] = res;
+				} else {
+					console.error ( att + " is not defined." );
+				}
+			} else {
+				res = false; // strange return value implies no spirit for empty string
+			}
+		}
+		return res;
 	},
 
 	/**
