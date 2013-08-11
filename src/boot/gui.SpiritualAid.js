@@ -80,7 +80,7 @@ gui.SpiritualAid = {
 	_arrays : function ( win ) {
 		this._extend ( win.Array.prototype, {
 			remove : function remove ( from, to ) { 
-				console.warn ( "Array.prototype.remove is deprecated. Use gui.Array.remove(array,from,to);" );
+				console.error ( "Array.prototype.remove is deprecated. Use gui.Array.remove(array,from,to);" );
 				return gui.Array.remove ( this, from, to ); // (gui.Array not parsed yet) 
 			}
 		});

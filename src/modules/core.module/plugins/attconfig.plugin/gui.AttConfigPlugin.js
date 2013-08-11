@@ -46,7 +46,8 @@ gui.AttConfigPlugin = gui.Plugin.extend ({
 		if ( todo && value.startsWith ( "edb.get" )) {
 			var key = gui.KeyMaster.extractKey ( value )[ 0 ];
 			if ( key ) {
-				alert ( this.spirit.window.edb.get ( key ));
+				console.error ( "TODO" );
+				//alert ( this.spirit.window.edb.get ( key ));
 				//value = this.spirit.window.edb.get ( key );
 				//alert ( value );
 			}

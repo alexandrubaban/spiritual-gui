@@ -113,7 +113,7 @@ gui.LifePlugin = gui.Tracker.extend ({
 		this._breakdown ( arg ).forEach ( function ( type ) {
 			if ( this._removechecks ( type, [ handler ])) {
 				var index = this._handlers [ type ].indexOf ( type );
-				this._handlers [ type ].remove ( index );
+				gui.Array.remove ( this._handlers [ type ], index );
 				if ( this._handlers [ type ].length === 0 ) {
 					delete this._handlers [ type ];
 				}
