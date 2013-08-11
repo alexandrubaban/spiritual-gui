@@ -42,41 +42,51 @@ gui.AttConfigPlugin = gui.Plugin.extend ({
 	 * @param {String} value
 	 */
 	_evaluate : function ( name, value, fix ) {
-		var didconfigure = false,
-			struct = this.spirit,
-			success = true,
-			prop = null,
-			cuts = null;
-		name = prop = name.split ( fix + "." )[ 1 ];
-		if ( name.indexOf ( "." ) >-1 ) {
-			cuts = name.split ( "." );
-			cuts.forEach ( function ( cut, i ) {
-				if ( gui.Type.isDefined ( struct )) {
-					if ( i < cuts.length - 1 ) {
-						struct = struct [ cut ];
-					} else {
-						prop = cut;
-					}
-				} else {
-					success = false;
-				}
-			});
-		}
-		if ( success && gui.Type.isDefined ( struct [ prop ])) {
-			// Autocast (string) value to an inferred type.
-			// "false" becomes boolean, "23" becomes number.
-			value = gui.Type.cast ( value );
-			if ( gui.Type.isFunction ( struct [ prop ])) {
-				struct [ prop ] ( value );
-			} else {
-				struct [ prop ] = value;
+		var todo = this.spirit.window.gui.hasModule ( "edb" );
+		if ( todo && value.startsWith ( "edb.get" )) {
+			var key = gui.KeyMaster.extractKey ( value )[ 0 ];
+			if ( key ) {
+				alert ( this.spirit.window.edb.get ( key ));
+				//value = this.spirit.window.edb.get ( key );
+				//alert ( value );
 			}
-			didconfigure = true;
 		} else {
-			console.error ( "No definition for \"" + name + "\": " + this.spirit.toString ());
+			var didconfigure = false,
+				struct = this.spirit,
+				success = true,
+				prop = null,
+				cuts = null;
+			name = prop = name.split ( fix + "." )[ 1 ];
+			if ( name.indexOf ( "." ) >-1 ) {
+				cuts = name.split ( "." );
+				cuts.forEach ( function ( cut, i ) {
+					if ( gui.Type.isDefined ( struct )) {
+						if ( i < cuts.length - 1 ) {
+							struct = struct [ cut ];
+						} else {
+							prop = cut;
+						}
+					} else {
+						success = false;
+					}
+				});
+			}
+			if ( success && gui.Type.isDefined ( struct [ prop ])) {
+				// Autocast (string) value to an inferred type.
+				// "false" becomes boolean, "23" becomes number.
+				value = gui.Type.cast ( value );
+				if ( gui.Type.isFunction ( struct [ prop ])) {
+					struct [ prop ] ( value );
+				} else {
+					struct [ prop ] = value;
+				}
+				didconfigure = true;
+			} else {
+				console.error ( "No definition for \"" + name + "\": " + this.spirit.toString ());
+			}
+
 		}
 	}
-
 
 }, { // Static ...............................................................
 	
