@@ -237,14 +237,17 @@ gui.DOMPlugin = ( function using ( chained ) {
 		 * @returns {number}
 		 */
 		ordinal : function ( element ) {
-			var result = 0; 
-			var node = element.parentNode.firstElementChild;
-			while ( node !== null ) {
-				if ( node === element ) {
-					break;
-				} else {
-					node = node.nextElementSibling;
-					result ++;
+			var result = 0;
+			var parent = element.parentNode;
+			if ( parent ) {
+				var node = parent.firstElementChild;
+				while ( node !== null ) {
+					if ( node === element ) {
+						break;
+					} else {
+						node = node.nextElementSibling;
+						result ++;
+					}
 				}
 			}
 			return result;
@@ -339,7 +342,12 @@ gui.DOMPlugin = ( function using ( chained ) {
 				if ( type ) {
 					result = this.qall ( node, selector, type )[ 0 ] || null;
 				} else {
-					result = node.querySelector ( selector );
+					try {
+						result = node.querySelector ( selector );
+					} catch ( exception ) {
+						console.error ( "Dysfunctional selector: " + selector );
+						throw exception;
+					}
 				}
 				return result;
 			});
