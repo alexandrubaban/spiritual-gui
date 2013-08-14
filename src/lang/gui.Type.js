@@ -159,3 +159,8 @@ gui.Type = {
 		};
 	}, this );
 }).call ( gui.Type );
+
+/**
+ * Bind the "this" keyword for all methods. 
+ */
+gui.Object.bindall ( gui.Type );

@@ -163,3 +163,8 @@ gui.Property = {
 		throw new Error ( "Setting a property that has only a getter" );
 	}
 };
+
+/**
+ * Bind the "this" keyword for all public methods. 
+ */
+gui.Object.bindall ( gui.Property );

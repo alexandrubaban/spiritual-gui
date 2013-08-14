@@ -152,8 +152,11 @@
 	 * @param {object} data
 	 * @returns {gui.Broadcast}
 	 */
-	gui.Broadcast.dispatchGlobal = function ( target, type, data ) {
-		return this._dispatch ( target, type, data );
+	gui.Broadcast.dispatchGlobal = function ( target, type, data, $contextids ) {
+		this.$contextids = $contextids; // fasthack!
+		var res = this._dispatch ( target, type, data );
+		this.$contextids = null;
+		return res;
 	};
 
 	/**
@@ -288,6 +291,7 @@
 		if ( global ) {
 			var root = document.documentElement.spirit;
 			if ( root ) { // no spirit before DOMContentLoaded
+				b.$contextids = this.$contextids || [];
 				root.propagateBroadcast ( b );
 			}
 		}

@@ -204,17 +204,11 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 	propagateBroadcast : function ( b ) {
 		b.$contextids.push ( this.$contextid );
 		var msg = gui.Broadcast.stringify ( b );
-		var win = this.window;
-		var sup = win.parent;
-		if ( win !== sup ) {
-			this.dom.qall ( "iframe", gui.IframeSpirit ).forEach ( function ( iframe ) {
-				if ( iframe.xhost ) {
-					iframe.contentWindow.postMessage ( msg, "*" );
-				}
-			});
-			if ( sup !== win ) {
-				sup.postMessage ( msg, "*" );
-			}
+		this.dom.qall ( "iframe", gui.IframeSpirit ).forEach ( function ( iframe ) {
+			iframe.contentWindow.postMessage ( msg, "*" );
+		});
+		if ( this.window !== this.window.parent ) {
+			this.window.parent.postMessage ( msg, "*" );
 		}
 	},
 	
@@ -306,7 +300,8 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 				gui.Broadcast.dispatchGlobal ( 
 					b.target, 
 					b.type, 
-					b.data 
+					b.data,
+					b.$contextids
 				);
 			}
 		} else {
