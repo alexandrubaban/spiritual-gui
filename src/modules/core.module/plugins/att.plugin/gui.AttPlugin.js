@@ -133,22 +133,24 @@ gui.AttPlugin = ( function using ( confirmed, chained ) {
 		},
 
 		/**
-		 * Lookup handler for attribute update.
+		 * Trigger potential handlers for attribute update.
 		 * @param {String} name
 		 * @param {String} value
 		 */
 		$onatt : function ( name, value ) {
-			var list, att, handler;
-			if ( name.startsWith ( gui.AttConfigPlugin.PREFIX )) {
-				this.spirit.attconfig.configureone ( name, value );
-			} else {
-				if (( list = this._trackedtypes [ name ])) {
-					att = new gui.Att ( name, value );
-					list.forEach ( function ( checks ) {
-						handler = checks [ 0 ];
-						handler.onatt ( att );
-					}, this );
+			var list, att, handler, trigger;
+			var triggers = !gui.attributes.every ( function ( prefix ) {
+				if (( trigger = name.startsWith ( prefix ))) {
+					this.spirit.attconfig.configureone ( name, value );	
 				}
+				return !trigger;
+			}, this );
+			if ( !trigger && ( list = this._trackedtypes [ name ])) {
+				att = new gui.Att ( name, value );
+				list.forEach ( function ( checks ) {
+					handler = checks [ 0 ];
+					handler.onatt ( att );
+				}, this );
 			}
 		},
 
