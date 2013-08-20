@@ -54,6 +54,7 @@ gui.Object = {
 
   /**
    * Mixin something with collision detection.
+   * @TODO There's an 'Object.mixin' thing now...
    * @TODO bypass extend?
    * @param {object]} target
    * @param {String} key
@@ -220,6 +221,7 @@ gui.Object = {
 					result = Array.map ( object, function ( thing ) {
 						return thing;
 					});
+					
 				}
 			} catch ( exception ) {}
 	  }

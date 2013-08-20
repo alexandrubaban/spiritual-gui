@@ -173,9 +173,10 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 	 * @TODO broadcast into global space?
 	 */
 	onunload : function () {
+		var id = this.window.gui.$contextid;
 		this.action.dispatchGlobal ( gui.ACTION_DOC_UNLOAD );
-		this.broadcast.dispatchGlobal ( gui.BROADCAST_WILL_UNLOAD, this.window.gui.$contextid );
-		this.broadcast.dispatchGlobal ( gui.BROADCAST_UNLOAD, this.window.gui.$contextid );
+		this.broadcast.dispatchGlobal ( gui.BROADCAST_WILL_UNLOAD, id );
+		this.broadcast.dispatchGlobal ( gui.BROADCAST_UNLOAD, id );
 	},
 
 	/**
@@ -202,7 +203,6 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 	 * @param {gui.Broadcast} b
 	 */
 	propagateBroadcast : function ( b ) {
-		b.$contextids.push ( this.$contextid );
 		var msg = gui.Broadcast.stringify ( b );
 		this.dom.qall ( "iframe", gui.IframeSpirit ).forEach ( function ( iframe ) {
 			iframe.contentWindow.postMessage ( msg, "*" );
@@ -296,14 +296,12 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 		var pattern = "spiritual-broadcast";
 		if ( msg.startsWith ( pattern )) {
 			var b = gui.Broadcast.parse ( msg );
-			if ( b.$contextids.indexOf ( this.$contextid ) < 0 ) {
-				gui.Broadcast.dispatchGlobal ( 
-					b.target, 
-					b.type, 
-					b.data,
-					b.$contextids
-				);
-			}
+			gui.Broadcast.dispatchGlobal ( 
+				b.target, 
+				b.type, 
+				b.data,
+				b.$instanceid
+			);
 		} else {
 			pattern = "spiritual-action";
 			if ( msg.startsWith ( pattern )) {
