@@ -272,6 +272,7 @@ gui.Guide = {
 			gui.broadcastGlobal ( gui.BROADCAST_WILL_SPIRITUALIZE, sig );
 			this.spiritualizeSub ( doc.documentElement );
 			gui.broadcastGlobal ( gui.BROADCAST_DID_SPIRITUALIZE, sig );
+			win.gui.spiritualized = true;
 		}
 	},
 
