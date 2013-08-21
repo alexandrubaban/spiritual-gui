@@ -79,6 +79,7 @@ window.gui = {
 	BROADCAST_LOADING_CHANNELS : "gui-broadcast-loading-channels",
 	BROADCAST_CHANNELS_LOADED : "gui-broadcast-channels-loaded",
 	BROADCAST_TWEEN : "gui-broadcast-tween",
+	BROADCAST_WILL_UNLOAD : "gui-broadcast-will-unload",
 	BROADCAST_UNLOAD : "gui-broadcast-unload",
 
 	/** 
@@ -563,12 +564,14 @@ gui.SpiritualAid = {
 	 * @param {Window} win
 	 */
 	_arrays : function ( win ) {
+		/*
 		this._extend ( win.Array.prototype, {
 			remove : function remove ( from, to ) { 
-				console.warn ( "Array.prototype.remove is deprecated. Use gui.Array.remove(array,from,to);" );
+				console.error ( "Array.prototype.remove is deprecated. Use gui.Array.remove(array,from,to);" );
 				return gui.Array.remove ( this, from, to ); // (gui.Array not parsed yet) 
 			}
 		});
+		*/
 		this._extend ( win.Array, {
 			every : function every ( array, fun, thisp ) {
 				var res = true, len = array.length >>> 0;
@@ -908,6 +911,18 @@ gui.Spiritual.prototype = {
 	xhost : null,
 
 	/**
+	 * Flipped by the {gui.Guide} after initial spiritualization (on DOMContentLoaded).
+	 * @type {boolean}
+	 */
+	spiritualized : false,
+
+	/**
+	 * Magic attributes to trigger spirit association and configuration. 
+	 * By default we support "gui" but you may prefer to use "data-gui".
+	 */
+	attributes : [ "gui" ], // @TODO: move from proto to constructor?
+
+	/**
 	 * Identification.
 	 * @returns {String}
 	 */
@@ -1005,7 +1020,7 @@ gui.Spiritual.prototype = {
 	/**
 	 * Channel spirits to CSS selectors.
 	 * @param {String} select CSS selector
-	 * @param {object|String} klass Constructor or name
+	 * @param {function|String} klass Constructor or name
 	 */
 	channel : function ( select, klass ) {
 		var spirit = null;
@@ -1029,6 +1044,24 @@ gui.Spiritual.prototype = {
 				klass : klass
 			});
 		}
+	},
+
+	/**
+	 * Hello.
+	 */
+	channelModule : function ( channels ) {
+		var spirit;
+		channels = channels.map ( function ( channel ) {
+			var query = channel [ 0 ];
+			var klass = channel [ 1 ];
+			if ( typeof klass === "string" ) {
+				spirit = gui.Object.lookup ( klass, this.context );
+			} else {
+				spirit = klass;
+			}
+			return [ query, spirit ];
+		}, this );
+		this._channels = channels.concat ( this._channels );
 	},
 
 	/**
@@ -1129,30 +1162,19 @@ gui.Spiritual.prototype = {
 	 * @param {Element} element
 	 * @returns {function} Spirit constructor
 	 */
-	evaluate : function ( element ) {
+	evaluate : function ( elm ) {
 		var res = null;
-		if ( element.nodeType === Node.ELEMENT_NODE ) {
-			var doc = element.ownerDocument;
+		if ( elm.nodeType === Node.ELEMENT_NODE ) {
+			var doc = elm.ownerDocument;
 			var win = doc.defaultView;
-			var att = element.getAttribute ( "gui" ); // @TODO "data-gui"
-			// test for "gui" attribute in markup. "[" accounts for {gui.Spirit#$debug}
-			if ( gui.Type.isString ( att ) && !att.startsWith ( "[" )) {
-				if ( att !== "" ) { // no spirit for empty string
-					res = win.gui._inlines [ att ];
-					if ( !gui.Type.isDefined ( res )) {
-						res = gui.Object.lookup ( att, win );
-					}
-					if ( res ) {
-						win.gui._inlines [ att ] = res;
-					} else {
-						console.error ( att + " is not defined." );
-					}
-				}
-			} else { // channel spirit via CSS selectors
+			if ( win.gui.attributes.every ( function ( fix ) {
+				res = this._evaluateinline ( elm, win, fix );
+				return res === null;
+			}, this )) {
 				win.gui._channels.every ( function ( def ) {
 					var select = def [ 0 ];
 					var spirit = def [ 1 ];
-					if ( gui.CSSPlugin.matches ( element, select )) {
+					if ( gui.CSSPlugin.matches ( elm, select )) {
 						res = spirit;
 					}
 					return res === null;
@@ -1396,6 +1418,35 @@ gui.Spiritual.prototype = {
 	},
 
 	/**
+	 * Test for spirit assigned using HTML inline attribute.
+	 * Special test for "[" accounts for {gui.Spirit#$debug}
+	 * @param {Element} elm
+	 * @param {Window} win
+	 * @param {String} fix
+	 * @returns {function} Spirit constructor
+	 */
+	_evaluateinline : function ( elm, win, fix ) {
+		var res = null;
+		var att = elm.getAttribute ( fix );
+		if ( gui.Type.isString ( att ) && !att.startsWith ( "[" )) {
+			if ( att !== "" ) {
+				res = win.gui._inlines [ att ];
+				if ( !gui.Type.isDefined ( res )) {
+					res = gui.Object.lookup ( att, win );
+				}
+				if ( res ) {
+					win.gui._inlines [ att ] = res;
+				} else {
+					console.error ( att + " is not defined." );
+				}
+			} else {
+				res = false; // strange return value implies no spirit for empty string
+			}
+		}
+		return res;
+	},
+
+	/**
 	 * Resolve potential "gui-xhost" querystring parameter. This provides  a $contextid and a 
 	 * hostname to facilitate cross domain messaging. The $contextid equals the $instanceid of 
 	 * containing {gui.IframeSpirit}. If not present, we generate a random $contextid.
@@ -1521,6 +1572,238 @@ Object.keys ( gui ).forEach ( function ( key ) {
  * @TODO comment even more required!
  */
 gui = new gui.Spiritual ( window );
+
+
+/**
+ * Working with objects.
+ */
+gui.Object = {
+
+	/**
+	 * Object.create with default property descriptors. 
+	 * @see http://wiki.ecmascript.org/doku.php?id=strawman:define_properties_operator
+	 * @param {object} proto
+	 * @param {object} props
+	 */
+	create : function ( proto, props ) {
+		var resolved = Object.create ( null );
+		Object.keys ( props ).forEach ( function ( prop ) {
+			resolved [ prop ] = {
+				value : props [ prop ],
+				writable : true,
+				enumerable : true,
+				configurable : true
+			};
+		});
+		return Object.create ( proto, resolved );
+	},
+
+	/**
+	 * Extend target with source properties *excluding* prototype stuff. 
+	 * Optional parameter 'loose' to skips properties already declared.
+	 * @TODO bypass mixin?
+	 * @param {object} target
+	 * @param {object} source
+	 * @param @optional {boolean} loose Skip properties already declared
+	 * @returns {object}
+	 */
+	extend : function ( target, source, loose ) {
+		Object.keys ( source ).forEach ( function ( name ) {
+			if ( !loose || !gui.Type.isDefined ( target [ name ])) {
+				var desc = Object.getOwnPropertyDescriptor ( source, name );
+				Object.defineProperty ( target, name, desc );
+			}
+    });
+    return target;
+  },
+
+  /**
+   * Extend target with source properties, 
+   * skipping everything already declared.
+   * @param {object} target
+	 * @param {object} source
+	 * @returns {object}
+   */
+  extendmissing : function ( target, source ) {
+		return this.extend ( target, source, true );
+  },
+
+  /**
+   * Mixin something with collision detection.
+   * @TODO There's an 'Object.mixin' thing now...
+   * @TODO bypass extend?
+   * @param {object]} target
+   * @param {String} key
+   * @param {object} value
+   * @param {boolean} override
+   * @returns {object}
+   */
+  mixin : function ( target, key, value, override ) {
+		if ( !gui.Type.isDefined ( target [ key ]) || override ) {
+			target [ key ] = value; // @TODO: warning when target is gui.Class (super support)
+		} else {
+			console.error ( "Mixin naming collision in " + target + ": " + key );
+		}
+		return target;
+	},
+
+  /**
+   * Copy object.
+   * @returns {object}
+   */
+  copy : function ( source ) {
+		return this.extend ( Object.create ( null ), source );
+  },
+
+  /**
+	 * Call function for each own key in object (exluding the prototype stuff) 
+	 * with key and value as arguments. Returns array of function call results.
+	 * @param {object} object
+	 * @param {function} func
+	 * @param @optional {object} thisp
+	 */
+	each : function ( object, func, thisp ) {
+		return Object.keys ( object ).map ( function ( key ) {
+			return func.call ( thisp, key, object [ key ]);
+		});
+	},
+
+	 /**
+	 * Call function for all properties in object (including prototype stuff) 
+	 * with key and value as arguments. Returns array of function call results.
+	 * @param {object} object
+	 * @param {function} func
+	 * @param @optional {object} thisp
+	 */
+	all : function ( object, func, thisp ) {
+		var res = [];
+		for ( var key in object ) {
+			res.push ( func.call ( thisp, key, object [ key ]));
+		}
+		return res;
+	},
+
+	/**
+	 * Lookup object for string of type "my.ns.Thing" in given context. 
+	 * @param {String} opath Object path eg. "my.ns.Thing"
+	 * @param {Window} context
+	 * @returns {object}
+	 */
+	lookup : function ( opath, context ) {
+		var result, struct = context;
+		if ( !opath.contains ( "." )) {
+			result = struct [ opath ];
+		} else {
+			var parts = opath.split ( "." );
+			parts.forEach ( function ( part ) {
+				struct = struct [ part ];
+			});
+			result = struct;
+		}
+		return result;
+	},
+
+	/**
+	 * Update property of object in given context based on string input.
+	 * @param {String} opath Object path eg. "my.ns.Thing.name"
+	 * @param {object} value Property value eg. "Johnson"
+	 * @param {Window} context
+	 * @returns {object}
+	 */
+	assert : function ( opath, value, context ) {
+		var prop, struct = context;
+		if ( opath.contains ( "." )) {
+			var parts = opath.split ( "." );
+			prop = parts.pop ();
+			parts.forEach ( function ( part ) {
+				struct = struct [ part ];
+			});
+		} else {
+			prop = opath;
+		}
+		struct [ prop ] = value;
+		return struct;
+	},
+
+	/**
+	 * List names of invocable methods *including* prototype stuff.
+	 * @return {Array<String>}
+	 */
+	methods : function ( object ) {
+		var result = [];
+		for ( var def in object ) {
+			if ( gui.Type.isMethod ( object [ def ])) {
+				result.push ( def );
+			}
+		}
+		return result;
+	},
+
+	/**
+	 * List names of invocable methods *excluding* prototype stuff.
+	 * @return {Array<String>}
+	 */
+	ownmethods : function ( object ) {
+		return Object.keys ( object ).filter ( function ( key ) {
+			return gui.Type.isMethod ( object [ key ]);
+		}).map ( function ( key ) {
+			return key;
+		});
+	},
+
+	/**
+	 * List names of non-method properties *including* prototype stuff.
+	 * @return {Array<String>}
+	 */
+	nonmethods : function ( object ) {
+		var result = [];
+		for ( var def in object ) {
+			if ( !gui.Type.isFunction ( object [ def ])) {
+				result.push ( def );
+			}
+		}
+		return result;
+	},
+
+	/**
+	 * Bind the "this" keyword for all public instance methods. 
+	 * Stuff descending from the prototype chain is ignored. 
+	 * @TODO does this belong here?
+	 * @param {object} object
+	 * @returns {object}
+	 */
+	bindall : function ( object ) {
+		gui.Object.ownmethods ( object ).filter ( function ( name ) {
+			return name [ 0 ] !== "_";
+		}).forEach ( function ( name ) {
+			object [ name ] = object [ name ].bind ( object );
+		});
+		return object;
+	},
+
+	/**
+	 * Convert array-like object to array. Always returns an array.
+	 * @param {object} object
+	 * @returns {Array<object>}
+	 */
+	toArray : function ( object ) {
+		var result = [];
+		if ( gui.Type.isArray ( object )) {
+			result = object;
+		} else {
+			try {
+				if ( gui.Type.isDefined ( object.length ) && ( "0" in Object ( object ))) {
+					// @TODO: investigate all round usefulness of [].slice.call ( object )
+					result = Array.map ( object, function ( thing ) {
+						return thing;
+					});
+					
+				}
+			} catch ( exception ) {}
+	  }
+		return result;
+	}
+};
 
 
 /**
@@ -1685,207 +1968,10 @@ gui.Type = {
 	}, this );
 }).call ( gui.Type );
 
-
 /**
- * Working with objects.
+ * Bind the "this" keyword for all methods. 
  */
-gui.Object = {
-
-	/**
-	 * Object.create with default property descriptors. 
-	 * @see http://wiki.ecmascript.org/doku.php?id=strawman:define_properties_operator
-	 * @param {object} proto
-	 * @param {object} props
-	 */
-	create : function ( proto, props ) {
-		var resolved = Object.create ( null );
-		Object.keys ( props ).forEach ( function ( prop ) {
-			resolved [ prop ] = {
-				value : props [ prop ],
-				writable : true,
-				enumerable : true,
-				configurable : true
-			};
-		});
-		return Object.create ( proto, resolved );
-	},
-
-	/**
-	 * Extend target with source properties *excluding* prototype stuff. 
-	 * Optional parameter 'loose' to skips properties already declared.
-	 * @TODO bypass mixin?
-	 * @param {object} target
-	 * @param {object} source
-	 * @param @optional {boolean} loose Skip properties already declared
-	 * @returns {object}
-	 */
-	extend : function ( target, source, loose ) {
-		Object.keys ( source ).forEach ( function ( name ) {
-			if ( !loose || !gui.Type.isDefined ( target [ name ])) {
-				var desc = Object.getOwnPropertyDescriptor ( source, name );
-				Object.defineProperty ( target, name, desc );
-			}
-    });
-    return target;
-  },
-
-  /**
-   * Extend target with source properties, 
-   * skipping everything already declared.
-   * @param {object} target
-	 * @param {object} source
-	 * @returns {object}
-   */
-  extendmissing : function ( target, source ) {
-		return this.extend ( target, source, true );
-  },
-
-  /**
-   * Mixin something with collision detection.
-   * @TODO bypass extend?
-   * @param {object]} target
-   * @param {String} key
-   * @param {object} value
-   * @param {boolean} override
-   * @returns {object}
-   */
-  mixin : function ( target, key, value, override ) {
-		if ( !gui.Type.isDefined ( target [ key ]) || override ) {
-			target [ key ] = value; // @TODO: warning when target is gui.Class (super support)
-		} else {
-			console.error ( "Mixin naming collision in " + target + ": " + key );
-		}
-		return target;
-	},
-
-  /**
-   * Copy object.
-   * @returns {object}
-   */
-  copy : function ( source ) {
-		return this.extend ( Object.create ( null ), source );
-  },
-
-  /**
-	 * Call function for each own key in object (exluding the prototype stuff) 
-	 * with key and value as arguments. Returns array of function call results.
-	 * @param {object} object
-	 * @param {function} func
-	 * @param @optional {object} thisp
-	 */
-	each : function ( object, func, thisp ) {
-		return Object.keys ( object ).map ( function ( key ) {
-			return func.call ( thisp, key, object [ key ]);
-		});
-	},
-
-	 /**
-	 * Call function for all properties in object (including prototype stuff) 
-	 * with key and value as arguments. Returns array of function call results.
-	 * @param {object} object
-	 * @param {function} func
-	 * @param @optional {object} thisp
-	 */
-	all : function ( object, func, thisp ) {
-		var res = [];
-		for ( var key in object ) {
-			res.push ( func.call ( thisp, key, object [ key ]));
-		}
-		return res;
-	},
-
-	/**
-	 * Lookup object for string of type "my.ns.Thing" in given context. 
-	 * @param {String} opath Object path eg. "my.ns.Thing"
-	 * @param {Window} context
-	 * @returns {object}
-	 */
-	lookup : function ( opath, context ) {
-		var result, struct = context;
-		if ( !opath.contains ( "." )) {
-			result = struct [ opath ];
-		} else {
-			var parts = opath.split ( "." );
-			parts.forEach ( function ( part ) {
-				struct = struct [ part ];
-			});
-			result = struct;
-		}
-		return result;
-	},
-
-	/**
-	 * Update property of object in given context based on string input.
-	 * @param {String} opath Object path eg. "my.ns.Thing.name"
-	 * @param {object} value Property value eg. "Johnson"
-	 * @param {Window} context
-	 * @returns {object}
-	 */
-	assert : function ( opath, value, context ) {
-		var prop, struct = context;
-		if ( opath.contains ( "." )) {
-			var parts = opath.split ( "." );
-			prop = parts.pop ();
-			parts.forEach ( function ( part ) {
-				struct = struct [ part ];
-			});
-		} else {
-			prop = opath;
-		}
-		struct [ prop ] = value;
-		return struct;
-	},
-
-	/**
-	 * List names of invocable methods *including* prototype stuff.
-	 * @return {Array<String>}
-	 */
-	methods : function ( object ) {
-		var result = [];
-		for ( var def in object ) {
-			if ( gui.Type.isMethod ( object [ def ])) {
-				result.push ( def );
-			}
-		}
-		return result;
-	},
-
-	/**
-	 * List names of non-method properties *including* prototype stuff.
-	 * @return {Array<String>}
-	 */
-	nonmethods : function ( object ) {
-		var result = [];
-		for ( var def in object ) {
-			if ( !gui.Type.isFunction ( object [ def ])) {
-				result.push ( def );
-			}
-		}
-		return result;
-	},
-
-	/**
-	 * Convert array-like object to array. Always returns an array.
-	 * @param {object} object
-	 * @returns {Array<object>}
-	 */
-	toArray : function ( object ) {
-		var result = [];
-		if ( gui.Type.isArray ( object )) {
-			result = object;
-		} else {
-			try {
-				if ( gui.Type.isDefined ( object.length ) && ( "0" in Object ( object ))) {
-					// @TODO: investigate all round usefulness of [].slice.call ( object )
-					result = Array.map ( object, function ( thing ) {
-						return thing;
-					});
-				}
-			} catch ( exception ) {}
-	  }
-		return result;
-	}
-};
+gui.Object.bindall ( gui.Type );
 
 
 /**
@@ -2508,6 +2594,14 @@ gui.Class = {
 		C.prototype.toString = function () {
 			return "[object " + this.constructor.$classname + "]";
 		};
+		[ C, C.prototype ].forEach ( function ( thing ) { 
+			Object.defineProperty ( thing, "displayName", 
+				gui.Property.nonenumerable ({
+					writable : true,
+					value : name
+				})
+			);
+		});
 		return C;
 	},
 
@@ -2883,6 +2977,11 @@ gui.Property = {
 		throw new Error ( "Setting a property that has only a getter" );
 	}
 };
+
+/**
+ * Bind the "this" keyword for all public methods. 
+ */
+gui.Object.bindall ( gui.Property );
 
 
 /**
@@ -4687,8 +4786,6 @@ gui.Spirit = gui.Class.create ( Object.prototype, {
 /**
  * Base constructor for all plugins.
  * @TODO "context" should be required in constructor (sandbox scenario)
- * @TODO Rename "gui.Plugin"
- * @TODO Rename *all* plugins to gui.SomethingPlugin :)
  */
 gui.Plugin = gui.Class.create ( Object.prototype, {
 
@@ -5102,11 +5199,7 @@ gui.Module = gui.Class.create ( Object.prototype, {
 			});
 		}
 		if ( gui.Type.isArray ( this.channels )) {
-			this.channels.forEach ( function ( channel ) {
-				var query = channel [ 0 ];
-				var klass = channel [ 1 ];
-				context.gui.channel ( query, klass );
-			}, this );
+			context.gui.channelModule ( this.channels );
 		}
 		this.$setupcontext ( context );
 	},
@@ -5373,6 +5466,12 @@ gui.LifePlugin = gui.Tracker.extend ({
 	ready : false,
 
 	/**
+	 * Is after whatever happens roughly 4 milliseconds after 'ready'?
+	 * @type {boolean}
+	 */
+	async : false,
+
+	/**
 	 * Spirit was in page DOM, but has now been removed (ie. it was 
 	 * detached and not re-attached in the same execution stack). 
 	 * This schedules the spirit for destruction.
@@ -5439,7 +5538,7 @@ gui.LifePlugin = gui.Tracker.extend ({
 		this._breakdown ( arg ).forEach ( function ( type ) {
 			if ( this._removechecks ( type, [ handler ])) {
 				var index = this._handlers [ type ].indexOf ( type );
-				this._handlers [ type ].remove ( index );
+				gui.Array.remove ( this._handlers [ type ], index );
 				if ( this._handlers [ type ].length === 0 ) {
 					delete this._handlers [ type ];
 				}
@@ -5498,16 +5597,11 @@ gui.LifePlugin = gui.Tracker.extend ({
 gui.AttConfigPlugin = gui.Plugin.extend ({
 
 	/**
-	 * Mapping attribute names to an expanded syntax (eg. "myatt" becomes "my.plugin.att").
-	 * @type {Map<String,String>}
-	 */
-	map : null,
-
-	/**
 	 * Invoked by the {gui.Spirit} once all plugins have been plugged in. 
 	 * @TODO: Simple props with no setter does nothing when updated now. 
 	 * Perhaps it would be possible to somehow configure those *first*?
 	 * @TODO Figure out whether or not this should postpone to onenter()
+	 * @IDEA we'll configure properties onconfigure and call methods onready :)
 	 */
 	configureall : function () {
 		var atts = this.spirit.element.attributes;
@@ -5521,30 +5615,35 @@ gui.AttConfigPlugin = gui.Plugin.extend ({
 	 * This should probably only ever be invoked by the {gui.AttPlugin}.
 	 * @param {String} name
 	 * @param {String} value
-	 * @returns {boolean} True when a configuration was performed (@TODO not used)
 	 */
 	configureone : function ( name, value ) {
-		if ( name.startsWith ( gui.AttConfigPlugin.PREFIX )) {
-			this._evaluate ( this._lookup ( name ), value );
-		}
+		var hit, gux = this.spirit.window.gui;
+		gux.attributes.every ( function ( fix ) {
+			if (( hit = name !== fix && name.startsWith ( fix ))) {
+				this.$evaluate ( name, value, fix );
+			}
+			return !hit;
+		}, this );
 	},
 
 
-	// Private .................................................................
+	// Secrets .................................................................
 	
 	/**
 	 * Evaluate single attribute in search for "gui." prefix.
+	 * The string value will be autocast to an inferred type.
+	 * "false" becomes a boolean while "23" becomes a number.
+	 * Note that the EDB module is *overriding* this method!
 	 * @param {String} name
 	 * @param {String} value
+	 * @param {String} fix
 	 */
-	_evaluate : function ( name, value ) {
-		var prefix = gui.AttConfigPlugin.PREFIX,
-			didconfigure = false,
-			struct = this.spirit,
+	$evaluate : function ( name, value, fix ) {
+		var struct = this.spirit,
 			success = true,
 			prop = null,
 			cuts = null;
-		name = prop = name.split ( prefix )[ 1 ];
+		name = prop = name.split ( fix + "." )[ 1 ];
 		if ( name.indexOf ( "." ) >-1 ) {
 			cuts = name.split ( "." );
 			cuts.forEach ( function ( cut, i ) {
@@ -5560,48 +5659,23 @@ gui.AttConfigPlugin = gui.Plugin.extend ({
 			});
 		}
 		if ( success && gui.Type.isDefined ( struct [ prop ])) {
-			// Autocast (string) value to an inferred type.
-			// "false" becomes boolean, "23" becomes number.
-			value = gui.Type.cast ( value );
+			if ( gui.Type.isString ( value )) {
+				value = gui.Type.cast ( value );
+			}
 			if ( gui.Type.isFunction ( struct [ prop ])) {
 				struct [ prop ] ( value );
 			} else {
 				struct [ prop ] = value;
 			}
-			didconfigure = true;
 		} else {
 			console.error ( "No definition for \"" + name + "\": " + this.spirit.toString ());
 		}
-	},
-
-	/**
-	 * Lookup mapping for attribute name, eg. "my.nested.complex.prop" 
-	 * can be mapped to a simple attribute declaration such as "myprop".
-	 * @param {String} name
-	 * @returns {String}
-	 */
-	_lookup : function ( name ) {
-		var prefix = gui.AttConfigPlugin.PREFIX;
-		if ( this.map && this.map.hasOwnProperty ( name )) {
-			name = this.map [ name ];
-			if ( !name.startsWith ( prefix )) {
-				name = prefix + name;
-			}
-		}
-		return name;
 	}
 
-
 }, { // Static ...............................................................
-
-
+	
 	/**
-	 * Magic attribute prefix to trigger attconfig.
-	 * @type {String}
-	 */
-	PREFIX : "gui.",
-
-	/**
+	 * Run on spirit startup (don't wait for implementation to require it).
 	 * @type {boolean}
 	 */
 	lazy : false
@@ -6211,22 +6285,24 @@ gui.AttPlugin = ( function using ( confirmed, chained ) {
 		},
 
 		/**
-		 * Lookup handler for attribute update.
+		 * Trigger potential handlers for attribute update.
 		 * @param {String} name
 		 * @param {String} value
 		 */
 		$onatt : function ( name, value ) {
-			var list, att, handler;
-			if ( name.startsWith ( gui.AttConfigPlugin.PREFIX )) {
-				this.spirit.attconfig.configureone ( name, value );
-			} else {
-				if (( list = this._trackedtypes [ name ])) {
-					att = new gui.Att ( name, value );
-					list.forEach ( function ( checks ) {
-						handler = checks [ 0 ];
-						handler.onatt ( att );
-					}, this );
+			var list, att, handler, trigger;
+			var triggers = !gui.attributes.every ( function ( prefix ) {
+				if (( trigger = name.startsWith ( prefix ))) {
+					this.spirit.attconfig.configureone ( name, value );	
 				}
+				return !trigger;
+			}, this );
+			if ( !trigger && ( list = this._trackedtypes [ name ])) {
+				att = new gui.Att ( name, value );
+				list.forEach ( function ( checks ) {
+					handler = checks [ 0 ];
+					handler.onatt ( att );
+				}, this );
 			}
 		},
 
@@ -6552,8 +6628,8 @@ Object.defineProperties ( gui.BoxPlugin.prototype, {
 		this.type = type;
 		this.data = data;
 		this.isGlobal = global;
-		this.$contextids = [];
 		this.$contextid = sig || gui.$contextid;
+		this.$instanceid = gui.KeyMaster.generateKey ();
 	};
 
 	gui.Broadcast.prototype = {
@@ -6598,6 +6674,11 @@ Object.defineProperties ( gui.BoxPlugin.prototype, {
 		$contextids : null,
 
 		/**
+		 * Experimantal...
+		 */
+		$instanceid : null,
+
+		/**
 		 * Identification
 		 * @returns {String}
 		 */
@@ -6620,6 +6701,13 @@ Object.defineProperties ( gui.BoxPlugin.prototype, {
 	 * @type {Map<String,Map<String,Array<object>>>}
 	 */
 	gui.Broadcast._locals = Object.create ( null );
+
+	/**
+	 * Hacked mechanism to control global broadcast propagation. Simply snapshot 
+	 * the $instanceid of each dispatched broadcast, resulting in a huge map.
+	 * @type {Map<String,boolean>}
+	 */
+	gui.Broadcast._quickfix = Object.create ( null );
 
 	/**
 	 * mapcribe handler to message.
@@ -6685,8 +6773,13 @@ Object.defineProperties ( gui.BoxPlugin.prototype, {
 	 * @param {object} data
 	 * @returns {gui.Broadcast}
 	 */
-	gui.Broadcast.dispatchGlobal = function ( target, type, data ) {
-		return this._dispatch ( target, type, data );
+	gui.Broadcast.dispatchGlobal = function ( target, type, data, instanceid ) {
+		if ( instanceid && this._quickfix [ instanceid ]) {
+			return;
+		}
+		var res = this._dispatch ( target, type, data );
+		this._quickfix [ res.$instanceid ] = true;
+		return res;
 	};
 
 	/**
@@ -7671,14 +7764,17 @@ gui.DOMPlugin = ( function using ( chained ) {
 		 * @returns {number}
 		 */
 		ordinal : function ( element ) {
-			var result = 0; 
-			var node = element.parentNode.firstElementChild;
-			while ( node !== null ) {
-				if ( node === element ) {
-					break;
-				} else {
-					node = node.nextElementSibling;
-					result ++;
+			var result = 0;
+			var parent = element.parentNode;
+			if ( parent ) {
+				var node = parent.firstElementChild;
+				while ( node !== null ) {
+					if ( node === element ) {
+						break;
+					} else {
+						node = node.nextElementSibling;
+						result ++;
+					}
 				}
 			}
 			return result;
@@ -7773,7 +7869,12 @@ gui.DOMPlugin = ( function using ( chained ) {
 				if ( type ) {
 					result = this.qall ( node, selector, type )[ 0 ] || null;
 				} else {
-					result = node.querySelector ( selector );
+					try {
+						result = node.querySelector ( selector );
+					} catch ( exception ) {
+						console.error ( "Dysfunctional selector: " + selector );
+						throw exception;
+					}
 				}
 				return result;
 			});
@@ -10290,8 +10391,10 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 	 * @TODO broadcast into global space?
 	 */
 	onunload : function () {
+		var id = this.window.gui.$contextid;
 		this.action.dispatchGlobal ( gui.ACTION_DOC_UNLOAD );
-		this.broadcast.dispatchGlobal ( gui.BROADCAST_UNLOAD, this.window.gui.$contextid );
+		this.broadcast.dispatchGlobal ( gui.BROADCAST_WILL_UNLOAD, id );
+		this.broadcast.dispatchGlobal ( gui.BROADCAST_UNLOAD, id );
 	},
 
 	/**
@@ -10318,19 +10421,12 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 	 * @param {gui.Broadcast} b
 	 */
 	propagateBroadcast : function ( b ) {
-		b.$contextids.push ( this.$contextid );
 		var msg = gui.Broadcast.stringify ( b );
-		var win = this.window;
-		var sup = win.parent;
-		if ( win !== sup ) {
-			this.dom.qall ( "iframe", gui.IframeSpirit ).forEach ( function ( iframe ) {
-				if ( iframe.xhost ) {
-					iframe.contentWindow.postMessage ( msg, "*" );
-				}
-			});
-			if ( sup !== win ) {
-				sup.postMessage ( msg, "*" );
-			}
+		this.dom.qall ( "iframe", gui.IframeSpirit ).forEach ( function ( iframe ) {
+			iframe.contentWindow.postMessage ( msg, "*" );
+		});
+		if ( this.window !== this.window.parent ) {
+			this.window.parent.postMessage ( msg, "*" );
 		}
 	},
 	
@@ -10418,13 +10514,12 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 		var pattern = "spiritual-broadcast";
 		if ( msg.startsWith ( pattern )) {
 			var b = gui.Broadcast.parse ( msg );
-			if ( b.$contextids.indexOf ( this.$contextid ) < 0 ) {
-				gui.Broadcast.dispatchGlobal ( 
-					b.target, 
-					b.type, 
-					b.data 
-				);
-			}
+			gui.Broadcast.dispatchGlobal ( 
+				b.target, 
+				b.type, 
+				b.data,
+				b.$instanceid
+			);
 		} else {
 			pattern = "spiritual-action";
 			if ( msg.startsWith ( pattern )) {
@@ -12778,6 +12873,7 @@ gui.Guide = {
 			gui.broadcastGlobal ( gui.BROADCAST_WILL_SPIRITUALIZE, sig );
 			this.spiritualizeSub ( doc.documentElement );
 			gui.broadcastGlobal ( gui.BROADCAST_DID_SPIRITUALIZE, sig );
+			win.gui.spiritualized = true;
 		}
 	},
 
@@ -12849,7 +12945,7 @@ gui.Guide = {
 	},
 
 	/**
-	 * Evaluate spiritis for element and subtree.
+	 * Evaluate spirits for element and subtree.
 	 * 
 	 * - Construct spirits in document order
 	 * - Fire life cycle events except `ready` in document order
@@ -13081,7 +13177,11 @@ gui.Key.prototype = {
 		18 : "Alt",
 		17 : "Control",
 		16 : "Shift",
-		32 : "Space"
+		32 : "Space",
+
+		// extras
+
+		27 : "Esc"
 
 	}, Object.create ( null ));
 }());
@@ -13472,7 +13572,7 @@ gui.KeysModule = gui.module ( "keys", {
 	_oldschool : function ( e ) {
 		var n = e.keyCode, c = this._keymap [ n ], b = gui.BROADCAST_KEYEVENT;
 		var id = e.currentTarget.defaultView.gui.$contextid;
-
+		
 		/*
 		// TODO: THIS!
 		if ( e.ctrlKey && gui.Key.$key [ e.keyCode ] !== "Control" ) {
@@ -14210,9 +14310,9 @@ gui.FlexCSS = {
  */
 gui.FlexCSS.emulated =  {
 	".flexrow, .flexcol" : {
-		"display" : "block",
-		"width" : "100%",
-		"height" : "100%"
+		"display" : "block"
+		//"width" : "100%",
+		//"height" : "100%"
 	},
 	/*
 	".flexcol > .flexrow" : { // hmm...
