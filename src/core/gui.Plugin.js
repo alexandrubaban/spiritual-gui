@@ -1,8 +1,6 @@
 /**
  * Base constructor for all plugins.
  * @TODO "context" should be required in constructor (sandbox scenario)
- * @TODO Rename "gui.Plugin"
- * @TODO Rename *all* plugins to gui.SomethingPlugin :)
  */
 gui.Plugin = gui.Class.create ( Object.prototype, {
 
