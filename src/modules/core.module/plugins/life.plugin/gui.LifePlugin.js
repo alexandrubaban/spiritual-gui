@@ -47,6 +47,12 @@ gui.LifePlugin = gui.Tracker.extend ({
 	ready : false,
 
 	/**
+	 * Is after whatever happens roughly 4 milliseconds after 'ready'?
+	 * @type {boolean}
+	 */
+	async : false,
+
+	/**
 	 * Spirit was in page DOM, but has now been removed (ie. it was 
 	 * detached and not re-attached in the same execution stack). 
 	 * This schedules the spirit for destruction.

@@ -85,10 +85,16 @@ gui.Spiritual.prototype = {
 	xhost : null,
 
 	/**
+	 * Flipped by the {gui.Guide} after initial spiritualization (on DOMContentLoaded).
+	 * @type {boolean}
+	 */
+	spiritualized : false,
+
+	/**
 	 * Magic attributes to trigger spirit association and configuration. 
 	 * By default we support "gui" but you may prefer to use "data-gui".
 	 */
-	attributes : [ "gui" ],
+	attributes : [ "gui" ], // @TODO: move from proto to constructor?
 
 	/**
 	 * Identification.
