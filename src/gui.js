@@ -5,6 +5,12 @@
 window.gui = {
 
 	/**
+	 * @TODO comment on 'gui.Namespace' goes here.
+	 * @type {boolean}
+	 */
+	portals : true,
+
+	/**
 	 * Spiritual version. Hardcoded for now.
 	 * @TODO Deprecate or generate buildtime.
 	 * @type {String}
@@ -50,9 +56,6 @@ window.gui = {
 	 * @TODO harmonize some naming with action types
 	 */
 	BROADCAST_KICKSTART : "gui-broadcast-kickstart",
-	//BROADCAST_DOMCONTENT : "gui-broadcast-document-domcontentloaded",
-	//BROADCAST_ONLOAD : "gui-broadcast-window-onload",
-	//BROADCAST_UNLOAD : "gui-broadcast-window-unload",
 	BROADCAST_WILL_SPIRITUALIZE : "gui-broadcast-will-spiritualize",
 	BROADCAST_DID_SPIRITUALIZE : "gui-broadcast-did-spiritualize",
 	BROADCAST_MOUSECLICK  : "gui-broadcast-mouseevent-click",
@@ -68,6 +71,8 @@ window.gui = {
 	BROADCAST_LOADING_CHANNELS : "gui-broadcast-loading-channels",
 	BROADCAST_CHANNELS_LOADED : "gui-broadcast-channels-loaded",
 	BROADCAST_TWEEN : "gui-broadcast-tween",
+	BROADCAST_WILL_UNLOAD : "gui-broadcast-will-unload",
+	BROADCAST_UNLOAD : "gui-broadcast-unload",
 
 	/** 
 	 * Plugin broadcast types that should leave core.
@@ -75,19 +80,7 @@ window.gui = {
 	BROADCAST_ATTENTION_ENTER : "gui-broadcast-attention-enter",
 	BROADCAST_ATTENTION_EXIT : "gui-broadcast-attention-exit",
 	BROADCAST_ATTENTION_MOVE : "gui-broadcast-attention-move",
-
-	/*
-	 * @TODO: offload to modules
-	 */
-	// BROADCAST_TOUCHSTART : "gui-broadcast-touchstart",
-	// BROADCAST_TOUCHEND : "gui-broadcast-touchend",
-	// BROADCAST_TOUCHCANCEL : "gui-broadcast-touchcancel",
-	// BROADCAST_TOUCHLEAVE : "gui-broadcast-touchleave",
-	// BROADCAST_TOUCHMOVE : "gui-broadcast-touchmove",
-	// BROADCAST_DRAG_START : "gui-broadcast-drag-start",
-	// BROADCAST_DRAG_END : "gui-broadcast-drag-end",
-	// BROADCAST_DRAG_DROP : "gui-broadcast-drag-drop",
-
+	
 	/** 
 	 * Global actions
 	 */

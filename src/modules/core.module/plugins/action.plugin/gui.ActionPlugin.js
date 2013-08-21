@@ -7,7 +7,7 @@
  */
 gui.ActionPlugin = ( function using ( confirmed, chained ) {
 	
-	return gui.Tracker.extend ( "gui.ActionPlugin", {
+	return gui.Tracker.extend ({ // "gui.ActionPlugin"
 
 		/**
 		 * Free slot for spirit to define any single type of action to dispatch. 

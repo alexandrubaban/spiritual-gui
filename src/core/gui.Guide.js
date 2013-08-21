@@ -147,8 +147,10 @@ gui.Guide = {
 		var sig = win.gui.$contextid;
 		if ( elm.spirit ) {
 			throw new Error ( "Cannot repossess element with spirit " + elm.spirit + " (exorcise first)" );
+		} else {
+			elm.spirit = new Spirit ( elm, doc, win, sig );
 		}
-		return ( elm.spirit = new Spirit ( elm, doc, win, sig ));
+		return elm.spirit;
 	},
 
 	/**
@@ -173,18 +175,6 @@ gui.Guide = {
 		var res = operation.call ( thisp );
 		this._suspended = false;
 		return res;
-	},
-
-	/**
-	 * Invoked by {gui.Spiritual} some milliseconds after 
-	 * all spirits have been attached to the page DOM.
-	 * @param {Array<gui.Spirit>} spirits
-	 */
-	$goasync : function ( spirits ) {
-		spirits.forEach ( function ( spirit ) {
-			gui.Spirit.$async ( spirit );
-		});
-		this._visibility ( spirits );
 	},
 	
 	
@@ -261,7 +251,7 @@ gui.Guide = {
 		var win = doc.defaultView;
 		var sig = win.gui.$contextid;
 		this._metatags ( win ); // configure runtime
-		win.gui.go (); // channel spirits
+		win.gui.start (); // channel spirits
 		this._stylesheets ( win ); // more spirits?
 		// resolving spiritual stylesheets? If not, skip directly to _step2.
 		if ( !this._windows [ sig ]) {
@@ -282,6 +272,7 @@ gui.Guide = {
 			gui.broadcastGlobal ( gui.BROADCAST_WILL_SPIRITUALIZE, sig );
 			this.spiritualizeSub ( doc.documentElement );
 			gui.broadcastGlobal ( gui.BROADCAST_DID_SPIRITUALIZE, sig );
+			win.gui.spiritualized = true;
 		}
 	},
 
@@ -353,7 +344,7 @@ gui.Guide = {
 	},
 
 	/**
-	 * Evaluate spiritis for element and subtree.
+	 * Evaluate spirits for element and subtree.
 	 * 
 	 * - Construct spirits in document order
 	 * - Fire life cycle events except `ready` in document order
@@ -474,7 +465,23 @@ gui.Guide = {
 		gui.DOMPlugin.group ( spirits ).forEach ( function ( spirit ) {
 			gui.VisibilityPlugin.$init ( spirit );
 		}, this );
+	},
+
+
+	// Secret .........................................................................
+
+	/**
+	 * Invoked by {gui.Spiritual} some milliseconds after 
+	 * all spirits have been attached to the page DOM.
+	 * @param {Array<gui.Spirit>} spirits
+	 */
+	$goasync : function ( spirits ) {
+		spirits.forEach ( function ( spirit ) {
+			gui.Spirit.$async ( spirit );
+		});
+		this._visibility ( spirits );
 	}
+
 };
 
 /**

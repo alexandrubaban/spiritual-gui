@@ -39,7 +39,6 @@ gui.URL.prototype = {
 	hostname : null, // www.example.com
 	href : null, // http://www.example.com:80/search?q=devmo#test
 	pathname : null, // search
-	//pathbase : null, // (experimental)
 	port : null, // 80
 	protocol : null, // http:
 	search : null, // ?q=devmo
@@ -151,6 +150,31 @@ gui.URL.setParam = function ( url, name, value ) {
 };
 
 /**
+ * Format URL with hashmap key-values as querystring parameters.
+ * @param {String} baseurl
+ * param @optional {Map<String,String|number|boolean|Array>} params
+ * @returns {String}
+ */
+gui.URL.parametrize = function ( baseurl, params ) {
+	if ( gui.Type.isObject ( params )) {
+		gui.Object.each ( params, function ( key, value ) {
+			baseurl += baseurl.contains ( "?" ) ? "&" : "?";
+			switch ( gui.Type.of ( value )) {
+				case "array" :
+					baseurl += value.map ( function ( member ) {
+						return key + "=" + String ( member );
+					}).join ( "&" );
+					break;
+				default :
+					baseurl += key + "=" + String ( value );
+					break;	
+			}
+		});
+	}
+	return baseurl;
+};
+
+/**
  * @param {Document} doc
  * @param @optional {String} href
  */
@@ -172,6 +196,8 @@ gui.URL._createLink = function ( doc, href ) {
 /**
  * Temp IE hotfix...
  * @see http://blog.stevenlevithan.com/archives/parseuri
+ * @TODO https://github.com/websanova/js-url
+ * @TODO https://github.com/allmarkedup/purl
  */
 gui.URL.parseUri = function ( str ) {
 	var	o = gui.URL.parseOptions,

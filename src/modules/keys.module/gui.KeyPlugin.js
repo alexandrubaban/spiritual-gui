@@ -6,7 +6,7 @@
  */
 gui.KeyPlugin = ( function using ( confirmed, chained ) {
 
-	return gui.Tracker.extend ( "gui.KeyPlugin", {
+	return gui.Tracker.extend ({
 	
 		/**
 		 * Add one or more action handlers.

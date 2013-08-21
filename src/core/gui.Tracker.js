@@ -2,7 +2,7 @@
  * Comment goes here.
  * @extends {gui.Plugin}
  */
-gui.Tracker = gui.Plugin.extend ( "gui.Tracker", {
+gui.Tracker = gui.Plugin.extend ({
 
 	/**
 	 * Bookkeeping types and handlers.

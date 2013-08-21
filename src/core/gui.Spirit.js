@@ -1,7 +1,7 @@
 /**
  * Base constructor for all spirits
  */
-gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
+gui.Spirit = gui.Class.create ( Object.prototype, {
 
 	/**
 	 * Unique key for this spirit instance.
@@ -176,14 +176,14 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	/**
 	 * In debug mode, stamp the toString value onto the spirit element. 
 	 * @note The toString value is defined by the string that may be 
-	 * passed as first argument to the gui.Spirit.infuse("John") method.
+	 * passed as first argument to the gui.Spirit.extend("John") method.
 	 * @param {boolean} constructing
 	 */
 	$debug : function ( constructing ) {
 		var val, elm = this.element;
 		if ( constructing ) {
 			if ( !elm.hasAttribute ( "gui" )) {
-				val = "[" + this.displayName + "]";
+				val = "[" + this.constructor.$classname + "]";
 				elm.setAttribute ( "gui", val );
 			}
 		} else {
@@ -205,31 +205,12 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	portals : true,
 	
 	/**
-	 * Extends spirit and plugins (mutating plugins) plus updates getters/setters.
-	 * @TODO: validate that user isn't declaring non-primitives on the prototype (log warning).
-	 * @param {object} extension 
-	 * @param {object} recurring 
-	 * @param {object} statics 
-	 * @returns {gui.Spirit}
+	 * It was fun.
+	 * @deprecated
 	 */
 	infuse : function () {
-		var C = gui.Class.extend.apply ( this, arguments );
-		C.$plugins = gui.Object.copy ( this.$plugins );
-		var b = gui.Class.breakdown ( arguments );
-		gui.Object.each ( C.$plugins, function ( prefix, plugin ) {
-			var def = b.protos [ prefix ];			
-			switch ( gui.Type.of ( def )) {
-				case "object" :
-					var mutant = plugin.extend ( def );
-					C.plugin ( prefix, mutant, true );
-					break;
-				case "undefined" :
-					break;
-				default :
-					throw new TypeError ( C + ": Bad definition: " + prefix );
-			}
-		}, this );
-		return C;
+		console.warn ( "Spirit.infuse() is deprecated. Use Spirit.extend()" );
+		return this.extend.apply ( this, arguments );
 	},
 
 	/**
@@ -251,15 +232,31 @@ gui.Spirit = gui.Class.create ( "gui.Spirit", Object.prototype, {
 	},
 
 	/**
-	 * Subclassing a spirit via `infuse` allows us to also subclass it's plugins 
-	 * using a nice declarative syntax. To avoid potential frustration, we throw 
-	 * on the `extend` method which doesn't offfer this feature.
+	 * Extends spirit and plugins (mutating plugins) plus updates getters/setters.
+	 * @TODO: validate that user isn't declaring non-primitives on the prototype (log warning).
+	 * @param {object} extension 
+	 * @param {object} recurring 
+	 * @param {object} statics 
+	 * @returns {gui.Spirit}
 	 */
 	extend : function () {
-		throw new Error ( 
-			'Spirits must use the "infuse" method and not "extend".\n' +
-			'This method extends both the spirit and it\'s plugins.'
-		);
+		var C = gui.Class.extend.apply ( this, arguments );
+		C.$plugins = gui.Object.copy ( this.$plugins );
+		var b = gui.Class.breakdown ( arguments );
+		gui.Object.each ( C.$plugins, function ( prefix, plugin ) {
+			var def = b.protos [ prefix ];			
+			switch ( gui.Type.of ( def )) {
+				case "object" :
+					var mutant = plugin.extend ( def );
+					C.plugin ( prefix, mutant, true );
+					break;
+				case "undefined" :
+					break;
+				default :
+					throw new TypeError ( C + ": Bad definition: " + prefix );
+			}
+		}, this );
+		return C;
 	},
 	
 	/**

@@ -6,7 +6,7 @@
  */
 gui.AttPlugin = ( function using ( confirmed, chained ) {
 
-	return gui.Tracker.extend ( "gui.AttPlugin", {
+	return gui.Tracker.extend ({
 
 		/**
 		 * Get single element attribute cast to an inferred type.
@@ -133,22 +133,24 @@ gui.AttPlugin = ( function using ( confirmed, chained ) {
 		},
 
 		/**
-		 * Lookup handler for attribute update.
+		 * Trigger potential handlers for attribute update.
 		 * @param {String} name
 		 * @param {String} value
 		 */
 		$onatt : function ( name, value ) {
-			var list, att, handler;
-			if ( name.startsWith ( gui.AttConfigPlugin.PREFIX )) {
-				this.spirit.attconfig.configureone ( name, value );
-			} else {
-				if (( list = this._trackedtypes [ name ])) {
-					att = new gui.Att ( name, value );
-					list.forEach ( function ( checks ) {
-						handler = checks [ 0 ];
-						handler.onatt ( att );
-					}, this );
+			var list, att, handler, trigger;
+			var triggers = !gui.attributes.every ( function ( prefix ) {
+				if (( trigger = name.startsWith ( prefix ))) {
+					this.spirit.attconfig.configureone ( name, value );	
 				}
+				return !trigger;
+			}, this );
+			if ( !trigger && ( list = this._trackedtypes [ name ])) {
+				att = new gui.Att ( name, value );
+				list.forEach ( function ( checks ) {
+					handler = checks [ 0 ];
+					handler.onatt ( att );
+				}, this );
 			}
 		},
 
@@ -195,8 +197,25 @@ gui.AttPlugin = ( function using ( confirmed, chained ) {
 		 */
 		set : chained ( function ( elm, name, value ) {
 			var spirit = elm.spirit;
-			if ( value === null ) {
+			var change = false;
+			// checkbox or radio?
+			if ( this._ischecked ( elm, name )) {
+				change = elm.checked !== value;
+				elm.checked = String ( value ) === "false" ? false : value !== null;
+				if ( change ) {
+					spirit.att.$onatt ( name, value );
+				}
+			// input value?
+			} else if ( this._isvalue ( elm, name )) {
+				change = elm.value !== String ( value );
+				if ( change ) {
+					elm.value = String ( value );
+					spirit.att.$onatt ( name, value );
+				}
+			// deleted?
+			} else if ( value === null ) {
 				this.del ( elm, name );
+			// added or changed
 			} else {
 				value = String ( value );
 				if ( elm.getAttribute ( name ) !== value ) {
@@ -211,6 +230,14 @@ gui.AttPlugin = ( function using ( confirmed, chained ) {
 				}
 			}
 		}),
+
+		_ischecked : function ( elm, name ) {
+			return elm.type && elm.checked !== undefined && name === "checked";
+		},
+
+		_isvalue : function ( elm, name ) {
+			return elm.value !== undefined && name === "value";
+		},
 
 		/**
 		 * Element has attribute?
@@ -230,15 +257,21 @@ gui.AttPlugin = ( function using ( confirmed, chained ) {
 		 */
 		del : chained ( function ( elm, name ) {
 			var spirit = elm.spirit;
-			if ( spirit ) {
-				spirit.att.$suspend ( function () {
-					elm.removeAttribute ( name );
-				});
-				if ( !spirit.attconfig.configureone ( name, null )) {
-					spirit.att.$onatt ( name, null );
-				}
+			if ( this._ischecked ( elm, name )) {
+				elm.checked = false;
+			} else if ( this._isvalue ( elm, name )) {
+				elm.value = ""; // or what?
 			} else {
-				elm.removeAttribute ( name );
+				if ( spirit ) {
+					spirit.att.$suspend ( function () {
+						elm.removeAttribute ( name );
+					});
+					if ( !spirit.attconfig.configureone ( name, null )) {
+						spirit.att.$onatt ( name, null );
+					}
+				} else {
+					elm.removeAttribute ( name );
+				}
 			}
 		}),
 

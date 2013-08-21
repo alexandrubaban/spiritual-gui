@@ -3,7 +3,7 @@
  * @TODO Support optional data argument
  * @extends {gui.Tracker}
  */
-gui.LifePlugin = gui.Tracker.extend ( "gui.LifePlugin", {
+gui.LifePlugin = gui.Tracker.extend ({
 
 	/**
 	 * Spirit is constructed? This is almost certainly true by 
@@ -47,6 +47,12 @@ gui.LifePlugin = gui.Tracker.extend ( "gui.LifePlugin", {
 	ready : false,
 
 	/**
+	 * Is after whatever happens roughly 4 milliseconds after 'ready'?
+	 * @type {boolean}
+	 */
+	async : false,
+
+	/**
 	 * Spirit was in page DOM, but has now been removed (ie. it was 
 	 * detached and not re-attached in the same execution stack). 
 	 * This schedules the spirit for destruction.
@@ -75,7 +81,7 @@ gui.LifePlugin = gui.Tracker.extend ( "gui.LifePlugin", {
 
 	/**
 	 * Construction time.
-	 * @overloads {gui.Tracker#construct}
+	 * @overrides {gui.Tracker#construct}
 	 */
 	onconstruct : function () {
 		this._super.onconstruct ();
@@ -113,7 +119,7 @@ gui.LifePlugin = gui.Tracker.extend ( "gui.LifePlugin", {
 		this._breakdown ( arg ).forEach ( function ( type ) {
 			if ( this._removechecks ( type, [ handler ])) {
 				var index = this._handlers [ type ].indexOf ( type );
-				this._handlers [ type ].remove ( index );
+				gui.Array.remove ( this._handlers [ type ], index );
 				if ( this._handlers [ type ].length === 0 ) {
 					delete this._handlers [ type ];
 				}

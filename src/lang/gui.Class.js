@@ -26,7 +26,7 @@ gui.Class = {
 				C [ key ] = C.$recurring [ key ] = val;
 			});
 		}
-		return this._profiling ( C );
+		return C; // this._profiling ( C );
 	},
 
 	/**
@@ -52,11 +52,12 @@ gui.Class = {
 	/**
 	 * Nameless name.
 	 * @type {String}
-	 */
-	_ANONYMOUS : "Anonymous",
+	 */	
+	ANONYMOUS	 : "Anonymous",
 
 	/**
-	 * Compute class constructor body (as a string). The $name 
+	 * Self-executing function creates a string property _BODY 
+	 * which we can as constructor body for classes. The $name 
 	 * will be substituted for the class name. Note that if 
 	 * called without the 'new' keyword, the function acts 
 	 * as a shortcut the the MyClass.extend method.
@@ -131,14 +132,18 @@ gui.Class = {
 	 * @returns {function}
 	 */
 	_createclass : function ( SuperC, proto, name ) {
-		name = name || gui.Class._ANONYMOUS;
+		// if ( name ) { console.debug ( name );} ... intend to deprecate ...
+		name = name || gui.Class.ANONYMOUS;
 		var C = gui.Function.create ( name, null, this._namedbody ( name ));
 		C.$classid = gui.KeyMaster.generateKey ( "class" );
+		//C.$classname = this.ANONYMOUS;
 		C.prototype = Object.create ( proto || null );
 		C.prototype.constructor = C;
+		//C = this.$nameclass ( C, this.ANONYMOUS );
 		C = this._internals ( C, SuperC );
 		C = this._interface ( C );
-		C = this._nameclass ( C, name );
+		C = this._classname ( C );
+		//C = this._nameclass ( C, name );
 		return C;
 	},
 
@@ -175,8 +180,8 @@ gui.Class = {
 		});
 		gui.Property.extendall ( protos, C.prototype ); // @TODO what about base?
 		gui.Super.support ( SuperC, C, protos );
-		C = this._nameclass ( C, name );
-		return this._profiling ( C );
+		//C = this._nameclass ( C, name );
+		return C; // this._profiling ( C );
 	},
 
 	/**
@@ -185,9 +190,9 @@ gui.Class = {
 	 * @see https://code.google.com/p/chromium/issues/detail?id=17356
 	 * @param {function} C
 	 * @returns {function}
-	 */
+	 *
 	_profiling : function ( C ) {
-		var name = C.name || gui.Class._ANONYMOUS;
+		var name = C.name || gui.Class.ANONYMOUS;
 		[ C, C.prototype ].forEach ( function ( thing ) {
 			gui.Object.each ( thing, function ( key, value ) {
 				if ( gui.Type.isMethod ( value )) {
@@ -197,6 +202,7 @@ gui.Class = {
 		}, this );
 		return C;
 	},
+	*/
 
 	/**
 	 * Setup framework internal propeties.
@@ -233,9 +239,9 @@ gui.Class = {
 	 * @param {function} C
 	 * @param {String} name
 	 * @returns {function}
-	 */
+	 *
 	_nameclass : function ( C, name ) {
-		name = name || gui.Class._ANONYMOUS;
+		name = name || gui.Class.ANONYMOUS;
 		this._namedthing ( C, "function", name );
 		this._namedthing ( C.prototype, "object", name );
 		return C;
@@ -246,7 +252,7 @@ gui.Class = {
 	 * @param {object} what
 	 * @param {String} type
 	 * @param {String} name
-	 */
+	 *
 	_namedthing : function ( what, type, name ) {
 		this._displayname ( what, name );
 		if ( !what.hasOwnProperty ( "toString" )) {
@@ -254,6 +260,33 @@ gui.Class = {
 				return "[" + type + " " + name + "]";
 			};
 		}
+	},
+	*/
+
+	/**
+	 * Assign toString() return value to function constructor and instance object.
+	 * @TODO validate unique name
+	 * @param {function} C
+	 * @param {String} name
+	 * @returns {function}
+	 */
+	_classname : function ( C ) {
+		C.$classname = this.ANONYMOUS;
+		C.toString = function () {
+			return "[function " + this.$classname + "]";
+		};
+		C.prototype.toString = function () {
+			return "[object " + this.constructor.$classname + "]";
+		};
+		[ C, C.prototype ].forEach ( function ( thing ) { 
+			Object.defineProperty ( thing, "displayName", 
+				gui.Property.nonenumerable ({
+					writable : true,
+					value : name
+				})
+			);
+		});
+		return C;
 	},
 
 	/**
@@ -266,6 +299,22 @@ gui.Class = {
 			new RegExp ( "\\$name", "gm" ), 
 			gui.Function.safename ( name )
 		);
+	}
+
+	/**
+	 * Assign name to function constructor and instance object.
+	 * @TODO validate unique name
+	 * @param {function} C
+	 * @param {String} name
+	 * @returns {function}
+	 *
+	_namedthing : function ( what, type, name ) {
+		this._displayname ( what, name );
+		if ( !what.hasOwnProperty ( "toString" )) {
+			what.toString = function toString () {
+				return "[" + type + " " + name + "]";
+			};
+		}
 	},
 
 	/**
@@ -273,7 +322,7 @@ gui.Class = {
 	 * @param  {[type]} what [description]
 	 * @param  {[type]} name [description]
 	 * @return {[type]}      [description]
-	 */
+	 *
 	_displayname : function ( thing, name ) {
 		if ( !gui.Type.isDefined ( thing.displayName )) {
 			Object.defineProperty ( thing, "displayName", 
@@ -284,8 +333,15 @@ gui.Class = {
 			);
 		}
 		return thing;
-	}
+	},
 
+	$nameclass : function ( C, name ) {
+		C.$classname = name;
+		this._namedthing ( C, "function", name );
+		this._namedthing ( C.prototype, "object", name );
+		return C;
+	}
+	*/
 };
 
 

@@ -3,7 +3,7 @@
  * @extends {gui.Plugin}
  * @TODO Support globalX, globalY, screenX, screenY
  */
-gui.BoxPlugin = gui.Plugin.extend ( "gui.BoxPlugin", {
+gui.BoxPlugin = gui.Plugin.extend ({
 	
 	width   : 0, // width
 	height  : 0, // height

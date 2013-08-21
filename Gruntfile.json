@@ -5,11 +5,13 @@
 	"src/boot/gui.SpiritualAid.js",
 	"src/boot/gui.Spiritual.js",
 
-	"src/lang/gui.Type.js",
+	
 	"src/lang/gui.Object.js",
+	"src/lang/gui.Type.js",
 	"src/lang/gui.Array.js",
 	"src/lang/gui.Arguments.js",
 	"src/lang/gui.Function.js",
+	"src/lang/gui.Namespace.js",
 	"src/lang/gui.Class.js",
 	"src/lang/gui.Property.js",
 	"src/lang/gui.Interface.js",
@@ -68,7 +70,6 @@
 	"src/modules/core.module/spirits/gui.DocumentSpirit.js",
 	"src/modules/core.module/spirits/gui.IframeSpirit.js",
 	"src/modules/core.module/spirits/gui.StyleSheetSpirit.js",
-	"src/modules/core.module/spirits/gui.ActionSpirit.js",
 	"src/modules/core.module/spirits/gui.CoverSpirit.js",
 	"src/modules/core.module/core.module.js",
 

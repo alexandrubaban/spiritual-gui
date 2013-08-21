@@ -5,7 +5,7 @@
  */
 gui.TweenPlugin = ( function using ( chained ) {
 
-	return gui.Tracker.extend ( "gui.TweenPlugin", {
+	return gui.Tracker.extend ({
 
 		/**
 		 * Add one or more broadcast handlers.

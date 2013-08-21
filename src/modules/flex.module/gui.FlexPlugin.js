@@ -3,7 +3,7 @@
  * provided a fixed classname structure.
  * @extends {gui.Plugin}
  */
-gui.FlexPlugin = gui.Plugin.extend ( "gui.FlexPlugin", {
+gui.FlexPlugin = gui.Plugin.extend ({
 
 	/**
 	 * Flex this and descendant flexboxes in document order.

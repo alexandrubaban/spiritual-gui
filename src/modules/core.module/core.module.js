@@ -11,7 +11,6 @@ gui.module ( "core", {
 		[ "html", gui.DocumentSpirit ],
 		[ ".gui-styles", gui.StyleSheetSpirit ], // @TODO fix or deprecate
 		[ ".gui-iframe", gui.IframeSpirit ],
-		[ ".gui-action", gui.ActionSpirit ], // @TODO fix or deprecate
 		[ ".gui-cover", gui.CoverSpirit ],
 		[ ".gui-spirit", gui.Spirit ]
 	],

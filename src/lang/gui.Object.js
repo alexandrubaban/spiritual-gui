@@ -54,6 +54,7 @@ gui.Object = {
 
   /**
    * Mixin something with collision detection.
+   * @TODO There's an 'Object.mixin' thing now...
    * @TODO bypass extend?
    * @param {object]} target
    * @param {String} key
@@ -163,6 +164,18 @@ gui.Object = {
 	},
 
 	/**
+	 * List names of invocable methods *excluding* prototype stuff.
+	 * @return {Array<String>}
+	 */
+	ownmethods : function ( object ) {
+		return Object.keys ( object ).filter ( function ( key ) {
+			return gui.Type.isMethod ( object [ key ]);
+		}).map ( function ( key ) {
+			return key;
+		});
+	},
+
+	/**
 	 * List names of non-method properties *including* prototype stuff.
 	 * @return {Array<String>}
 	 */
@@ -174,6 +187,22 @@ gui.Object = {
 			}
 		}
 		return result;
+	},
+
+	/**
+	 * Bind the "this" keyword for all public instance methods. 
+	 * Stuff descending from the prototype chain is ignored. 
+	 * @TODO does this belong here?
+	 * @param {object} object
+	 * @returns {object}
+	 */
+	bindall : function ( object ) {
+		gui.Object.ownmethods ( object ).filter ( function ( name ) {
+			return name [ 0 ] !== "_";
+		}).forEach ( function ( name ) {
+			object [ name ] = object [ name ].bind ( object );
+		});
+		return object;
 	},
 
 	/**
@@ -192,6 +221,7 @@ gui.Object = {
 					result = Array.map ( object, function ( thing ) {
 						return thing;
 					});
+					
 				}
 			} catch ( exception ) {}
 	  }

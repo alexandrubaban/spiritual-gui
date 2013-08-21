@@ -3,7 +3,7 @@
  * @TODO: Perhaps support this feaure for all crawlers?
  * @extends {gui.Crawler}
  */
-gui.GuideCrawler = gui.Crawler.extend ( "gui.GuideCrawler", {
+gui.GuideCrawler = gui.Crawler.extend ({
 
 	/**
 	 * Stamp start element.

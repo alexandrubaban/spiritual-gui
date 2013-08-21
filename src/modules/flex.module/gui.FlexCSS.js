@@ -93,10 +93,15 @@ gui.FlexCSS = {
  */
 gui.FlexCSS.emulated =  {
 	".flexrow, .flexcol" : {
-		"display" : "block",
-		"width" : "100%",
+		"display" : "block"
+		//"width" : "100%",
+		//"height" : "100%"
+	},
+	/*
+	".flexcol > .flexrow" : { // hmm...
 		"height" : "100%"
 	},
+	*/
 	".flexrow" : {
 		"white-space" : "nowrap"
 	},

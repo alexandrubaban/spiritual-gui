@@ -19,8 +19,8 @@
 		this.type = type;
 		this.data = data;
 		this.isGlobal = global;
-		this.$contextids = [];
 		this.$contextid = sig || gui.$contextid;
+		this.$instanceid = gui.KeyMaster.generateKey ();
 	};
 
 	gui.Broadcast.prototype = {
@@ -65,6 +65,11 @@
 		$contextids : null,
 
 		/**
+		 * Experimantal...
+		 */
+		$instanceid : null,
+
+		/**
 		 * Identification
 		 * @returns {String}
 		 */
@@ -87,6 +92,13 @@
 	 * @type {Map<String,Map<String,Array<object>>>}
 	 */
 	gui.Broadcast._locals = Object.create ( null );
+
+	/**
+	 * Hacked mechanism to control global broadcast propagation. Simply snapshot 
+	 * the $instanceid of each dispatched broadcast, resulting in a huge map.
+	 * @type {Map<String,boolean>}
+	 */
+	gui.Broadcast._quickfix = Object.create ( null );
 
 	/**
 	 * mapcribe handler to message.
@@ -152,8 +164,13 @@
 	 * @param {object} data
 	 * @returns {gui.Broadcast}
 	 */
-	gui.Broadcast.dispatchGlobal = function ( target, type, data ) {
-		return this._dispatch ( target, type, data );
+	gui.Broadcast.dispatchGlobal = function ( target, type, data, instanceid ) {
+		if ( instanceid && this._quickfix [ instanceid ]) {
+			return;
+		}
+		var res = this._dispatch ( target, type, data );
+		this._quickfix [ res.$instanceid ] = true;
+		return res;
 	};
 
 	/**

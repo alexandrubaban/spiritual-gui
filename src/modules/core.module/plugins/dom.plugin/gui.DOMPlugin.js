@@ -6,7 +6,7 @@
  */
 gui.DOMPlugin = ( function using ( chained ) {
 
-	return gui.Plugin.extend ( "gui.DOMPlugin", {
+	return gui.Plugin.extend ({
 
 		/**
 		 * Set or get element id.
@@ -237,14 +237,17 @@ gui.DOMPlugin = ( function using ( chained ) {
 		 * @returns {number}
 		 */
 		ordinal : function ( element ) {
-			var result = 0; 
-			var node = element.parentNode.firstElementChild;
-			while ( node !== null ) {
-				if ( node === element ) {
-					break;
-				} else {
-					node = node.nextElementSibling;
-					result ++;
+			var result = 0;
+			var parent = element.parentNode;
+			if ( parent ) {
+				var node = parent.firstElementChild;
+				while ( node !== null ) {
+					if ( node === element ) {
+						break;
+					} else {
+						node = node.nextElementSibling;
+						result ++;
+					}
 				}
 			}
 			return result;
@@ -339,7 +342,12 @@ gui.DOMPlugin = ( function using ( chained ) {
 				if ( type ) {
 					result = this.qall ( node, selector, type )[ 0 ] || null;
 				} else {
-					result = node.querySelector ( selector );
+					try {
+						result = node.querySelector ( selector );
+					} catch ( exception ) {
+						console.error ( "Dysfunctional selector: " + selector );
+						throw exception;
+					}
 				}
 				return result;
 			});
@@ -357,7 +365,7 @@ gui.DOMPlugin = ( function using ( chained ) {
 		qall : function ( node, selector, type ) {
 			var result = [];
 			return this._qualify ( node, selector )( function ( node, selector ) {
-				result = gui.Array.toArray ( node.querySelectorAll ( selector ));
+				result = gui.Object.toArray ( node.querySelectorAll ( selector ));
 				if ( type ) {
 					result = result.filter ( function ( el )  {
 						return el.spirit && el.spirit instanceof type;
@@ -737,6 +745,7 @@ gui.Object.each ({
 
 	/**
 	 * Adding methods to gui.DOMPlugin.prototype
+	 * @TODO test for undefined type (spelling mistake etc.)
 	 * @param {String} name
 	 * @param {function} method
 	 */

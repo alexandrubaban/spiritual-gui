@@ -1,10 +1,12 @@
 /**
- * Simplistic XMLHttpRequest wrapper. 
- * Work in progress, lot's to do here.
+ * Simplistic XMLHttpRequest wrapper.
  * @param @optional {String} url
- * @param @optional {Document} doc Resolve URL relative tó this document (portal mode)
+ * @param @optional {Document} doc Resolve URL relative to given document location.
  */
 gui.Request = function ( url, doc ) {
+	this._headers = {
+		"Accept" : "application/json"
+	};
 	if ( url ) {
 		this.url ( url, doc );
 	}
@@ -42,16 +44,16 @@ gui.Request.prototype = {
 	 * Expected response type. Sets the accept header and formats 
 	 * callback result accordingly (eg. as JSON object, XML document) 
 	 * @param {String} mimetype
-	 * @returns {gui.SpiritRquest}
+	 * @returns {gui.Request}
 	 */
 	accept : function ( mimetype ) {
-		this._accept = mimetype;
+		this._headers.Accept = mimetype;
 		return this;
 	},
 
 	/**
 	 * Expect JSON response.
-	 * @returns {gui.SpiritRquest}
+	 * @returns {gui.Request}
 	 */
 	acceptJSON : function () {
 		return this.accept ( "application/json" );
@@ -59,7 +61,7 @@ gui.Request.prototype = {
 
 	/**
 	 * Expect XML response.
-	 * @returns {gui.SpiritRquest}
+	 * @returns {gui.Request}
 	 */
 	acceptXML : function () {
 		return this.accept ( "text/xml" );
@@ -67,16 +69,16 @@ gui.Request.prototype = {
 
 	/**
 	 * Expect text response.
-	 * @returns {gui.SpiritRquest}
+	 * @returns {gui.Request}
 	 */
 	acceptText : function () {
 		return this.accept ( "text/plain" );
 	},
 
 	/**
-	 * Request content type (when posting data to service).
+	 * Format response to this type.
 	 * @param {String} mimetype
-	 * @returns {gui.SpiritRquest}
+	 * @returns {gui.Request}
 	 */
 	format : function ( mimetype ) {
 		this._format = mimetype;
@@ -84,38 +86,29 @@ gui.Request.prototype = {
 	},
 
 	/**
-	 * Set request header.
-	 * @param {String} name
-	 * @param {String} value
-	 * @returns {gui.SpiritRquest}
+	 * Override mimetype to fit accept.
+	 * @returns {gui.Request}
 	 */
-	header : function ( name, value ) {
-		console.warn ( "@TODO request headers" );
+	override : function ( doit ) {
+		this._override = doit || true;
 		return this;
 	},
 
 	/**
-	 * Get stuff.
-	 * @TODO Synchronous version
-	 * @TODO Unhardcode status
-	 * @param {function} callback
-	 * @param {object} thisp
+	 * Append request headers.
+	 * @param {Map<String,String>} headers
+	 * @returns {gui.Request}
 	 */
-	get : function ( callback, thisp ) {	
-		var that = this, request = new XMLHttpRequest ();
-		request.onreadystatechange = function () {
-			if ( this.readyState === XMLHttpRequest.DONE ) {
-				callback.call ( thisp, 200, that._parse ( this.responseText ), this.responseText );
-			}
-		};
-		request.overrideMimeType ( this._accept );
-		request.open ( "get", this._url, true );
-		request.send ( null );
+	headers : function ( headers ) {
+		if ( gui.Type.isObject ( headers )) {
+			gui.Object.each ( headers, function ( name, value ) {
+				this._headers [ name ] = String ( value );
+			}, this );
+		} else {
+			throw new TypeError ( "Object expected" );
+		}
+		return this;
 	},
-
-	post : function () {},
-	put : function () {},
-	del : function () {},
 	
 	
 	// Private ...................................................................................
@@ -131,27 +124,57 @@ gui.Request.prototype = {
 	_url : null,
 
 	/**
-	 * Expected response type.
-	 * @TODO an array?
+	 * Default request type. Defaults to JSON.
 	 * @type {String}
 	 */
-	_accept : "text/plain",
+	_format : "application/json",
 
 	/**
-	 * Default request type.
+	 * Override response mimetype?
 	 * @type {String}
 	 */
-	_format : "application/x-www-form-urlencoded",
+	_override : false,
+
+	/**
+	 * Request headers.
+	 * @type {Map<String,String}
+	 */
+	_headers : null,
+
+	/**
+	 * Do the XMLHttpRequest.
+	 * @TODO http://mathiasbynens.be/notes/xhr-responsetype-json
+	 * @param {String} method
+	 * @param {object} payload
+	 * @param {function} callback
+	 */
+	_request : function ( method, payload, callback ) {
+		var that = this, request = new XMLHttpRequest ();
+		request.onreadystatechange = function () {
+			if ( this.readyState === XMLHttpRequest.DONE ) {
+				var data = that._response ( this.responseText );
+				callback ( this.status, data, this.responseText );
+			}
+		};
+		if ( this._override ) {
+			request.overrideMimeType ( this._headers.Accept );
+		}
+		request.open ( method.toUpperCase (), this._url, true );
+		gui.Object.each ( this._headers, function ( name, value ) {
+			request.setRequestHeader ( name, value, false );
+		});
+		request.send ( payload );
+	},
 
 	/**
 	 * Parse response to expected type.
 	 * @param {String} text
 	 * @returns {object}
 	 */
-	_parse : function ( text ) {	
+	_response : function ( text ) {	
 		var result = text;
 		try {
-			switch ( this._accept ) {
+			switch ( this._headers.Accept ) {
 				case "application/json" :
 					result = JSON.parse ( text );
 					break;
@@ -160,9 +183,30 @@ gui.Request.prototype = {
 					break;
 			}
 		} catch ( exception ) {
-			console.error ( this._accept + " dysfunction at " + this._url );
-			throw exception;
+			console.error ( 
+				this._headers.Accept + " dysfunction at " + this._url + "\n" + 
+				"Note that gui.Request defaults to accept and send JSON. " + 
+				"Use request.accept(mime) and request.format(mime) to change this stuff."
+			);
 		}
 		return result;
 	}
 };
+
+/**
+ * Generating methods for GET PUT POST DELETE.
+ * @param @optional {object} payload
+ */
+[ "get", "post", "put", "delete" ].forEach ( function ( method ) {
+	gui.Request.prototype [ method ] = function ( payload ) {
+		if ( gui.Type.isFunction ( payload )) {
+			throw new Error ( "Deprecated: gui.Request returns a gui.Then" );
+		}
+		var then = new gui.Then ();
+		payload = method === "get" ? null : payload;
+		this._request ( method, payload, function ( status, data, text ) {
+			then.now ( status, data, text );
+		});
+		return then;
+	};
+});

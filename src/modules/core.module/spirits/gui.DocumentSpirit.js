@@ -1,9 +1,8 @@
 /**
  * Spirit of the root HTML element.
  * @extends {gui.Spirit}
- * @TODO: Mechanism to whitelist xdomain hosts (postMessages)
  */
-gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
+gui.DocumentSpirit = gui.Spirit.extend ({
 
 	/**
 	 * Construct.
@@ -169,10 +168,15 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 
 	/**
 	 * Invoked at window.onunload by the {gui.Guide}.
-	 * Intercepted by the hosting {gui.IframeSpirit}.
+	 * Action intercepted by the hosting {gui.IframeSpirit}.
+	 * Broadcast intercepted by whoever might need to know. 
+	 * @TODO broadcast into global space?
 	 */
 	onunload : function () {
+		var id = this.window.gui.$contextid;
 		this.action.dispatchGlobal ( gui.ACTION_DOC_UNLOAD );
+		this.broadcast.dispatchGlobal ( gui.BROADCAST_WILL_UNLOAD, id );
+		this.broadcast.dispatchGlobal ( gui.BROADCAST_UNLOAD, id );
 	},
 
 	/**
@@ -199,19 +203,12 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 	 * @param {gui.Broadcast} b
 	 */
 	propagateBroadcast : function ( b ) {
-		b.$contextids.push ( this.$contextid );
 		var msg = gui.Broadcast.stringify ( b );
-		var win = this.window;
-		var sup = win.parent;
-		if ( win !== sup ) {
-			this.dom.qall ( "iframe", gui.IframeSpirit ).forEach ( function ( iframe ) {
-				if ( iframe.xhost ) {
-					iframe.contentWindow.postMessage ( msg, "*" );
-				}
-			});
-			if ( sup !== win ) {
-				sup.postMessage ( msg, "*" );
-			}
+		this.dom.qall ( "iframe", gui.IframeSpirit ).forEach ( function ( iframe ) {
+			iframe.contentWindow.postMessage ( msg, "*" );
+		});
+		if ( this.window !== this.window.parent ) {
+			this.window.parent.postMessage ( msg, "*" );
 		}
 	},
 	
@@ -299,13 +296,12 @@ gui.DocumentSpirit = gui.Spirit.infuse ( "gui.DocumentSpirit", {
 		var pattern = "spiritual-broadcast";
 		if ( msg.startsWith ( pattern )) {
 			var b = gui.Broadcast.parse ( msg );
-			if ( b.$contextids.indexOf ( this.$contextid ) < 0 ) {
-				gui.Broadcast.dispatchGlobal ( 
-					b.target, 
-					b.type, 
-					b.data 
-				);
-			}
+			gui.Broadcast.dispatchGlobal ( 
+				b.target, 
+				b.type, 
+				b.data,
+				b.$instanceid
+			);
 		} else {
 			pattern = "spiritual-action";
 			if ( msg.startsWith ( pattern )) {

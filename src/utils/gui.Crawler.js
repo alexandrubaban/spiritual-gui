@@ -3,7 +3,7 @@
  * @TODO method <code>descendSub</code> to skip start element (and something similar for ascend)
  * @param @optional {String} type
  */
-gui.Crawler = gui.Class.create ( "gui.Crawler", {
+gui.Crawler = gui.Class.create ( Object.prototype, {
 
 	/**
 	 * Identifies crawler. @TODO spirit support for this!

@@ -5,7 +5,7 @@
  */
 gui.CSSPlugin = ( function using ( chained ) {
 
-	return gui.Plugin.extend ( "gui.CSSPlugin", {
+	return gui.Plugin.extend ({
 
 		/**
 		 * Add classname.
@@ -96,6 +96,7 @@ gui.CSSPlugin = ( function using ( chained ) {
 
 		/**
 		 * Spirit element mathes selector?
+		 * @TODO: move to gui.DOMPlugin!
 		 * @param {String} selector
 		 * @returns {boolean}
 		 */
