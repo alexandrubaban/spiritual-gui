@@ -1020,7 +1020,7 @@ gui.Spiritual.prototype = {
 	/**
 	 * Channel spirits to CSS selectors.
 	 * @param {String} select CSS selector
-	 * @param {object|String} klass Constructor or name
+	 * @param {function|String} klass Constructor or name
 	 */
 	channel : function ( select, klass ) {
 		var spirit = null;
@@ -1044,6 +1044,24 @@ gui.Spiritual.prototype = {
 				klass : klass
 			});
 		}
+	},
+
+	/**
+	 * Hello.
+	 */
+	channelModule : function ( channels ) {
+		var spirit;
+		channels = channels.map ( function ( channel ) {
+			var query = channel [ 0 ];
+			var klass = channel [ 1 ];
+			if ( typeof klass === "string" ) {
+				spirit = gui.Object.lookup ( klass, this.context );
+			} else {
+				spirit = klass;
+			}
+			return [ query, spirit ];
+		}, this );
+		this._channels = channels.concat ( this._channels );
 	},
 
 	/**
@@ -4768,8 +4786,6 @@ gui.Spirit = gui.Class.create ( Object.prototype, {
 /**
  * Base constructor for all plugins.
  * @TODO "context" should be required in constructor (sandbox scenario)
- * @TODO Rename "gui.Plugin"
- * @TODO Rename *all* plugins to gui.SomethingPlugin :)
  */
 gui.Plugin = gui.Class.create ( Object.prototype, {
 
@@ -5183,11 +5199,7 @@ gui.Module = gui.Class.create ( Object.prototype, {
 			});
 		}
 		if ( gui.Type.isArray ( this.channels )) {
-			this.channels.forEach ( function ( channel ) {
-				var query = channel [ 0 ];
-				var klass = channel [ 1 ];
-				context.gui.channel ( query, klass );
-			}, this );
+			context.gui.channelModule ( this.channels );
 		}
 		this.$setupcontext ( context );
 	},
@@ -12929,7 +12941,7 @@ gui.Guide = {
 	},
 
 	/**
-	 * Evaluate spiritis for element and subtree.
+	 * Evaluate spirits for element and subtree.
 	 * 
 	 * - Construct spirits in document order
 	 * - Fire life cycle events except `ready` in document order
@@ -13161,7 +13173,11 @@ gui.Key.prototype = {
 		18 : "Alt",
 		17 : "Control",
 		16 : "Shift",
-		32 : "Space"
+		32 : "Space",
+
+		// extras
+
+		27 : "Esc"
 
 	}, Object.create ( null ));
 }());
@@ -13552,7 +13568,7 @@ gui.KeysModule = gui.module ( "keys", {
 	_oldschool : function ( e ) {
 		var n = e.keyCode, c = this._keymap [ n ], b = gui.BROADCAST_KEYEVENT;
 		var id = e.currentTarget.defaultView.gui.$contextid;
-
+		
 		/*
 		// TODO: THIS!
 		if ( e.ctrlKey && gui.Key.$key [ e.keyCode ] !== "Control" ) {

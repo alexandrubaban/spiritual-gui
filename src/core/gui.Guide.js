@@ -344,7 +344,7 @@ gui.Guide = {
 	},
 
 	/**
-	 * Evaluate spiritis for element and subtree.
+	 * Evaluate spirits for element and subtree.
 	 * 
 	 * - Construct spirits in document order
 	 * - Fire life cycle events except `ready` in document order

@@ -76,7 +76,11 @@ gui.Key.prototype = {
 		18 : "Alt",
 		17 : "Control",
 		16 : "Shift",
-		32 : "Space"
+		32 : "Space",
+
+		// extras
+
+		27 : "Esc"
 
 	}, Object.create ( null ));
 }());

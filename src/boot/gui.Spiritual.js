@@ -194,7 +194,7 @@ gui.Spiritual.prototype = {
 	/**
 	 * Channel spirits to CSS selectors.
 	 * @param {String} select CSS selector
-	 * @param {object|String} klass Constructor or name
+	 * @param {function|String} klass Constructor or name
 	 */
 	channel : function ( select, klass ) {
 		var spirit = null;
@@ -218,6 +218,24 @@ gui.Spiritual.prototype = {
 				klass : klass
 			});
 		}
+	},
+
+	/**
+	 * Hello.
+	 */
+	channelModule : function ( channels ) {
+		var spirit;
+		channels = channels.map ( function ( channel ) {
+			var query = channel [ 0 ];
+			var klass = channel [ 1 ];
+			if ( typeof klass === "string" ) {
+				spirit = gui.Object.lookup ( klass, this.context );
+			} else {
+				spirit = klass;
+			}
+			return [ query, spirit ];
+		}, this );
+		this._channels = channels.concat ( this._channels );
 	},
 
 	/**

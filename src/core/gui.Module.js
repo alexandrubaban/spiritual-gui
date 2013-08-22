@@ -79,11 +79,7 @@ gui.Module = gui.Class.create ( Object.prototype, {
 			});
 		}
 		if ( gui.Type.isArray ( this.channels )) {
-			this.channels.forEach ( function ( channel ) {
-				var query = channel [ 0 ];
-				var klass = channel [ 1 ];
-				context.gui.channel ( query, klass );
-			}, this );
+			context.gui.channelModule ( this.channels );
 		}
 		this.$setupcontext ( context );
 	},
