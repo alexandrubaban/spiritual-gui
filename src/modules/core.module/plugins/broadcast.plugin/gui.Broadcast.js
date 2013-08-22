@@ -13,14 +13,14 @@
 	 * @param {object} data
 	 * @param {boolean} global
 	 */
-	gui.Broadcast = function ( target, type, data, global, sig ) {
+	gui.Broadcast = function ( target, type, data, global, sig, contextids ) {
 
 		this.target = target;
 		this.type = type;
 		this.data = data;
 		this.isGlobal = global;
 		this.$contextid = sig || gui.$contextid;
-		this.$instanceid = gui.KeyMaster.generateKey ();
+		this.$contextids = contextids || [];
 	};
 
 	gui.Broadcast.prototype = {
@@ -63,12 +63,7 @@
 		 * @type {Array<String>}
 		 */
 		$contextids : null,
-
-		/**
-		 * Experimantal...
-		 */
-		$instanceid : null,
-
+		
 		/**
 		 * Identification
 		 * @returns {String}
@@ -92,13 +87,6 @@
 	 * @type {Map<String,Map<String,Array<object>>>}
 	 */
 	gui.Broadcast._locals = Object.create ( null );
-
-	/**
-	 * Hacked mechanism to control global broadcast propagation. Simply snapshot 
-	 * the $instanceid of each dispatched broadcast, resulting in a huge map.
-	 * @type {Map<String,boolean>}
-	 */
-	gui.Broadcast._quickfix = Object.create ( null );
 
 	/**
 	 * mapcribe handler to message.
@@ -164,13 +152,8 @@
 	 * @param {object} data
 	 * @returns {gui.Broadcast}
 	 */
-	gui.Broadcast.dispatchGlobal = function ( target, type, data, instanceid ) {
-		if ( instanceid && this._quickfix [ instanceid ]) {
-			return;
-		}
-		var res = this._dispatch ( target, type, data );
-		this._quickfix [ res.$instanceid ] = true;
-		return res;
+	gui.Broadcast.dispatchGlobal = function ( target, type, data, contextids ) {
+		return this._dispatch ( target, type, data, null, contextids );
 	};
 
 	/**
@@ -290,10 +273,10 @@
 	 * @param @optional {String} sig
 	 * @returns {gui.Broadcast}
 	 */
-	gui.Broadcast._dispatch = function ( target, type, data, sig ) {
+	gui.Broadcast._dispatch = function ( target, type, data, sig, contextids ) {
 		var global = !gui.Type.isString ( sig );
 		var map = global ? this._globals : this._locals [ sig ];
-		var b = new gui.Broadcast ( target, type, data, global, sig );
+		var b = new gui.Broadcast ( target, type, data, global, sig, contextids );
 		if ( map ) {
 			var handlers = map [ type ];
 			if ( handlers ) {

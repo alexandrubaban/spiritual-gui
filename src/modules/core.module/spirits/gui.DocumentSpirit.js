@@ -203,8 +203,19 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 	 * @param {gui.Broadcast} b
 	 */
 	propagateBroadcast : function ( b ) {
+		var id, ids = b.$contextids;
+		ids.push ( this.window.gui.$contextid );
+		var iframes = this.dom.qall ( "iframe", gui.IframeSpirit ).filter ( function ( iframe ) {
+			id = iframe.$instanceid;
+			if ( ids.indexOf ( id ) > -1 ) {
+				return false;
+			} else {
+				ids.push ( id );
+				return true;
+			}
+		});
 		var msg = gui.Broadcast.stringify ( b );
-		this.dom.qall ( "iframe", gui.IframeSpirit ).forEach ( function ( iframe ) {
+		iframes.forEach ( function ( iframe ) {
 			iframe.contentWindow.postMessage ( msg, "*" );
 		});
 		if ( this.window !== this.window.parent ) {
@@ -296,12 +307,14 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 		var pattern = "spiritual-broadcast";
 		if ( msg.startsWith ( pattern )) {
 			var b = gui.Broadcast.parse ( msg );
-			gui.Broadcast.dispatchGlobal ( 
-				b.target, 
-				b.type, 
-				b.data,
-				b.$instanceid
-			);
+			if ( b.$contextids.indexOf ( this.window.gui.$contextid ) < 0 ) {
+				gui.Broadcast.dispatchGlobal ( 
+					b.target, 
+					b.type, 
+					b.data,
+					b.$contextids
+				);
+			}
 		} else {
 			pattern = "spiritual-action";
 			if ( msg.startsWith ( pattern )) {
