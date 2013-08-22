@@ -300,7 +300,6 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 	 * 
 	 * 1. Relay broadcasts
 	 * 2. Relay descending actions
-	 * @TODO Don't claim this as action target!
 	 * @param {String} msg
 	 */
 	_onmessage : function ( msg ) {
@@ -308,12 +307,7 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 		if ( msg.startsWith ( pattern )) {
 			var b = gui.Broadcast.parse ( msg );
 			if ( this._relaybroadcast ( b.$contextids )) {
-				gui.Broadcast.dispatchGlobal ( 
-					b.target, 
-					b.type, 
-					b.data,
-					b.$contextids
-				);
+				gui.Broadcast.$dispatch ( b );
 			}
 		} else {
 			pattern = "spiritual-action";
