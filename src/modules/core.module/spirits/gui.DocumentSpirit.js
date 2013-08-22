@@ -307,7 +307,7 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 		var pattern = "spiritual-broadcast";
 		if ( msg.startsWith ( pattern )) {
 			var b = gui.Broadcast.parse ( msg );
-			if ( b.$contextids.indexOf ( this.window.gui.$contextid ) < 0 ) {
+			if ( this._relaybroadcast ( b.$contextids )) {
 				gui.Broadcast.dispatchGlobal ( 
 					b.target, 
 					b.type, 
@@ -330,6 +330,17 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 				}
 			}
 		}
+	},
+
+	/**
+	 * Should relay broadcast that has been postmessaged somwhat over-aggresively?
+	 * @param {Array<String>} ids
+	 * @returns {boolean}
+	 */
+	_relaybroadcast : function ( ids ) {
+		return [ gui.$contextid, this.window.gui.$contextid ].every ( function ( id ) {
+			return ids.indexOf ( id ) < 0;
+		});
 	},
 
 	/**
