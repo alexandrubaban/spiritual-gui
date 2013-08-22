@@ -6622,14 +6622,14 @@ Object.defineProperties ( gui.BoxPlugin.prototype, {
 	 * @param {object} data
 	 * @param {boolean} global
 	 */
-	gui.Broadcast = function ( target, type, data, global, sig ) {
+	gui.Broadcast = function ( target, type, data, global, sig, contextids ) {
 
 		this.target = target;
 		this.type = type;
 		this.data = data;
 		this.isGlobal = global;
 		this.$contextid = sig || gui.$contextid;
-		this.$instanceid = gui.KeyMaster.generateKey ();
+		this.$contextids = contextids || [];
 	};
 
 	gui.Broadcast.prototype = {
@@ -6672,12 +6672,7 @@ Object.defineProperties ( gui.BoxPlugin.prototype, {
 		 * @type {Array<String>}
 		 */
 		$contextids : null,
-
-		/**
-		 * Experimantal...
-		 */
-		$instanceid : null,
-
+		
 		/**
 		 * Identification
 		 * @returns {String}
@@ -6701,13 +6696,6 @@ Object.defineProperties ( gui.BoxPlugin.prototype, {
 	 * @type {Map<String,Map<String,Array<object>>>}
 	 */
 	gui.Broadcast._locals = Object.create ( null );
-
-	/**
-	 * Hacked mechanism to control global broadcast propagation. Simply snapshot 
-	 * the $instanceid of each dispatched broadcast, resulting in a huge map.
-	 * @type {Map<String,boolean>}
-	 */
-	gui.Broadcast._quickfix = Object.create ( null );
 
 	/**
 	 * mapcribe handler to message.
@@ -6773,13 +6761,8 @@ Object.defineProperties ( gui.BoxPlugin.prototype, {
 	 * @param {object} data
 	 * @returns {gui.Broadcast}
 	 */
-	gui.Broadcast.dispatchGlobal = function ( target, type, data, instanceid ) {
-		if ( instanceid && this._quickfix [ instanceid ]) {
-			return;
-		}
-		var res = this._dispatch ( target, type, data );
-		this._quickfix [ res.$instanceid ] = true;
-		return res;
+	gui.Broadcast.dispatchGlobal = function ( target, type, data, contextids ) {
+		return this._dispatch ( target, type, data, null, contextids );
 	};
 
 	/**
@@ -6899,10 +6882,10 @@ Object.defineProperties ( gui.BoxPlugin.prototype, {
 	 * @param @optional {String} sig
 	 * @returns {gui.Broadcast}
 	 */
-	gui.Broadcast._dispatch = function ( target, type, data, sig ) {
+	gui.Broadcast._dispatch = function ( target, type, data, sig, contextids ) {
 		var global = !gui.Type.isString ( sig );
 		var map = global ? this._globals : this._locals [ sig ];
-		var b = new gui.Broadcast ( target, type, data, global, sig );
+		var b = new gui.Broadcast ( target, type, data, global, sig, contextids );
 		if ( map ) {
 			var handlers = map [ type ];
 			if ( handlers ) {
@@ -10421,8 +10404,19 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 	 * @param {gui.Broadcast} b
 	 */
 	propagateBroadcast : function ( b ) {
+		var id, ids = b.$contextids;
+		ids.push ( this.window.gui.$contextid );
+		var iframes = this.dom.qall ( "iframe", gui.IframeSpirit ).filter ( function ( iframe ) {
+			id = iframe.$instanceid;
+			if ( ids.indexOf ( id ) > -1 ) {
+				return false;
+			} else {
+				ids.push ( id );
+				return true;
+			}
+		});
 		var msg = gui.Broadcast.stringify ( b );
-		this.dom.qall ( "iframe", gui.IframeSpirit ).forEach ( function ( iframe ) {
+		iframes.forEach ( function ( iframe ) {
 			iframe.contentWindow.postMessage ( msg, "*" );
 		});
 		if ( this.window !== this.window.parent ) {
@@ -10514,12 +10508,14 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 		var pattern = "spiritual-broadcast";
 		if ( msg.startsWith ( pattern )) {
 			var b = gui.Broadcast.parse ( msg );
-			gui.Broadcast.dispatchGlobal ( 
-				b.target, 
-				b.type, 
-				b.data,
-				b.$instanceid
-			);
+			if ( b.$contextids.indexOf ( this.window.gui.$contextid ) < 0 ) {
+				gui.Broadcast.dispatchGlobal ( 
+					b.target, 
+					b.type, 
+					b.data,
+					b.$contextids
+				);
+			}
 		} else {
 			pattern = "spiritual-action";
 			if ( msg.startsWith ( pattern )) {
