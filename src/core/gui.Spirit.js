@@ -64,7 +64,11 @@ gui.Spirit = gui.Class.create ( Object.prototype, {
 	 * instructs the spirit to parse configuration attributes in markup. 
 	 * @see {gui.AttConfigPlugin}
 	 */
-	onconfigure : function () {},
+	onconfigure : function () {
+		if ( !this._startstates ()) {
+			gui.Spirit.$oninit ( this );
+		}
+	},
 	
 	/**
 	 * `onenter` gets called when the spirit element is first encounted in the page DOM. 
@@ -85,6 +89,11 @@ gui.Spirit = gui.Class.create ( Object.prototype, {
 	 * ready. From a DOM tree perspective, this fires in reverse order, innermost first. 
 	 */
 	onready : function () {},
+
+	/**
+	 * Experimental.
+	 */
+	oninit : function () {},
 
 	/**
 	 * `ondetach` gets callend whenever the spirit element is about to be detached from the DOM tree. 
@@ -158,7 +167,7 @@ gui.Spirit = gui.Class.create ( Object.prototype, {
 	 * - bonus plugins galore
 	 */
 	$pluginplugins : function () {
-		var Plugin, now, plugins = this.constructor.$plugins;
+		var Plugin, plugins = this.constructor.$plugins;
 		this.life = new gui.LifePlugin ( this );
 		this.attconfig = new gui.AttConfigPlugin ( this );
 		Object.keys ( plugins ).filter ( function ( prefix ) {
@@ -240,7 +249,15 @@ gui.Spirit = gui.Class.create ( Object.prototype, {
 	 * @returns {gui.Spirit}
 	 */
 	extend : function () {
-		var C = gui.Class.extend.apply ( this, arguments );
+		
+		var args = [], def, br = gui.Class.breakdown ( arguments );
+		[ "name", "protos", "recurring", "statics" ].forEach ( function ( key ) {
+			if (( def = br [ key ])) {
+				args.push ( key === "recurring" ? gui.Spirit.$longhand ( def ) : def );
+			}
+		}, this );
+		
+		var C = gui.Class.extend.apply ( this, args );
 		C.$plugins = gui.Object.copy ( this.$plugins );
 		var b = gui.Class.breakdown ( arguments );
 		gui.Object.each ( C.$plugins, function ( prefix, plugin ) {
@@ -403,6 +420,260 @@ gui.Spirit = gui.Class.create ( Object.prototype, {
 		spirit.$ondestruct ();
 		spirit.window.gui.destruct ( spirit );
 		gui.GreatSpirit.$meet ( spirit );
+	},
+
+
+
+	// TEMP ...................................................................
+
+	/**
+	 * Mapping constructor identifiers to private property names.
+	 * @type {Map<String,String>}
+	 */
+	$states : {
+		"State" : "_state",
+		"SessionState" : "_sessionstate",
+		"LocalState" : "_localstate"
+	}, 
+
+	/**
+	 * @TODO: Init that spirit (work in progress)
+	 * @TODO wait and done methods to support this
+	 * @param {gui.Spirit} spirit
+	 */
+	$oninit : function ( spirit ) {
+		spirit.life.initialized = true;
+		spirit.life.dispatch ( "life-initialized" );
+		spirit.oninit ();
+	},
+
+	/**
+	 * Resolve shorthand notation for State constructors.
+	 * @param {object} recurring Recurring static fields.
+	 * @returns {object}
+	 */
+	$longhand : function ( recurring ) {
+		var State;
+		var edb = window.edb || null;
+		if ( !edb ) {
+			return recurring; // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		}
+		Object.keys ( this.$states ).forEach ( function ( typename ) {
+			if (( State = recurring [ typename ])) {
+				if ( gui.Type.isObject ( State ) && !State.$classid ) {
+					recurring [ typename ] = edb [ typename ].extend ( State );
+				}
+			}
+		});
+		return recurring;
 	}
 
 });
+
+
+
+
+
+
+/**
+ * Spirit of the spirit. A similar interface, only without spirit dependencies, 
+ * should eventually be concieved to function inside the web worker context.
+ * @extends {ts.gui.Spirit}
+ *
+ts.edb.Controller = ts.gui.Spirit.extend ({
+
+	/**
+	 * Called when all viewstates are restored/created and has been output on the page.
+	 *
+	oninit : function () {},
+
+	/**
+	 * Output viewstate models in public context. Invoke 
+	 * `oninit` when all viewstates are accounted for.
+	 *
+	onconfigure : function () {
+		this._super.onconfigure ();
+		this.att.add ( "view" );
+		if ( !this._startstates ()) {
+			ts.edb.Controller.$oninit ( this );
+		}
+	},
+
+	/**
+	 * Handle attribute updated. This also fires when the attribute listener gets added.
+	 * @param {gui.Att} att
+	 *
+	onatt : function ( att ) {
+		this._super.onatt ( att );
+		switch ( att.name ) {
+			case "view" :
+				this.script.load ( att.value );
+				break;
+		}
+	},
+
+	/**
+	 * Handle input. In this case our own state models.
+	 * @param {edb.Input} input
+	 *
+	oninput : function ( input ) {
+		this._super.oninput ( input );
+		if ( input.data instanceof ts.edb.State ) {
+			if ( this._statesstarted ( input.type, input.data )) {
+				ts.edb.Controller.$oninit ( this );
+			}
+		}
+	},
+
+
+	// Private .......................................................................
+
+	/**
+	 * Optional State instance.
+	 * @type {ts.edb.Controller.State}
+	 *
+	_state : null,
+
+	/**
+	 * Optional SessionState instance.
+	 * @type {ts.edb.Controller.SessionState}
+	 *
+	_sessionstate : null,
+
+	/**
+	 * Optional LocalState instance.
+	 * @type {ts.edb.Controller.LocalState}
+	 *
+	_localstate : null,
+
+	/**
+	 * Fire up potential state models. Returns 
+	 * `true` if any state models are declared.
+	 * @returns {boolean}
+	 *
+	_startstates : function () {
+		var State;
+		return Object.keys ( ts.edb.Controller.$states ).some ( function ( state ) {
+			if (( State = this.constructor [ state ])) {
+				this._startstate ( State );
+				return true;
+			} else {
+				return false;
+			}
+		}, this );
+	},
+
+	/**
+	 * Output the state model only when the first 
+	 * instance of this spirit is constructed. 
+	 * Attempt to restore the stage from storage.
+	 * @param {function} State
+	 *
+	_startstate : function ( State ) {
+		this.input.add ( State );
+		if ( !State.out ( self )) {
+			State.restore ().then ( function ( state ) {
+				state = state || new State ();
+				state.$output ( self );
+			}, this );
+		}
+	},
+
+	/**
+	 * Assign state instance to private property name. 
+	 * Returns true when all expected states are done.
+	 * @param {function} State constructor
+	 * @param {ts.edb.State} state instance
+	 * @returns {boolean}
+	 *
+	_statesstarted : function ( State, state ) {
+		var MyState, propname, states = ts.edb.Controller.$states;
+		return Object.keys ( states ).every ( function ( typename ) {
+			MyState = this.constructor [ typename ];
+			propname = states [ typename ];
+			this [ propname ] = State === MyState ? state : null;
+			return !MyState || this [ propname ] !== null;
+		}, this ); 
+	}
+
+
+
+}, { // Recurring static ...........................................................
+
+	/**
+	 * Optional State constructor. The class will be declared using the spirit 
+	 * classname as a namespacing mechanism of some kind: `myns.MyController.State`. 
+	 * @extends {ts.edb.State}
+	 *
+	State : null,
+
+	/**
+	 * Optional SessionState constructor.
+	 * @extends {ts.edb.SessionState}
+	 *
+	SessionState : null,
+
+	/**
+	 * Optional LocalState constructor.
+	 * @extends {ts.edb.LocalState}
+	 *
+	LocalState : null,
+
+	/**
+	 * Allow State constructors to be created by nice shorhand notation. 
+	 * Simply declare an object instead of `ts.edb.State.extend(object)`
+	 * @overwrites {gui.Spirit.extend} 
+	 * @TODO no spirits in worker context
+	 *
+	extend : function () {
+		var args = [], def, breakdown = gui.Class.breakdown ( arguments );
+		[ "name", "protos", "recurring", "statics" ].forEach ( function ( key ) {
+			if (( def = breakdown [ key ])) {
+				args.push ( key === "recurring" ? ts.edb.Controller.$longhand ( def ) : def );
+			}
+		}, this );
+		return ts.gui.Spirit.extend.apply ( this, args );
+	}
+
+
+}, { // Static .....................................................................
+
+	/**
+	 * Mapping constructor identifiers to private property names.
+	 * @type {Map<String,String>}
+	 *
+	$states : {
+		"State" : "_state",
+		"SessionState" : "_sessionstate",
+		"LocalState" : "_localstate"
+	}, 
+
+	/**
+	 * Init that spirit.
+	 * @param {ts.edb.Controller} spirit
+	 *
+	$oninit : function ( spirit ) {
+		spirit.life.initialized = true;
+		spirit.life.dispatch ( "life-initialized" );
+		spirit.oninit ();
+	},
+
+	/**
+	 * Resolve shorthand notation for State constructors.
+	 * @param {object} recurring Recurring static fields.
+	 * @returns {object}
+	 *
+	$longhand : function ( recurring ) {
+		var State;
+		Object.keys ( this.$states ).forEach ( function ( typename ) {
+			if (( State = recurring [ typename ])) {
+				if ( gui.Type.isObject ( State ) && !State.$classid ) {
+					recurring [ typename ] = ts.edb [ typename ].extend ( State );
+				}
+			}
+		});
+		return recurring;
+	}
+
+});
+*/

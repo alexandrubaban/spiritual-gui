@@ -195,7 +195,7 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 	},
 
 	/**
-	 * Propagate broadcast xdomain, recursively posting to neighboring documentspirits.
+	 * Propagate broadcast cross-iframes, recursively posting to neighboring documentspirits.
 	 *
 	 * 1. Propagate descending
 	 * 2. Propagate ascending

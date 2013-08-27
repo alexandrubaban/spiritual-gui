@@ -11,6 +11,7 @@ gui.FlexMode = ( function using ( nonenumerable ) {
 		 * @type {boolean}
 		 */
 		flexloaded : nonenumerable ({
+			writable : true,
 			value : false
 		}),
 

@@ -84,7 +84,7 @@ gui.KeyPlugin = ( function using ( confirmed, chained ) {
 					list.forEach ( function ( checks ) {
 						handler = checks [ 0 ];
 						isglobal = checks [ 1 ];
-						if ( isglobal === b.isGlobal ) {
+						if ( isglobal === b.global ) {
 							handler.onkey ( new gui.Key ( down, type, isglobal ));
 						}
 					});

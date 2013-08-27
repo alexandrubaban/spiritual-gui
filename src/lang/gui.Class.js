@@ -1,6 +1,6 @@
 /**
- * This fellow allow us to create a newable constructor that can be 'subclassed' via an extend method. 
- * Instances of the "class" may use a special `_super` method to overload members of the "superclass".
+ * This fellow allow us to create a newable constructor that can be "subclassed" via an extend method. 
+ * Instances of the "class" may use a special `_super` method to override members of the "superclass".
  * @TODO Evaluate static stuff first so that proto can declare vals as static props 
  * @TODO Check if static stuff shadows recurring static (vice versa) and warn about it.
  * @TODO It's possible for a prototype to be a prototype, investigate this inception
@@ -26,7 +26,7 @@ gui.Class = {
 				C [ key ] = C.$recurring [ key ] = val;
 			});
 		}
-		return C; // this._profiling ( C );
+		return C;
 	},
 
 	/**
@@ -38,6 +38,32 @@ gui.Class = {
 	 */
 	breakdown : function ( args ) {
 		return this._breakdown_subs ( args );
+	},
+
+
+	// Secret ...............................................................................
+
+	/**
+	 * The 'this' keyword around here points to the instance via 'apply'.
+	 * @param {object} instance
+	 * @param {Arguments} arg
+	 */
+	$constructor : function () {
+		var constructor = this.$onconstruct || this.onconstruct;
+		var nonenumprop = gui.Property.nonenumerable;
+		window.Object.defineProperties ( this, {
+			"$instanceid" : nonenumprop ({
+				value: gui.KeyMaster.generateKey ()
+			}),
+			displayName : nonenumprop ({
+				value : this.constructor.displayName,
+				writable : true
+			})
+		});
+		if ( gui.Type.isFunction ( constructor )) {
+			constructor.apply ( this, arguments );
+		}
+		return this;
 	},
 	
 
@@ -60,7 +86,8 @@ gui.Class = {
 	 * which we can as constructor body for classes. The $name 
 	 * will be substituted for the class name. Note that if 
 	 * called without the 'new' keyword, the function acts 
-	 * as a shortcut the the MyClass.extend method.
+	 * as a shortcut the the MyClass.extend method (against 
+	 * convention, which is to silently imply the 'new' keyword).
 	 * @type {String}
 	 */
 	_BODY : ( function ( $name ) {
@@ -68,23 +95,10 @@ gui.Class = {
 		return body.slice ( body.indexOf ( "{" ) + 1, -1 );
 	}(
 		function $name () {
-			if ( this instanceof $name === false ) {
-				return $name.extend.apply ( $name, arguments );
+			if ( this instanceof $name ) {
+				return gui.Class.$constructor.apply ( this, arguments );	
 			} else {
-				var constructor = this.$onconstruct || this.onconstruct;
-				var nonenumprop = gui.Property.nonenumerable;
-				window.Object.defineProperties ( this, {
-					"$instanceid" : nonenumprop ({
-						value: gui.KeyMaster.generateKey ( "instance" )
-					}),
-					displayName : nonenumprop ({
-						value : this.constructor.displayName,
-						writable : true
-					})
-				});
-				if ( gui.Type.isFunction ( constructor )) {
-					constructor.apply ( this, arguments );
-				}
+				return $name.extend.apply ( $name, arguments );	
 			}
 		}
 	)),
@@ -132,18 +146,14 @@ gui.Class = {
 	 * @returns {function}
 	 */
 	_createclass : function ( SuperC, proto, name ) {
-		// if ( name ) { console.debug ( name );} ... intend to deprecate ...
 		name = name || gui.Class.ANONYMOUS;
 		var C = gui.Function.create ( name, null, this._namedbody ( name ));
 		C.$classid = gui.KeyMaster.generateKey ( "class" );
-		//C.$classname = this.ANONYMOUS;
 		C.prototype = Object.create ( proto || null );
 		C.prototype.constructor = C;
-		//C = this.$nameclass ( C, this.ANONYMOUS );
 		C = this._internals ( C, SuperC );
 		C = this._interface ( C );
-		C = this._classname ( C );
-		//C = this._nameclass ( C, name );
+		C = this._classname ( C, name );
 		return C;
 	},
 
@@ -180,29 +190,9 @@ gui.Class = {
 		});
 		gui.Property.extendall ( protos, C.prototype ); // @TODO what about base?
 		gui.Super.support ( SuperC, C, protos );
-		//C = this._nameclass ( C, name );
-		return C; // this._profiling ( C );
-	},
-
-	/**
-	 * This might do something in the profiler. Not much luck with stack traces.
-	 * @see http://www.alertdebugging.com/2009/04/29/building-a-better-javascript-profiler-with-webkit/
-	 * @see https://code.google.com/p/chromium/issues/detail?id=17356
-	 * @param {function} C
-	 * @returns {function}
-	 *
-	_profiling : function ( C ) {
-		var name = C.name || gui.Class.ANONYMOUS;
-		[ C, C.prototype ].forEach ( function ( thing ) {
-			gui.Object.each ( thing, function ( key, value ) {
-				if ( gui.Type.isMethod ( value )) {
-					this._displayname ( value, name + "." + key );
-				}
-			}, this );
-		}, this );
+		C = this._classname ( C, name );
 		return C;
 	},
-	*/
 
 	/**
 	 * Setup framework internal propeties.
@@ -228,40 +218,11 @@ gui.Class = {
 	 * @returns {function}
 	 */
 	_interface : function ( C ) {
-		[ "extend", "mixin" ].forEach ( function ( method ) {
+		[ "extend", "mixin", "isInstance" ].forEach ( function ( method ) {
 			C [ method ] = this [ method ];
 		}, this );
 		return C;
 	},
-
-	/**
-	 * Name constructor and instance.
-	 * @param {function} C
-	 * @param {String} name
-	 * @returns {function}
-	 *
-	_nameclass : function ( C, name ) {
-		name = name || gui.Class.ANONYMOUS;
-		this._namedthing ( C, "function", name );
-		this._namedthing ( C.prototype, "object", name );
-		return C;
-	},
-
-	/**
-	 * Name constructor or instance.
-	 * @param {object} what
-	 * @param {String} type
-	 * @param {String} name
-	 *
-	_namedthing : function ( what, type, name ) {
-		this._displayname ( what, name );
-		if ( !what.hasOwnProperty ( "toString" )) {
-			what.toString = function toString () {
-				return "[" + type + " " + name + "]";
-			};
-		}
-	},
-	*/
 
 	/**
 	 * Assign toString() return value to function constructor and instance object.
@@ -270,8 +231,8 @@ gui.Class = {
 	 * @param {String} name
 	 * @returns {function}
 	 */
-	_classname : function ( C ) {
-		C.$classname = this.ANONYMOUS;
+	_classname : function ( C, name ) {
+		C.$classname = name || gui.Class.ANONYMOUS;
 		C.toString = function () {
 			return "[function " + this.$classname + "]";
 		};
@@ -302,45 +263,23 @@ gui.Class = {
 	}
 
 	/**
-	 * Assign name to function constructor and instance object.
-	 * @TODO validate unique name
+	 * This might do something in the profiler. Not much luck with stack traces.
+	 * @see http://www.alertdebugging.com/2009/04/29/building-a-better-javascript-profiler-with-webkit/
+	 * @see https://code.google.com/p/chromium/issues/detail?id=17356
 	 * @param {function} C
-	 * @param {String} name
 	 * @returns {function}
 	 *
-	_namedthing : function ( what, type, name ) {
-		this._displayname ( what, name );
-		if ( !what.hasOwnProperty ( "toString" )) {
-			what.toString = function toString () {
-				return "[" + type + " " + name + "]";
-			};
-		}
-	},
-
-	/**
-	 * Set the elusive displayName property. Doesn't seem to work a lot.
-	 * @param  {[type]} what [description]
-	 * @param  {[type]} name [description]
-	 * @return {[type]}      [description]
-	 *
-	_displayname : function ( thing, name ) {
-		if ( !gui.Type.isDefined ( thing.displayName )) {
-			Object.defineProperty ( thing, "displayName", 
-				gui.Property.nonenumerable ({
-					writable : true,
-					value : name
-				})
-			);
-		}
-		return thing;
-	},
-
-	$nameclass : function ( C, name ) {
-		C.$classname = name;
-		this._namedthing ( C, "function", name );
-		this._namedthing ( C.prototype, "object", name );
+	_profiling : function ( C ) {
+		var name = C.name || gui.Class.ANONYMOUS;
+		[ C, C.prototype ].forEach ( function ( thing ) {
+			gui.Object.each ( thing, function ( key, value ) {
+				if ( gui.Type.isMethod ( value )) {
+					this._displayname ( value, name + "." + key );
+				}
+			}, this );
+		}, this );
 		return C;
-	}
+	},
 	*/
 };
 
@@ -381,6 +320,15 @@ gui.Object.each ({
 		} else {
 			console.error ( "Mixin naming collision in " + this + ": " + name );
 		}
+	},
+
+	/**
+	 * Is instance of this?
+	 * @param {object} object
+	 * @returns {boolean}
+	 */
+	isInstance : function ( object ) {
+		return gui.Type.isObject ( object ) && ( object instanceof this );
 	}
 
 }, function ( name, method ) {

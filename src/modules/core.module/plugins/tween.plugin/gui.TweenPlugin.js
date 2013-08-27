@@ -106,7 +106,7 @@ gui.TweenPlugin = ( function using ( chained ) {
 			switch ( b.type ) {
 				case gui.BROADCAST_TWEEN :
 					var tween = b.data;
-					if ( this._containschecks ( tween.type, [ b.isGlobal ])) {
+					if ( this._containschecks ( tween.type, [ b.global ])) {
 						this.spirit.ontween ( tween ); // @TODO: try-catch for destructed spirit
 					}
 					break;

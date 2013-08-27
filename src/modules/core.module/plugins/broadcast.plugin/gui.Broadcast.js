@@ -30,7 +30,7 @@ gui.Broadcast = ( function using ( confirmed, chained ) {
 		 * @TODO rename "global"
 		 * @type {boolean}
 		 */
-		isGlobal : false,
+		global : false,
 
 		/**
 		 * Signature of dispatching context. 
@@ -93,21 +93,22 @@ gui.Broadcast = ( function using ( confirmed, chained ) {
 		}),
 
 		/**
-		 * Publish broadcast in local window scope.
+		 * Publish broadcast in specific window scope (defaults to this window)
 		 * @TODO queue for incoming dispatch (finish current message first).
 		 * @param {Spirit} target
 		 * @param {String} type
 		 * @param {object} data
-		 * @param {String} sig
+		 * @param {String} contextid
 		 * @returns {gui.Broadcast}
 		 */
-		dispatch : function ( target, type, data, sig ) {
+		dispatch : function ( target, type, data, contextid ) {
+			var id = contextid || gui.$contextid;
 			return this.$dispatch ({
 				target : target,
 				type : type,
 				data : data,
-				isGlobal : false,
-				$contextid : sig || gui.$contextid
+				global : false,
+				$contextid : id
 			});
 		},
 
@@ -145,7 +146,7 @@ gui.Broadcast = ( function using ( confirmed, chained ) {
 				target : target,
 				type : type,
 				data : data,
-				isGlobal : true,
+				global : true,
 				$contextid : gui.$contextid
 			});
 		},
@@ -261,7 +262,7 @@ gui.Broadcast = ( function using ( confirmed, chained ) {
 
 		/**
 		 * Dispatch broadcast.
-		 * @param {Map<String,object>} b
+		 * @param {gui.Broadcast|Map<String,object>} b
 		 */
 		$dispatch : function ( b ) {
 		 /*
@@ -271,7 +272,7 @@ gui.Broadcast = ( function using ( confirmed, chained ) {
 		 * @param @optional {String} sig
 		 * @returns {gui.Broadcast}
 		 */
-			var map = b.isGlobal ? this._globals : this._locals [ b.$contextid ];
+			var map = b.global ? this._globals : this._locals [ b.$contextid ];
 			if ( b instanceof gui.Broadcast === false ) {
 				b = new gui.Broadcast ( b );	
 			}
@@ -283,7 +284,7 @@ gui.Broadcast = ( function using ( confirmed, chained ) {
 					});
 				}
 			}
-			if ( b.isGlobal ) {
+			if ( b.global ) {
 				var root = document.documentElement.spirit;
 				if ( root ) { // no spirit before DOMContentLoaded
 					root.propagateBroadcast ( b );

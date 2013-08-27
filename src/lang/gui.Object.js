@@ -32,12 +32,16 @@ gui.Object = {
 	 * @returns {object}
 	 */
 	extend : function ( target, source, loose ) {
-		Object.keys ( source ).forEach ( function ( name ) {
-			if ( !loose || !gui.Type.isDefined ( target [ name ])) {
-				var desc = Object.getOwnPropertyDescriptor ( source, name );
-				Object.defineProperty ( target, name, desc );
-			}
-    });
+		if ( gui.Type.isObject ( source )) {
+			Object.keys ( source ).forEach ( function ( key ) {
+				if ( !loose || !gui.Type.isDefined ( target [ key ])) {
+					var desc = Object.getOwnPropertyDescriptor ( source, key );
+					Object.defineProperty ( target, key, desc );
+				}
+			});
+		} else {
+			throw new TypeError ( "Expected an object, got " + gui.Type.of ( source ));
+		}
     return target;
   },
 
@@ -119,8 +123,9 @@ gui.Object = {
 			result = struct [ opath ];
 		} else {
 			var parts = opath.split ( "." );
-			parts.forEach ( function ( part ) {
+			parts.every ( function ( part ) {
 				struct = struct [ part ];
+				return gui.Type.isDefined ( struct );
 			});
 			result = struct;
 		}
@@ -146,7 +151,7 @@ gui.Object = {
 			prop = opath;
 		}
 		struct [ prop ] = value;
-		return struct;
+		return value;
 	},
 
 	/**
