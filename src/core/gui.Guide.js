@@ -250,6 +250,7 @@ gui.Guide = {
 	_step1 : function ( doc ) {
 		var win = doc.defaultView;
 		var sig = win.gui.$contextid;
+		gui.Broadcast.removeGlobal (gui.BROADCAST_KICKSTART, this); //we don't need to listen anymore
 		this._metatags ( win ); // configure runtime
 		win.gui.start (); // channel spirits
 		this._stylesheets ( win ); // more spirits?
