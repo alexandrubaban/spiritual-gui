@@ -2,7 +2,6 @@
  * Do what Spiritual does by overloading JQuery methods instead of native DOM methods.
  * @TODO reduce crawled collections using compareDocumentPosition (also on following and preceding)
  * @TODO (Angular special) handle function replaceWith, "a special jqLite.replaceWith, which can replace items which have no parents"
- * @TODO Henrik says "$(iframe.contentDocument).remove() før man skifter URL eller fjerner iframen" (jQuery.cache og jQuery.fragments)
  */
 gui.module ( "jquery", {
 
@@ -40,7 +39,6 @@ gui.module ( "jquery", {
 	 * @param {jQuery} jq
 	 */
 	_expandos : function ( jq ) {
-		var guide = gui.Guide;
 		jq.__suspend = false;
 		[ 
 			"spiritualize", 
@@ -52,11 +50,6 @@ gui.module ( "jquery", {
 			"detach"
 		].forEach ( function ( method ) {
 			jq.fn [ "__" + method ] = function () {
-				/*
-				return this.each ( function ( i, el ) {
-					gui.Guide [ method ] ( el );
-				});
-				*/
 				gui.DOMPlugin.group ( Array.map ( this, function ( elm ) {
 					return elm; // this.toArray () doesn't seem to compute :/
 				})).forEach ( function ( elm ) {
@@ -162,7 +155,6 @@ gui.module ( "jquery", {
 					res = suber ();
 				} else {
 					var arg = function() { return set ? jq ( args [ 0 ]) : undefined; };
-					var guide = gui.Guide;
 					jq.__suspend = true;
 					switch ( name ) {
 						case "append" :

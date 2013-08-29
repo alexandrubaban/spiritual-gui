@@ -10,12 +10,16 @@
 
 module.exports = function ( grunt ) {
 
-	grunt.loadNpmTasks("grunt-contrib-concat");
-	grunt.loadNpmTasks("grunt-contrib-uglify");
-	grunt.loadNpmTasks("grunt-contrib-jshint");
-	grunt.loadNpmTasks ( "grunt-spiritual-dox" );
+	[
+		"grunt-contrib-concat",
+		"grunt-contrib-uglify",
+		"grunt-contrib-jshint", 
+		"grunt-spiritual-dox"
+	].forEach ( grunt.loadNpmTasks );
 
-	var sourcelist = grunt.file.readJSON("Gruntfile.json");
+	var sourcelist = grunt.file.readJSON("Gruntfile.json").map ( function ( list ) {
+		return list [ 0 ];
+	});
 	sourcelist.unshift("<banner:meta.banner>");
 
 	var BANNER = '' +

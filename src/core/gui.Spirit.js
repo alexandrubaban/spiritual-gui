@@ -65,8 +65,18 @@ gui.Spirit = gui.Class.create ( Object.prototype, {
 	 * @see {gui.AttConfigPlugin}
 	 */
 	onconfigure : function () {
-		if ( !this._startstates ()) {
-			gui.Spirit.$oninit ( this );
+		/*
+		 * @TODO: move to EDB module somehow...
+		 */
+		if ( !this._startstates ) {
+			if ( !gui.Spirit._didsayso ) {
+				console.warn ( "TODO: _startstates not setup nowadays" );
+				gui.Spirit._didsayso = true;
+			}
+		} else {
+			if ( !this._startstates ()) {
+				gui.Spirit.$oninit ( this );
+			}
 		}
 	},
 	

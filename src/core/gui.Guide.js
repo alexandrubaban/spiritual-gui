@@ -35,9 +35,6 @@ gui.Guide = {
 			case "load" :
 				this._onload ( sum );
 				break;
-			case "beforeunload" :
-				alert ( "HANSEN" );
-				break;
 			case "unload" :
 				this._unload ( sum );
 				break;

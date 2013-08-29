@@ -59,7 +59,6 @@ gui.DOMCombos = {
 
 		/**
 		 * Spiritualize new node plus subtree.
-		 * @param {Node} newnode
 		 * @param {Node} oldnode
 		 */
 		var spiritualizeNewAfter = combo.after ( function ( newnode, oldnode ) {
