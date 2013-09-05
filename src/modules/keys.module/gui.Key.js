@@ -80,7 +80,8 @@ gui.Key.prototype = {
 
 		// extras
 
-		27 : "Esc"
+		27 : "Esc",
+		13 : "Enter"
 
 	}, Object.create ( null ));
 }());
