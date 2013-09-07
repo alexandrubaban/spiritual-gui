@@ -8393,6 +8393,7 @@ gui.Guide = {
 	_step1 : function ( doc ) {
 		var win = doc.defaultView;
 		var sig = win.gui.$contextid;
+		gui.Broadcast.removeGlobal (gui.BROADCAST_KICKSTART, this); //we don't need to listen anymore
 		this._metatags ( win ); // configure runtime
 		win.gui.start (); // channel spirits
 		this._stylesheets ( win ); // more spirits?
@@ -9870,6 +9871,11 @@ gui.CSSPlugin = ( function using ( chained ) {
 			enumerable : true,
 			configurable : true,
 			get : function get () {
+				//@TODO: DANIEL WAS HERE, WE NEED A BETTER FIX
+				//@TODO: if inputspirit uses the cssplugin, when listing the methods on infuse, isMethod will call get() here on the prototype, which doesn't have a spirit, so it'll fail miserably.
+				if (!this.spirit){ 
+					return;
+				}
 				return parseInt ( this.get ( prop ), 10 );
 			},
 			set : function set ( val ) {
