@@ -4,9 +4,9 @@
  * @param {String} ns
  * @param {Object} defs
  */
-gui.Namespace = function Namespace ( context, ns, defs ) {
-	gui.Namespace.validate ( context, ns, this );
-	gui.Object.extend ( this, defs );
+gui.Namespace = function Namespace ( ns, context ) {
+	//gui.Namespace.validate ( context, ns, this );
+	//gui.Object.extend ( this, defs );
 	this.$context = context;
 	this.$ns = ns;
 };
@@ -14,6 +14,7 @@ gui.Namespace = function Namespace ( context, ns, defs ) {
 gui.Namespace.prototype = {
 
 	/**
+	 * Members may be portalled into subframes via the 'gui.portal' method?
 	 * @type {boolean}
 	 */
 	portals : false,
@@ -36,6 +37,7 @@ gui.Namespace.prototype = {
 	$ns : null,
 
 	/**
+	 * Declaration context.
 	 * @type {Window|WorkerScope}
 	 */
 	$context : null

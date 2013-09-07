@@ -4,40 +4,16 @@
 gui.module ( "core", {
 
 	/**
-	 * Channel spirits for CSS selectors.
-	 */
-	channels : [
-		
-		[ "html", gui.DocumentSpirit ],
-		[ ".gui-styles", gui.StyleSheetSpirit ], // @TODO fix or deprecate
-		[ ".gui-iframe", gui.IframeSpirit ],
-		[ ".gui-cover", gui.CoverSpirit ],
-		[ ".gui-spirit", gui.Spirit ]
-	],
-
-	/**
-	 * Assign plugins to prefixes for all {gui.Spirit}.
+	 * Assign plugins to all spirits.
 	 */
 	plugins : {
-		
 		"action" : gui.ActionPlugin,
-		"att" : gui.AttPlugin, 
-		"attconfig" : gui.AttConfigPlugin,
-		"attention" : gui.AttentionPlugin,
-		"box" : gui.BoxPlugin,
 		"broadcast" : gui.BroadcastPlugin,
-		"css" : gui.CSSPlugin,
-		"dom" : gui.DOMPlugin,
-		"event" : gui.EventPlugin,
-		"life" : gui.LifePlugin,
-		"tick" : gui.TickPlugin,
-		"tween" : gui.TweenPlugin,
-		"transition" : gui.TransitionPlugin,
-		"visibility" : gui.VisibilityPlugin
- },
+		"tick" : gui.TickPlugin
+	},
 
 	/**
-	 * Methods added to {gui.Spirit.prototype}
+	 * Methods added to all spirits.
 	 */
 	mixins : {
 
@@ -48,65 +24,16 @@ gui.module ( "core", {
 		onaction : function ( action ) {},
 
 		/**
-		 * Handle attribute.
-		 * @param {gui.Att} att
-		 */
-		onatt : function ( att ) {},		
-
-		/**
 		 * Handle broadcast.
 		 * @param {gui.Broadcast} broadcast
 		 */
 		onbroadcast : function ( broadcast ) {},
 
 		/**
-		 * Handle event.
-		 * @param {Event} event
-		 */
-		onevent : function ( event ) {},
-
-		/**
-		 * Handle lifecycle event.
-		 * @param {gui.Life} life
-		 */
-		onlife : function ( life ) {},
-
-		/**
 		 * Handle tick (timed event).
 		 * @param {gui.Tick} tick
 		 */
-		ontick : function ( tick ) {},
-
-		/**
-		 * Handle tween.
-		 * @param {gui.Tween}
-		 */
-		ontween : function ( tween ) {},
-
-		/**
-		 * Handle transiton end.
-		 * @param {gui.TransitionEnd} transition
-		 */
-		ontransition : function ( transition ) {},
-
-		/**
-		 * Handle visibility.
-		 */
-		onvisible : function () {},
-
-		/**
-		 * Handle invisibility.
-		 */
-		oninvisible : function () {},
-
-		/**
-		 * Native DOM interface. We'll forward the event to the method `onevent`.
-		 * @see http://www.w3.org/TR/DOM-Level-3-Events/#interface-EventListener
-		 * @param {Event} e
-		 */
-		handleEvent : function ( e ) {
-			this.onevent ( e );
-		}
+		ontick : function ( tick ) {}
 	}
 
 });

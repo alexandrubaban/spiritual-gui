@@ -243,7 +243,7 @@ gui.Spiritual.prototype = {
 	 * 
 	 * 1. Create a local instance of `gui.Spiritual` (this class) and assign it to the global variable `gui` in remote window.
 	 * 2. For all members of local `gui`, stamp a reference onto remote `gui`. In remote window, the variable `gui.Spirit` now points to a class declared in this window.
-	 * 3. Setup {gui.Guide} to attach remote spirits when the document loads.
+	 * 3. Setup {gui.Guide} to manage spirits when the document loads.
 	 *
 	 * Members of the `gui` namespace can be setup not to portal by setting the static boolean `portals=false` on the constructor.
 	 * @param {Window} sub An external window.
@@ -255,12 +255,24 @@ gui.Spiritual.prototype = {
 			var indexes = [];
 			// mark as portalled
 			subgui.portalled = true;
+			/*
+			subgui._spaces = [];
+			this._spaces.forEach ( function ( ns ) {
+				var members = gui.Object.lookup ( ns, this.context );
+				if ( members.portals ) {
+					try {
+						this.namespace ( ns, members, sub );
+					} catch ( x ) {
+						alert ( x );
+					}
+				}
+			}, this );
+			*/
 			// portal gui members + custom namespaces and members.
 			subgui._spaces = this._spaces.filter ( function ( ns ) {
 				var nso = gui.Object.lookup ( ns, this.context );
 				return nso.portals;
 			}, this );
-			// create object structures in remote context
 			this._spaces.forEach ( function ( ns ) {
 				var namespace = this.window [ ns ]; // @TODO: formalize something...
 				if ( namespace.portals ) {
@@ -282,6 +294,7 @@ gui.Spiritual.prototype = {
 					});
 				}
 			}, this );
+			
 			// Portal modules to initialize the sub context
 			// @TODO portal only the relevant init method?
 			gui.Object.each ( this._modules, function ( name, module ) {
@@ -300,26 +313,29 @@ gui.Spiritual.prototype = {
 	},
 
 	/**
-	 * Declare something as a namespace.
+	 * Declare namespace in given context. Optionally add members to the namespace.
 	 * @param {String} ns
-	 * @param {object} defs
-	 * @returns {object}
+	 * @param {Map<String,object>} members
+	 * @param @optional {Window} context
+	 * @returns {gui.Namespace}
 	 */
-	namespace : function ( ns, defs ) {
-		defs = defs || {};
+	namespace : function ( ns, members, context ) {
+		context = context || this.context;
+		var no, spaces = context.gui._spaces;
 		if ( gui.Type.isString ( ns )) {
-			if ( this._spaces.indexOf ( ns ) >-1 ) {
-				return gui.Object.lookup ( ns, this.context );
+			if ( spaces.indexOf ( ns ) >-1 ) {
+				ns = gui.Object.lookup ( ns, context );
 			} else {
-				this._spaces.push ( ns );
-				defs = new gui.Namespace ( this.context, ns, defs );
+				spaces.push ( ns );
+				no = new gui.Namespace ( ns, context );
+				ns = gui.Object.assert ( ns, no, context );
 			}
 		} else {
 			throw new TypeError ( "Expected a namespace string" );
 		}
-		return defs;
+		return gui.Object.extend ( ns, members || {});
 	},
-
+	
 	/**
 	 * List spiritual namespaces (returns a copy).
 	 * @return {Array<String>}

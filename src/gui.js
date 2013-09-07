@@ -11,13 +11,6 @@ window.gui = {
 	portals : true,
 
 	/**
-	 * Spiritual version. Hardcoded for now.
-	 * @TODO Deprecate or generate buildtime.
-	 * @type {String}
-	 */
-	version : "0.0.5",
-
-	/**
 	 * Native mode: Overloading native DOM methods.
 	 * @type {String}
 	 */
