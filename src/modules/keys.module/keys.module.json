@@ -1,7 +1,0 @@
-[
-	"gui.Key.js",
-	"gui.KeyPlugin.js",
-	"gui.IKeyHandler.js",
-	"gui.KeySpirit.js",
-	"keys.module.js"
-]

@@ -1,8 +1,0 @@
-[
-	"gui.FlexPlugin.js",
-	"gui.FlexBox.js",
-	"gui.FlexChild.js",
-	"gui.FlexCSS.js",
-	"gui.FlexMode.js",
-	"flex.module.js"
-]

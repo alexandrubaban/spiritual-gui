@@ -23,7 +23,10 @@ gui.Class = {
 		gui.Object.extend ( C, b.statics );
 		if ( b.recurring ) {
 			gui.Object.each ( b.recurring, function ( key, val ) {
-				C [ key ] = C.$recurring [ key ] = val;
+				var desc = Object.getOwnPropertyDescriptor ( C, key );
+				if ( !desc || desc.writable ) {
+					C [ key ] = C.$recurring [ key ] = val;
+				}
 			});
 		}
 		return C;
@@ -186,7 +189,10 @@ gui.Class = {
 		gui.Object.extend ( C, statics );
 		gui.Object.extend ( C.$recurring, recurring );
 		gui.Object.each ( C.$recurring, function ( key, val ) {
-			C [ key ] = val;
+			var desc = Object.getOwnPropertyDescriptor ( C, key );
+			if ( !desc || desc.writable ) {
+				C [ key ] = val;
+			}
 		});
 		gui.Property.extendall ( protos, C.prototype ); // @TODO what about base?
 		gui.Super.support ( SuperC, C, protos );
