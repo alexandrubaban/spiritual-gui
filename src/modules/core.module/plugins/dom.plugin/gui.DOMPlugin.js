@@ -368,7 +368,7 @@ gui.DOMPlugin = ( function using ( chained ) {
 				result = gui.Object.toArray ( node.querySelectorAll ( selector ));
 				if ( type ) {
 					result = result.filter ( function ( el )  {
-						return el.spirit && el.spirit instanceof type;
+						return el.spirit && ( el.spirit instanceof type );
 					}).map ( function ( el ) {
 						return el.spirit;
 					});
