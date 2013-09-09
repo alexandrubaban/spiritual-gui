@@ -59,21 +59,12 @@ gui.DOMCombos = {
 
 		/**
 		 * Spiritualize new node plus subtree.
-		 * @param {Node} newnode
 		 * @param {Node} oldnode
 		 */
 		var spiritualizeNewAfter = combo.after ( function ( newnode, oldnode ) {
 			guide.spiritualize ( newnode );
 		});
-
-		/**
-		 * Materialize node plus subtree.
-		 * @param {Node} node
-		 */
-		var materializeBefore = combo.before ( function ( node ) {
-			guide.materialize ( node );
-		});
-
+		
 		/**
 		 * Materialize old node plus subtree
 		 * @TODO perhaps just detach oldnode instead???

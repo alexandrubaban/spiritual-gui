@@ -1,88 +1,29 @@
-/*global module:false*/
-
-// (npm uninstall -g grunt) (if old grunt lingers, delete from /usr/local/lib/node_modules)
-// npm install -g grunt-cli
-// npm install -g grunt --save-dev
-// npm install grunt --save-dev
-// npm install grunt-contrib-concat --save-dev
-// npm install grunt-contrib-uglify --save-dev
-// npm install grunt-contrib-jshint --save-dev
-
+/**
+ * The task ""grunt-spiritual" may be installed 
+ * via `npm install wunderbyte/grunt-spiritual`.
+ */
 module.exports = function ( grunt ) {
 
-	grunt.loadNpmTasks("grunt-contrib-concat");
-	grunt.loadNpmTasks("grunt-contrib-uglify");
-	grunt.loadNpmTasks("grunt-contrib-jshint");
-
-	var sourcelist = grunt.file.readJSON("Gruntfile.json");
-	sourcelist.unshift("<banner:meta.banner>");
-
-	var BANNER = '' +
-		'/*\n' +
-		' * Spiritual GUI <%= meta.version %>\n' +
-		' * (c) <%= grunt.template.today("yyyy") %> Wunderbyte\n' +
-		' * Spiritual is freely distributable under the MIT license.\n' +
-		' */\n';
-
-	grunt.initConfig({
-		meta: {
-			version: "0.0.5"
-		},
-		jshint: {
-			all: [ "Gruntfile.js", "src/**/*.js" ],
-			options: {
-				curly: true,
-				eqeqeq: true,
-				immed: true,
-				latedef: true, 
-				newcap: true,
-				noarg: true,
-				sub: true,
-				undef: true,
-				boss: true,
-				eqnull: true,
-				browser: true,
-				smarttabs:true,
-				onecase: true,
-				scripturl: true,
-				laxbreak: true,
-				supernew: true,
-				regexdash: true,
-				globals: {
-					gui: true,
-					console: true,
-					setImmediate : true,
-					requestAnimationFrame : true,
-					Map : true,
-					Set : true,
-					WeakMap : true
+	"use strict";
+	
+	grunt.loadNpmTasks ( "grunt-spiritual" );
+	grunt.initConfig ({
+		spiritual : {
+			gui : {
+				options : {
+					banner : (
+						'/**\n' +
+						' * Spiritual GUI\n' +
+						' * 2013 Wunderbyte\n' +
+						' * Spiritual is freely distributable under the MIT license.\n' +
+						' */\n'
+					 )
+				},
+				files : {
+					"dist/spiritual-gui.js" : [ "src/gui.json" ]
 				}
 			}
-		},
-		concat: {
-			options: {
-				separator : "\n\n\n",
-				banner: BANNER + "\n\n\n"
-			},
-			dist: {
-				src: sourcelist,
-				dest: 'dist/spiritual-gui-<%= meta.version %>.js'
-			}
-		},
-		uglify: {
-	    options: {
-	      mangle: false,
-	      banner: BANNER
-	    },
-	    my_target: {
-	      files: {
-	        'dist/spiritual-gui-<%= meta.version %>.min.js': ['dist/spiritual-gui-<%= meta.version %>.js']
-	      }
-	    }
-	  }
-		//uglify: {}
+		}
 	});
-
-	// default task
-	grunt.registerTask('default', [ "jshint", "concat", "uglify" ]);
+	grunt.registerTask ( "default", "spiritual" );
 };
