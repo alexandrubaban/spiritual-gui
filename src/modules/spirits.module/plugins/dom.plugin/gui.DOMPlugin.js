@@ -174,7 +174,6 @@ gui.DOMPlugin = ( function using ( chained, guide, observer ) {
 		 * @param @optional {String} pos
 		 */
 		html : function ( elm, html, pos ) {
-			alert ( elm );
 			if ( gui.Type.isString ( html )) {
 				if ( pos ) {
 					elm.insertAdjacentHTML ( pos, html );
@@ -442,6 +441,11 @@ gui.DOMPlugin = ( function using ( chained, guide, observer ) {
 	gui.Guide, 
 	gui.Observer 
 ));
+
+/**
+ * Bind the "this" keyword for all static methods.
+ */
+gui.Object.bindall ( gui.DOMPlugin );
 
 /**
  * DOM query methods accept a CSS selector and an optional spirit constructor 

@@ -287,9 +287,9 @@ gui.Guide = {
 		if ( win.gui.mode !== gui.MODE_MANAGED ) {
 			if ( win.gui.mode === gui.MODE_NATIVE ) {
 				gui.DOMChanger.change ( win );
-			}
-			if ( win.gui.debug ) {
-				gui.Observer.observe ( win );
+				if ( win.gui.debug ) {
+					gui.Observer.observe ( win );
+				}
 			}
 			this.spiritualizeSub ( root );
 		}

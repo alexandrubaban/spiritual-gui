@@ -1,6 +1,6 @@
 /**
  * Spiritual GUI
- * 2013 Wunderbyte
+ * (c) 2013 Wunderbyte
  * Spiritual is freely distributable under the MIT license.
  */
 ( function ( window ) {
@@ -21,30 +21,20 @@ window.gui = {
 	portals : true,
 
 	/**
-	 * Native mode: Overloading native DOM methods.
+	 * Native mode: Automatically spiritualize and 
+	 * materialize by overriding native DOM methods.
 	 * @type {String}
 	 */
 	MODE_NATIVE : "native",
 
 	/**
-	 * jquery mode: Overloading JQuery DOM methods.
-	 * @type {String}
-	 */
-	MODE_JQUERY : "jquery",
-
-	/**
-	 * Optimized mode: try native and fallback on jquery.
-	 * @type {String}
-	 */
-	MODE_OPTIMIZE : "optimize",
-
-	/**
-	 * Managed mode.
+	 * Managed mode. Spiritualize and materialize at own risk.
 	 * @type {String}
 	 */
 	MODE_MANAGED : "managed",
 
 	/**
+	 * @TODO: leave the URL alone a see if we can postMessage these things just in time...
 	 * The {gui.IframeSpirit} will stamp this querystring parameter into any URL it loads. 
 	 * The value of the parameter matches the iframespirits '$contextid'. Value becomes the 
 	 * '$contextid' of the local 'gui' object (a {gui.Spiritual} instance). This establishes 
@@ -126,7 +116,7 @@ window.gui = {
 	 */
 	LIFE_IFRAME_CONSTRUCT : "gui-life-iframe-construct",
 	LIFE_IFRAME_DOMCONTENT : "gui-life-iframe-domcontent",
-	LIFE_IFRAME_ONLOAD : "gui-life-iframe-construct",
+	LIFE_IFRAME_ONLOAD : "gui-life-iframe-onload",
 	LIFE_IFRAME_SPIRITUALIZED : "gui-life-iframe-spiritualized",
 	LIFE_IFRAME_UNLOAD : "gui-life-iframe-unload",
 
@@ -245,11 +235,11 @@ gui.URL.absolute = function ( base, href ) { // return /(^data:)|(^http[s]?:)|(^
 				if ( part === ".." ) {
 					stack.pop ();
 				}	else {
-					stack.push ( part );	
+					stack.push ( part );
 				}
 			}
 		});
-		return stack.join ( "/" );	
+		return stack.join ( "/" );
 	}
 };
 
@@ -296,9 +286,11 @@ gui.URL.getParam = function ( url, name ) {
  */
 gui.URL.setParam = function ( url, name, value ) {
 	var params = [], cut, index = -1;
-	if ( url.indexOf ( "?" ) >-1 ) {
-		cut = url.split ( "?" );
-		url = cut [ 0 ];
+	var path = url.split ( "#" )[ 0 ];
+	var hash = url.split ( "#" )[ 1 ];
+	if ( path.indexOf ( "?" ) >-1 ) {
+		cut = path.split ( "?" );
+		path = cut [ 0 ];
 		params = cut [ 1 ].split ( "&" );
 		params.every ( function ( param, i ) {
 			var x = param.split ( "=" );
@@ -319,7 +311,8 @@ gui.URL.setParam = function ( url, name, value ) {
 	} else if ( index < 0 ) {
 		params [ params.length ] = [ name, value ].join ( "=" );
 	}
-	return url + ( params.length > 0 ? "?" + params.join ( "&" ) : "" );
+	params = params.length > 0 ? "?" + params.join ( "&" ) : "";
+	return path + params + ( hash ? "#" + hash : "" );
 };
 
 /**
@@ -340,7 +333,7 @@ gui.URL.parametrize = function ( baseurl, params ) {
 					break;
 				default :
 					baseurl += key + "=" + String ( value );
-					break;	
+					break;
 			}
 		});
 	}
@@ -932,14 +925,6 @@ gui.Spiritual.prototype = {
 	 */
 	start : function () {
 		this._gone = true;
-		switch ( this.mode ) {
-			case gui.MODE_NATIVE :
-			case gui.MODE_JQUERY :
-			case gui.MODE_OPTIMIZE :
-			case gui.MODE_MANAGED :
-				gui.DOMChanger.change ( this.context );
-				break;
-		}
 		this._experimental ();
 		gui.Tick.add ([ gui.$TICK_INSIDE, gui.$TICK_OUTSIDE ], this, this.$contextid );
 		if ( this._configs !== null ) {
@@ -1464,9 +1449,17 @@ gui.Spiritual.prototype = {
 	 * @param {String} url
 	 */
 	_params : function ( url ) {
-		var id, xhost, param = gui.PARAM_CONTEXTID;
+		/*
+		 * @TODO: clean this up!
+		 * @TODO: use framelement!
+		 */
+		var id, xhost, splits, param = gui.PARAM_CONTEXTID;
 		if ( url.contains ( param )) {
-			var splits = gui.URL.getParam ( url, param ).split ( "/" );
+			splits = gui.URL.getParam ( url, param ).split ( "/" );
+			id = splits.pop ();
+			xhost = splits.join ( "/" );
+		} else if ( document.referrer.contains ( param )) {
+			splits = gui.URL.getParam ( document.referrer, param ).split ( "/" );
 			id = splits.pop ();
 			xhost = splits.join ( "/" );
 		} else {
@@ -1518,20 +1511,6 @@ gui.Spiritual.prototype = {
 
 
 	// Work in progress .............................................................
-
-	/**
-	 * @TODO action required. This methoud would enable the mutation 
-	 * observer. We should remove this whole thing from Spiritual core.
-	 */
-	_movethismethod : function () {
-		if ( this.mode === gui.MODE_JQUERY ) {
-			gui.Tick.next ( function () {  // @TODO somehow not conflict with http://stackoverflow.com/questions/11406515/domnodeinserted-behaves-weird-when-performing-dom-manipulation-on-body
-				gui.Observer.observe ( this.context ); // @idea move all of _step2 to next stack?
-			}, this );
-		} else {
-			gui.Observer.observe ( this.context );
-		}
-	},
 
 	/**
 	 * Experimental.
@@ -2415,7 +2394,7 @@ gui.Class = {
 	/**
 	 * Nameless name.
 	 * @type {String}
-	 */	
+	 */
 	ANONYMOUS	 : "Anonymous",
 
 	/**
@@ -2433,9 +2412,9 @@ gui.Class = {
 	}(
 		function $name () {
 			if ( this instanceof $name ) {
-				return gui.Class.$constructor.apply ( this, arguments );	
+				return gui.Class.$constructor.apply ( this, arguments );
 			} else {
-				return $name.extend.apply ( $name, arguments );	
+				return $name.extend.apply ( $name, arguments );
 			}
 		}
 	)),
@@ -2469,7 +2448,7 @@ gui.Class = {
 	_breakdown_subs : function ( args ) {
 		var named = gui.Type.isString ( args [ 0 ]);
 		return {
-			name : named ? args [ 0 ] : null,			
+			name : named ? args [ 0 ] : null,
 			protos : args [ named ? 1 : 0 ] || Object.create ( null ),
 			recurring : args [ named ? 2 : 1 ] || Object.create ( null ),
 			statics : args [ named ? 3 : 2 ] || Object.create ( null )
@@ -2579,8 +2558,11 @@ gui.Class = {
 		C.prototype.toString = function () {
 			return "[object " + this.constructor.$classname + "]";
 		};
-		[ C, C.prototype ].forEach ( function ( thing ) { 
-			Object.defineProperty ( thing, "displayName", 
+		/*
+		 * TODO: apparently needs to be moved to the instance (in constructor)!
+		 */
+		[ C, C.prototype ].forEach ( function ( thing ) {
+			Object.defineProperty ( thing, "displayName",
 				gui.Property.nonenumerable ({
 					writable : true,
 					value : name
@@ -2596,8 +2578,8 @@ gui.Class = {
 	 * @return {[type]}      [description]
 	 */
 	_namedbody : function ( name ) {
-		return this._BODY.replace ( 
-			new RegExp ( "\\$name", "gm" ), 
+		return this._BODY.replace (
+			new RegExp ( "\\$name", "gm" ),
 			gui.Function.safename ( name )
 		);
 	}
@@ -5786,7 +5768,12 @@ gui.Action.dispatch = function dispatch ( target, type, data, direction, global 
 		 */
 		transcend : function ( win, uri, key ) {
 			var msg = gui.Action.stringify ( action, key );
-			win.postMessage ( msg, uri );
+			try {
+				win.postMessage ( msg, uri );
+			} catch ( exception ) {
+				// TODO: investigate WebKit "Unable to post message... Recipient has origin..."
+				console.error ( "Could not postMessage the action", exception, msg );
+			}
 		}
 	});
 	return action;
@@ -7289,713 +7276,20 @@ gui.Client = ( new function Client () {
 
 
 /**
- * Spiritualizing documents by overloading DOM methods.
- */
-gui.DOMChanger = {
-
-	/**
-	 * True when in JQuery mode. This will be removed when 
-	 * iOS supports a mechanism for intercepting `innerHTML`. 
-	 * @type {boolean}
-	 */
-	jquery : false,
-
-	/**
-	 * Tracking success with overloading `innerHTML`.
-	 * 
-	 * - Firefox, Opera and Explorer does this on an Element.prototype level
-	 * - Webkit must do this on all *instances* of Element (pending WebKit issue 13175)
-	 * - Safari on iOS fails completely and must fallback to use the jQquery module
-	 * @type {Map<String,boolean>}
-	 */
-	innerhtml : {
-		global : false,
-		local : false, 
-		missing : false 
-	},
-
-	/**
-	 * Declare "spirit" as a fundamental property of things 
-	 * and extend native DOM methods in given window scope.
-	 * @TODO WeakMap<Element,gui.Spirit> in supporting agents
-	 * @param {Window} win
-	 */
-	change : function ( win ) {
-		var element = win.Element.prototype;
-		if ( gui.Type.isDefined ( element.spirit )) {
-			throw new Error ( "Spiritual loaded twice?" );
-		} else {
-			element.spirit = null; // defineProperty fails in iOS5
-			switch ( win.gui.mode ) {
-				case gui.MODE_MANAGED :
-				case gui.MODE_NATIVE :
-				case gui.MODE_OPTIMIZE : 
-					this.upgrade ( win, gui.DOMCombos.getem ());
-					break;
-				case gui.MODE_JQUERY :
-					this._jquery ( win );
-					break;
-			}
-		}
-	},
-
-	/**
-	 * Upgrade DOM methods in window. 
-	 * @param {Window} win
-	 * @param {Map<String,function>} combos
-	 */
-	upgrade : function ( win, combos ) {
-		this._change ( win, combos );
-	},
-
-
-	// Private ........................................................................
-
-	/**
-	 * JQuery mode: Confirm loaded JQuery 
-	 * and the "jquery" Spiritual module.
-	 * @param {Window} win
-	 * @returns {boolan}
-	 */
-	_jquery : function ( win ) {
-		var ok = false;
-		if (!( ok = gui.Type.isDefined ( win.jQuery ))) {
-			throw new Error ( "Spiritual runs in JQuery mode: Expected JQuery to be loaded first" );
-		}
-		if (!( ok = win.gui.hasModule ( "jquery" ))) {
-			throw new Error ( "Spiritual runs in JQuery mode: Expected the \"jquery\" module" );
-		}
-		return ok;
-	},
-
-	/**
-	 * Observe the document by extending Element.prototype to 
-	 * intercept DOM updates. Firefox ignores extending of 
-	 * Element.prototype, we must step down the prototype chain.
-	 * @see https://bugzilla.mozilla.org/show_bug.cgi?id=618379
-	 * @TODO Extend DocumentFragment
-	 * @TODO Support insertAdjecantHTML
-	 * @TODO Support SVG elements
-	 * @param {Window} win
-	 * @param {Map<String,function} combos
-	 */
-	_change : function _change ( win, combos ) {
-		var did = [], doc = win.document;
-		if ( !this._canchange ( win.Element.prototype, win, combos )) {
-			if ( !win.HTMLElement || !this._canchange ( win.HTMLElement.prototype, win )) {
-				this._tags ().forEach ( function ( tag ) {
-					var e = doc.createElement ( tag );
-					var p = e.constructor.prototype;
-					// alert ( p ); this call throws a BAD_CONVERT_JS
-					if ( p !== win.Object.prototype ) { // excluding object and embed tags
-						if ( did.indexOf ( p ) === -1 ) {
-							this._dochange ( p, win, combos );
-							did.push ( p ); // some elements share the same prototype
-						}
-					}
-				}, this );
-			}
-		}
-	},
-
-	/**
-	 * Firefox has to traverse the constructor of *all* elements.
-	 * Object and embed tags excluded because the constructor of 
-	 * these elements appear to be identical to Object.prototype.
-	 * @returns {Array<String>}
-	 */
-	_tags : function tags () {
-		return ( "a abbr address area article aside audio b base bdi bdo blockquote " +
-			"body br button canvas caption cite code col colgroup command datalist dd del " +
-			"details device dfn div dl dt em fieldset figcaption figure footer form " +
-			"h1 h2 h3 h4 h5 h6 head header hgroup hr html i iframe img input ins kbd keygen " +
-			"label legend li link main map menu meta meter nav noscript ol optgroup option " +
-			"output p param pre progress q rp rt ruby s samp script section select small " +
-			"source span strong style submark summary sup table tbody td textarea tfoot " +
-			"th thead time title tr track ul unknown var video wbr" ).split ( " " );
-	},
-
-	/**
-	 * Can extend given prototype object? If so, do it now.
-	 * @param {object} proto
-	 * @param {Window} win
-	 * @param {Map<String,function} combos
-	 * @returns {boolean} Success
-	 */
-	_canchange : function _canchange ( proto, win, combos ) {
-		// attempt overwrite
-		var result = false;
-		var test = "it appears to work";
-		var cache = proto.hasChildNodes;
-		proto.hasChildNodes = function () {
-			return test;
-		};
-		// test overwrite and reset back
-		var root = win.document.documentElement;
-		if ( root.hasChildNodes () === test) {
-			proto.hasChildNodes = cache;
-			this._dochange ( proto, win, combos );
-			result = true;
-		}
-		return result;
-	},
-
-	/**
-	 * Overloading prototype methods and properties. If we cannot get an angle on innerHTML, 
-	 * we switch to JQuery mode. This is currently known to happen in Safari on iOS 5.1
-	 * @TODO Firefox creates 50-something unique functions here
-	 * @TODO Test success runtime (not rely on user agent string).
-	 * @TODO inserAdjecantHTML
-	 * @param {object} proto
-	 * @param {Window} win
-	 * @param {Map<String,function} combos
-	 */
-	_dochange : function _dochange ( proto, win, combos ) {
-		switch ( gui.Client.agent ) {
-			case "explorer" : // http://msdn.microsoft.com/en-us/library/dd229916(v=vs.85).aspx
-				this.innerhtml.global = true;
-				break;
-			case "gecko" :
-			case "opera" : // @TODO Object.defineProperty supported?
-				this.innerhtml.global = true;
-				break;
-			case "webkit" :
-				if ( gui.DOMPatcher.canpatch ( win )) {
-					this.innerhtml.local = true;
-					gui.DOMPatcher.patch ( win.document );
-				} else {
-					this.innerhtml.local = false;
-					this.innerhtml.missing = true;
-				}
-				break;
-		}
-		var title = win.document.title;
-		switch ( win.gui.mode ) {
-			case gui.MODE_NATIVE :
-				if ( this.innerhtml.missing ) {
-					throw new Error ( "Spiritual native mode is not supported on this device." );
-				}
-				break;
-			case gui.MODE_OPTIMIZE :
-				if ( this.innerhtml.missing ) {
-					win.gui.mode = gui.MODE_JQUERY;
-					if ( this._jquery ( win ) && win.gui.debug ) {
-						console.log ( 
-							title + ": Spiritual runs in JQuery mode. To keep spirits " +
-							"in synch, use JQuery or Spiritual to perform DOM updates."
-						);
-					}
-				} else {
-					win.gui.mode = gui.MODE_NATIVE;
-					if ( win.gui.debug ) {
-						console.log ( title + ": Spiritual runs in native mode" );
-					}
-				}
-				break;
-		}
-		// Overloading methods? Only in native mode.
-		// @TODO insertAdjecantHTML
-		if ( win.gui.mode === gui.MODE_NATIVE ) {
-			var root = win.document.documentElement;
-			gui.Object.each ( combos, function ( name, combo ) {
-				this._docombo ( proto, name, combo, root );
-			}, this );
-		}
-	},
-
-	/**
-	 * Property setters for Firefox and Opera.
-	 * @param {object} proto
-	 * @param {String} name
-	 * @param {function} combo
-	 * @param {Element} root
-	 */
-	_docombo : function ( proto, name, combo, root ) {
-		if ( this._ismethod ( name )) {
-			this._domethod ( proto, name, combo );
-		} else {
-			switch ( gui.Client.agent ) {
-				case "opera" :
-				case "gecko" :
-					//try {
-						this._doboth ( proto, name, combo, root );
-					/*
-					} catch ( exception ) { // firefox 21 is changing to IE style?
-						alert("??")
-						this._doie ( proto, name, combo );	
-					}
-					*/
-					break;
-				case "explorer" :
-					this._doie ( proto, name, combo );
-					break;
-				case "webkit" :
-					// it's complicated
-					break;
-			}
-		}
-	},
-
-	/**
-	 * Is method? (non-crashing Firefox version)
-	 * @returns {boolean}
-	 */
-	_ismethod : function ( name ) {
-		var is = false;
-		switch ( name ) {
-			case "appendChild" : 
-			case "removeChild" :
-			case "insertBefore" :
-			case "replaceChild" :
-			case "setAttribute" :
-			case "removeAttribute" :
-				is = true;
-				break;
-		}
-		return is;
-	},
-
-	/**
-	 * Overload DOM method (same for all browsers).
-	 * @param {object} proto
-	 * @param {String} name
-	 * @param {function} combo
-	 */
-	_domethod : function ( proto, name, combo ) {
-		var base = proto [ name ];
-		proto [ name ] = combo ( function () {
-			return base.apply ( this, arguments );
-		});
-	},
-
-	/**
-	 * Overload property setter for IE.
-	 * @param {object} proto
-	 * @param {String} name
-	 * @param {function} combo
-	 * @param {Element} root
-	 */
-	_doie : function ( proto, name, combo ) {
-		var base = Object.getOwnPropertyDescriptor ( proto, name );
-		Object.defineProperty ( proto, name, {
-			get: function () {
-				return base.get.call ( this );
-			},
-			set: combo ( function () {
-				base.apply ( this, arguments );
-			})
-		});
-	},
-
-	/**
-	 * Overload property setter for Firefox and Opera. 
-	 * Looks like Gecko is moved towards IE setup (?)
-	 * @param {object} proto
-	 * @param {String} name
-	 * @param {function} combo
-	 * @param {Element} root
-	 */
-	_doboth : function ( proto, name, combo, root ) {
-		var getter = root.__lookupGetter__ ( name );
-		var setter = root.__lookupSetter__ ( name );
-		if ( getter ) {
-			// firefox 20 needs a getter for this to work
-			proto.__defineGetter__ ( name, function () {
-				return getter.apply ( this, arguments );
-			});
-			// the setter still seems to work as expected
-			proto.__defineSetter__ ( name, combo ( function () {
-				setter.apply ( this, arguments );
-			}));
-		} else {
-			// firefox 21 can't lookup textContent getter *sometimes*
-			throw new Error ( "Can't lookup getter for " + name );
-		}
-	}
-};
-
-
-/**
- * This is where it gets interesting.
- * @TODO Standard DOM exceptions for missing arguments and so on.
- * @TODO insertAdjecantHTML
- * @TODO DOM4 methods
- */
-gui.DOMCombos = {
-
-	/**
-	 * Get combinations to overload native DOM methods and getters.
-	 * @type {Map<String,function>}
-	 */
-	getem : function () {
-		return this._creation || ( this._creation = this._create ());
-	},
-
-	// Private .......................................................................
-	
-	/**
-	 * Cache combinations for reuse when next requested.
-	 * @type {Map<String,function>}
-	 */
-	_creation : null,
-
-	/**
-	 * Building combinations when first requested. Note that property setters such as 
-	 * innerHTML and textContent are skipped for WebKit where the stuff only works because 
-	 * properties have been re-implemented using methods in all WebKit based browsers. 
-	 * @see {gui.DOMPatcher}
-	 */
-	_create : function () {
-
-		var combo = gui.Combo;
-		var guide = gui.Guide;
-		
-		/**
-		 * Is `this` embedded in document?
-		 * @returns {boolean}
-		 */
-		var ifEmbedded = combo.provided ( function () {
-			return gui.DOMPlugin.embedded ( this );
-		});
-
-		/**
-		 * Element has spirit?
-		 * @returns {boolean}
-		 */
-		var ifSpirit = combo.provided ( function () {
-			return !gui.Type.isNull ( this.spirit );
-		});
-
-		/**
-		 * Spiritualize node plus subtree.
-		 * @param {Node} node
-		 */
-		var spiritualizeAfter = combo.after ( function ( node ) {
-			guide.spiritualize ( node );
-		});
-
-		/**
-		 * Spiritualize new node plus subtree.
-		 * @param {Node} oldnode
-		 */
-		var spiritualizeNewAfter = combo.after ( function ( newnode, oldnode ) {
-			guide.spiritualize ( newnode );
-		});
-		
-		/**
-		 * Materialize old node plus subtree
-		 * @TODO perhaps just detach oldnode instead???
-		 * @param {Node} newnode
-		 * @param {Node} oldnode
-		 */
-		var materializeOldBefore = combo.before ( function ( newnode, oldnode ) {
-			guide.materialize ( oldnode );
-		});
-
-		/**
-		 * Detach node plus subtree.
-		 * @param {Node} node
-		 */
-		var detachBefore = combo.before ( function ( node ) {
-			guide.detach ( node );
-		});
-
-		/**
-		 * Spirit-aware setattribute.
-		 * @param {String} name
-		 * @param {String} value
-		 */
-		var setAttBefore = combo.before ( function ( name, value ) {
-			this.spirit.att.set ( name, value );
-		});
-
-		/**
-		 * Spirit-aware removeattribute.
-		 * @TODO use the post combo?
-		 * @param {String} att
-		 */
-		var delAttBefore = combo.before( function ( name ) {
-			this.spirit.att.del ( name );
-		});
-
-		/**
-		 * Disable DOM mutation observers while doing action.
-		 * @param {function} action
-		 */
-		var suspending = combo.around ( function ( action ) {
-			return gui.Observer.suspend ( this, function () {
-				return action ();
-			}, this );
-		});
-
-		/**
-		 * Detach subtree of `this`.
-		 */
-		var materializeSubBefore = combo.before ( function () {
-			guide.materializeSub ( this );
-		});
-
-		/**
-		 * Attach subtree of `this`
-		 */
-		var spiritualizeSubAfter = combo.after ( function () {
-			guide.spiritualizeSub ( this );
-		});
-
-		/**
-		 * Detach `this`.
-		 */
-		var parent = null; // @TODO unref this at some point
-		var materializeThisBefore = combo.before ( function () {
-			parent = this.parentNode;
-			guide.materialize ( this );
-		});
-
-		/**
-		 * Attach parent.
-		 */
-		var spiritualizeParentAfter = combo.after ( function () {
-			guide.spiritualize ( parent );
-		});
-
-		/**
-		 * Webkit-patch property descriptors for node and subtree.
-		 * @see {gui.DOMPatcher}
-		 * @param {Node} node
-		 */
-		var patchAfter = combo.after ( function ( node ) {
-			if ( gui.Client.isWebKit ) {
-				gui.DOMPatcher.patch ( node );
-			}
-		});
-
-		/**
-		 * Pretend nothing happened when running in managed mode.
-		 * @TODO Simply mirror this prop with an internal boolean
-		 */
-		var ifEnabled = combo.provided ( function () {
-			var win = this.ownerDocument.defaultView;
-			if ( win ) {
-				return win.gui.mode !== gui.MODE_MANAGED;
-			} else {
-				return false; // abstract HTMLDocument might adopt DOM combos
-			}
-		});
-
-		/**
-		 * Sugar for combo readability.
-		 * @param {function} action
-		 * @returns {function}
-		 */
-		var otherwise = function ( action ) {
-			return action;
-		};
-
-		/**
-		 * Here we go.
-		 */
-		return {
-
-			appendChild : function ( base ) {
-				return (
-					ifEnabled ( 
-						ifEmbedded ( spiritualizeAfter ( patchAfter ( suspending ( base ))), 
-						otherwise ( base )),
-					otherwise ( base ))
-				);
-			},
-			removeChild : function ( base ) {
-				return (
-					ifEnabled ( 
-						ifEmbedded ( detachBefore ( suspending ( base )),
-						otherwise ( base )),
-					otherwise ( base ))
-				);
-			},
-			insertBefore : function ( base ) {
-				return (
-					ifEnabled ( 
-						ifEmbedded ( spiritualizeAfter ( patchAfter ( suspending ( base ))), 
-						otherwise ( base )),
-					otherwise ( base ))
-				);
-			},
-			replaceChild : function ( base ) { // @TODO: detach instead (also in jquery module)
-				return (
-					ifEnabled ( 
-						ifEmbedded ( materializeOldBefore ( spiritualizeNewAfter ( patchAfter ( suspending ( base )))), 
-						otherwise ( base )),
-					otherwise ( base ))
-				);
-			},
-			setAttribute : function ( base ) {
-				return ( 
-					ifEnabled ( 
-						ifEmbedded ( 
-							ifSpirit ( setAttBefore ( base ), 
-							otherwise ( base )),
-						otherwise ( base )),
-					otherwise ( base ))
-				);
-			},
-			removeAttribute : function ( base ) {
-				return ( 
-					ifEnabled ( 
-						ifEmbedded ( 
-							ifSpirit ( delAttBefore ( base ),
-							otherwise ( base )),
-						otherwise ( base )),
-					otherwise ( base ))
-				);
-			},
-			innerHTML : function ( base ) {
-				return (
-					ifEnabled ( 
-						ifEmbedded ( materializeSubBefore ( spiritualizeSubAfter ( suspending ( base ))),
-						otherwise ( base )),
-					otherwise ( base ))
-				);
-			},
-			outerHTML : function ( base ) {
-				return (
-					ifEnabled ( 
-						ifEmbedded ( materializeThisBefore ( spiritualizeParentAfter ( suspending ( base ))),
-						otherwise ( base )),
-					otherwise ( base ))
-				);
-			},
-			textContent : function ( base ) {
-				return (
-					ifEnabled ( 
-						ifEmbedded ( materializeSubBefore ( suspending ( base )),
-						otherwise ( base )),
-					otherwise ( base ))
-				);
-			}
-		};
-	}
-};
-
-
-/**
- * Patching bad WebKit support for overloading DOM getters and setters, 
- * specifically innerHTML, outerHTML and textContent.This operation is 
- * very time consuming, so let's pray for the related bug to fix soon.
- * @see http://code.google.com/p/chromium/issues/detail?id=13175
- */
-gui.DOMPatcher = {
-
-	/**
-	 * Can patch property descriptors of elements in given 
-	 * window? Safari on iOS throws an epic failure exception.
-	 * @param {Window} win
-	 * @returns {boolean}
-	 */
-	canpatch : function ( win ) {
-		var root = win.document.documentElement;
-		try {
-			Object.defineProperty ( root, "innerHTML", this._innerHTML );
-			return true;
-		} catch ( iosexception ) {
-			return false;
-		}
-	},
-
-	/**
-	 * Patch node plus nextsiblings and descendants recursively.
-	 */
-	patch : function ( node ) {
-		if ( gui.DOMChanger.innerhtml.local ) {
-			new gui.Crawler ( gui.CRAWLER_DOMPATCHER ).descend ( node, this );
-		} else {
-			throw new Error ( "Somehow JQuery mode should have handled this :(" );
-		}
-	},
-
-	/**
-	 * Patch single element.
-	 * @param {Element} elm
-	 */
-	handleElement : function ( elm ) {
-		[ "innerHTML", "outerHTML", "textContent" ].forEach ( function ( descriptor ) {
-			Object.defineProperty ( elm, descriptor, this [ "_" + descriptor ]);
-		}, this );
-	},
-
-
-	// Private .........................................................
-
-	/**
-	 * Property descriptor for innerHTML.
-	 * @type {Object}
-	 */
-	_innerHTML : {	
-		get : function () {
-			return gui.DOMSerializer.subserialize ( this );
-		},
-		set : function ( html ) {
-			gui.DOMPlugin.html ( this, html );
-		}
-	},
-
-	/**
-	 * Property descriptor for outerHTML.
-	 * @type {Object}
-	 */
-	_outerHTML : {
-		get : function () {
-			return gui.DOMSerializer.serialize ( this );
-		},
-		set : function ( html ) {
-			gui.DOMPlugin.outerHtml ( this, html );
-		}
-	},
-
-	/**
-	 * Property descriptor for textContent.
-	 * @type {Object}
-	 */
-	_textContent : {
-		get : function () {
-			var node = this, res = "";
-			for ( node = node.firstChild; node; node = node.nextSibling ) {
-				switch ( node.nodeType ) {
-					case Node.TEXT_NODE :
-						res += node.data;
-						break;
-					case Node.ELEMENT_NODE :
-						res += node.textContent; // recurse
-						break;
-				}
-			}
-			return res;
-		},
-		set : function ( html ) {
-			gui.DOMPlugin.html ( this, html.
-				replace ( /&/g, "&amp;" ).
-				replace ( /</g, "&lt;" ).
-				replace ( />/g, "&gt;" ).
-				replace ( /"/g, "&quot" )
-			);
-		}
-	}
-};
-
-
-/**
- * Monitors a document for unsolicitated DOM changes in development mode.
+ * Monitors a document for unsolicitated DOM changes in development mode. 
+ * Temp patch for http://code.google.com/p/chromium/issues/detail?id=13175
  */
 gui.Observer = {
 
 	/**
-	 * Enable monitoring? Disabled due to WebKit bug.
-	 * @see https://code.google.com/p/chromium/issues/detail?id=160985
+	 * Enable monitoring?
 	 * @type {boolean}
 	 */
-	observes : false, // gui.Client.hasMutations,
+	observes : gui.Client.hasMutations,
 
 	/**
-	 * Throw exception on mutations not intercepted by the framework?
+	 * Throw exception on mutations not intercepted by the framework? 
+	 * Observers run async, so the stack trace is anyways not usable.
 	 * @type {boolean}
 	 */
 	fails : false,
@@ -8005,19 +7299,8 @@ gui.Observer = {
 	 * @param {Window} win
 	 */
 	observe : function ( win ) {
-		var sig = win.gui.$contextid;
-		var doc = win.document;
-		var obs = this._observers [ sig ];
-		if ( this.observes && win.gui.debug ) {
-			if ( !gui.Type.isDefined ( obs )) {
-				var Observer = this._mutationobserver ();
-				obs = this._observers [ sig ] = new Observer ( function ( mutations ) {
-					mutations.forEach ( function ( mutation ) {
-						gui.Observer._handleMutation ( mutation );
-					});
-				});
-			}
-			this._connect ( doc, true );
+		if ( win.gui.debug ) {
+			this._observe ( win );
 		}
 	},
 
@@ -8083,6 +7366,27 @@ gui.Observer = {
 	_observers : Object.create ( null ),
 
 	/**
+	 * Start observing.
+	 * @param {Window} win
+	 */
+	_observe : function ( win ) {
+		var sig = win.gui.$contextid;
+		var doc = win.document;
+		var obs = this._observers [ sig ];
+		if ( this.observes ) {
+			if ( !gui.Type.isDefined ( obs )) {
+				var Observer = this._mutationobserver ();
+				obs = this._observers [ sig ] = new Observer ( function ( mutations ) {
+					mutations.forEach ( function ( mutation ) {
+						gui.Observer._handleMutation ( mutation );
+					});
+				});
+			}
+			this._connect ( doc, true );
+		}
+	},
+
+	/**
 	 * Get observer.
 	 * @returns {function} MutationObserver
 	 */
@@ -8131,12 +7435,24 @@ gui.Observer = {
 			}
 		});
 		if ( action ) {
-			if ( mutation.target.ownerDocument.defaultView.gui.debug ) {
-				console [ this.fails ? "error" : "warn" ] (
-					"Action required: DOM mutation not intercepted, Spiritual may be out of synch." 
-				);
-			}
+			console [ this.fails ? "error" : "warn" ] ( this._message ());
 		}
+	},
+
+	/**
+	 * Compute log message.
+	 * @returns {String}
+	 */
+	_message : function () {
+		return [ 
+			"Action required: DOM mutation not intercepted, Spiritual may be out of synch.",
+			"While we wait for http://code.google.com/p/chromium/issues/detail?id=13175,",
+			"please use the these methods to replace innerHTML, textContent and outerHTML:",
+			"    gui.DOMPlugin.html(node,string)",
+			"    gui.DOMPlugin.text(node,string)",
+			"    gui.DOMPlugin.outerHtml(node,string)",
+			"Tip: You can use insertAdjecantHTML instead of innerHTML for bonus performance."
+		].join ( "\n" );
 	}
 };
 
@@ -8199,7 +7515,7 @@ gui.Guide = {
 		switch ( b.type ) {
 			case gui.BROADCAST_KICKSTART :
 				gui.Broadcast.removeGlobal ( b.type, this );
-				this._step1 ( document );
+				this._step1 ( window, document );
 				break;
 			case gui.BROADCAST_LOADING_CHANNELS :
 				if ( !spirits ) {
@@ -8359,7 +7675,7 @@ gui.Guide = {
 		if ( gui.autostart ) {
 			var meta = sum.document.querySelector ( "meta[name='gui.autostart']" );
 			if ( !meta || gui.Type.cast ( meta.getAttribute ( "content" )) !== false ) {
-				this._step1 ( sum.document ); // else await gui.kickstart()
+				this._step1 ( sum.window, sum.document ); // else await gui.kickstart()
 			}
 		}
 	},
@@ -8387,11 +7703,10 @@ gui.Guide = {
 	},
 
 	/**
-	 * Step 1. Great name.
+	 * @TODO: Remove the stylesheet evaluation stuff.
 	 * @param {Document} doc
 	 */
-	_step1 : function ( doc ) {
-		var win = doc.defaultView;
+	_step1 : function ( win, doc ) {
 		var sig = win.gui.$contextid;
 		gui.Broadcast.removeGlobal (gui.BROADCAST_KICKSTART, this); //we don't need to listen anymore
 		this._metatags ( win ); // configure runtime
@@ -8399,27 +7714,46 @@ gui.Guide = {
 		this._stylesheets ( win ); // more spirits?
 		// resolving spiritual stylesheets? If not, skip directly to _step2.
 		if ( !this._windows [ sig ]) {
-			this._step2 ( doc );
+			this._step2 ( win, doc );
 		}
 	},
 
 	/**
-	 * Attach all spirits and proclaim document spiritualized (isolated for async invoke).
+	 * Spiritualize elements and proclaim the document spiritualized.
+	 * @param {Window} win
 	 * @param {Document} doc
 	 */
-	_step2 : function ( doc ) {
-		var win = doc.defaultView;
+	_step2 : function ( win, doc ) {
 		var sig = win.gui.$contextid;
-		// broadcast before and after spirits attach
-		this.spiritualizeOne ( doc.documentElement );
-		if ( win.gui.mode !== gui.MODE_MANAGED ) {
-			gui.broadcastGlobal ( gui.BROADCAST_WILL_SPIRITUALIZE, sig );
-			this.spiritualizeSub ( doc.documentElement );
-			gui.broadcastGlobal ( gui.BROADCAST_DID_SPIRITUALIZE, sig );
-			win.gui.spiritualized = true;
-		}
+		gui.DOMChanger.setup ( win );
+		gui.broadcastGlobal ( gui.BROADCAST_WILL_SPIRITUALIZE, sig );
+		this._spastiker ( win, doc );
+		gui.broadcastGlobal ( gui.BROADCAST_DID_SPIRITUALIZE, sig );
+		win.gui.spiritualized = true;
 	},
 
+	/**
+	 * Always spiritualize the root {gui.DocumentSpirit}. 
+	 * 1. Overload native DOM methods in native mode?
+	 * 2. Monitor DOM for unhandled mutations in debug mode?
+	 * 3. Potentially spiritualize all other spirits?
+	 * @param {Window} win
+	 * @param {Document} doc
+	 */
+	_spastiker : function ( win, doc ) {
+		var root = doc.documentElement;
+		this.spiritualizeOne ( root );
+		if ( win.gui.mode !== gui.MODE_MANAGED ) {
+			if ( win.gui.mode === gui.MODE_NATIVE ) {
+				gui.DOMChanger.change ( win );
+			}
+			if ( win.gui.debug ) {
+				gui.Observer.observe ( win );
+			}
+			this.spiritualizeSub ( root );
+		}
+	},
+	
 	/**
 	 * Resolve metatags (configure runtime).
 	 * @param {Window} win
@@ -8466,7 +7800,7 @@ gui.Guide = {
 			handleSpirit : function ( spirit ) {
 				if ( skip && spirit.element === node ) {}
 				else if ( !spirit.life.destructed ) {
-				 list.push ( spirit );
+					list.push ( spirit );
 				}
 			}
 		});
@@ -8640,6 +7974,481 @@ gui.Guide = {
 	], gui.Guide );
 })();
 
+
+
+/**
+ * Spiritualizing documents by overloading DOM methods.
+ */
+gui.DOMChanger = {
+
+	/**
+	 * Declare 'spirit' as a fundamental property of things.
+	 * @param {Window} win
+	 */
+	setup : function ( win ) {
+		var proto = win.Element.prototype;
+		if ( gui.Type.isDefined ( proto.spirit )) {
+			throw new Error ( "Spiritual loaded twice?" );
+		} else {
+			proto.spirit = null; // defineProperty fails in iOS5
+		}
+	},
+
+	/**
+	 * Extend native DOM methods in given window scope.
+	 * @param {Window} win
+	 */
+	change : function ( win ) {
+		this.upgrade ( win, gui.DOMCombos );
+	},
+
+	/**
+	 * Upgrade DOM methods in window. 
+	 * @param {Window} win
+	 * @param {Map<String,function>} combos
+	 */
+	upgrade : function ( win, combos ) {
+		this._change ( win, combos );
+	},
+
+
+	// Private ........................................................................
+
+	/**
+	 * Observe the document by extending Element.prototype to 
+	 * intercept DOM updates. Firefox ignores extending of 
+	 * Element.prototype, we must step down the prototype chain.
+	 * @see https://bugzilla.mozilla.org/show_bug.cgi?id=618379
+	 * @TODO Support insertAdjecantHTML
+	 * @TODO Support SVG elements
+	 * @param {Window} win
+	 * @param {Map<String,function} combos
+	 */
+	_change : function _change ( win, combos ) {
+		var did = [], doc = win.document;
+		if ( !this._canchange ( win.Element.prototype, win, combos )) {
+			if ( !win.HTMLElement || !this._canchange ( win.HTMLElement.prototype, win )) {
+				this._tags ().forEach ( function ( tag ) {
+					var e = doc.createElement ( tag );
+					var p = e.constructor.prototype;
+					// alert ( p ); this call throws a BAD_CONVERT_JS
+					if ( p !== win.Object.prototype ) { // excluding object and embed tags
+						if ( did.indexOf ( p ) === -1 ) {
+							this._dochange ( p, win, combos );
+							did.push ( p ); // some elements share the same prototype
+						}
+					}
+				}, this );
+			}
+		}
+	},
+
+	/**
+	 * Firefox has to traverse the constructor of *all* elements.
+	 * Object and embed tags excluded because the constructor of 
+	 * these elements appear to be identical to Object.prototype.
+	 * @returns {Array<String>}
+	 */
+	_tags : function tags () {
+		return ( "a abbr address area article aside audio b base bdi bdo blockquote " +
+			"body br button canvas caption cite code col colgroup command datalist dd del " +
+			"details device dfn div dl dt em fieldset figcaption figure footer form " +
+			"h1 h2 h3 h4 h5 h6 head header hgroup hr html i iframe img input ins kbd keygen " +
+			"label legend li link main map menu meta meter nav noscript ol optgroup option " +
+			"output p param pre progress q rp rt ruby s samp script section select small " +
+			"source span strong style submark summary sup table tbody td textarea tfoot " +
+			"th thead time title tr track ul unknown var video wbr" ).split ( " " );
+	},
+
+	/**
+	 * Can extend given prototype object? If so, do it now.
+	 * @param {object} proto
+	 * @param {Window} win
+	 * @param {Map<String,function} combos
+	 * @returns {boolean} Success
+	 */
+	_canchange : function _canchange ( proto, win, combos ) {
+		// attempt overwrite
+		var result = false;
+		var test = "it appears to work";
+		var cache = proto.hasChildNodes;
+		proto.hasChildNodes = function () {
+			return test;
+		};
+		// test overwrite and reset back
+		var root = win.document.documentElement;
+		if ( root.hasChildNodes () === test) {
+			proto.hasChildNodes = cache;
+			this._dochange ( proto, win, combos );
+			result = true;
+		}
+		return result;
+	},
+
+	/**
+	 * Overloading prototype methods and properties.
+	 * @TODO Firefox creates 50-something unique functions here
+	 * @param {object} proto
+	 * @param {Window} win
+	 * @param {Map<String,function} combos
+	 */
+	_dochange : function _dochange ( proto, win, combos ) {
+		var root = win.document.documentElement;
+		gui.Object.each ( combos, function ( name, combo ) {
+			this._docombo ( proto, name, combo, root );
+		}, this );
+	},
+
+	/**
+	 * Overload methods and setters while skipping the setters. 
+	 * Skipping the setters because of bad WebKit support :/
+	 * @see http://code.google.com/p/chromium/issues/detail?id=13175
+	 * @param {object} proto
+	 * @param {String} name
+	 * @param {function} combo
+	 * @param {Element} root
+	 */
+	_docombo : function ( proto, name, combo, root ) {
+		if ( this._ismethod ( name )) {
+			this._domethod ( proto, name, combo );
+		}
+	},
+
+	/**
+	 * Is method? (non-crashing Firefox version)
+	 * @returns {boolean}
+	 */
+	_ismethod : function ( name ) {
+		var is = false;
+		switch ( name ) {
+			case "appendChild" : 
+			case "removeChild" :
+			case "insertBefore" :
+			case "replaceChild" :
+			case "setAttribute" :
+			case "removeAttribute" :
+			case "insertAdjecantHTML" :
+				is = true;
+				break;
+		}
+		return is;
+	},
+
+	/**
+	 * Overload DOM method (same for all browsers).
+	 * @param {object} proto
+	 * @param {String} name
+	 * @param {function} combo
+	 */
+	_domethod : function ( proto, name, combo ) {
+		var base = proto [ name ];
+		proto [ name ] = combo ( function () {
+			return base.apply ( this, arguments );
+		});
+	},
+
+
+	// Disabled .......................................................................
+
+	/**
+	 * Overload property setter for IE (disabled)
+	 * @param {object} proto
+	 * @param {String} name
+	 * @param {function} combo
+	 * @param {Element} root
+	 */
+	_doie : function ( proto, name, combo ) {
+		var base = Object.getOwnPropertyDescriptor ( proto, name );
+		Object.defineProperty ( proto, name, {
+			get: function () {
+				return base.get.call ( this );
+			},
+			set: combo ( function () {
+				base.apply ( this, arguments );
+			})
+		});
+	},
+
+	/**
+	 * Overload property setter for Firefox (disabled).
+	 * @param {object} proto
+	 * @param {String} name
+	 * @param {function} combo
+	 * @param {Element} root
+	 */
+	_dogecko : function ( proto, name, combo, root ) {
+		var getter = root.__lookupGetter__ ( name );
+		var setter = root.__lookupSetter__ ( name );
+		if ( getter ) { // firefox 20 needs a getter for this to work
+			proto.__defineGetter__ ( name, function () {
+				return getter.apply ( this, arguments );
+			});
+			proto.__defineSetter__ ( name, combo ( function () {
+				setter.apply ( this, arguments );
+			}));
+		}
+	}
+};
+
+
+/**
+ * This is where it gets interesting.
+ * @TODO Standard DOM exceptions for missing arguments and so on.
+ * @TODO insertAdjecantHTML
+ * @TODO DOM4 methods
+ */
+gui.DOMCombos = ( function scoped () {
+
+	var combo = gui.Combo,
+		before = combo.before,
+		after = combo.after,
+		around = combo.around,
+		provided = combo.provided;
+	
+	/**
+	 * Is `this` embedded in document?
+	 * @returns {boolean}
+	 */
+	var ifEmbedded = provided ( function () {
+		return gui.DOMPlugin.embedded ( this );
+	});
+
+	/**
+	 * Element has spirit?
+	 * @returns {boolean}
+	 */
+	var ifSpirit = provided ( function () {
+		return !gui.Type.isNull ( this.spirit );
+	});
+
+	/**
+	 * Spiritualize node plus subtree.
+	 * @param {Node} node
+	 */
+	var spiritualizeAfter = after ( function ( node ) {
+		gui.Guide.spiritualize ( node );
+	});
+
+	/**
+	 * Spiritualize new node plus subtree.
+	 * @param {Node} oldnode
+	 */
+	var spiritualizeNewAfter = after ( function ( newnode, oldnode ) {
+		gui.Guide.spiritualize ( newnode );
+	});
+	
+	/**
+	 * Materialize old node plus subtree
+	 * @TODO perhaps just detach oldnode instead???
+	 * @param {Node} newnode
+	 * @param {Node} oldnode
+	 */
+	var materializeOldBefore = before ( function ( newnode, oldnode ) {
+		gui.Guide.materialize ( oldnode );
+	});
+
+	/**
+	 * Detach node plus subtree.
+	 * @param {Node} node
+	 */
+	var detachBefore = before ( function ( node ) {
+		gui.Guide.detach ( node );
+	});
+
+	/**
+	 * Spirit-aware setattribute.
+	 * @param {String} name
+	 * @param {String} value
+	 */
+	var setAttBefore = before ( function ( name, value ) {
+		this.spirit.att.set ( name, value );
+	});
+
+	/**
+	 * Spirit-aware removeattribute.
+	 * @TODO use the post combo?
+	 * @param {String} name
+	 */
+	var delAttBefore = before ( function ( name ) {
+		this.spirit.att.del ( name );
+	});
+
+	/**
+	 * Disable DOM mutation observers while doing action.
+	 * @TODO: only do this stuff in debug mode and so on.
+	 * @param {function} action
+	 */
+	var suspending = around ( function ( action ) {
+		return gui.Observer.suspend ( this, function () {
+			return action ();
+		}, this );
+	});
+
+	/**
+	 * Detach subtree of `this`.
+	 */
+	var materializeSubBefore = before ( function () {
+		gui.Guide.materializeSub ( this );
+	});
+
+	/**
+	 * Attach subtree of `this`
+	 */
+	var spiritualizeSubAfter = after ( function () {
+		gui.Guide.spiritualizeSub ( this );
+	});
+
+	/**
+	 * Detach `this`.
+	 */
+	var parent = null; // @TODO unref this at some point
+	var materializeThisBefore = before ( function () {
+		parent = this.parentNode;
+		gui.Guide.materialize ( this );
+	});
+
+	/**
+	 * Attach parent.
+	 */
+	var spiritualizeParentAfter = after ( function () {
+		gui.Guide.spiritualize ( parent );
+	});
+
+	/**
+	 * @param {String} position
+	 * @param {String} html
+	 */
+	var spiritualizeAdjecantAfter = after ( function ( position, html ) {
+		console.log ( position );
+		/*
+		'beforebegin'
+		Before the element itself.
+		'afterbegin'
+		Just inside the element, before its first child.
+		'beforeend'
+		Just inside the element, after its last child.
+		'afterend'
+		After the element itself.
+		*/
+	});
+
+	/**
+	 * Pretend nothing happened when running in managed mode.
+	 * @TODO Simply mirror this prop with an internal boolean
+	 */
+	var ifEnabled = provided ( function () {
+		var win = this.ownerDocument.defaultView;
+		if ( win ) {
+			return win.gui.mode !== gui.MODE_MANAGED;
+		} else {
+			return false; // abstract HTMLDocument might adopt DOM combos
+		}
+	});
+
+	/**
+	 * Sugar for combo readability.
+	 * @param {function} action
+	 * @returns {function}
+	 */
+	var otherwise = function ( action ) {
+		return action;
+	};
+
+	/**
+	 * Here we go.
+	 */
+	return {
+
+		appendChild : function ( base ) {
+			return (
+				ifEnabled ( 
+					ifEmbedded ( spiritualizeAfter ( suspending ( base )), 
+					otherwise ( base )),
+				otherwise ( base ))
+			);
+		},
+		removeChild : function ( base ) {
+			return (
+				ifEnabled ( 
+					ifEmbedded ( detachBefore ( suspending ( base )),
+					otherwise ( base )),
+				otherwise ( base ))
+			);
+		},
+		insertBefore : function ( base ) {
+			return (
+				ifEnabled ( 
+					ifEmbedded ( spiritualizeAfter ( suspending ( base )), 
+					otherwise ( base )),
+				otherwise ( base ))
+			);
+		},
+		replaceChild : function ( base ) { // @TODO: detach instead (also in jquery module)
+			return (
+				ifEnabled ( 
+					ifEmbedded ( materializeOldBefore ( spiritualizeNewAfter ( suspending ( base ))), 
+					otherwise ( base )),
+				otherwise ( base ))
+			);
+		},
+		setAttribute : function ( base ) {
+			return ( 
+				ifEnabled ( 
+					ifEmbedded ( 
+						ifSpirit ( setAttBefore ( base ), 
+						otherwise ( base )),
+					otherwise ( base )),
+				otherwise ( base ))
+			);
+		},
+		removeAttribute : function ( base ) {
+			return ( 
+				ifEnabled ( 
+					ifEmbedded ( 
+						ifSpirit ( delAttBefore ( base ),
+						otherwise ( base )),
+					otherwise ( base )),
+				otherwise ( base ))
+			);
+		},
+		insertAdjecantHTML : function ( base ) {
+			return ( 
+				ifEnabled ( 
+					ifEmbedded ( spiritualizeAdjecantAfter ( suspending ( base ))),
+					otherwise ( base )),
+				otherwise ( base )
+			);
+		},
+
+		// Disabled pending http://code.google.com/p/chromium/issues/detail?id=13175 ..............
+
+		innerHTML : function ( base ) {
+			return (
+				ifEnabled ( 
+					ifEmbedded ( materializeSubBefore ( spiritualizeSubAfter ( suspending ( base ))),
+					otherwise ( base )),
+				otherwise ( base ))
+			);
+		},
+		outerHTML : function ( base ) {
+			return (
+				ifEnabled ( 
+					ifEmbedded ( materializeThisBefore ( spiritualizeParentAfter ( suspending ( base ))),
+					otherwise ( base )),
+				otherwise ( base ))
+			);
+		},
+		textContent : function ( base ) {
+			return (
+				ifEnabled ( 
+					ifEmbedded ( materializeSubBefore ( suspending ( base )),
+					otherwise ( base )),
+				otherwise ( base ))
+			);
+		}
+	};
+
+}());
 
 
 /**
@@ -9897,8 +9706,10 @@ gui.CSSPlugin = ( function using ( chained ) {
  * @extends {gui.Plugin}
  * @TODO add following and preceding
  * @using {gui.Combo#chained}
+ * @using {gui.Guide}
+ * @using {gui.Observer}
  */
-gui.DOMPlugin = ( function using ( chained ) {
+gui.DOMPlugin = ( function using ( chained, guide, observer ) {
 
 	return gui.Plugin.extend ({
 
@@ -9932,28 +9743,20 @@ gui.DOMPlugin = ( function using ( chained ) {
 		/**
 		 * Get or set element markup.
 		 * @param @optional {String} html
-		 * @param @optional {String} position Insert adjecant HTML
+		 * @param @optional {String} position
 		 * @returns {String|gui.DOMPlugin}
 		 */
 		html : chained ( function ( html, position ) {
-			var element = this.spirit.element;
-			if ( gui.Type.isString ( html )) {
-				if ( position ) {
-					element.insertAdjacentHTML ( position, html ); // @TODO static + spiritualize!
-				} else {
-					gui.DOMPlugin.html ( element, html );
-				}			
-			} else {
-				return element.innerHTML;
-			}
+			return gui.DOMPlugin.html ( this.spirit.element, html, position );
 		}),
 
 		/**
-		 * Empty spirit subtree.
-		 * @returns {gui.DOMPlugin}
+		 * Get or set element outer markup.
+		 * @param @optional {String} html
+		 * @returns {String|gui.DOMPlugin}
 		 */
-		empty : chained ( function () {
-			this.html ( "" );
+		outerHtml : chained ( function ( html ) {
+			return gui.DOMPlugin.outerHtml ( this.spirit.element, html );
 		}),
 
 		/**
@@ -9962,12 +9765,15 @@ gui.DOMPlugin = ( function using ( chained ) {
 		 * @returns {String|gui.DOMPlugin}
 		 */
 		text : chained ( function ( text ) {
-			var elm = this.spirit.element;
-			if ( gui.Type.isString ( text )) {
-				elm.textContent = text;
-				return this;
-			}
-			return elm.textContent;
+			return gui.DOMPlugin.text ( this.spirit.element, text );
+		}),
+
+		/**
+		 * Empty spirit subtree.
+		 * @returns {gui.DOMPlugin}
+		 */
+		empty : chained ( function () {
+			this.html ( "" );
 		}),
 
 		/**
@@ -10065,64 +9871,76 @@ gui.DOMPlugin = ( function using ( chained ) {
 	}, {}, { // Static ...............................................................
 
 		/**
-		 * Spiritual-aware innerHTML with special setup for bad WebKit.
-		 * @see http://code.google.com/p/chromium/issues/detail?id=13175
-		 * @param {Element} element
-		 * @param @optional {String} markup
+		 * Spiritual-aware innerHTML (since this is not intercepted).
+		 * @param {Element} elm
+		 * @param @optional {String} html
+		 * @param @optional {String} pos
 		 */
-		html : function ( element, markup ) {
-			var nodes, guide = gui.Guide;
-			if ( element.nodeType === Node.ELEMENT_NODE ) {
-				if ( gui.Type.isString ( markup )) {
-					nodes = gui.HTMLParser.parseToNodes ( markup, element.ownerDocument );
-					guide.materializeSub ( element );
-					guide.suspend ( function () {
-						gui.Observer.suspend ( element, function () {
-							while ( element.firstChild ) {
-								element.removeChild ( element.firstChild );
-							}
-							nodes.forEach ( function ( node ) {
-								element.appendChild ( node );
-							});
+		html : function ( elm, html, pos ) {
+			alert ( elm );
+			if ( gui.Type.isString ( html )) {
+				if ( pos ) {
+					elm.insertAdjacentHTML ( pos, html );
+				} else {
+					if ( this._shouldhandle ( elm )) {
+						guide.materializeSub ( elm );
+						observer.suspend ( elm, function () {
+							elm.innerHTML = html;
 						});
-					});
-					guide.spiritualizeSub ( element );
+						guide.spiritualizeSub ( elm );
+					} else {
+						elm.innerHTML = html;
+					}
 				}
 			} else {
-				// throw new TypeError ();
+				return elm.innerHTML;
 			}
-			return element.innerHTML; // @TODO skip this step on setter
 		},
 
 		/**
-		 * Spiritual-aware outerHTML with special setup for WebKit.
-		 * @TODO can outerHTML carry multiple nodes???
-		 * @param {Element} element
-		 * @param @optional {String} markup
+		 * Spiritual-aware outerHTML (since this is not intercepted).
+		 * @TODO deprecate and support "replace" value for position?
+		 * @TODO can outerHTML carry multiple root-nodes?
+		 * @param {Element} elm
+		 * @param @optional {String} html
 		 */
-		outerHtml : function ( element, markup ) {
-			var nodes, parent, res = element.outerHTML;
+		outerHtml : function ( elm, html ) {
 			var guide = gui.Guide;
-			if ( element.nodeType ) {
-				if ( gui.Type.isString ( markup )) {
-					nodes = gui.HTMLParser.parseToNodes ( markup, element.ownerDocument );
-					parent = element.parentNode;
-					guide.materialize ( element );
-					guide.suspend ( function () {
-						gui.Observer.suspend ( parent, function () {
-							while ( nodes.length ) {
-								parent.insertBefore ( nodes.pop (), element );
-							}
-							parent.removeChild ( element );
-						});
+			if ( gui.Type.isString ( html )) {
+				if ( this._shouldhandle ( elm )) {
+					guide.materialize ( elm );
+					observer.suspend ( elm, function () {
+						elm.outerHTML = html;
 					});
-					guide.spiritualizeSub ( parent ); // @TODO optimize
-					res = element; // bad API design goes here...
+					guide.spiritualize ( elm );
+				} else {
+					elm.outerHTML = html;
 				}
 			} else {
-				throw new TypeError ();
+				return elm.outerHTML;
 			}
-			return res; // @TODO skip this step on setter
+		},
+
+		/**
+		 * Spiritual-aware textContent (since this is not intercepted).
+		 * @param {Element} elm
+		 * @param @optional {String} html
+		 * @param @optional {String} position
+		 */
+		text : function ( elm, text ) {
+			var guide = gui.Guide;
+			if ( gui.Type.isString ( text )) {
+				if ( this._shouldhandle ( elm )) {
+					guide.materializeSub ( elm );
+					observer.suspend ( elm, function () {
+						elm.textContent = text;
+					});
+				} else {
+					elm.textContent = text;
+				}
+			} else {
+				return elm.textContent;
+			}
 		},
 
 		/**
@@ -10149,7 +9967,7 @@ gui.DOMPlugin = ( function using ( chained ) {
 
 		/**
 		 * Compare document position of two nodes.
-		 * @see http://www.w3.org/TR/DOM-Level-3-Core/core.html#Node3-compareDocumentPosition
+		 * @see http://mdn.io/compareDocumentPosition
 		 * @param {Node|gui.Spirit} node1
 		 * @param {Node|gui.Spirit} node2
 		 * @returns {number}
@@ -10193,7 +10011,6 @@ gui.DOMPlugin = ( function using ( chained ) {
 
 		/**
 		 * Is node positioned in page DOM?
-		 * @TODO comprehend https://developer.mozilla.org/en/JavaScript/Reference/Operators/Bitwise_Operators#Example:_Flags_and_bitmasks
 		 * @param {Element|gui.Spirit} node
 		 * @returns {boolean}
 		 */
@@ -10262,7 +10079,7 @@ gui.DOMPlugin = ( function using ( chained ) {
 				result = gui.Object.toArray ( node.querySelectorAll ( selector ));
 				if ( type ) {
 					result = result.filter ( function ( el )  {
-						return el.spirit && el.spirit instanceof type;
+						return el.spirit && ( el.spirit instanceof type );
 					}).map ( function ( el ) {
 						return el.spirit;
 					});
@@ -10302,6 +10119,18 @@ gui.DOMPlugin = ( function using ( chained ) {
 		},
 
 		/**
+		 * Element exists in native mode environment? Hotfix 
+		 * for bug with native getters and setters in WebKit.
+		 * @param {Element} elm
+		 * @returns {boolean}
+		 */
+		_shouldhandle : function ( elm ) {
+			var doc = elm.ownerDocument;
+			var win = doc.defaultView;
+			return win.gui.mode === gui.MODE_NATIVE;
+		},
+
+		/**
 		 * Match custom 'this' keyword in CSS selector. You can start 
 		 * selector expressions with "this>*" to find immediate child
 		 * @TODO skip 'this' and support simply ">*" and "+*" instead.
@@ -10311,7 +10140,11 @@ gui.DOMPlugin = ( function using ( chained ) {
 			
 	});
 
-}( gui.Combo.chained ));
+}( 
+	gui.Combo.chained, 
+	gui.Guide, 
+	gui.Observer 
+));
 
 /**
  * DOM query methods accept a CSS selector and an optional spirit constructor 
@@ -10907,7 +10740,10 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 			this._constructTop ();
 		}
 		// @TODO iframe hello.
-		this.action.dispatchGlobal ( gui.ACTION_DOC_ONCONSTRUCT );
+		this.action.dispatchGlobal ( 
+			gui.ACTION_DOC_ONCONSTRUCT, 
+			this.window.location.href 
+		);
 	},
 
 	/**
@@ -11036,7 +10872,10 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 	 * Intercepted by the hosting {gui.IframeSpirit}.
 	 */
 	ondom : function () {
-		this.action.dispatchGlobal ( gui.ACTION_DOC_ONDOMCONTENT );	
+		this.action.dispatchGlobal (
+			gui.ACTION_DOC_ONDOMCONTENT,
+			this.window.location.href
+		);
 	},
 
 	/**
@@ -11046,7 +10885,10 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 	onload : function () {
 		if ( !this._loaded ) {
 			this._loaded = true;
-			this.action.dispatchGlobal ( gui.ACTION_DOC_ONLOAD );
+			this.action.dispatchGlobal (
+				gui.ACTION_DOC_ONLOAD,
+				this.window.location.href
+			);
 			var that = this;
 			setTimeout ( function () {
 				that.fit ();
@@ -11064,7 +10906,7 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 	 */
 	onunload : function () {
 		var id = this.window.gui.$contextid;
-		this.action.dispatchGlobal ( gui.ACTION_DOC_UNLOAD );
+		this.action.dispatchGlobal ( gui.ACTION_DOC_UNLOAD, this.window.location.href );
 		this.broadcast.dispatchGlobal ( gui.BROADCAST_WILL_UNLOAD, id );
 		this.broadcast.dispatchGlobal ( gui.BROADCAST_UNLOAD, id );
 	},
@@ -11364,6 +11206,12 @@ gui.IframeSpirit = gui.Spirit.extend ({
 	},
 
 	/**
+	 * Hosted location.
+	 * @type {gui.URL}
+	 */
+	contentLocation : null,
+
+	/**
 	 * Stamp SRC on startup.
 	 */
 	onenter : function () {
@@ -11399,6 +11247,7 @@ gui.IframeSpirit = gui.Spirit.extend ({
 		switch ( a.type ) {
 			case gui.ACTION_DOC_ONCONSTRUCT :
 				this.life.dispatch ( gui.LIFE_IFRAME_CONSTRUCT );
+				this.contentLocation = new gui.URL ( this.document, a.data );
 				this.action.remove ( a.type );
 				a.consume ();
 				break;
@@ -11416,7 +11265,7 @@ gui.IframeSpirit = gui.Spirit.extend ({
 				this._onspiritualized ();
 				this.life.dispatch ( gui.LIFE_IFRAME_SPIRITUALIZED );
 				this.action.remove ( a.type );
-				a.consume (); 
+				a.consume ();
 				break;
 			case gui.ACTION_DOC_UNLOAD :
 				this._onunload ();
@@ -11475,6 +11324,7 @@ gui.IframeSpirit = gui.Spirit.extend ({
 	src : function ( src ) {
 		var doc = this.document;
 		if ( gui.Type.isString ( src )) {
+			this.contentLocation = new gui.URL ( this.document, src );
 			if ( gui.URL.external ( src, doc )) {
 				var url = new gui.URL ( doc, src );
 				this.xguest = url.protocol + "//" + url.host;
@@ -11610,7 +11460,7 @@ gui.IframeSpirit = gui.Spirit.extend ({
 				src = this.sign ( src, doc, spirit.$instanceid );
 			}
 		} else {
-			src = this.SRC_DEFAULT;	
+			src = this.SRC_DEFAULT;
 		}
 		iframe.src = src;
 		return spirit;
@@ -11639,7 +11489,6 @@ gui.IframeSpirit = gui.Spirit.extend ({
 		var uri = loc.protocol + "//" + loc.host;
 		var sig = uri + "/" + contextid;
 		url = gui.URL.setParam ( url, gui.PARAM_CONTEXTID, sig );
-		console.log ( "IframeSpirit", url );
 		return url;
 	},
 
@@ -11649,7 +11498,7 @@ gui.IframeSpirit = gui.Spirit.extend ({
 	 * @param {String} sign
 	 * @returns {String}
 	 */
-	unsign : function ( url ) {	
+	unsign : function ( url ) {
 		return gui.URL.setParam ( url, gui.PARAM_CONTEXTID, null );
 	}
 

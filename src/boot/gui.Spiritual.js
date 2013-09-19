@@ -41,17 +41,10 @@ gui.Spiritual.prototype = {
 	document : null,
 
 	/**
-	 * Spirit management mode. Matches one of 
-	 * 
-	 * - native
-	 * - jquery
-	 * - optimize.
-	 * - managed
-	 *  
-	 * @note This will deprecate as soon as iOS supports a mechanism for grabbing the native innerHTML setter.
+	 * Spirit management mode. Matches "native" or "managed".
 	 * @type {String}
 	 */
-	mode : "optimize", // recommended setting for iOS support
+	mode : "native",
 
 	/**
 	 * Automatically run on DOMContentLoaded? 
@@ -247,6 +240,7 @@ gui.Spiritual.prototype = {
 			var indexes = [];
 			// mark as portalled
 			subgui.portalled = true;
+			subgui.mode = this.mode;
 			/*
 			subgui._spaces = [];
 			this._spaces.forEach ( function ( ns ) {

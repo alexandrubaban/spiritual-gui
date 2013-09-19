@@ -32,5 +32,5 @@ module.exports = function ( grunt ) {
 			}
 		}
 	});
-	grunt.registerTask ( "default", "spiritualdox" );
+	grunt.registerTask ( "default", "spiritual" ); // "spiritualdox"
 };
