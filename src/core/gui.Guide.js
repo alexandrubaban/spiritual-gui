@@ -56,7 +56,7 @@ gui.Guide = {
 		switch ( b.type ) {
 			case gui.BROADCAST_KICKSTART :
 				gui.Broadcast.removeGlobal ( b.type, this );
-				this._step1 ( document );
+				this._step1 ( window, document );
 				break;
 			case gui.BROADCAST_LOADING_CHANNELS :
 				if ( !spirits ) {
@@ -216,7 +216,7 @@ gui.Guide = {
 		if ( gui.autostart ) {
 			var meta = sum.document.querySelector ( "meta[name='gui.autostart']" );
 			if ( !meta || gui.Type.cast ( meta.getAttribute ( "content" )) !== false ) {
-				this._step1 ( sum.document ); // else await gui.kickstart()
+				this._step1 ( sum.window, sum.document ); // else await gui.kickstart()
 			}
 		}
 	},
@@ -244,11 +244,10 @@ gui.Guide = {
 	},
 
 	/**
-	 * Step 1. Great name.
+	 * @TODO: Remove the stylesheet evaluation stuff.
 	 * @param {Document} doc
 	 */
-	_step1 : function ( doc ) {
-		var win = doc.defaultView;
+	_step1 : function ( win, doc ) {
 		var sig = win.gui.$contextid;
 		gui.Broadcast.removeGlobal (gui.BROADCAST_KICKSTART, this); //we don't need to listen anymore
 		this._metatags ( win ); // configure runtime
@@ -256,27 +255,46 @@ gui.Guide = {
 		this._stylesheets ( win ); // more spirits?
 		// resolving spiritual stylesheets? If not, skip directly to _step2.
 		if ( !this._windows [ sig ]) {
-			this._step2 ( doc );
+			this._step2 ( win, doc );
 		}
 	},
 
 	/**
-	 * Attach all spirits and proclaim document spiritualized (isolated for async invoke).
+	 * Spiritualize elements and proclaim the document spiritualized.
+	 * @param {Window} win
 	 * @param {Document} doc
 	 */
-	_step2 : function ( doc ) {
-		var win = doc.defaultView;
+	_step2 : function ( win, doc ) {
 		var sig = win.gui.$contextid;
-		// broadcast before and after spirits attach
-		this.spiritualizeOne ( doc.documentElement );
-		if ( win.gui.mode !== gui.MODE_MANAGED ) {
-			gui.broadcastGlobal ( gui.BROADCAST_WILL_SPIRITUALIZE, sig );
-			this.spiritualizeSub ( doc.documentElement );
-			gui.broadcastGlobal ( gui.BROADCAST_DID_SPIRITUALIZE, sig );
-			win.gui.spiritualized = true;
-		}
+		gui.DOMChanger.setup ( win );
+		gui.broadcastGlobal ( gui.BROADCAST_WILL_SPIRITUALIZE, sig );
+		this._spastiker ( win, doc );
+		gui.broadcastGlobal ( gui.BROADCAST_DID_SPIRITUALIZE, sig );
+		win.gui.spiritualized = true;
 	},
 
+	/**
+	 * Always spiritualize the root {gui.DocumentSpirit}. 
+	 * 1. Overload native DOM methods in native mode?
+	 * 2. Monitor DOM for unhandled mutations in debug mode?
+	 * 3. Potentially spiritualize all other spirits?
+	 * @param {Window} win
+	 * @param {Document} doc
+	 */
+	_spastiker : function ( win, doc ) {
+		var root = doc.documentElement;
+		this.spiritualizeOne ( root );
+		if ( win.gui.mode !== gui.MODE_MANAGED ) {
+			if ( win.gui.mode === gui.MODE_NATIVE ) {
+				gui.DOMChanger.change ( win );
+			}
+			if ( win.gui.debug ) {
+				gui.Observer.observe ( win );
+			}
+			this.spiritualizeSub ( root );
+		}
+	},
+	
 	/**
 	 * Resolve metatags (configure runtime).
 	 * @param {Window} win
@@ -323,7 +341,7 @@ gui.Guide = {
 			handleSpirit : function ( spirit ) {
 				if ( skip && spirit.element === node ) {}
 				else if ( !spirit.life.destructed ) {
-				 list.push ( spirit );
+					list.push ( spirit );
 				}
 			}
 		});

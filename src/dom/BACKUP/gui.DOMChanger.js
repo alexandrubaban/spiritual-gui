@@ -4,13 +4,6 @@
 gui.DOMChanger = {
 
 	/**
-	 * True when in JQuery mode. This will be removed when 
-	 * iOS supports a mechanism for intercepting `innerHTML`. 
-	 * @type {boolean}
-	 */
-	jquery : false,
-
-	/**
 	 * Tracking success with overloading `innerHTML`.
 	 * 
 	 * - Firefox, Opera and Explorer does this on an Element.prototype level

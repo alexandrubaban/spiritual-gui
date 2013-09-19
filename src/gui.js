@@ -11,30 +11,20 @@ window.gui = {
 	portals : true,
 
 	/**
-	 * Native mode: Overloading native DOM methods.
+	 * Native mode: Automatically spiritualize and 
+	 * materialize by overriding native DOM methods.
 	 * @type {String}
 	 */
 	MODE_NATIVE : "native",
 
 	/**
-	 * jquery mode: Overloading JQuery DOM methods.
-	 * @type {String}
-	 */
-	MODE_JQUERY : "jquery",
-
-	/**
-	 * Optimized mode: try native and fallback on jquery.
-	 * @type {String}
-	 */
-	MODE_OPTIMIZE : "optimize",
-
-	/**
-	 * Managed mode.
+	 * Managed mode. Spiritualize and materialize at own risk.
 	 * @type {String}
 	 */
 	MODE_MANAGED : "managed",
 
 	/**
+	 * @TODO: leave the URL alone a see if we can postMessage these things just in time...
 	 * The {gui.IframeSpirit} will stamp this querystring parameter into any URL it loads. 
 	 * The value of the parameter matches the iframespirits '$contextid'. Value becomes the 
 	 * '$contextid' of the local 'gui' object (a {gui.Spiritual} instance). This establishes 

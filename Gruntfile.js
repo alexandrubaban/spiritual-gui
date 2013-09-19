@@ -7,7 +7,6 @@ module.exports = function ( grunt ) {
 	"use strict";
 	
 	[ "grunt-spiritual", "grunt-spiritual-dox" ].forEach ( grunt.loadNpmTasks );
-
 	grunt.initConfig ({
 		spiritual : {
 			gui : {
@@ -33,6 +32,5 @@ module.exports = function ( grunt ) {
 			}
 		}
 	});
-	
 	grunt.registerTask ( "default", "spiritualdox" );
 };

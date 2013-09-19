@@ -111,14 +111,6 @@ gui.Spiritual.prototype = {
 	 */
 	start : function () {
 		this._gone = true;
-		switch ( this.mode ) {
-			case gui.MODE_NATIVE :
-			case gui.MODE_JQUERY :
-			case gui.MODE_OPTIMIZE :
-			case gui.MODE_MANAGED :
-				gui.DOMChanger.change ( this.context );
-				break;
-		}
 		this._experimental ();
 		gui.Tick.add ([ gui.$TICK_INSIDE, gui.$TICK_OUTSIDE ], this, this.$contextid );
 		if ( this._configs !== null ) {
@@ -705,20 +697,6 @@ gui.Spiritual.prototype = {
 
 
 	// Work in progress .............................................................
-
-	/**
-	 * @TODO action required. This methoud would enable the mutation 
-	 * observer. We should remove this whole thing from Spiritual core.
-	 */
-	_movethismethod : function () {
-		if ( this.mode === gui.MODE_JQUERY ) {
-			gui.Tick.next ( function () {  // @TODO somehow not conflict with http://stackoverflow.com/questions/11406515/domnodeinserted-behaves-weird-when-performing-dom-manipulation-on-body
-				gui.Observer.observe ( this.context ); // @idea move all of _step2 to next stack?
-			}, this );
-		} else {
-			gui.Observer.observe ( this.context );
-		}
-	},
 
 	/**
 	 * Experimental.
