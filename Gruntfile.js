@@ -6,7 +6,8 @@ module.exports = function ( grunt ) {
 
 	"use strict";
 	
-	grunt.loadNpmTasks ( "grunt-spiritual" );
+	[ "grunt-spiritual", "grunt-spiritual-dox" ].forEach ( grunt.loadNpmTasks );
+
 	grunt.initConfig ({
 		spiritual : {
 			gui : {
@@ -14,7 +15,7 @@ module.exports = function ( grunt ) {
 					banner : (
 						'/**\n' +
 						' * Spiritual GUI\n' +
-						' * 2013 Wunderbyte\n' +
+						' * (c) 2013 Wunderbyte\n' +
 						' * Spiritual is freely distributable under the MIT license.\n' +
 						' */\n'
 					 )
@@ -23,7 +24,15 @@ module.exports = function ( grunt ) {
 					"dist/spiritual-gui.js" : [ "src/gui.json" ]
 				}
 			}
+		},
+		spiritualdox : {
+			gui : {
+				files : {
+					"temp" : [ "src/gui.json", "!**/exclusionpattern/**" ]
+				}
+			}
 		}
 	});
-	grunt.registerTask ( "default", "spiritual" );
+	
+	grunt.registerTask ( "default", "spiritualdox" );
 };

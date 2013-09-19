@@ -81,7 +81,7 @@ gui.Class = {
 	/**
 	 * Nameless name.
 	 * @type {String}
-	 */	
+	 */
 	ANONYMOUS	 : "Anonymous",
 
 	/**
@@ -99,9 +99,9 @@ gui.Class = {
 	}(
 		function $name () {
 			if ( this instanceof $name ) {
-				return gui.Class.$constructor.apply ( this, arguments );	
+				return gui.Class.$constructor.apply ( this, arguments );
 			} else {
-				return $name.extend.apply ( $name, arguments );	
+				return $name.extend.apply ( $name, arguments );
 			}
 		}
 	)),
@@ -135,7 +135,7 @@ gui.Class = {
 	_breakdown_subs : function ( args ) {
 		var named = gui.Type.isString ( args [ 0 ]);
 		return {
-			name : named ? args [ 0 ] : null,			
+			name : named ? args [ 0 ] : null,
 			protos : args [ named ? 1 : 0 ] || Object.create ( null ),
 			recurring : args [ named ? 2 : 1 ] || Object.create ( null ),
 			statics : args [ named ? 3 : 2 ] || Object.create ( null )
@@ -265,8 +265,8 @@ gui.Class = {
 	 * @return {[type]}      [description]
 	 */
 	_namedbody : function ( name ) {
-		return this._BODY.replace ( 
-			new RegExp ( "\\$name", "gm" ), 
+		return this._BODY.replace (
+			new RegExp ( "\\$name", "gm" ),
 			gui.Function.safename ( name )
 		);
 	}
