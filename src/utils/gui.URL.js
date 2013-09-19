@@ -72,11 +72,11 @@ gui.URL.absolute = function ( base, href ) { // return /(^data:)|(^http[s]?:)|(^
 				if ( part === ".." ) {
 					stack.pop ();
 				}	else {
-					stack.push ( part );	
+					stack.push ( part );
 				}
 			}
 		});
-		return stack.join ( "/" );	
+		return stack.join ( "/" );
 	}
 };
 
@@ -123,9 +123,11 @@ gui.URL.getParam = function ( url, name ) {
  */
 gui.URL.setParam = function ( url, name, value ) {
 	var params = [], cut, index = -1;
-	if ( url.indexOf ( "?" ) >-1 ) {
-		cut = url.split ( "?" );
-		url = cut [ 0 ];
+	var path = url.split ( "#" )[ 0 ];
+	var hash = url.split ( "#" )[ 1 ];
+	if ( path.indexOf ( "?" ) >-1 ) {
+		cut = path.split ( "?" );
+		path = cut [ 0 ];
 		params = cut [ 1 ].split ( "&" );
 		params.every ( function ( param, i ) {
 			var x = param.split ( "=" );
@@ -146,7 +148,8 @@ gui.URL.setParam = function ( url, name, value ) {
 	} else if ( index < 0 ) {
 		params [ params.length ] = [ name, value ].join ( "=" );
 	}
-	return url + ( params.length > 0 ? "?" + params.join ( "&" ) : "" );
+	params = params.length > 0 ? "?" + params.join ( "&" ) : "";
+	return path + params + ( hash ? "#" + hash : "" );
 };
 
 /**
@@ -167,7 +170,7 @@ gui.URL.parametrize = function ( baseurl, params ) {
 					break;
 				default :
 					baseurl += key + "=" + String ( value );
-					break;	
+					break;
 			}
 		});
 	}
