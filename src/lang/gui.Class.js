@@ -245,8 +245,11 @@ gui.Class = {
 		C.prototype.toString = function () {
 			return "[object " + this.constructor.$classname + "]";
 		};
-		[ C, C.prototype ].forEach ( function ( thing ) { 
-			Object.defineProperty ( thing, "displayName", 
+		/*
+		 * TODO: apparently needs to be moved to the instance (in constructor)!
+		 */
+		[ C, C.prototype ].forEach ( function ( thing ) {
+			Object.defineProperty ( thing, "displayName",
 				gui.Property.nonenumerable ({
 					writable : true,
 					value : name

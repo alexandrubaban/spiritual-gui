@@ -147,7 +147,12 @@ gui.Action.dispatch = function dispatch ( target, type, data, direction, global 
 		 */
 		transcend : function ( win, uri, key ) {
 			var msg = gui.Action.stringify ( action, key );
-			win.postMessage ( msg, uri );
+			try {
+				win.postMessage ( msg, uri );
+			} catch ( exception ) {
+				// TODO: investigate WebKit "Unable to post message... Recipient has origin..."
+				console.error ( "Could not postMessage the action", exception, msg );
+			}
 		}
 	});
 	return action;

@@ -55,6 +55,12 @@ gui.IframeSpirit = gui.Spirit.extend ({
 	},
 
 	/**
+	 * Hosted location.
+	 * @type {gui.URL}
+	 */
+	contentLocation : null,
+
+	/**
 	 * Stamp SRC on startup.
 	 */
 	onenter : function () {
@@ -90,6 +96,7 @@ gui.IframeSpirit = gui.Spirit.extend ({
 		switch ( a.type ) {
 			case gui.ACTION_DOC_ONCONSTRUCT :
 				this.life.dispatch ( gui.LIFE_IFRAME_CONSTRUCT );
+				this.contentLocation = new gui.URL ( this.document, a.data );
 				this.action.remove ( a.type );
 				a.consume ();
 				break;
@@ -107,7 +114,7 @@ gui.IframeSpirit = gui.Spirit.extend ({
 				this._onspiritualized ();
 				this.life.dispatch ( gui.LIFE_IFRAME_SPIRITUALIZED );
 				this.action.remove ( a.type );
-				a.consume (); 
+				a.consume ();
 				break;
 			case gui.ACTION_DOC_UNLOAD :
 				this._onunload ();
@@ -166,6 +173,7 @@ gui.IframeSpirit = gui.Spirit.extend ({
 	src : function ( src ) {
 		var doc = this.document;
 		if ( gui.Type.isString ( src )) {
+			this.contentLocation = new gui.URL ( this.document, src );
 			if ( gui.URL.external ( src, doc )) {
 				var url = new gui.URL ( doc, src );
 				this.xguest = url.protocol + "//" + url.host;
@@ -301,7 +309,7 @@ gui.IframeSpirit = gui.Spirit.extend ({
 				src = this.sign ( src, doc, spirit.$instanceid );
 			}
 		} else {
-			src = this.SRC_DEFAULT;	
+			src = this.SRC_DEFAULT;
 		}
 		iframe.src = src;
 		return spirit;
@@ -330,7 +338,6 @@ gui.IframeSpirit = gui.Spirit.extend ({
 		var uri = loc.protocol + "//" + loc.host;
 		var sig = uri + "/" + contextid;
 		url = gui.URL.setParam ( url, gui.PARAM_CONTEXTID, sig );
-		console.log ( "IframeSpirit", url );
 		return url;
 	},
 
@@ -340,7 +347,7 @@ gui.IframeSpirit = gui.Spirit.extend ({
 	 * @param {String} sign
 	 * @returns {String}
 	 */
-	unsign : function ( url ) {	
+	unsign : function ( url ) {
 		return gui.URL.setParam ( url, gui.PARAM_CONTEXTID, null );
 	}
 

@@ -116,7 +116,7 @@ window.gui = {
 	 */
 	LIFE_IFRAME_CONSTRUCT : "gui-life-iframe-construct",
 	LIFE_IFRAME_DOMCONTENT : "gui-life-iframe-domcontent",
-	LIFE_IFRAME_ONLOAD : "gui-life-iframe-construct",
+	LIFE_IFRAME_ONLOAD : "gui-life-iframe-onload",
 	LIFE_IFRAME_SPIRITUALIZED : "gui-life-iframe-spiritualized",
 	LIFE_IFRAME_UNLOAD : "gui-life-iframe-unload",
 

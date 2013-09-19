@@ -17,7 +17,10 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 			this._constructTop ();
 		}
 		// @TODO iframe hello.
-		this.action.dispatchGlobal ( gui.ACTION_DOC_ONCONSTRUCT );
+		this.action.dispatchGlobal ( 
+			gui.ACTION_DOC_ONCONSTRUCT, 
+			this.window.location.href 
+		);
 	},
 
 	/**
@@ -146,7 +149,10 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 	 * Intercepted by the hosting {gui.IframeSpirit}.
 	 */
 	ondom : function () {
-		this.action.dispatchGlobal ( gui.ACTION_DOC_ONDOMCONTENT );	
+		this.action.dispatchGlobal (
+			gui.ACTION_DOC_ONDOMCONTENT,
+			this.window.location.href
+		);
 	},
 
 	/**
@@ -156,7 +162,10 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 	onload : function () {
 		if ( !this._loaded ) {
 			this._loaded = true;
-			this.action.dispatchGlobal ( gui.ACTION_DOC_ONLOAD );
+			this.action.dispatchGlobal (
+				gui.ACTION_DOC_ONLOAD,
+				this.window.location.href
+			);
 			var that = this;
 			setTimeout ( function () {
 				that.fit ();
@@ -174,7 +183,7 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 	 */
 	onunload : function () {
 		var id = this.window.gui.$contextid;
-		this.action.dispatchGlobal ( gui.ACTION_DOC_UNLOAD );
+		this.action.dispatchGlobal ( gui.ACTION_DOC_UNLOAD, this.window.location.href );
 		this.broadcast.dispatchGlobal ( gui.BROADCAST_WILL_UNLOAD, id );
 		this.broadcast.dispatchGlobal ( gui.BROADCAST_UNLOAD, id );
 	},

@@ -11,9 +11,8 @@
 	"globalstrict": false,
 	"quotmark": false,
 	"smarttabs": true,
-	"trailing": true,
+	"trailing": false,
 	"undef": true,
 	"unused": "vars",
-	"trailing": true,
 	"sub": true
 }
