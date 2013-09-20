@@ -70,7 +70,7 @@ gui.Spirit = gui.Class.create ( Object.prototype, {
 		 */
 		if ( !this._startstates ) {
 			if ( !gui.Spirit._didsayso ) {
-				console.warn ( "TODO: _startstates not setup nowadays" );
+				// console.warn ( "TODO: _startstates not setup nowadays" );
 				gui.Spirit._didsayso = true;
 			}
 		} else {

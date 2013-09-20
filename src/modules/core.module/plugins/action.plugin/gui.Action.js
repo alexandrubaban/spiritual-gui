@@ -108,9 +108,10 @@ gui.Action.ASCEND = "ascend";
 
 /**
  * Dispatch action. The dispatching spirit will not `onaction()` its own action.
+ * @TODO Measure performance against https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent
  * @TODO Class-like thing to carry all these scoped methods...
  * @TODO support custom `gui.Action` as an argument
- * @TODO common exemplar for action, broadcast etc?
+ * @TODO common ancestor class for action, broadcast etc?
  * @param {gui.Spirit} target
  * @param {String} type
  * @param @optional {object} data
@@ -147,12 +148,7 @@ gui.Action.dispatch = function dispatch ( target, type, data, direction, global 
 		 */
 		transcend : function ( win, uri, key ) {
 			var msg = gui.Action.stringify ( action, key );
-			try {
-				win.postMessage ( msg, uri );
-			} catch ( exception ) {
-				// TODO: investigate WebKit "Unable to post message... Recipient has origin..."
-				console.error ( "Could not postMessage the action", exception, msg );
-			}
+			win.postMessage ( msg, uri );
 		}
 	});
 	return action;

@@ -166,10 +166,12 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 				gui.ACTION_DOC_ONLOAD,
 				this.window.location.href
 			);
+			/*
 			var that = this;
 			setTimeout ( function () {
 				that.fit ();
 			}, gui.Client.STABLETIME );
+			*/
 		} else {
 			console.warn ( "@TODO loaded twice..." );
 		}

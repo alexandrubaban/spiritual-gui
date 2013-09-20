@@ -629,20 +629,22 @@ gui.Spiritual.prototype = {
 	 * @param {String} url
 	 */
 	_params : function ( url ) {
-		/*
-		 * @TODO: clean this up!
-		 * @TODO: use framelement!
-		 */
 		var id, xhost, splits, param = gui.PARAM_CONTEXTID;
 		if ( url.contains ( param )) {
 			splits = gui.URL.getParam ( url, param ).split ( "/" );
 			id = splits.pop ();
 			xhost = splits.join ( "/" );
-		} else if ( document.referrer.contains ( param )) {
+		} 
+		/*
+		 * No - document.referrer may be the parent frame of an iframe!
+		 * 
+		else if ( document.referrer.contains ( param )) {
 			splits = gui.URL.getParam ( document.referrer, param ).split ( "/" );
 			id = splits.pop ();
 			xhost = splits.join ( "/" );
-		} else {
+		}
+		*/
+		else {
 			id = gui.KeyMaster.generateKey ();
 			xhost = null;
 		}

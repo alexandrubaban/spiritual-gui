@@ -96,27 +96,11 @@ gui.DOMPlugin = ( function using ( chained, guide, observer ) {
 		}),
 
 		/**
-		 * Get spirit element tagname or create an element of given tagname. 
-		 * @param @optional {String} name If present, create an element
-		 * @param @optional {String} text If present, also append a text node
-		 * @TODO Third argument for namespace? Investigate general XML-ness.
+		 * Get spirit element tagname (identicased with HTML).
+		 * @returns {String}
 		 */
-		tag : function ( name, text ) {
-			var res = null;
-			var doc = this.spirit.document;
-			var elm = this.spirit.element;
-			if ( name ) {
-				res = doc.createElement ( name );
-				// @TODO "text" > "child" and let gui.DOMPlugin handle the rest....
-				if ( gui.Type.isString ( text )) {
-					res.appendChild ( 
-						doc.createTextNode ( text )
-					);
-				}
-			} else {
-				res = elm.localName;
-			}
-			return res;
+		tag : function () {
+			return this.spirit.element.localName;
 		},
 
 		/**
