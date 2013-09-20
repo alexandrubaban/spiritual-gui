@@ -855,17 +855,10 @@ gui.Spiritual.prototype = {
 	document : null,
 
 	/**
-	 * Spirit management mode. Matches one of 
-	 * 
-	 * - native
-	 * - jquery
-	 * - optimize.
-	 * - managed
-	 *  
-	 * @note This will deprecate as soon as iOS supports a mechanism for grabbing the native innerHTML setter.
+	 * Spirit management mode. Matches "native" or "managed".
 	 * @type {String}
 	 */
-	mode : "optimize", // recommended setting for iOS support
+	mode : "native",
 
 	/**
 	 * Automatically run on DOMContentLoaded? 
@@ -1061,6 +1054,7 @@ gui.Spiritual.prototype = {
 			var indexes = [];
 			// mark as portalled
 			subgui.portalled = true;
+			subgui.mode = this.mode;
 			/*
 			subgui._spaces = [];
 			this._spaces.forEach ( function ( ns ) {
@@ -1449,20 +1443,22 @@ gui.Spiritual.prototype = {
 	 * @param {String} url
 	 */
 	_params : function ( url ) {
-		/*
-		 * @TODO: clean this up!
-		 * @TODO: use framelement!
-		 */
 		var id, xhost, splits, param = gui.PARAM_CONTEXTID;
 		if ( url.contains ( param )) {
 			splits = gui.URL.getParam ( url, param ).split ( "/" );
 			id = splits.pop ();
 			xhost = splits.join ( "/" );
-		} else if ( document.referrer.contains ( param )) {
+		} 
+		/*
+		 * No - document.referrer may be the parent frame of an iframe!
+		 * 
+		else if ( document.referrer.contains ( param )) {
 			splits = gui.URL.getParam ( document.referrer, param ).split ( "/" );
 			id = splits.pop ();
 			xhost = splits.join ( "/" );
-		} else {
+		}
+		*/
+		else {
 			id = gui.KeyMaster.generateKey ();
 			xhost = null;
 		}
@@ -3946,7 +3942,7 @@ gui.Crawler = gui.Class.create ( Object.prototype, {
 			if ( elm.nodeType === Node.DOCUMENT_NODE ) {
 				if ( this.global ) {
 					win = elm.defaultView;
-					if ( win.parent !== win ) {
+					if ( win.gui.hosted ) { // win.parent !== win
 						/*
 						 * @TODO: iframed document might have navigated elsewhere, stamp this in localstorage
 						 * @TODO: sit down and wonder if localstorage is even available in sandboxed iframes...
@@ -4523,7 +4519,7 @@ gui.Spirit = gui.Class.create ( Object.prototype, {
 		 */
 		if ( !this._startstates ) {
 			if ( !gui.Spirit._didsayso ) {
-				console.warn ( "TODO: _startstates not setup nowadays" );
+				// console.warn ( "TODO: _startstates not setup nowadays" );
 				gui.Spirit._didsayso = true;
 			}
 		} else {
@@ -5729,9 +5725,10 @@ gui.Action.ASCEND = "ascend";
 
 /**
  * Dispatch action. The dispatching spirit will not `onaction()` its own action.
+ * @TODO Measure performance against https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent
  * @TODO Class-like thing to carry all these scoped methods...
  * @TODO support custom `gui.Action` as an argument
- * @TODO common exemplar for action, broadcast etc?
+ * @TODO common ancestor class for action, broadcast etc?
  * @param {gui.Spirit} target
  * @param {String} type
  * @param @optional {object} data
@@ -5768,12 +5765,7 @@ gui.Action.dispatch = function dispatch ( target, type, data, direction, global 
 		 */
 		transcend : function ( win, uri, key ) {
 			var msg = gui.Action.stringify ( action, key );
-			try {
-				win.postMessage ( msg, uri );
-			} catch ( exception ) {
-				// TODO: investigate WebKit "Unable to post message... Recipient has origin..."
-				console.error ( "Could not postMessage the action", exception, msg );
-			}
+			win.postMessage ( msg, uri );
 		}
 	});
 	return action;
@@ -7746,9 +7738,9 @@ gui.Guide = {
 		if ( win.gui.mode !== gui.MODE_MANAGED ) {
 			if ( win.gui.mode === gui.MODE_NATIVE ) {
 				gui.DOMChanger.change ( win );
-			}
-			if ( win.gui.debug ) {
-				gui.Observer.observe ( win );
+				if ( win.gui.debug ) {
+					gui.Observer.observe ( win );
+				}
 			}
 			this.spiritualizeSub ( root );
 		}
@@ -9799,27 +9791,11 @@ gui.DOMPlugin = ( function using ( chained, guide, observer ) {
 		}),
 
 		/**
-		 * Get spirit element tagname or create an element of given tagname. 
-		 * @param @optional {String} name If present, create an element
-		 * @param @optional {String} text If present, also append a text node
-		 * @TODO Third argument for namespace? Investigate general XML-ness.
+		 * Get spirit element tagname (identicased with HTML).
+		 * @returns {String}
 		 */
-		tag : function ( name, text ) {
-			var res = null;
-			var doc = this.spirit.document;
-			var elm = this.spirit.element;
-			if ( name ) {
-				res = doc.createElement ( name );
-				// @TODO "text" > "child" and let gui.DOMPlugin handle the rest....
-				if ( gui.Type.isString ( text )) {
-					res.appendChild ( 
-						doc.createTextNode ( text )
-					);
-				}
-			} else {
-				res = elm.localName;
-			}
-			return res;
+		tag : function () {
+			return this.spirit.element.localName;
 		},
 
 		/**
@@ -9877,7 +9853,6 @@ gui.DOMPlugin = ( function using ( chained, guide, observer ) {
 		 * @param @optional {String} pos
 		 */
 		html : function ( elm, html, pos ) {
-			alert ( elm );
 			if ( gui.Type.isString ( html )) {
 				if ( pos ) {
 					elm.insertAdjacentHTML ( pos, html );
@@ -10145,6 +10120,11 @@ gui.DOMPlugin = ( function using ( chained, guide, observer ) {
 	gui.Guide, 
 	gui.Observer 
 ));
+
+/**
+ * Bind the "this" keyword for all static methods.
+ */
+gui.Object.bindall ( gui.DOMPlugin );
 
 /**
  * DOM query methods accept a CSS selector and an optional spirit constructor 
@@ -10889,10 +10869,12 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 				gui.ACTION_DOC_ONLOAD,
 				this.window.location.href
 			);
+			/*
 			var that = this;
 			setTimeout ( function () {
 				that.fit ();
 			}, gui.Client.STABLETIME );
+			*/
 		} else {
 			console.warn ( "@TODO loaded twice..." );
 		}
