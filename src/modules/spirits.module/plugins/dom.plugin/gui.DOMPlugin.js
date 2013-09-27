@@ -233,7 +233,7 @@ gui.DOMPlugin = ( function using ( chained, guide, observer ) {
 			var parent = element.parentNode;
 			if ( parent ) {
 				var node = parent.firstElementChild;
-				while ( node !== null ) {
+				while ( node ) {
 					if ( node === element ) {
 						break;
 					} else {

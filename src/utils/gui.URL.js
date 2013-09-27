@@ -66,7 +66,7 @@ gui.URL.absolute = function ( base, href ) { // return /(^data:)|(^http[s]?:)|(^
 	} else if ( typeof base === "string" ) {
 		var stack = base.split ( "/" );
 		var parts = href.split ( "/" );
-		stack.pop();// remove current filename (or empty string) (omit if "base" is the current folder without trailing slash)
+		stack.pop ();// remove current filename (or empty string) (omit if "base" is the current folder without trailing slash)
 		parts.forEach ( function ( part ) {
 			if ( part !== "." ) {
 				if ( part === ".." ) {
@@ -82,7 +82,6 @@ gui.URL.absolute = function ( base, href ) { // return /(^data:)|(^http[s]?:)|(^
 
 /**
  * Is URL external to document (as in external host)?
- * @TODO: fix IE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
  * @param {String} url
  * @param {Document} doc
  * @returns {boolean}
@@ -90,14 +89,7 @@ gui.URL.absolute = function ( base, href ) { // return /(^data:)|(^http[s]?:)|(^
 gui.URL.external = function ( src, doc ) {
 	doc = doc || document;
 	var url = new gui.URL ( doc, src );
-	if ( gui.Client.isExplorer9 ) {
-		if(gui.debug){
-			console.log ( "TODO: Fix hardcoded assesment of external URL in IE9 (always false): " + src );
-		}
-		return false;
-	} else {
-		return url.host !== doc.location.host;
-	}
+	return url.host !== doc.location.host || url.port !== doc.location.port;
 };
 
 /**
@@ -184,14 +176,13 @@ gui.URL.parametrize = function ( baseurl, params ) {
 gui.URL._createLink = function ( doc, href ) {
 	var link = doc.createElement ( "a" );
 	link.href = href || "";
-	if ( gui.Client.isExplorer ) {
+	if ( gui.Client.isExplorer9 ) {
 	  var uri = gui.URL.parseUri ( link.href );
 	  Object.keys ( uri ).forEach ( function ( key ) {
 			if ( !link [ key ]) {
 				link [ key ] = uri [ key ]; // this is wrong...
 			}
 	  });
-
 	}
 	return link;
 };

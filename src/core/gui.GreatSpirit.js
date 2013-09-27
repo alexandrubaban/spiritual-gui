@@ -95,7 +95,20 @@ gui.GreatSpirit = {
 				if ( nativeprops [ prop ] === undefined ) {
 					var desc = Object.getOwnPropertyDescriptor ( thing, prop );
 					if ( !desc || desc.configurable ) {
-						Object.defineProperty ( thing, prop, this.DENIED );
+						if ( context.gui.debug ) {
+							Object.defineProperty ( thing, prop, {
+								enumerable : true,
+								configurable : true,
+								get : function () {
+									gui.GreatSpirit.DENY ( thing );
+								},
+								set : function () {
+									gui.GreatSpirit.DENY ( thing );
+								}
+							});
+						} else {
+							Object.defineProperty ( thing, prop, this.DENIED );
+						}
 					}
 				}
 			}
@@ -119,9 +132,10 @@ gui.GreatSpirit = {
 	/**
 	 * Obscure mechanism to include the whole stacktrace in the error message.
 	 * @see https://gist.github.com/jay3sh/1158940
+	 * @param @optional {String} message
 	 */
 	DENY : function ( message ) {
-		var stack, e = new Error ( gui.Spirit.DENIAL );
+		var stack, e = new Error ( gui.GreatSpirit.DENIAL + ( message ? ": " + message : "" ));
 		if ( !gui.Client.isExplorer && ( stack = e.stack )) {
 			if ( gui.Client.isWebKit ) {
 				stack = stack.replace ( /^[^\(]+?[\n$]/gm, "" ).

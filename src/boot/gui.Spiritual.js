@@ -241,19 +241,6 @@ gui.Spiritual.prototype = {
 			// mark as portalled
 			subgui.portalled = true;
 			subgui.mode = this.mode;
-			/*
-			subgui._spaces = [];
-			this._spaces.forEach ( function ( ns ) {
-				var members = gui.Object.lookup ( ns, this.context );
-				if ( members.portals ) {
-					try {
-						this.namespace ( ns, members, sub );
-					} catch ( x ) {
-						alert ( x );
-					}
-				}
-			}, this );
-			*/
 			// portal gui members + custom namespaces and members.
 			subgui._spaces = this._spaces.filter ( function ( ns ) {
 				var nso = gui.Object.lookup ( ns, this.context );
@@ -462,9 +449,11 @@ gui.Spiritual.prototype = {
 				spirits = gui.Object.each ( this._spirits.outside, function ( key, spirit ) {
 					return spirit;
 				});
-				spirits.forEach ( function ( spirit ) {
+				/*
+				spirits.forEach ( function ( spirit ) { // @TODO: make sure that this happens onexit (but not here)
 					gui.Spirit.$exit ( spirit );
 				});
+				*/
 				spirits.forEach ( function ( spirit ) {
 					gui.Spirit.$destruct ( spirit );
 				});

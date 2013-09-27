@@ -45,39 +45,43 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 	 */
 	onevent : function ( e ) {
 		this._super.onevent ( e );
-		switch ( e.type ) {
-			// top document only
-			case "orientationchange" :
-				this._onorientationchange ();
-				break;
-			default : // all documents
-				switch ( e.type ) {
-					case "resize" :
-						try {
-							if ( parent === window ) { // @TODO: gui.isTop or something...
-								try {
-									this._onresize ();
-								} catch ( normalexception ) {
-									throw ( normalexception );
+		try {
+			switch ( e.type ) {
+				// top document only
+				case "orientationchange" :
+					this._onorientationchange ();
+					break;
+				default : // all documents
+					switch ( e.type ) {
+						case "resize" :
+							try {
+								if ( parent === window ) { // @TODO: gui.isTop or something...
+									try {
+										this._onresize ();
+									} catch ( normalexception ) {
+										throw ( normalexception );
+									}
 								}
+							} catch ( explorerexception ) {}
+							break;
+						case "load" :
+							e.stopPropagation ();
+							if ( !this._loaded ) {
+								this._onload (); // @TODO huh? that doesn't exist!
 							}
-						} catch ( explorerexception ) {}
-						break;
-					case "load" :
-						e.stopPropagation ();
-						if ( !this._loaded ) {
-							this._onload (); // @TODO huh? that doesn't exist!
-						}
-						break;
-					case "message" :
-						this._onmessage ( e.data );
-						break;
-				}
-				// broadcast event globally?
-				var message = gui.DocumentSpirit.broadcastevents [ e.type ];
-				if ( gui.Type.isDefined ( message )) {
-					this._broadcastevent ( e, message );
-				}
+							break;
+						case "message" :
+							this._onmessage ( e.data );
+							break;
+					}
+					// broadcast event globally?
+					var message = gui.DocumentSpirit.broadcastevents [ e.type ];
+					if ( gui.Type.isDefined ( message )) {
+						this._broadcastevent ( e, message );
+					}
+			}
+		} catch ( ie9exception ) {
+			console.log ( "Uarg IE9 in " + this );
 		}
 	},
 
@@ -227,10 +231,11 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 		});
 		var msg = gui.Broadcast.stringify ( b );
 		iframes.forEach ( function ( iframe ) {
-			iframe.contentWindow.postMessage ( msg, "*" );
+			//console.log ( iframe.element.contentWindow );
+			iframe.element.contentWindow.postMessage ( msg, "*" ); // iframe.xguest...
 		});
-		if ( this.window !== this.window.parent ) {
-			this.window.parent.postMessage ( msg, "*" );
+		if ( this.window.gui.hosted ) {
+			this.window.parent.postMessage ( msg, "*" ); // this.window.gui.xhost...
 		}
 	},
 	
@@ -318,6 +323,9 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 		if ( msg.startsWith ( pattern )) {
 			var b = gui.Broadcast.parse ( msg );
 			if ( this._relaybroadcast ( b.$contextids )) {
+				if ( b.type.contains ( "mouse" )) {
+					console.log ( document.title + " should relay " + b.type );
+				}
 				gui.Broadcast.$dispatch ( b );
 			}
 		} else {
@@ -338,7 +346,7 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 	},
 
 	/**
-	 * Should relay broadcast that has been postmessaged somwhat over-aggresively?
+	 * Should relay broadcast that has been postmessaged somewhat over-aggresively?
 	 * @param {Array<String>} ids
 	 * @returns {boolean}
 	 */

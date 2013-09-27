@@ -55,7 +55,7 @@ gui.IframeSpirit = gui.Spirit.extend ({
 	},
 
 	/**
-	 * Hosted location.
+	 * URL details for hosted document.
 	 * @type {gui.URL}
 	 */
 	contentLocation : null,

@@ -114,11 +114,11 @@ gui.Object = {
 	/**
 	 * Lookup object for string of type "my.ns.Thing" in given context. 
 	 * @param {String} opath Object path eg. "my.ns.Thing"
-	 * @param {Window} context
+	 * @param @optional {Window} context
 	 * @returns {object}
 	 */
 	lookup : function ( opath, context ) {
-		var result, struct = context;
+		var result, struct = context || window;
 		if ( !opath.contains ( "." )) {
 			result = struct [ opath ];
 		} else {
