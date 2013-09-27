@@ -45,7 +45,7 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 	 */
 	onevent : function ( e ) {
 		this._super.onevent ( e );
-		try {
+		//try {
 			switch ( e.type ) {
 				// top document only
 				case "orientationchange" :
@@ -55,7 +55,7 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 					switch ( e.type ) {
 						case "resize" :
 							try {
-								if ( parent === window ) { // @TODO: gui.isTop or something...
+								if ( !this.window.gui.hosted ) { // @TODO: gui.isTop or something...
 									try {
 										this._onresize ();
 									} catch ( normalexception ) {
@@ -71,7 +71,7 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 							}
 							break;
 						case "message" :
-							this._onmessage ( e.data );
+							this._onmessage ( e.data, e.origin, e.source );
 							break;
 					}
 					// broadcast event globally?
@@ -80,9 +80,11 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 						this._broadcastevent ( e, message );
 					}
 			}
+		/*
 		} catch ( ie9exception ) {
-			console.log ( "Uarg IE9 in " + this );
+			console.warn ( "Uarg IE9 in " + this, ie9exception );
 		}
+		*/
 	},
 
 	/**
@@ -221,8 +223,9 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 		var id, ids = b.$contextids;
 		ids.push ( this.window.gui.$contextid );
 		var iframes = this.dom.qall ( "iframe", gui.IframeSpirit ).filter ( function ( iframe ) {
+			// return ids.indexOf ( iframe.$instanceid ) < 0;
 			id = iframe.$instanceid;
-			if ( ids.indexOf ( id ) > -1 ) {
+			if ( ids.indexOf ( id ) >-1 ) {
 				return false;
 			} else {
 				ids.push ( id );
@@ -231,8 +234,7 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 		});
 		var msg = gui.Broadcast.stringify ( b );
 		iframes.forEach ( function ( iframe ) {
-			//console.log ( iframe.element.contentWindow );
-			iframe.element.contentWindow.postMessage ( msg, "*" ); // iframe.xguest...
+			iframe.postMessage ( msg );
 		});
 		if ( this.window.gui.hosted ) {
 			this.window.parent.postMessage ( msg, "*" ); // this.window.gui.xhost...
@@ -317,15 +319,14 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 	 * 1. Relay broadcasts
 	 * 2. Relay descending actions
 	 * @param {String} msg
+	 * @param {String} origin
+	 * @param {Window} source
 	 */
-	_onmessage : function ( msg ) {
+	_onmessage : function ( msg, origin, source ) {
 		var pattern = "spiritual-broadcast";
 		if ( msg.startsWith ( pattern )) {
 			var b = gui.Broadcast.parse ( msg );
-			if ( this._relaybroadcast ( b.$contextids )) {
-				if ( b.type.contains ( "mouse" )) {
-					console.log ( document.title + " should relay " + b.type );
-				}
+			if ( this._relaybroadcast ( b.$contextids, origin, source )) {
 				gui.Broadcast.$dispatch ( b );
 			}
 		} else {
@@ -348,10 +349,13 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 	/**
 	 * Should relay broadcast that has been postmessaged somewhat over-aggresively?
 	 * @param {Array<String>} ids
+	 * @param {String} origin
+	 * @param {Window} source
 	 * @returns {boolean}
 	 */
-	_relaybroadcast : function ( ids ) {
-		return [ gui.$contextid, this.window.gui.$contextid ].every ( function ( id ) {
+	_relaybroadcast : function ( ids, origin, source  ) {
+		var localids = [ gui.$contextid, this.window.gui.$contextid ];
+		return origin === this.window.gui.xhost || localids.every ( function ( id ) {
 			return ids.indexOf ( id ) < 0;
 		});
 	},

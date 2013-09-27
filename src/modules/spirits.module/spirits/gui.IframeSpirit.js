@@ -185,6 +185,14 @@ gui.IframeSpirit = gui.Spirit.extend ({
 		}
 	},
 
+	/**
+	 * @TODO: Work on this...
+	 * @param {String} msg
+	 */
+	postMessage : function ( msg ) {
+		this.contentWindow.postMessage ( msg, this.xguest || "*" );
+	},
+
 
 	// Private ..................................................................
 	

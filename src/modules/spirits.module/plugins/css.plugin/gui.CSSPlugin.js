@@ -114,21 +114,23 @@ gui.CSSPlugin = ( function using ( chained ) {
 		 * @returns {function}
 		 */
 		add : chained ( function ( element, name ) {
-			if ( name.indexOf ( " " ) >-1 ) {
-				name = name.split ( " " );
-			}
-			if ( gui.Type.isArray ( name )) {
-				name.forEach ( function ( n ) {
-					this.add ( element, n );
-				}, this );
-			} else {
-				if ( this._supports ) {
-					element.classList.add ( name );
+			if ( gui.Type.isString ( name )) {
+				if ( name.indexOf ( " " ) >-1 ) {
+					name = name.split ( " " );
+				}
+				if ( gui.Type.isArray ( name )) {
+					name.forEach ( function ( n ) {
+						this.add ( element, n );
+					}, this );
 				} else {
-					var now = element.className.split ( " " );
-					if ( now.indexOf ( name ) === -1 ) {
-						now.push ( name );
-						element.className = now.join ( " " );
+					if ( this._supports ) {
+						element.classList.add ( name );
+					} else {
+						var now = element.className.split ( " " );
+						if ( now.indexOf ( name ) === -1 ) {
+							now.push ( name );
+							element.className = now.join ( " " );
+						}
 					}
 				}
 			}
@@ -141,23 +143,26 @@ gui.CSSPlugin = ( function using ( chained ) {
 		 * @returns {function}
 		 */
 		remove : chained ( function ( element, name ) {
-			if ( name.indexOf ( " " ) >-1 ) {
-				name = name.split ( " " );
-			}
-			if ( gui.Type.isArray ( name )) {
-				name.forEach ( function ( n ) {
-					this.remove ( element, n );
-				}, this );
-			} else {
-				if ( this._supports ) {
-					element.classList.remove ( name );
+			if ( gui.Type.isString ( name )) {
+				name = name || "";
+				if ( name.indexOf ( " " ) >-1 ) {
+					name = name.split ( " " );
+				}
+				if ( gui.Type.isArray ( name )) {
+					name.forEach ( function ( n ) {
+						this.remove ( element, n );
+					}, this );
 				} else {
-					var now = element.className.split ( " " );
-					var idx = now.indexOf ( name );
-					if ( idx > -1 ) {
-						gui.Array.remove ( now, idx );
+					if ( this._supports ) {
+						element.classList.remove ( name );
+					} else {
+						var now = element.className.split ( " " );
+						var idx = now.indexOf ( name );
+						if ( idx > -1 ) {
+							gui.Array.remove ( now, idx );
+						}
+						element.className = now.join ( " " );
 					}
-					element.className = now.join ( " " );
 				}
 			}
 		}),
@@ -169,13 +174,15 @@ gui.CSSPlugin = ( function using ( chained ) {
 		 * @returns {function}
 		 */
 		toggle : chained ( function ( element, name ) {
-			if ( this._supports ) {
-				element.classList.toggle ( name );
-			} else {
-				if ( this.contains ( element, name )) {
-					this.remove ( element, name );
+			if ( gui.Type.isString ( name )) {
+				if ( this._supports ) {
+					element.classList.toggle ( name );
 				} else {
-					this.add ( element, name );
+					if ( this.contains ( element, name )) {
+						this.remove ( element, name );
+					} else {
+						this.add ( element, name );
+					}
 				}
 			}
 		}),
