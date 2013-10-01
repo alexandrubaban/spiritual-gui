@@ -60,12 +60,17 @@ gui.IframeSpirit = gui.Spirit.extend ({
 	 */
 	contentLocation : null,
 
+	onconstruct : function () {
+		this._super.onconstruct ();
+		this.event.add ( "message", this.window, this );
+		this._postbox = [];
+	},
+
 	/**
 	 * Stamp SRC on startup.
 	 */
 	onenter : function () {
 		this._super.onenter ();
-		this.event.add ( "message", this.window, this );
 		this.action.addGlobal ([ // in order of appearance
 			gui.ACTION_DOC_ONCONSTRUCT,
 			gui.ACTION_DOC_ONDOMCONTENT,
@@ -186,11 +191,18 @@ gui.IframeSpirit = gui.Spirit.extend ({
 	},
 
 	/**
-	 * @TODO: Work on this...
+	 * Post message to content window. This method assumes 
+	 * that we are messaging Spiritual components and will 
+	 * buffer the messages for bulk dispatch once Spiritual 
+	 * is known to run inside the iframe.
 	 * @param {String} msg
 	 */
 	postMessage : function ( msg ) {
-		this.contentWindow.postMessage ( msg, this.xguest || "*" );
+		if ( this.spiritualized ) {
+			this.contentWindow.postMessage ( msg, this.xguest || "*" );
+		} else {
+			this._postbox.push ( msg );
+		}
 	},
 
 
@@ -203,11 +215,15 @@ gui.IframeSpirit = gui.Spirit.extend ({
 	_cover : null,
 
 	/**
-	 * Hosted document spiritualized.
-	 * @return {[type]} [description]
+	 * Hosted document spiritualized. 
+	 * Dispatching buffered messages.
 	 */
 	_onspiritualized : function () {
 		this.spiritualized = true;
+		while ( this._postbox.length ) {
+			this.postMessage ( this._postbox.shift ());
+		}
+		this._postbox = null;
 		this._visibility ();
 		if ( this.cover && !this.fit ) {
 			this._coverup ( false );
