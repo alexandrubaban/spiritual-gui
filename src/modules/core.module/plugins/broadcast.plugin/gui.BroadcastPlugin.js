@@ -55,9 +55,11 @@ gui.BroadcastPlugin = ( function using ( chained ) {
 		 */
 		dispatch : function ( arg, data ) {
 			var result = null;
-			var sig = this._global ? null : this._sig;
+			var global = this._global;
+			var sig = global ? null : this._sig;
+			this._global = false;
 			this._breakdown ( arg ).forEach ( function ( type ) {
-				if ( this._global ) {
+				if ( global ) {
 					result = gui.Broadcast.dispatchGlobal ( this.spirit, type, data );
 				} else {
 					result = gui.Broadcast.dispatch ( this.spirit, type, data, sig );	

@@ -124,6 +124,7 @@ gui.Action.dispatch = function dispatch ( target, type, data, direction, global 
 	var crawler = new gui.Crawler ( gui.CRAWLER_ACTION );
 	crawler.global = global || false;
 	crawler [ direction || "ascend" ] ( target, {
+
 		/*
 		 * Evaluate action for spirit.
 		 * @param {gui.Spirit} spirit
