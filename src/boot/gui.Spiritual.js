@@ -104,13 +104,18 @@ gui.Spiritual.prototype = {
 	 */
 	start : function () {
 		this._gone = true;
+		this._then = new gui.Then ();
 		this._experimental ();
-		gui.Tick.add ([ gui.$TICK_INSIDE, gui.$TICK_OUTSIDE ], this, this.$contextid );
 		if ( this._configs !== null ) {
 			this._configs.forEach ( function ( config ) {
 				this.channel ( config.select, config.klass );
 			}, this );
 		}
+		if ( !this._pingpong ) {
+			this._spinatkrampe ();
+			this._then.now ();
+		}
+		return this._then;
 	},
 
 	/**
@@ -473,11 +478,7 @@ gui.Spiritual.prototype = {
 	 */
 	nameDestructAlreadyUsed : function () {
 		gui.Tick.remove ( gui.$TICK_OUTSIDE, this, this.$contextid );
-		/*
-		gui.Object.each ( this._spirits.inside, function ( id, spirit ) {
-			gui.GreatSpirit.$meet ( spirit );
-		});
-		*/
+		this.window.removeEventListener ( "message", this );
 		[ 
 			"_spiritualaid", 
 			"context", // window ?
@@ -559,6 +560,22 @@ gui.Spiritual.prototype = {
 	 * @param {Window} win
 	 */
 	_construct : function ( context ) {
+
+		/*
+		var x = null;
+		Object.defineProperty ( this, "$contextid", {
+			configurable : true,
+			get : function () {
+				if ( x ) {
+					console.error ( "NEIN BITTTE" );
+				}
+			},
+			set : function ( val ) {
+				x = val;
+			}
+		});
+		*/
+
 		// patching features
 		this._spiritualaid.polyfill ( context );
 		// basic setup
@@ -579,7 +596,53 @@ gui.Spiritual.prototype = {
 
 		// magic properties may be found in querystring parameters
 		// @tODO not in sandbox!
-		this._params ( this.document.location.href );
+		//this._params ( this.document.location.href );
+		this.$contextid = gui.KeyMaster.generateKey ();
+		if ( this.hosted ) {
+			context.addEventListener ( "message", this );
+			context.parent.postMessage ( "spiritual-ping", "*" );
+			this._pingpong = true;
+		}
+	},
+
+	/**
+	 * @TODO: clean this up please.
+	 * @param {Event} e
+	 */
+	handleEvent : function ( e ) {
+		var parent = this.window.parent;
+		try {
+			if ( e.type === "message" && e.source === parent ) {
+				if ( this._handlepong ( e.data )) {
+					e.target.removeEventListener ( "message", this );
+				}
+			}
+		} catch ( exception ) {
+			alert ( this.document.title );
+			console.error ( exception );
+		}
+	},
+
+	_handlepong : function ( msg ) {
+		var loc = this.window.location;
+		var org = loc.origin || loc.protocol + "//" + loc.host;
+		if ( typeof ( msg ) === "string" ) {
+			if ( msg.startsWith ( "spiritual-pong" )) {
+				var cuts = msg.split ( "___" );
+				//this.$contextid = cuts [ 1 ];
+				var host = cuts [ 2 ];
+				var here = org;
+				if ( host !== here ) {
+					this.xhost = host;
+				}
+				this._spinatkrampe ();
+				this._pingpong = false;
+				if ( this._then ) {
+					this._then.now ();
+				}
+			}
+			return true;
+		}
 	},
 
 	/**
@@ -616,7 +679,7 @@ gui.Spiritual.prototype = {
 	 * hostname to facilitate cross domain messaging. The $contextid equals the $instanceid of 
 	 * containing {gui.IframeSpirit}. If not present, we generate a random $contextid.
 	 * @param {String} url
-	 */
+	 *
 	_params : function ( url ) {
 		var id, xhost, splits, param = gui.PARAM_CONTEXTID;
 		if ( url.contains ( param )) {
@@ -632,7 +695,7 @@ gui.Spiritual.prototype = {
 			id = splits.pop ();
 			xhost = splits.join ( "/" );
 		}
-		*/
+		*
 		else {
 			id = gui.KeyMaster.generateKey ();
 			xhost = null;
@@ -640,6 +703,7 @@ gui.Spiritual.prototype = {
 		this.$contextid = id;
 		this.xhost = xhost;
 	},
+	*/
 
 	/**
 	 * Reference local objects in remote window context while collecting channel indexes.
@@ -690,6 +754,13 @@ gui.Spiritual.prototype = {
 		this._spaces.forEach ( function ( ns ) {
 			this._questionable ( gui.Object.lookup ( ns, this.window ), ns );
 		}, this );
+	},
+
+	/**
+	 * Hail Lucifer.
+	 */
+	_spinatkrampe : function () {
+		gui.Tick.add ([ gui.$TICK_INSIDE, gui.$TICK_OUTSIDE ], this, this.$contextid );
 	},
 
 	/**

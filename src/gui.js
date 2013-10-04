@@ -70,6 +70,7 @@ window.gui = {
 	ACTION_DOC_ONCONSTRUCT : "gui-action-document-construct",
 	ACTION_DOC_ONDOMCONTENT : "gui-action-document-domcontent",
 	ACTION_DOC_ONLOAD : "gui-action-document-onload",
+	ACTION_DOC_ONHASH : "gui-action-document-onhash",
 	ACTION_DOC_ONSPIRITUALIZED : "gui-action-document-spiritualized",
 	ACTION_DOC_UNLOAD : "gui-action-document-unload",
 	ACTION_DOC_FIT : "gui-action-document-fit",
@@ -106,8 +107,9 @@ window.gui = {
 	 */
 	LIFE_IFRAME_CONSTRUCT : "gui-life-iframe-construct",
 	LIFE_IFRAME_DOMCONTENT : "gui-life-iframe-domcontent",
-	LIFE_IFRAME_ONLOAD : "gui-life-iframe-onload",
 	LIFE_IFRAME_SPIRITUALIZED : "gui-life-iframe-spiritualized",
+	LIFE_IFRAME_ONLOAD : "gui-life-iframe-onload",
+	LIFE_IFRAME_ONHASH : "gui-life-iframe-onhash",
 	LIFE_IFRAME_UNLOAD : "gui-life-iframe-unload",
 
 	/**

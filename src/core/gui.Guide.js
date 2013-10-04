@@ -249,14 +249,15 @@ gui.Guide = {
 	 */
 	_step1 : function ( win, doc ) {
 		var sig = win.gui.$contextid;
-		gui.Broadcast.removeGlobal (gui.BROADCAST_KICKSTART, this); //we don't need to listen anymore
+		gui.Broadcast.removeGlobal ( gui.BROADCAST_KICKSTART, this );
 		this._metatags ( win ); // configure runtime
-		win.gui.start (); // channel spirits
-		this._stylesheets ( win ); // more spirits?
-		// resolving spiritual stylesheets? If not, skip directly to _step2.
-		if ( !this._windows [ sig ]) {
-			this._step2 ( win, doc );
-		}
+		win.gui.start ().then ( function () {
+			this._stylesheets ( win ); // more spirits?
+			// resolving spiritual stylesheets? If not, skip directly to _step2.
+			if ( !this._windows [ sig ]) {
+				this._step2 ( win, doc );
+			}
+		}, this ); // channel spirits
 	},
 
 	/**

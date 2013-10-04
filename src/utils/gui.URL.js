@@ -170,6 +170,16 @@ gui.URL.parametrize = function ( baseurl, params ) {
 };
 
 /**
+ * @TODO: fix this
+ * @param {Window} win
+ * @returns {String}
+ */
+gui.URL.origin = function ( win ) {
+	var loc = win.location;
+	return loc.origin || loc.protocol + "//" + loc.host;
+};
+
+/**
  * @param {Document} doc
  * @param @optional {String} href
  */

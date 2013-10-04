@@ -10,7 +10,7 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 	onconstruct : function () {
 		this._super.onconstruct ();
 		this._dimension = new gui.Dimension ();
-		this.event.add ( "message", this.window );
+		this.event.add ( "message hashchange", this.window );
 		this.action.addGlobal ( gui.ACTION_DOC_FIT );
 		this._broadcastevents ();
 		if ( this.document === document ) {
@@ -44,47 +44,17 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 	 * @param {Event} e
 	 */
 	onevent : function ( e ) {
-		this._super.onevent ( e );
-		//try {
-			switch ( e.type ) {
-				// top document only
-				case "orientationchange" :
-					this._onorientationchange ();
-					break;
-				default : // all documents
-					switch ( e.type ) {
-						case "resize" :
-							try {
-								if ( !this.window.gui.hosted ) { // @TODO: gui.isTop or something...
-									try {
-										this._onresize ();
-									} catch ( normalexception ) {
-										throw ( normalexception );
-									}
-								}
-							} catch ( explorerexception ) {}
-							break;
-						case "load" :
-							e.stopPropagation ();
-							if ( !this._loaded ) {
-								this._onload (); // @TODO huh? that doesn't exist!
-							}
-							break;
-						case "message" :
-							this._onmessage ( e.data, e.origin, e.source );
-							break;
-					}
-					// broadcast event globally?
-					var message = gui.DocumentSpirit.broadcastevents [ e.type ];
-					if ( gui.Type.isDefined ( message )) {
-						this._broadcastevent ( e, message );
-					}
-			}
 		/*
-		} catch ( ie9exception ) {
-			console.warn ( "Uarg IE9 in " + this, ie9exception );
+		 * It appears that this try catch (in and by itself) will 
+		 * supress some weirdo permission exceptions in Explorer 9. 
+		 * @TODO: pinpoint this stuff somewhat more precisely...
+		 */
+		try {
+			this._super.onevent ( e );
+			this._onevent ( e );
+		} catch ( exception ) {
+			throw ( exception );
 		}
-		*/
 	},
 
 	/**
@@ -223,7 +193,6 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 		var id, ids = b.$contextids;
 		ids.push ( this.window.gui.$contextid );
 		var iframes = this.dom.qall ( "iframe", gui.IframeSpirit ).filter ( function ( iframe ) {
-			// return ids.indexOf ( iframe.$instanceid ) < 0;
 			id = iframe.$instanceid;
 			if ( ids.indexOf ( id ) >-1 ) {
 				return false;
@@ -268,6 +237,43 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 	 * @type {number}
 	 */
 	_timeout : null,
+
+	/**
+	 * Handle event.
+	 * @param {Event} e
+	 */
+	_onevent : function ( e ) {
+		var topmost = !this.window.gui.hosted; // @TODO: wrong!
+		switch ( e.type ) {
+			case "orientationchange" :
+				if ( topmost) {
+					this._onorientationchange ();
+				}
+				break;
+			case "resize" :
+				if ( topmost ) {
+					this._onresize ();
+				}
+				break;
+			case "load" :
+				e.stopPropagation (); // @TODO: needed?
+				break;
+			case "message" :
+				this._onmessage ( e.data, e.origin, e.source );
+				break;
+			case "hashchange" :
+				this.action.dispatchGlobal ( 
+					gui.ACTION_DOC_ONHASH, 
+					this.document.location.hash
+				);
+				break;
+		}
+		// broadcast event globally?
+		var message = gui.DocumentSpirit.broadcastevents [ e.type ];
+		if ( gui.Type.isDefined ( message )) {
+			this._broadcastevent ( e, message );
+		}
+	},
 
 	/**
 	 * Setup to fire global broadcasts on common DOM events.
@@ -330,16 +336,18 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 				gui.Broadcast.$dispatch ( b );
 			}
 		} else {
-			pattern = "spiritual-action";
-			if ( msg.startsWith ( pattern )) {
-				var a = gui.Action.parse ( msg );
-				if ( a.direction === gui.Action.DESCEND ) {
-					if ( a.$instanceid === this.window.gui.$contextid ) {
-						this.action.$handleownaction = true;
-						this.action.descendGlobal ( 
-							a.type, 
-							a.data
-						);
+			if ( source === this.window.parent ) {
+				pattern = "spiritual-action";
+				if ( msg.startsWith ( pattern )) {
+					var a = gui.Action.parse ( msg );
+					if ( a.direction === gui.Action.DESCEND ) {
+						//if ( a.$instanceid === this.window.gui.$contextid ) {
+							this.action.$handleownaction = true;
+							this.action.descendGlobal ( 
+								a.type, 
+								a.data
+							);
+						//}
 					}
 				}
 			}
