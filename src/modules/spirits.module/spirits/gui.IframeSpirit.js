@@ -190,11 +190,15 @@ gui.IframeSpirit = gui.Spirit.extend ({
 		var doc = this.document;
 		if ( gui.Type.isString ( src )) {
 			this.contentLocation = new gui.URL ( this.document, src );
-			if ( gui.URL.external ( src, doc )) {
-				var url = new gui.URL ( doc, src );
-				this.xguest = url.protocol + "//" + url.host;
-				//src = gui.IframeSpirit.sign ( src, doc, this.$instanceid );
-			}
+			this.xguest = ( function ( secured ) {
+				if ( secured ) {
+					return "*";
+				} else if ( gui.URL.external ( src, doc )) {
+					var url = new gui.URL ( doc, src );
+					return url.protocol + "//" + url.host;
+				}
+				return null;
+			}( this._iscontentsecured ()));
 			this.element.src = src;
 		} else {
 			return this.element.src;
@@ -234,7 +238,6 @@ gui.IframeSpirit = gui.Spirit.extend ({
 		while ( this._postbox.length ) {
 			this.postMessage ( this._postbox.shift ());
 		}
-		//this._postbox = null;
 		this._visibility ();
 		if ( this.cover && !this.fit ) {
 			this._coverup ( false );
@@ -261,7 +264,6 @@ gui.IframeSpirit = gui.Spirit.extend ({
 	 */
 	_onunload : function () {
 		this.spiritualized = false;
-		//this._postbox = [];
 		if ( this.fit ) {
 			this.css.height = 0;
 		}
@@ -279,12 +281,12 @@ gui.IframeSpirit = gui.Spirit.extend ({
 	 */
 	_onmessage : function ( msg, origin, source ) {
 		if ( source === this.contentWindow ) {
-			if ( msg === "spiritual-ping" ) {
-				var org = gui.URL.origin ( this.window );
-				var arg = this.$instanceid + "___" + org;
-				this.contentWindow.postMessage ( "spiritual-pong___" + arg, this.xguest || "*" );
-			} else {
-				if ( this.xguest ) {
+			var TEMPFIX = true;
+			if ( TEMPFIX || origin === this.xguest || origin === "null" ) {
+				if ( msg === "spiritual-ping" ) {
+					var xhost = this._iscontentsecured () ? "*" : gui.URL.origin ( this.window );
+					this.contentWindow.postMessage ( "spiritual-pong:" + xhost, this.xguest || "*" );
+				} else {
 					if ( msg.startsWith ( "spiritual-action:" )) {
 						var a = gui.Action.parse ( msg );
 						if ( a.direction === gui.Action.ASCEND ) {
@@ -298,6 +300,15 @@ gui.IframeSpirit = gui.Spirit.extend ({
 				}
 			}
 		}
+	},
+
+	/**
+	 * Iframe content is sandboxed in unique origin?
+	 * @returns {boolean}
+	 */
+	_iscontentsecured : function () {
+		var sandbox = this.element.sandbox;
+		return sandbox && !sandbox.contains ( "allow-same-origin" );
 	},
 
 	/**

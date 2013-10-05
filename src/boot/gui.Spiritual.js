@@ -578,11 +578,13 @@ gui.Spiritual.prototype = {
 
 		// patching features
 		this._spiritualaid.polyfill ( context );
-		// basic setup
+		// public setup
 		this.context = context;
 		this.window = context.document ? context : null;
 		this.document = context.document || null;
 		this.hosted = this.window && this.window !== this.window.parent;
+		this.$contextid = gui.KeyMaster.generateKey ();
+		// private setup
 		this._inlines = Object.create ( null );
 		this._modules = Object.create ( null );
 		this._arrivals = Object.create ( null );
@@ -597,7 +599,6 @@ gui.Spiritual.prototype = {
 		// magic properties may be found in querystring parameters
 		// @tODO not in sandbox!
 		//this._params ( this.document.location.href );
-		this.$contextid = gui.KeyMaster.generateKey ();
 		if ( this.hosted ) {
 			context.addEventListener ( "message", this );
 			context.parent.postMessage ( "spiritual-ping", "*" );
@@ -610,29 +611,25 @@ gui.Spiritual.prototype = {
 	 * @param {Event} e
 	 */
 	handleEvent : function ( e ) {
-		var parent = this.window.parent;
-		try {
-			if ( e.type === "message" && e.source === parent ) {
-				if ( this._handlepong ( e.data )) {
-					e.target.removeEventListener ( "message", this );
-				}
+		if ( e.type === "message" ) {
+			var parent = this.window.parent;
+			if ( e.source === parent && this._handlepong ( e.data )) {
+				e.target.removeEventListener ( "message", this );
 			}
-		} catch ( exception ) {
-			alert ( this.document.title );
-			console.error ( exception );
 		}
 	},
 
+	/**
+	 * @param {String} msg
+	 */
 	_handlepong : function ( msg ) {
+		var pat = "spiritual-pong:";
 		var loc = this.window.location;
 		var org = loc.origin || loc.protocol + "//" + loc.host;
 		if ( typeof ( msg ) === "string" ) {
-			if ( msg.startsWith ( "spiritual-pong" )) {
-				var cuts = msg.split ( "___" );
-				//this.$contextid = cuts [ 1 ];
-				var host = cuts [ 2 ];
-				var here = org;
-				if ( host !== here ) {
+			if ( msg.startsWith ( pat )) {
+				var host = msg.slice ( pat.length );
+				if ( host !== org ) {
 					this.xhost = host;
 				}
 				this._spinatkrampe ();
