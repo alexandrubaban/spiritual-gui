@@ -80,6 +80,7 @@ window.gui = {
 	ACTION_DOC_ONCONSTRUCT : "gui-action-document-construct",
 	ACTION_DOC_ONDOMCONTENT : "gui-action-document-domcontent",
 	ACTION_DOC_ONLOAD : "gui-action-document-onload",
+	ACTION_DOC_ONHASH : "gui-action-document-onhash",
 	ACTION_DOC_ONSPIRITUALIZED : "gui-action-document-spiritualized",
 	ACTION_DOC_UNLOAD : "gui-action-document-unload",
 	ACTION_DOC_FIT : "gui-action-document-fit",
@@ -116,8 +117,9 @@ window.gui = {
 	 */
 	LIFE_IFRAME_CONSTRUCT : "gui-life-iframe-construct",
 	LIFE_IFRAME_DOMCONTENT : "gui-life-iframe-domcontent",
-	LIFE_IFRAME_ONLOAD : "gui-life-iframe-onload",
 	LIFE_IFRAME_SPIRITUALIZED : "gui-life-iframe-spiritualized",
+	LIFE_IFRAME_ONLOAD : "gui-life-iframe-onload",
+	LIFE_IFRAME_ONHASH : "gui-life-iframe-onhash",
 	LIFE_IFRAME_UNLOAD : "gui-life-iframe-unload",
 
 	/**
@@ -229,7 +231,7 @@ gui.URL.absolute = function ( base, href ) { // return /(^data:)|(^http[s]?:)|(^
 	} else if ( typeof base === "string" ) {
 		var stack = base.split ( "/" );
 		var parts = href.split ( "/" );
-		stack.pop();// remove current filename (or empty string) (omit if "base" is the current folder without trailing slash)
+		stack.pop ();// remove current filename (or empty string) (omit if "base" is the current folder without trailing slash)
 		parts.forEach ( function ( part ) {
 			if ( part !== "." ) {
 				if ( part === ".." ) {
@@ -245,7 +247,6 @@ gui.URL.absolute = function ( base, href ) { // return /(^data:)|(^http[s]?:)|(^
 
 /**
  * Is URL external to document (as in external host)?
- * @TODO: fix IE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
  * @param {String} url
  * @param {Document} doc
  * @returns {boolean}
@@ -253,14 +254,7 @@ gui.URL.absolute = function ( base, href ) { // return /(^data:)|(^http[s]?:)|(^
 gui.URL.external = function ( src, doc ) {
 	doc = doc || document;
 	var url = new gui.URL ( doc, src );
-	if ( gui.Client.isExplorer9 ) {
-		if(gui.debug){
-			console.log ( "TODO: Fix hardcoded assesment of external URL in IE9 (always false): " + src );
-		}
-		return false;
-	} else {
-		return url.host !== doc.location.host;
-	}
+	return url.host !== doc.location.host || url.port !== doc.location.port;
 };
 
 /**
@@ -341,20 +335,29 @@ gui.URL.parametrize = function ( baseurl, params ) {
 };
 
 /**
+ * @TODO: fix this
+ * @param {Window} win
+ * @returns {String}
+ */
+gui.URL.origin = function ( win ) {
+	var loc = win.location;
+	return loc.origin || loc.protocol + "//" + loc.host;
+};
+
+/**
  * @param {Document} doc
  * @param @optional {String} href
  */
 gui.URL._createLink = function ( doc, href ) {
 	var link = doc.createElement ( "a" );
 	link.href = href || "";
-	if ( gui.Client.isExplorer ) {
+	if ( gui.Client.isExplorer9 ) {
 	  var uri = gui.URL.parseUri ( link.href );
 	  Object.keys ( uri ).forEach ( function ( key ) {
 			if ( !link [ key ]) {
 				link [ key ] = uri [ key ]; // this is wrong...
 			}
 	  });
-
 	}
 	return link;
 };
@@ -484,9 +487,7 @@ gui.SpiritualAid = {
 	 * @param {Window} win
 	 * @param @optional {boolean} worker
 	 */
-	polyfill : function ( win, worker ) {
-		"use strict";
-		this._strings	( win );
+	polyfill : function ( win, worker ) {this._strings	( win );
 		this._arrays	( win );
 		this._functions	( win );
 		this._globals	( win );
@@ -918,13 +919,18 @@ gui.Spiritual.prototype = {
 	 */
 	start : function () {
 		this._gone = true;
+		this._then = new gui.Then ();
 		this._experimental ();
-		gui.Tick.add ([ gui.$TICK_INSIDE, gui.$TICK_OUTSIDE ], this, this.$contextid );
 		if ( this._configs !== null ) {
 			this._configs.forEach ( function ( config ) {
 				this.channel ( config.select, config.klass );
 			}, this );
 		}
+		if ( !this._pingpong ) {
+			this._spinatkrampe ();
+			this._then.now ();
+		}
+		return this._then;
 	},
 
 	/**
@@ -1055,19 +1061,6 @@ gui.Spiritual.prototype = {
 			// mark as portalled
 			subgui.portalled = true;
 			subgui.mode = this.mode;
-			/*
-			subgui._spaces = [];
-			this._spaces.forEach ( function ( ns ) {
-				var members = gui.Object.lookup ( ns, this.context );
-				if ( members.portals ) {
-					try {
-						this.namespace ( ns, members, sub );
-					} catch ( x ) {
-						alert ( x );
-					}
-				}
-			}, this );
-			*/
 			// portal gui members + custom namespaces and members.
 			subgui._spaces = this._spaces.filter ( function ( ns ) {
 				var nso = gui.Object.lookup ( ns, this.context );
@@ -1276,9 +1269,11 @@ gui.Spiritual.prototype = {
 				spirits = gui.Object.each ( this._spirits.outside, function ( key, spirit ) {
 					return spirit;
 				});
-				spirits.forEach ( function ( spirit ) {
+				/*
+				spirits.forEach ( function ( spirit ) { // @TODO: make sure that this happens onexit (but not here)
 					gui.Spirit.$exit ( spirit );
 				});
+				*/
 				spirits.forEach ( function ( spirit ) {
 					gui.Spirit.$destruct ( spirit );
 				});
@@ -1298,11 +1293,7 @@ gui.Spiritual.prototype = {
 	 */
 	nameDestructAlreadyUsed : function () {
 		gui.Tick.remove ( gui.$TICK_OUTSIDE, this, this.$contextid );
-		/*
-		gui.Object.each ( this._spirits.inside, function ( id, spirit ) {
-			gui.GreatSpirit.$meet ( spirit );
-		});
-		*/
+		this.window.removeEventListener ( "message", this );
 		[ 
 			"_spiritualaid", 
 			"context", // window ?
@@ -1384,13 +1375,31 @@ gui.Spiritual.prototype = {
 	 * @param {Window} win
 	 */
 	_construct : function ( context ) {
+
+		/*
+		var x = null;
+		Object.defineProperty ( this, "$contextid", {
+			configurable : true,
+			get : function () {
+				if ( x ) {
+					console.error ( "NEIN BITTTE" );
+				}
+			},
+			set : function ( val ) {
+				x = val;
+			}
+		});
+		*/
+
 		// patching features
 		this._spiritualaid.polyfill ( context );
-		// basic setup
+		// public setup
 		this.context = context;
 		this.window = context.document ? context : null;
 		this.document = context.document || null;
 		this.hosted = this.window && this.window !== this.window.parent;
+		this.$contextid = gui.KeyMaster.generateKey ();
+		// private setup
 		this._inlines = Object.create ( null );
 		this._modules = Object.create ( null );
 		this._arrivals = Object.create ( null );
@@ -1404,7 +1413,48 @@ gui.Spiritual.prototype = {
 
 		// magic properties may be found in querystring parameters
 		// @tODO not in sandbox!
-		this._params ( this.document.location.href );
+		//this._params ( this.document.location.href );
+		if ( this.hosted ) {
+			context.addEventListener ( "message", this );
+			context.parent.postMessage ( "spiritual-ping", "*" );
+			this._pingpong = true;
+		}
+	},
+
+	/**
+	 * @TODO: clean this up please.
+	 * @param {Event} e
+	 */
+	handleEvent : function ( e ) {
+		if ( e.type === "message" ) {
+			var parent = this.window.parent;
+			if ( e.source === parent && this._handlepong ( e.data )) {
+				e.target.removeEventListener ( "message", this );
+			}
+		}
+	},
+
+	/**
+	 * @param {String} msg
+	 */
+	_handlepong : function ( msg ) {
+		var pat = "spiritual-pong:";
+		var loc = this.window.location;
+		var org = loc.origin || loc.protocol + "//" + loc.host;
+		if ( typeof ( msg ) === "string" ) {
+			if ( msg.startsWith ( pat )) {
+				var host = msg.slice ( pat.length );
+				if ( host !== org ) {
+					this.xhost = host;
+				}
+				this._spinatkrampe ();
+				this._pingpong = false;
+				if ( this._then ) {
+					this._then.now ();
+				}
+			}
+			return true;
+		}
 	},
 
 	/**
@@ -1441,7 +1491,7 @@ gui.Spiritual.prototype = {
 	 * hostname to facilitate cross domain messaging. The $contextid equals the $instanceid of 
 	 * containing {gui.IframeSpirit}. If not present, we generate a random $contextid.
 	 * @param {String} url
-	 */
+	 *
 	_params : function ( url ) {
 		var id, xhost, splits, param = gui.PARAM_CONTEXTID;
 		if ( url.contains ( param )) {
@@ -1457,7 +1507,7 @@ gui.Spiritual.prototype = {
 			id = splits.pop ();
 			xhost = splits.join ( "/" );
 		}
-		*/
+		*
 		else {
 			id = gui.KeyMaster.generateKey ();
 			xhost = null;
@@ -1465,6 +1515,7 @@ gui.Spiritual.prototype = {
 		this.$contextid = id;
 		this.xhost = xhost;
 	},
+	*/
 
 	/**
 	 * Reference local objects in remote window context while collecting channel indexes.
@@ -1515,6 +1566,13 @@ gui.Spiritual.prototype = {
 		this._spaces.forEach ( function ( ns ) {
 			this._questionable ( gui.Object.lookup ( ns, this.window ), ns );
 		}, this );
+	},
+
+	/**
+	 * Hail Lucifer.
+	 */
+	_spinatkrampe : function () {
+		gui.Tick.add ([ gui.$TICK_INSIDE, gui.$TICK_OUTSIDE ], this, this.$contextid );
 	},
 
 	/**
@@ -1676,11 +1734,11 @@ gui.Object = {
 	/**
 	 * Lookup object for string of type "my.ns.Thing" in given context. 
 	 * @param {String} opath Object path eg. "my.ns.Thing"
-	 * @param {Window} context
+	 * @param @optional {Window} context
 	 * @returns {object}
 	 */
 	lookup : function ( opath, context ) {
-		var result, struct = context;
+		var result, struct = context || window;
 		if ( !opath.contains ( "." )) {
 			result = struct [ opath ];
 		} else {
@@ -3488,9 +3546,16 @@ gui.HTMLParser = {
 	parseToDocument : function ( markup ) {
 		markup = markup || "";
 		return gui.Guide.suspend ( function () {
-			var doc = document.implementation.createHTMLDocument ( "" );
+			var doc = doc = document.implementation.createHTMLDocument ( "" );
 			if ( markup.toLowerCase().contains ( "<!doctype" )) {
-				doc.documentElement.innerHTML = markup;
+				try {
+					doc.documentElement.innerHTML = markup;
+				} catch ( ie9exception ) {
+					doc = new ActiveXObject ( "htmlfile" );
+					doc.open ();
+					doc.write ( markup );
+					doc.close ();
+				}
 			} else {
 				doc.body.innerHTML = markup;
 			}
@@ -5287,10 +5352,9 @@ gui.Tracker = gui.Plugin.extend ({
 	 * Cleanup on destruction.
 	 */
 	ondestruct : function () {
-		var type, list;
 		this._super.ondestruct ();
 		gui.Object.each ( this._trackedtypes, function ( type, list ) {
-			list.slice ( 0 ).forEach ( function ( checks ) {
+			list.slice ().forEach ( function ( checks ) {
 				this._cleanup ( type, checks );
 			}, this );
 		}, this );
@@ -5328,7 +5392,9 @@ gui.Tracker = gui.Plugin.extend ({
 	_global : false,
 
 	/**
-	 * Execute operation in global mode.
+	 * Execute operation in global mode. Note that sometimes it's still 
+	 * needed to manually flip the '_global' flag back to 'false' in 
+	 * order to avoid the mode leaking the into repeated (nested) calls.
 	 * @param {function} operation
 	 * @returns {object}
 	 */
@@ -5570,7 +5636,20 @@ gui.GreatSpirit = {
 				if ( nativeprops [ prop ] === undefined ) {
 					var desc = Object.getOwnPropertyDescriptor ( thing, prop );
 					if ( !desc || desc.configurable ) {
-						Object.defineProperty ( thing, prop, this.DENIED );
+						if ( context.gui.debug ) {
+							Object.defineProperty ( thing, prop, {
+								enumerable : true,
+								configurable : true,
+								get : function () {
+									gui.GreatSpirit.DENY ( thing );
+								},
+								set : function () {
+									gui.GreatSpirit.DENY ( thing );
+								}
+							});
+						} else {
+							Object.defineProperty ( thing, prop, this.DENIED );
+						}
 					}
 				}
 			}
@@ -5594,9 +5673,10 @@ gui.GreatSpirit = {
 	/**
 	 * Obscure mechanism to include the whole stacktrace in the error message.
 	 * @see https://gist.github.com/jay3sh/1158940
+	 * @param @optional {String} message
 	 */
 	DENY : function ( message ) {
-		var stack, e = new Error ( gui.Spirit.DENIAL );
+		var stack, e = new Error ( gui.GreatSpirit.DENIAL + ( message ? ": " + message : "" ));
 		if ( !gui.Client.isExplorer && ( stack = e.stack )) {
 			if ( gui.Client.isWebKit ) {
 				stack = stack.replace ( /^[^\(]+?[\n$]/gm, "" ).
@@ -5741,6 +5821,7 @@ gui.Action.dispatch = function dispatch ( target, type, data, direction, global 
 	var crawler = new gui.Crawler ( gui.CRAWLER_ACTION );
 	crawler.global = global || false;
 	crawler [ direction || "ascend" ] ( target, {
+
 		/*
 		 * Evaluate action for spirit.
 		 * @param {gui.Spirit} spirit
@@ -5905,12 +5986,13 @@ gui.ActionPlugin = ( function using ( confirmed, chained ) {
 		 */
 		dispatch : confirmed ( "string", "(*)", "(string)" ) (
 			function ( type, data, direction ) {
+				var spirit = this.spirit;
+				var global = this._global;
+				this._global = false;
+				direction = direction || "ascend";
 				return gui.Action.dispatch ( 
-					this.spirit, 
-					type, 
-					data, 
-					direction || "ascend",
-					this._global 
+					spirit, type, data, 
+					direction, global
 				);
 			}
 		),
@@ -6406,9 +6488,11 @@ gui.BroadcastPlugin = ( function using ( chained ) {
 		 */
 		dispatch : function ( arg, data ) {
 			var result = null;
-			var sig = this._global ? null : this._sig;
+			var global = this._global;
+			var sig = global ? null : this._sig;
+			this._global = false;
 			this._breakdown ( arg ).forEach ( function ( type ) {
-				if ( this._global ) {
+				if ( global ) {
 					result = gui.Broadcast.dispatchGlobal ( this.spirit, type, data );
 				} else {
 					result = gui.Broadcast.dispatch ( this.spirit, type, data, sig );	
@@ -7700,14 +7784,15 @@ gui.Guide = {
 	 */
 	_step1 : function ( win, doc ) {
 		var sig = win.gui.$contextid;
-		gui.Broadcast.removeGlobal (gui.BROADCAST_KICKSTART, this); //we don't need to listen anymore
+		gui.Broadcast.removeGlobal ( gui.BROADCAST_KICKSTART, this );
 		this._metatags ( win ); // configure runtime
-		win.gui.start (); // channel spirits
-		this._stylesheets ( win ); // more spirits?
-		// resolving spiritual stylesheets? If not, skip directly to _step2.
-		if ( !this._windows [ sig ]) {
-			this._step2 ( win, doc );
-		}
+		win.gui.start ().then ( function () {
+			this._stylesheets ( win ); // more spirits?
+			// resolving spiritual stylesheets? If not, skip directly to _step2.
+			if ( !this._windows [ sig ]) {
+				this._step2 ( win, doc );
+			}
+		}, this ); // channel spirits
 	},
 
 	/**
@@ -9350,21 +9435,23 @@ gui.CSSPlugin = ( function using ( chained ) {
 		 * @returns {function}
 		 */
 		add : chained ( function ( element, name ) {
-			if ( name.indexOf ( " " ) >-1 ) {
-				name = name.split ( " " );
-			}
-			if ( gui.Type.isArray ( name )) {
-				name.forEach ( function ( n ) {
-					this.add ( element, n );
-				}, this );
-			} else {
-				if ( this._supports ) {
-					element.classList.add ( name );
+			if ( gui.Type.isString ( name )) {
+				if ( name.indexOf ( " " ) >-1 ) {
+					name = name.split ( " " );
+				}
+				if ( gui.Type.isArray ( name )) {
+					name.forEach ( function ( n ) {
+						this.add ( element, n );
+					}, this );
 				} else {
-					var now = element.className.split ( " " );
-					if ( now.indexOf ( name ) === -1 ) {
-						now.push ( name );
-						element.className = now.join ( " " );
+					if ( this._supports ) {
+						element.classList.add ( name );
+					} else {
+						var now = element.className.split ( " " );
+						if ( now.indexOf ( name ) === -1 ) {
+							now.push ( name );
+							element.className = now.join ( " " );
+						}
 					}
 				}
 			}
@@ -9377,23 +9464,26 @@ gui.CSSPlugin = ( function using ( chained ) {
 		 * @returns {function}
 		 */
 		remove : chained ( function ( element, name ) {
-			if ( name.indexOf ( " " ) >-1 ) {
-				name = name.split ( " " );
-			}
-			if ( gui.Type.isArray ( name )) {
-				name.forEach ( function ( n ) {
-					this.remove ( element, n );
-				}, this );
-			} else {
-				if ( this._supports ) {
-					element.classList.remove ( name );
+			if ( gui.Type.isString ( name )) {
+				name = name || "";
+				if ( name.indexOf ( " " ) >-1 ) {
+					name = name.split ( " " );
+				}
+				if ( gui.Type.isArray ( name )) {
+					name.forEach ( function ( n ) {
+						this.remove ( element, n );
+					}, this );
 				} else {
-					var now = element.className.split ( " " );
-					var idx = now.indexOf ( name );
-					if ( idx > -1 ) {
-						gui.Array.remove ( now, idx );
+					if ( this._supports ) {
+						element.classList.remove ( name );
+					} else {
+						var now = element.className.split ( " " );
+						var idx = now.indexOf ( name );
+						if ( idx > -1 ) {
+							gui.Array.remove ( now, idx );
+						}
+						element.className = now.join ( " " );
 					}
-					element.className = now.join ( " " );
 				}
 			}
 		}),
@@ -9405,13 +9495,15 @@ gui.CSSPlugin = ( function using ( chained ) {
 		 * @returns {function}
 		 */
 		toggle : chained ( function ( element, name ) {
-			if ( this._supports ) {
-				element.classList.toggle ( name );
-			} else {
-				if ( this.contains ( element, name )) {
-					this.remove ( element, name );
+			if ( gui.Type.isString ( name )) {
+				if ( this._supports ) {
+					element.classList.toggle ( name );
 				} else {
-					this.add ( element, name );
+					if ( this.contains ( element, name )) {
+						this.remove ( element, name );
+					} else {
+						this.add ( element, name );
+					}
 				}
 			}
 		}),
@@ -9928,7 +10020,7 @@ gui.DOMPlugin = ( function using ( chained, guide, observer ) {
 			var parent = element.parentNode;
 			if ( parent ) {
 				var node = parent.firstElementChild;
-				while ( node !== null ) {
+				while ( node ) {
 					if ( node === element ) {
 						break;
 					} else {
@@ -10713,7 +10805,7 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 	onconstruct : function () {
 		this._super.onconstruct ();
 		this._dimension = new gui.Dimension ();
-		this.event.add ( "message", this.window );
+		this.event.add ( "message hashchange", this.window );
 		this.action.addGlobal ( gui.ACTION_DOC_FIT );
 		this._broadcastevents ();
 		if ( this.document === document ) {
@@ -10747,40 +10839,16 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 	 * @param {Event} e
 	 */
 	onevent : function ( e ) {
-		this._super.onevent ( e );
-		switch ( e.type ) {
-			// top document only
-			case "orientationchange" :
-				this._onorientationchange ();
-				break;
-			default : // all documents
-				switch ( e.type ) {
-					case "resize" :
-						try {
-							if ( parent === window ) { // @TODO: gui.isTop or something...
-								try {
-									this._onresize ();
-								} catch ( normalexception ) {
-									throw ( normalexception );
-								}
-							}
-						} catch ( explorerexception ) {}
-						break;
-					case "load" :
-						e.stopPropagation ();
-						if ( !this._loaded ) {
-							this._onload (); // @TODO huh? that doesn't exist!
-						}
-						break;
-					case "message" :
-						this._onmessage ( e.data );
-						break;
-				}
-				// broadcast event globally?
-				var message = gui.DocumentSpirit.broadcastevents [ e.type ];
-				if ( gui.Type.isDefined ( message )) {
-					this._broadcastevent ( e, message );
-				}
+		/*
+		 * It appears that this try catch (in and by itself) will 
+		 * supress some weirdo permission exceptions in Explorer 9. 
+		 * @TODO: pinpoint this stuff somewhat more precisely...
+		 */
+		try {
+			this._super.onevent ( e );
+			this._onevent ( e );
+		} catch ( exception ) {
+			throw ( exception );
 		}
 	},
 
@@ -10921,7 +10989,7 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 		ids.push ( this.window.gui.$contextid );
 		var iframes = this.dom.qall ( "iframe", gui.IframeSpirit ).filter ( function ( iframe ) {
 			id = iframe.$instanceid;
-			if ( ids.indexOf ( id ) > -1 ) {
+			if ( ids.indexOf ( id ) >-1 ) {
 				return false;
 			} else {
 				ids.push ( id );
@@ -10930,10 +10998,10 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 		});
 		var msg = gui.Broadcast.stringify ( b );
 		iframes.forEach ( function ( iframe ) {
-			iframe.contentWindow.postMessage ( msg, "*" );
+			iframe.postMessage ( msg );
 		});
-		if ( this.window !== this.window.parent ) {
-			this.window.parent.postMessage ( msg, "*" );
+		if ( this.window.gui.hosted ) {
+			this.window.parent.postMessage ( msg, "*" ); // this.window.gui.xhost...
 		}
 	},
 	
@@ -10964,6 +11032,43 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 	 * @type {number}
 	 */
 	_timeout : null,
+
+	/**
+	 * Handle event.
+	 * @param {Event} e
+	 */
+	_onevent : function ( e ) {
+		var topmost = !this.window.gui.hosted; // @TODO: wrong!
+		switch ( e.type ) {
+			case "orientationchange" :
+				if ( topmost) {
+					this._onorientationchange ();
+				}
+				break;
+			case "resize" :
+				if ( topmost ) {
+					this._onresize ();
+				}
+				break;
+			case "load" :
+				e.stopPropagation (); // @TODO: needed?
+				break;
+			case "message" :
+				this._onmessage ( e.data, e.origin, e.source );
+				break;
+			case "hashchange" :
+				this.action.dispatchGlobal ( 
+					gui.ACTION_DOC_ONHASH, 
+					this.document.location.hash
+				);
+				break;
+		}
+		// broadcast event globally?
+		var message = gui.DocumentSpirit.broadcastevents [ e.type ];
+		if ( gui.Type.isDefined ( message )) {
+			this._broadcastevent ( e, message );
+		}
+	},
 
 	/**
 	 * Setup to fire global broadcasts on common DOM events.
@@ -11015,25 +11120,29 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 	 * 1. Relay broadcasts
 	 * 2. Relay descending actions
 	 * @param {String} msg
+	 * @param {String} origin
+	 * @param {Window} source
 	 */
-	_onmessage : function ( msg ) {
+	_onmessage : function ( msg, origin, source ) {
 		var pattern = "spiritual-broadcast";
 		if ( msg.startsWith ( pattern )) {
 			var b = gui.Broadcast.parse ( msg );
-			if ( this._relaybroadcast ( b.$contextids )) {
+			if ( this._relaybroadcast ( b.$contextids, origin, source )) {
 				gui.Broadcast.$dispatch ( b );
 			}
 		} else {
-			pattern = "spiritual-action";
-			if ( msg.startsWith ( pattern )) {
-				var a = gui.Action.parse ( msg );
-				if ( a.direction === gui.Action.DESCEND ) {
-					if ( a.$instanceid === this.window.gui.$contextid ) {
-						this.action.$handleownaction = true;
-						this.action.descendGlobal ( 
-							a.type, 
-							a.data
-						);
+			if ( source === this.window.parent ) {
+				pattern = "spiritual-action";
+				if ( msg.startsWith ( pattern )) {
+					var a = gui.Action.parse ( msg );
+					if ( a.direction === gui.Action.DESCEND ) {
+						//if ( a.$instanceid === this.window.gui.$contextid ) {
+							this.action.$handleownaction = true;
+							this.action.descendGlobal ( 
+								a.type, 
+								a.data
+							);
+						//}
 					}
 				}
 			}
@@ -11041,12 +11150,15 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 	},
 
 	/**
-	 * Should relay broadcast that has been postmessaged somwhat over-aggresively?
+	 * Should relay broadcast that has been postmessaged somewhat over-aggresively?
 	 * @param {Array<String>} ids
+	 * @param {String} origin
+	 * @param {Window} source
 	 * @returns {boolean}
 	 */
-	_relaybroadcast : function ( ids ) {
-		return [ gui.$contextid, this.window.gui.$contextid ].every ( function ( id ) {
+	_relaybroadcast : function ( ids, origin, source  ) {
+		var localids = [ gui.$contextid, this.window.gui.$contextid ];
+		return origin === this.window.gui.xhost || localids.every ( function ( id ) {
 			return ids.indexOf ( id ) < 0;
 		});
 	},
@@ -11188,21 +11300,31 @@ gui.IframeSpirit = gui.Spirit.extend ({
 	},
 
 	/**
-	 * Hosted location.
+	 * URL details for hosted document.
 	 * @type {gui.URL}
 	 */
 	contentLocation : null,
+
+	/**
+	 * Construction time.
+	 */
+	onconstruct : function () {
+		this._super.onconstruct ();
+		this.event.add ( "message", this.window, this );
+		this._postbox = [];
+		
+	},
 
 	/**
 	 * Stamp SRC on startup.
 	 */
 	onenter : function () {
 		this._super.onenter ();
-		this.event.add ( "message", this.window, this );
 		this.action.addGlobal ([ // in order of appearance
 			gui.ACTION_DOC_ONCONSTRUCT,
 			gui.ACTION_DOC_ONDOMCONTENT,
 			gui.ACTION_DOC_ONLOAD,
+			gui.ACTION_DOC_ONHASH,
 			gui.ACTION_DOC_ONSPIRITUALIZED,
 			gui.ACTION_DOC_UNLOAD,
 			gui.ACTION_DOC_FIT
@@ -11243,6 +11365,12 @@ gui.IframeSpirit = gui.Spirit.extend ({
 				this.action.remove ( a.type );
 				a.consume ();
 				break;
+			case gui.ACTION_DOC_ONHASH :
+				var base = this.contentLocation.href.split ( "#" )[ 0 ];
+				this.contentLocation = new gui.URL ( this.document, base + a.data );
+				this.life.dispatch ( gui.LIFE_IFRAME_ONHASH );
+				a.consume ();
+				break;
 			case gui.ACTION_DOC_ONSPIRITUALIZED :
 				this._onspiritualized ();
 				this.life.dispatch ( gui.LIFE_IFRAME_SPIRITUALIZED );
@@ -11273,8 +11401,8 @@ gui.IframeSpirit = gui.Spirit.extend ({
 	 */
 	onevent : function ( e ) {
 		this._super.onevent ( e );
-		if ( e.type === "message" && this.xguest ) {
-			this._onmessage ( e.data );
+		if ( e.type === "message" ) {
+			this._onmessage ( e.data, e.origin, e.source );
 		}
 	},
 
@@ -11307,14 +11435,33 @@ gui.IframeSpirit = gui.Spirit.extend ({
 		var doc = this.document;
 		if ( gui.Type.isString ( src )) {
 			this.contentLocation = new gui.URL ( this.document, src );
-			if ( gui.URL.external ( src, doc )) {
-				var url = new gui.URL ( doc, src );
-				this.xguest = url.protocol + "//" + url.host;
-				src = gui.IframeSpirit.sign ( src, doc, this.$instanceid );
-			}
+			this.xguest = ( function ( secured ) {
+				if ( secured ) {
+					return "*";
+				} else if ( gui.URL.external ( src, doc )) {
+					var url = new gui.URL ( doc, src );
+					return url.protocol + "//" + url.host;
+				}
+				return null;
+			}( this._iscontentsecured ()));
 			this.element.src = src;
 		} else {
 			return this.element.src;
+		}
+	},
+
+	/**
+	 * Post message to content window. This method assumes 
+	 * that we are messaging Spiritual components and will 
+	 * buffer the messages for bulk dispatch once Spiritual 
+	 * is known to run inside the iframe.
+	 * @param {String} msg
+	 */
+	postMessage : function ( msg ) {
+		if ( this.spiritualized ) {
+			this.contentWindow.postMessage ( msg, this.xguest || "*" );
+		} else {
+			this._postbox.push ( msg );
 		}
 	},
 
@@ -11328,11 +11475,14 @@ gui.IframeSpirit = gui.Spirit.extend ({
 	_cover : null,
 
 	/**
-	 * Hosted document spiritualized.
-	 * @return {[type]} [description]
+	 * Hosted document spiritualized. 
+	 * Dispatching buffered messages.
 	 */
 	_onspiritualized : function () {
 		this.spiritualized = true;
+		while ( this._postbox.length ) {
+			this.postMessage ( this._postbox.shift ());
+		}
 		this._visibility ();
 		if ( this.cover && !this.fit ) {
 			this._coverup ( false );
@@ -11374,16 +11524,36 @@ gui.IframeSpirit = gui.Spirit.extend ({
 	 * @see {gui.DocumentSpirit._onmessage}
 	 * @param {String} msg
 	 */
-	_onmessage : function ( msg ) {
-		if ( this.xguest && msg.startsWith ( "spiritual-action:" )) {
-			var a = gui.Action.parse ( msg );
-			if ( a.direction === gui.Action.ASCEND ) {
-				if ( a.$instanceid === this.$instanceid ) {
-					this.action.$handleownaction = true;
-					this.action.ascendGlobal ( a.type, a.data );
+	_onmessage : function ( msg, origin, source ) {
+		if ( source === this.contentWindow ) {
+			var TEMPFIX = true;
+			if ( TEMPFIX || origin === this.xguest || origin === "null" ) {
+				if ( msg === "spiritual-ping" ) {
+					var xhost = this._iscontentsecured () ? "*" : gui.URL.origin ( this.window );
+					this.contentWindow.postMessage ( "spiritual-pong:" + xhost, this.xguest || "*" );
+				} else {
+					if ( msg.startsWith ( "spiritual-action:" )) {
+						var a = gui.Action.parse ( msg );
+						if ( a.direction === gui.Action.ASCEND ) {
+							//alert ( a.$instanceid + "\n" + this.$instanceid + "\n\n" + msg );
+							//if ( a.$instanceid === this.$instanceid ) {
+								this.action.$handleownaction = true;
+								this.action.ascendGlobal ( a.type, a.data );
+							//}
+						}
+					}
 				}
 			}
 		}
+	},
+
+	/**
+	 * Iframe content is sandboxed in unique origin?
+	 * @returns {boolean}
+	 */
+	_iscontentsecured : function () {
+		var sandbox = this.element.sandbox;
+		return sandbox && !sandbox.contains ( "allow-same-origin" );
 	},
 
 	/**
@@ -11400,10 +11570,11 @@ gui.IframeSpirit = gui.Spirit.extend ({
 	 * Hosting external document?
 	 * @param {String} src
 	 * @returns {boolean}
-	 */
+	 *
 	_xguest : function ( src ) {
 		return this.att.get ( "sandbox" ) || gui.URL.external ( src, this.document );
 	},
+	*/
 
 	/**
 	 * Cover the iframe while loading to block flashing effects. Please note that the 
@@ -11439,7 +11610,7 @@ gui.IframeSpirit = gui.Spirit.extend ({
 			if ( gui.URL.external ( src, doc )) { // should be moved to src() method (but fails)!!!!!
 				var url = new gui.URL ( doc, src );
 				spirit.xguest = url.protocol + "//" + url.host;
-				src = this.sign ( src, doc, spirit.$instanceid );
+				//src = this.sign ( src, doc, spirit.$instanceid );
 			}
 		} else {
 			src = this.SRC_DEFAULT;
@@ -11465,7 +11636,7 @@ gui.IframeSpirit = gui.Spirit.extend ({
 	 * @param {Document} doc
 	 * @param {String} contextid
 	 * @returns {String}
-	 */
+	 *
 	sign : function ( url, doc, contextid ) {
 		var loc = doc.location;
 		var uri = loc.protocol + "//" + loc.host;
@@ -11473,6 +11644,7 @@ gui.IframeSpirit = gui.Spirit.extend ({
 		url = gui.URL.setParam ( url, gui.PARAM_CONTEXTID, sig );
 		return url;
 	},
+	*/
 
 	/**
 	 * Remove $contextid from URL (for whatever reason).

@@ -123,6 +123,7 @@ gui.IframeSpirit = gui.Spirit.extend ({
 			case gui.ACTION_DOC_ONHASH :
 				var base = this.contentLocation.href.split ( "#" )[ 0 ];
 				this.contentLocation = new gui.URL ( this.document, base + a.data );
+				console.log ( "gui.ACTION_DOC_ONHASH", a.data, this.contentLocation.href );
 				this.life.dispatch ( gui.LIFE_IFRAME_ONHASH );
 				a.consume ();
 				break;

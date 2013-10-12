@@ -23,7 +23,7 @@ gui.GreatSpirit = {
 	},
 
 
-	// Secrets ..........................................................................
+	// Secret ..........................................................................
 
 	/**
 	 * - Nuke lazy plugins so that we don't accidentally instantiate them
@@ -96,16 +96,7 @@ gui.GreatSpirit = {
 					var desc = Object.getOwnPropertyDescriptor ( thing, prop );
 					if ( !desc || desc.configurable ) {
 						if ( context.gui.debug ) {
-							Object.defineProperty ( thing, prop, {
-								enumerable : true,
-								configurable : true,
-								get : function () {
-									gui.GreatSpirit.DENY ( thing );
-								},
-								set : function () {
-									gui.GreatSpirit.DENY ( thing );
-								}
-							});
+							this._definePropertyItentified ( thing, prop );
 						} else {
 							Object.defineProperty ( thing, prop, this.DENIED );
 						}
@@ -150,5 +141,26 @@ gui.GreatSpirit = {
 		} else {
 			throw e;
 		}
-	}
+	},
+
+
+	// Private ..........................................................................
+
+	/**
+	 * In debug mode, throw a more qualified "attempt to handle destructed spirit".
+	 * @param {object} thing
+	 * @param {String} prop
+	 */
+	_definePropertyItentified : function ( thing, prop ) {
+			Object.defineProperty ( thing, prop, {
+			enumerable : true,
+			configurable : true,
+			get : function () {
+				gui.GreatSpirit.DENY ( thing );
+			},
+			set : function () {
+				gui.GreatSpirit.DENY ( thing );
+			}
+		});
+	},
 };

@@ -6,7 +6,8 @@
 		"require" : true,
 		"console" : true,
 		"gui" : true,
-		"alert" : true
+		"alert" : true,
+		"ActiveXObject" : true
 	},
 	"globalstrict": false,
 	"quotmark": false,

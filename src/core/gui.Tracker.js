@@ -5,19 +5,6 @@
 gui.Tracker = gui.Plugin.extend ({
 
 	/**
-	 * Bookkeeping types and handlers.
-	 * @type {Map<String,Array<object>}
-	 */
-	_trackedtypes : null,
-
-	/**
-	 * Containing window's gui.$contextid.
-	 * @TODO: Get rid of it
-	 * @type {String}
-	 */
-	_sig : null,
-
-	/**
 	 * Construction time.
 	 * @param {Spirit} spirit
 	 */
@@ -71,6 +58,19 @@ gui.Tracker = gui.Plugin.extend ({
 	 * @type {boolean}
 	 */
 	_global : false,
+
+	/**
+	 * Bookkeeping types and handlers.
+	 * @type {Map<String,Array<object>}
+	 */
+	_trackedtypes : null,
+
+	/**
+	 * Containing window's gui.$contextid.
+	 * @TODO: Get rid of it
+	 * @type {String}
+	 */
+	_sig : null,
 
 	/**
 	 * Execute operation in global mode. Note that sometimes it's still 

@@ -560,22 +560,6 @@ gui.Spiritual.prototype = {
 	 * @param {Window} win
 	 */
 	_construct : function ( context ) {
-
-		/*
-		var x = null;
-		Object.defineProperty ( this, "$contextid", {
-			configurable : true,
-			get : function () {
-				if ( x ) {
-					console.error ( "NEIN BITTTE" );
-				}
-			},
-			set : function ( val ) {
-				x = val;
-			}
-		});
-		*/
-
 		// patching features
 		this._spiritualaid.polyfill ( context );
 		// public setup
@@ -595,14 +579,19 @@ gui.Spiritual.prototype = {
 			inside : Object.create ( null ), // spirits positioned in page DOM ("entered" and "attached")
 			outside : Object.create ( null ) // spirits removed from page DOM (currently "detached")
 		};
-
-		// magic properties may be found in querystring parameters
-		// @tODO not in sandbox!
-		//this._params ( this.document.location.href );
+		
+		// ping-pong quickfix...
+		// @TODO not in sandbox!
+		/*
 		if ( this.hosted ) {
 			context.addEventListener ( "message", this );
 			context.parent.postMessage ( "spiritual-ping", "*" );
 			this._pingpong = true;
+		}
+		*/
+		
+		if ( this.hosted ) {
+			this.xhost = "*";
 		}
 	},
 
@@ -613,16 +602,18 @@ gui.Spiritual.prototype = {
 	handleEvent : function ( e ) {
 		if ( e.type === "message" ) {
 			var parent = this.window.parent;
-			if ( e.source === parent && this._handlepong ( e.data )) {
-				e.target.removeEventListener ( "message", this );
+			if ( e.source === parent && this._gotponged ( e.data )) {
+				this.window.removeEventListener ( "message", this );
 			}
 		}
 	},
 
 	/**
+	 * Got ponged with a hostname? If yes, kickstart the stuff.
 	 * @param {String} msg
+	 * @returns {boolean}
 	 */
-	_handlepong : function ( msg ) {
+	_gotponged : function ( msg ) {
 		var pat = "spiritual-pong:";
 		var loc = this.window.location;
 		var org = loc.origin || loc.protocol + "//" + loc.host;
@@ -637,9 +628,10 @@ gui.Spiritual.prototype = {
 				if ( this._then ) {
 					this._then.now ();
 				}
+				return true;
 			}
-			return true;
 		}
+		return false;
 	},
 
 	/**

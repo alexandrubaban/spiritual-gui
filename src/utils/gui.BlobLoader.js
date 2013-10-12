@@ -21,6 +21,10 @@ gui.BlobLoader = {
 			head.appendChild ( script );
 		});
 		if ( callback ) {
+			/*
+			 * Note: An apparent bug in Firefox prevents the 
+			 * onload from firing inside sandboxed iframes :/
+			 */
 			script.onload = function () {
 				callback.call ( thisp );
 			};

@@ -440,9 +440,9 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 		"mousedown" : gui.BROADCAST_MOUSEDOWN,
 		"mouseup" : gui.BROADCAST_MOUSEUP,
 		"scroll" : gui.BROADCAST_SCROLL, // top ?
-		"resize" : gui.BROADCAST_RESIZE, // top ?
-		"hashchange" : gui.BROADCAST_HASHCHANGE, // top ?
-		"popstate" : gui.BROADCAST_POPSTATE // top ?
+		"resize" : gui.BROADCAST_RESIZE // top ?
+		//"hashchange" : gui.BROADCAST_HASHCHANGE, // top ?
+		//"popstate" : gui.BROADCAST_POPSTATE // top ?
 		// "mousemove" : gui.BROADCAST_MOUSEMOVE (pending simplified gui.EventSummay)
 	}
 });
