@@ -120,8 +120,7 @@ gui.EventPlugin = ( function using ( chained ) {
 		 * @returns {String}
 		 */
 		_transitionend : function () {
-			var t;
-			var el = this.spirit.document.createElement ( "fakeelement" );
+			var t, el = this.spirit.document.createElement ( "fakeelement" );
 			var transitions = {
 				"transition" : "transitionend",
 				"WebkitTransition" : "webkitTransitionEnd"

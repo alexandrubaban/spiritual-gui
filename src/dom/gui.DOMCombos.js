@@ -92,14 +92,21 @@ gui.DOMCombos = ( function scoped () {
 	});
 
 	/**
-	 * Detach subtree of `this`.
+	 * Materialize node.
+	 */
+	var materializeBefore = before ( function ( node ) {
+		gui.Guide.materialize ( node );
+	});
+
+	/**
+	 * Materialize subtree of `this`.
 	 */
 	var materializeSubBefore = before ( function () {
 		gui.Guide.materializeSub ( this );
 	});
 
 	/**
-	 * Attach subtree of `this`
+	 * Spiritualize subtree of `this`
 	 */
 	var spiritualizeSubAfter = after ( function () {
 		gui.Guide.spiritualizeSub ( this );
@@ -177,7 +184,7 @@ gui.DOMCombos = ( function scoped () {
 		removeChild : function ( base ) {
 			return (
 				ifEnabled ( 
-					ifEmbedded ( detachBefore ( suspending ( base )),
+					ifEmbedded ( detachBefore ( suspending ( base )), // detachBefore suspended for flex hotfix!
 					otherwise ( base )),
 				otherwise ( base ))
 			);

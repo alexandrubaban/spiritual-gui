@@ -351,7 +351,7 @@ gui.URL.origin = function ( win ) {
 gui.URL._createLink = function ( doc, href ) {
 	var link = doc.createElement ( "a" );
 	link.href = href || "";
-	if ( gui.Client.isExplorer9 ) {
+	if ( gui.Client.isExplorer ) { // IE9???
 	  var uri = gui.URL.parseUri ( link.href );
 	  Object.keys ( uri ).forEach ( function ( key ) {
 			if ( !link [ key ]) {
@@ -487,7 +487,9 @@ gui.SpiritualAid = {
 	 * @param {Window} win
 	 * @param @optional {boolean} worker
 	 */
-	polyfill : function ( win, worker ) {this._strings	( win );
+	polyfill : function ( win, worker ) {
+		"use strict";
+		this._strings	( win );
 		this._arrays	( win );
 		this._functions	( win );
 		this._globals	( win );
@@ -1375,22 +1377,6 @@ gui.Spiritual.prototype = {
 	 * @param {Window} win
 	 */
 	_construct : function ( context ) {
-
-		/*
-		var x = null;
-		Object.defineProperty ( this, "$contextid", {
-			configurable : true,
-			get : function () {
-				if ( x ) {
-					console.error ( "NEIN BITTTE" );
-				}
-			},
-			set : function ( val ) {
-				x = val;
-			}
-		});
-		*/
-
 		// patching features
 		this._spiritualaid.polyfill ( context );
 		// public setup
@@ -1410,14 +1396,19 @@ gui.Spiritual.prototype = {
 			inside : Object.create ( null ), // spirits positioned in page DOM ("entered" and "attached")
 			outside : Object.create ( null ) // spirits removed from page DOM (currently "detached")
 		};
-
-		// magic properties may be found in querystring parameters
-		// @tODO not in sandbox!
-		//this._params ( this.document.location.href );
+		
+		// ping-pong quickfix...
+		// @TODO not in sandbox!
+		/*
 		if ( this.hosted ) {
 			context.addEventListener ( "message", this );
 			context.parent.postMessage ( "spiritual-ping", "*" );
 			this._pingpong = true;
+		}
+		*/
+		
+		if ( this.hosted ) {
+			this.xhost = "*";
 		}
 	},
 
@@ -1428,16 +1419,18 @@ gui.Spiritual.prototype = {
 	handleEvent : function ( e ) {
 		if ( e.type === "message" ) {
 			var parent = this.window.parent;
-			if ( e.source === parent && this._handlepong ( e.data )) {
-				e.target.removeEventListener ( "message", this );
+			if ( e.source === parent && this._gotponged ( e.data )) {
+				this.window.removeEventListener ( "message", this );
 			}
 		}
 	},
 
 	/**
+	 * Got ponged with a hostname? If yes, kickstart the stuff.
 	 * @param {String} msg
+	 * @returns {boolean}
 	 */
-	_handlepong : function ( msg ) {
+	_gotponged : function ( msg ) {
 		var pat = "spiritual-pong:";
 		var loc = this.window.location;
 		var org = loc.origin || loc.protocol + "//" + loc.host;
@@ -1452,9 +1445,10 @@ gui.Spiritual.prototype = {
 				if ( this._then ) {
 					this._then.now ();
 				}
+				return true;
 			}
-			return true;
 		}
+		return false;
 	},
 
 	/**
@@ -3546,7 +3540,7 @@ gui.HTMLParser = {
 	parseToDocument : function ( markup ) {
 		markup = markup || "";
 		return gui.Guide.suspend ( function () {
-			var doc = doc = document.implementation.createHTMLDocument ( "" );
+			var doc = document.implementation.createHTMLDocument ( "" );
 			if ( markup.toLowerCase().contains ( "<!doctype" )) {
 				try {
 					doc.documentElement.innerHTML = markup;
@@ -3868,6 +3862,10 @@ gui.BlobLoader = {
 			head.appendChild ( script );
 		});
 		if ( callback ) {
+			/*
+			 * Note: An apparent bug in Firefox prevents the 
+			 * onload from firing inside sandboxed iframes :/
+			 */
 			script.onload = function () {
 				callback.call ( thisp );
 			};
@@ -4179,7 +4177,7 @@ gui.Crawler = gui.Class.create ( Object.prototype, {
  * @param @optional {String} url
  * @param @optional {Document} doc Resolve URL relative to given document location.
  */
-gui.Request = function ( url, doc ) {
+gui.Request = function Request ( url, doc ) {
 	this._headers = {
 		"Accept" : "application/json"
 	};
@@ -4188,186 +4186,192 @@ gui.Request = function ( url, doc ) {
 	}
 };
 
-gui.Request.prototype = {
+/**
+ * @using {gui.Combo.chained}
+ */
+gui.Request.prototype = ( function using ( chained ) {
 
-	/**
-	 * Set request address.
-	 * @param {String} url
-	 * @param @optional {Document} doc Resolve URL relative tó this document
-	 */
-	url : function ( url, doc ) {
-		this._url = doc ? new gui.URL ( doc, url ).href : url;
-		return this;
-	},
+	return {
 
-	/**
-	 * Convert to synchronous request.
-	 */
-	sync : function () {
-		this._async = false;
-		return this;
-	},
+		/**
+		 * Set request address.
+		 * @param {String} url
+		 * @param @optional {Document} doc Resolve URL relative to this document
+		 */
+		url : chained ( function ( url, doc ) {
+			this._url = doc ? new gui.URL ( doc, url ).href : url;
+		}),
 
-	/**
-	 * Convert to asynchronous request.
-	 */
-	async : function () {
-		this._async = true;
-		return this;
-	},
+		/**
+		 * Convert to synchronous request.
+		 */
+		sync : chained ( function () {
+			this._async = false;
+		}),
 
-	/**
-	 * Expected response type. Sets the accept header and formats 
-	 * callback result accordingly (eg. as JSON object, XML document) 
-	 * @param {String} mimetype
-	 * @returns {gui.Request}
-	 */
-	accept : function ( mimetype ) {
-		this._headers.Accept = mimetype;
-		return this;
-	},
+		/**
+		 * Convert to asynchronous request.
+		 */
+		async : chained ( function () {
+			this._async = true;
+		}),
 
-	/**
-	 * Expect JSON response.
-	 * @returns {gui.Request}
-	 */
-	acceptJSON : function () {
-		return this.accept ( "application/json" );
-	},
+		/**
+		 * Expected response type. Sets the accept header and formats 
+		 * callback result accordingly (eg. as JSON object, XML document) 
+		 * @param {String} mimetype
+		 * @returns {gui.Request}
+		 */
+		accept : chained ( function ( mimetype ) {
+			this._headers.Accept = mimetype;
+		}),
 
-	/**
-	 * Expect XML response.
-	 * @returns {gui.Request}
-	 */
-	acceptXML : function () {
-		return this.accept ( "text/xml" );
-	},
+		/**
+		 * Expect JSON response.
+		 * @returns {gui.Request}
+		 */
+		acceptJSON : chained ( function () {
+			this.accept ( "application/json" );
+		}),
 
-	/**
-	 * Expect text response.
-	 * @returns {gui.Request}
-	 */
-	acceptText : function () {
-		return this.accept ( "text/plain" );
-	},
+		/**
+		 * Expect XML response.
+		 * @returns {gui.Request}
+		 */
+		acceptXML : chained ( function () {
+			this.accept ( "text/xml" );
+		}),
 
-	/**
-	 * Format response to this type.
-	 * @param {String} mimetype
-	 * @returns {gui.Request}
-	 */
-	format : function ( mimetype ) {
-		this._format = mimetype;
-		return this;
-	},
+		/**
+		 * Expect text response.
+		 * @returns {gui.Request}
+		 */
+		acceptText : chained ( function () {
+			this.accept ( "text/plain" );
+		}),
 
-	/**
-	 * Override mimetype to fit accept.
-	 * @returns {gui.Request}
-	 */
-	override : function ( doit ) {
-		this._override = doit || true;
-		return this;
-	},
+		/**
+		 * Format response to this type.
+		 * @param {String} mimetype
+		 * @returns {gui.Request}
+		 */
+		format : chained ( function ( mimetype ) {
+			this._format = mimetype;
+		}),
 
-	/**
-	 * Append request headers.
-	 * @param {Map<String,String>} headers
-	 * @returns {gui.Request}
-	 */
-	headers : function ( headers ) {
-		if ( gui.Type.isObject ( headers )) {
-			gui.Object.each ( headers, function ( name, value ) {
-				this._headers [ name ] = String ( value );
-			}, this );
-		} else {
-			throw new TypeError ( "Object expected" );
-		}
-		return this;
-	},
-	
-	
-	// Private ...................................................................................
+		/**
+		 * Override mimetype to fit accept.
+		 * @returns {gui.Request}
+		 */
+		override : chained ( function ( doit ) {
+			this._override = doit || true;
+		}),
 
-	/**
-	 * @type {boolean}
-	 */
-	_async : true,
-
-	/**
-	 * @type {String}
-	 */
-	_url : null,
-
-	/**
-	 * Default request type. Defaults to JSON.
-	 * @type {String}
-	 */
-	_format : "application/json",
-
-	/**
-	 * Override response mimetype?
-	 * @type {String}
-	 */
-	_override : false,
-
-	/**
-	 * Request headers.
-	 * @type {Map<String,String}
-	 */
-	_headers : null,
-
-	/**
-	 * Do the XMLHttpRequest.
-	 * @TODO http://mathiasbynens.be/notes/xhr-responsetype-json
-	 * @param {String} method
-	 * @param {object} payload
-	 * @param {function} callback
-	 */
-	_request : function ( method, payload, callback ) {
-		var that = this, request = new XMLHttpRequest ();
-		request.onreadystatechange = function () {
-			if ( this.readyState === XMLHttpRequest.DONE ) {
-				var data = that._response ( this.responseText );
-				callback ( this.status, data, this.responseText );
+		/**
+		 * Append request headers.
+		 * @param {Map<String,String>} headers
+		 * @returns {gui.Request}
+		 */
+		headers : chained ( function ( headers ) {
+			if ( gui.Type.isObject ( headers )) {
+				gui.Object.each ( headers, function ( name, value ) {
+					this._headers [ name ] = String ( value );
+				}, this );
+			} else {
+				throw new TypeError ( "Object expected" );
 			}
-		};
-		if ( this._override ) {
-			request.overrideMimeType ( this._headers.Accept );
-		}
-		request.open ( method.toUpperCase (), this._url, true );
-		gui.Object.each ( this._headers, function ( name, value ) {
-			request.setRequestHeader ( name, value, false );
-		});
-		request.send ( payload );
-	},
+		}),
+		
+		
+		// Private ...................................................................................
 
-	/**
-	 * Parse response to expected type.
-	 * @param {String} text
-	 * @returns {object}
-	 */
-	_response : function ( text ) {	
-		var result = text;
-		try {
-			switch ( this._headers.Accept ) {
-				case "application/json" :
-					result = JSON.parse ( text );
-					break;
-				case "text/xml" :
-					result = new DOMParser ().parseFromString ( text, "text/xml" );
-					break;
+		/**
+		 * @type {boolean}
+		 */
+		_async : true,
+
+		/**
+		 * @type {String}
+		 */
+		_url : null,
+
+		/**
+		 * Default request type. Defaults to JSON.
+		 * @type {String}
+		 */
+		_format : "application/json",
+
+		/**
+		 * Override response mimetype?
+		 * @type {String}
+		 */
+		_override : false,
+
+		/**
+		 * Request headers.
+		 * @type {Map<String,String}
+		 */
+		_headers : null,
+
+		/**
+		 * Do the XMLHttpRequest.
+		 * @TODO http://mathiasbynens.be/notes/xhr-responsetype-json
+		 * @param {String} method
+		 * @param {object} payload
+		 * @param {function} callback
+		 */
+		_request : function ( method, payload, callback ) {
+			var that = this, request = new XMLHttpRequest ();
+			var xtarget = gui.URL.external ( this._url, document );
+			if ( xtarget && window.XDomainRequest ) {
+				request = new XDomainRequest (); // @TODO: test this thing!
 			}
-		} catch ( exception ) {
-			console.error ( 
-				this._headers.Accept + " dysfunction at " + this._url + "\n" + 
-				"Note that gui.Request defaults to accept and send JSON. " + 
-				"Use request.accept(mime) and request.format(mime) to change this stuff."
-			);
+			request.onreadystatechange = function () {
+				if ( this.readyState === XMLHttpRequest.DONE ) {
+					var data = that._response ( this.responseText );
+					callback ( this.status, data, this.responseText );
+				}
+			};
+			if ( this._override ) {
+				request.overrideMimeType ( this._headers.Accept );
+			}
+			request.open ( method.toUpperCase (), this._url, true );
+			if ( !xtarget ) { // headers not used xdomain per spec
+				gui.Object.each ( this._headers, function ( name, value ) {
+					request.setRequestHeader ( name, value, false );
+				});
+			}
+			request.send ( payload );
+		},
+
+		/**
+		 * Parse response to expected type.
+		 * @param {String} text
+		 * @returns {object}
+		 */
+		_response : function ( text ) {	
+			var result = text;
+			try {
+				switch ( this._headers.Accept ) {
+					case "application/json" :
+						result = JSON.parse ( text );
+						break;
+					case "text/xml" :
+						result = new DOMParser ().parseFromString ( text, "text/xml" );
+						break;
+				}
+			} catch ( exception ) {
+				console.error ( 
+					this._headers.Accept + " dysfunction at " + this._url + "\n" + 
+					"Note that gui.Request defaults to accept and send JSON. " + 
+					"Use request.accept(mime) and request.format(mime) to change this stuff."
+				);
+			}
+			return result;
 		}
-		return result;
-	}
-};
+	};
+
+}( gui.Combo.chained ));
 
 /**
  * Generating methods for GET PUT POST DELETE.
@@ -5324,19 +5328,6 @@ gui.Plugin = gui.Class.create ( Object.prototype, {
 gui.Tracker = gui.Plugin.extend ({
 
 	/**
-	 * Bookkeeping types and handlers.
-	 * @type {Map<String,Array<object>}
-	 */
-	_trackedtypes : null,
-
-	/**
-	 * Containing window's gui.$contextid.
-	 * @TODO: Get rid of it
-	 * @type {String}
-	 */
-	_sig : null,
-
-	/**
 	 * Construction time.
 	 * @param {Spirit} spirit
 	 */
@@ -5390,6 +5381,19 @@ gui.Tracker = gui.Plugin.extend ({
 	 * @type {boolean}
 	 */
 	_global : false,
+
+	/**
+	 * Bookkeeping types and handlers.
+	 * @type {Map<String,Array<object>}
+	 */
+	_trackedtypes : null,
+
+	/**
+	 * Containing window's gui.$contextid.
+	 * @TODO: Get rid of it
+	 * @type {String}
+	 */
+	_sig : null,
 
 	/**
 	 * Execute operation in global mode. Note that sometimes it's still 
@@ -5564,7 +5568,7 @@ gui.GreatSpirit = {
 	},
 
 
-	// Secrets ..........................................................................
+	// Secret ..........................................................................
 
 	/**
 	 * - Nuke lazy plugins so that we don't accidentally instantiate them
@@ -5637,16 +5641,7 @@ gui.GreatSpirit = {
 					var desc = Object.getOwnPropertyDescriptor ( thing, prop );
 					if ( !desc || desc.configurable ) {
 						if ( context.gui.debug ) {
-							Object.defineProperty ( thing, prop, {
-								enumerable : true,
-								configurable : true,
-								get : function () {
-									gui.GreatSpirit.DENY ( thing );
-								},
-								set : function () {
-									gui.GreatSpirit.DENY ( thing );
-								}
-							});
+							this._definePropertyItentified ( thing, prop );
 						} else {
 							Object.defineProperty ( thing, prop, this.DENIED );
 						}
@@ -5691,7 +5686,28 @@ gui.GreatSpirit = {
 		} else {
 			throw e;
 		}
-	}
+	},
+
+
+	// Private ..........................................................................
+
+	/**
+	 * In debug mode, throw a more qualified "attempt to handle destructed spirit".
+	 * @param {object} thing
+	 * @param {String} prop
+	 */
+	_definePropertyItentified : function ( thing, prop ) {
+			Object.defineProperty ( thing, prop, {
+			enumerable : true,
+			configurable : true,
+			get : function () {
+				gui.GreatSpirit.DENY ( thing );
+			},
+			set : function () {
+				gui.GreatSpirit.DENY ( thing );
+			}
+		});
+	},
 };
 
 
@@ -7097,7 +7113,7 @@ gui.Client = ( new function Client () {
 	var agent = navigator.userAgent.toLowerCase ();
 	var root = document.documentElement;
 
-	this.isExplorer = agent.contains ( "msie" );
+	this.isExplorer = agent.contains ( "msie" ) || agent.contains ( "trident" );
 	this.isExplorer9 = this.isExplorer && agent.contains ( "msie 9" ); // @TODO feature detect something
 	this.isOpera = agent.contains ( "opera" );
 	this.isWebKit = agent.contains ( "webkit" );
@@ -10757,6 +10773,35 @@ gui.EventPlugin = ( function using ( chained ) {
 			var handler = checks [ 1 ];
 			var capture = checks [ 2 ];
 			this.remove ( type, target, handler, capture );
+		},
+
+		/**
+		 * Manhandle "transitionend" event. Seems only Safari is left now...
+		 * @param {Array<String>|String} arg
+		 * @returns {Array<String>}
+		 */
+		_breakdown : function ( arg ) {
+			return this._super._breakdown ( arg ).map ( function ( type ) {
+				return type === "transitionend" ? this._transitionend () : type;
+			}, this );
+		},
+
+		/**
+		 * Compute vendor prefixed "transitionend" event name. 
+		 * @TODO: Cache the result somehow...
+		 * @returns {String}
+		 */
+		_transitionend : function () {
+			var t, el = this.spirit.document.createElement ( "fakeelement" );
+			var transitions = {
+				"transition" : "transitionend",
+				"WebkitTransition" : "webkitTransitionEnd"
+			};
+			for ( t in transitions ) {
+				if ( el.style [ t ] !== undefined ) {
+					return transitions [ t ];
+				}
+			}
 		}
 
 	});
@@ -11235,9 +11280,9 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 		"mousedown" : gui.BROADCAST_MOUSEDOWN,
 		"mouseup" : gui.BROADCAST_MOUSEUP,
 		"scroll" : gui.BROADCAST_SCROLL, // top ?
-		"resize" : gui.BROADCAST_RESIZE, // top ?
-		"hashchange" : gui.BROADCAST_HASHCHANGE, // top ?
-		"popstate" : gui.BROADCAST_POPSTATE // top ?
+		"resize" : gui.BROADCAST_RESIZE // top ?
+		//"hashchange" : gui.BROADCAST_HASHCHANGE, // top ?
+		//"popstate" : gui.BROADCAST_POPSTATE // top ?
 		// "mousemove" : gui.BROADCAST_MOUSEMOVE (pending simplified gui.EventSummay)
 	}
 });
@@ -11368,6 +11413,7 @@ gui.IframeSpirit = gui.Spirit.extend ({
 			case gui.ACTION_DOC_ONHASH :
 				var base = this.contentLocation.href.split ( "#" )[ 0 ];
 				this.contentLocation = new gui.URL ( this.document, base + a.data );
+				console.log ( "gui.ACTION_DOC_ONHASH", a.data, this.contentLocation.href );
 				this.life.dispatch ( gui.LIFE_IFRAME_ONHASH );
 				a.consume ();
 				break;
@@ -11950,6 +11996,20 @@ gui.module ( "spirits", {
 		 * @param {Event} e
 		 */
 		handleEvent : function ( e ) {
+			
+			/*
+			 * TODO: Move this code into {gui.EventPlugin}
+			 */
+			if ( e.type === "webkitTransitionEnd" ) {
+				e = {
+					type : "transitionend",
+					target : e.target,
+					propertyName : e.propertyName,
+					elapsedTime : e.elapsedTime,
+					pseudoElement : e.pseudoElement
+				};
+			}
+
 			this.onevent ( e );
 		}
 	}

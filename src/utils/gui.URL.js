@@ -16,18 +16,7 @@ gui.URL = function ( doc, href ) {
 			}
 		}, this );
 		this.id = this.hash ? this.hash.substring ( 1 ) : null;
-
-		/*
-		 * @TODO: what is "location" supposed to mean?
-		 */
-		this.location = this.href.split ( "#" )[ 0 ];
-		this.external = this.location !== String ( doc.location ).split ( "#" )[ 0 ];
-		/*
-		var parts = this.href.split ( "/" );
-		parts.pop();
-		parts.push("");
-		this.pathbase = parts.join ( "/" );
-		*/
+		this.external = this.href.split ( "#" )[ 0 ] !== doc.URL.split ( "#" )[ 0 ];
 	} else {
 		throw new TypeError ( "Document expected" );
 	}
@@ -186,7 +175,7 @@ gui.URL.origin = function ( win ) {
 gui.URL._createLink = function ( doc, href ) {
 	var link = doc.createElement ( "a" );
 	link.href = href || "";
-	if ( gui.Client.isExplorer9 ) {
+	if ( gui.Client.isExplorer ) { // IE9???
 	  var uri = gui.URL.parseUri ( link.href );
 	  Object.keys ( uri ).forEach ( function ( key ) {
 			if ( !link [ key ]) {

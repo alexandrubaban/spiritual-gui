@@ -6,7 +6,7 @@ module.exports = function ( grunt ) {
 
 	"use strict";
 	
-	[ "grunt-spiritual", "grunt-spiritual-dox" ].forEach ( grunt.loadNpmTasks );
+	[ "grunt-spiritual" ].forEach ( grunt.loadNpmTasks );
 	grunt.initConfig ({
 		spiritual : {
 			gui : {
@@ -21,13 +21,6 @@ module.exports = function ( grunt ) {
 				},
 				files : {
 					"dist/spiritual-gui.js" : [ "src/gui.json" ]
-				}
-			}
-		},
-		spiritualdox : {
-			gui : {
-				files : {
-					"temp" : [ "src/gui.json", "!**/exclusionpattern/**" ]
 				}
 			}
 		}
