@@ -20,7 +20,7 @@ module.exports = function ( grunt ) {
 					 )
 				},
 				files : {
-					"dist/spiritual-gui.js" : [ "src/gui.json" ]
+					"dist/spiritual-gui.js" : [ "src/build.json" ]
 				}
 			}
 		}

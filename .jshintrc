@@ -6,6 +6,7 @@
 		"require" : true,
 		"console" : true,
 		"gui" : true,
+		"self" : true,
 		"alert" : true,
 		"ActiveXObject" : true
 	},

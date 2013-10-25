@@ -156,6 +156,13 @@ gui.Spiritual.prototype = {
 	},
 
 	/**
+	 * @TODO
+	 */
+	getAll : function ( arg ) {
+		console.error ( "TODO: gui.getAll" );
+	},
+
+	/**
 	 * Register module.
 	 * @param {String} name
 	 * @param {object} module

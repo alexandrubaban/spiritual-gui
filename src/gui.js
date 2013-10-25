@@ -67,13 +67,13 @@ window.gui = {
 	/** 
 	 * Global actions
 	 */
-	ACTION_DOC_ONCONSTRUCT : "gui-action-document-construct",
+	//ACTION_DOC_ONCONSTRUCT : "gui-action-document-construct",
 	ACTION_DOC_ONDOMCONTENT : "gui-action-document-domcontent",
 	ACTION_DOC_ONLOAD : "gui-action-document-onload",
 	ACTION_DOC_ONHASH : "gui-action-document-onhash",
 	ACTION_DOC_ONSPIRITUALIZED : "gui-action-document-spiritualized",
 	ACTION_DOC_UNLOAD : "gui-action-document-unload",
-	ACTION_DOC_FIT : "gui-action-document-fit",
+	//ACTION_DOC_FIT : "gui-action-document-fit",
 
 	/**
 	 * Framework internal actions of little use.

@@ -76,13 +76,13 @@ gui.IframeSpirit = gui.Spirit.extend ({
 	onenter : function () {
 		this._super.onenter ();
 		this.action.addGlobal ([ // in order of appearance
-			gui.ACTION_DOC_ONCONSTRUCT,
+			//gui.ACTION_DOC_ONCONSTRUCT,
 			gui.ACTION_DOC_ONDOMCONTENT,
 			gui.ACTION_DOC_ONLOAD,
 			gui.ACTION_DOC_ONHASH,
 			gui.ACTION_DOC_ONSPIRITUALIZED,
-			gui.ACTION_DOC_UNLOAD,
-			gui.ACTION_DOC_FIT
+			gui.ACTION_DOC_UNLOAD
+			//gui.ACTION_DOC_FIT
 		]);
 		if ( this.fit ) {
 			this.css.height = 0;
@@ -104,12 +104,14 @@ gui.IframeSpirit = gui.Spirit.extend ({
 		this._super.onaction ( a );
 		this.action.$handleownaction = false;
 		switch ( a.type ) {
+			/*
 			case gui.ACTION_DOC_ONCONSTRUCT :
 				this.life.dispatch ( gui.LIFE_IFRAME_CONSTRUCT );
 				this.contentLocation = new gui.URL ( this.document, a.data );
 				this.action.remove ( a.type );
 				a.consume ();
 				break;
+			*/
 			case gui.ACTION_DOC_ONDOMCONTENT :
 				this.life.dispatch ( gui.LIFE_IFRAME_DOMCONTENT );
 				this.action.remove ( a.type );
@@ -123,7 +125,6 @@ gui.IframeSpirit = gui.Spirit.extend ({
 			case gui.ACTION_DOC_ONHASH :
 				var base = this.contentLocation.href.split ( "#" )[ 0 ];
 				this.contentLocation = new gui.URL ( this.document, base + a.data );
-				console.log ( "gui.ACTION_DOC_ONHASH", a.data, this.contentLocation.href );
 				this.life.dispatch ( gui.LIFE_IFRAME_ONHASH );
 				a.consume ();
 				break;
@@ -144,10 +145,12 @@ gui.IframeSpirit = gui.Spirit.extend ({
 				]);
 				a.consume ();
 				break;
+			/*
 			case gui.ACTION_DOC_FIT :
 				this._onfit ( a.data.height );
 				a.consume ();
 				break;
+			*/
 		}
 	},
 	
@@ -291,11 +294,8 @@ gui.IframeSpirit = gui.Spirit.extend ({
 					if ( msg.startsWith ( "spiritual-action:" )) {
 						var a = gui.Action.parse ( msg );
 						if ( a.direction === gui.Action.ASCEND ) {
-							//alert ( a.$instanceid + "\n" + this.$instanceid + "\n\n" + msg );
-							//if ( a.$instanceid === this.$instanceid ) {
-								this.action.$handleownaction = true;
-								this.action.ascendGlobal ( a.type, a.data );
-							//}
+							this.action.$handleownaction = true;
+							this.action.ascendGlobal ( a.type, a.data );
 						}
 					}
 				}
@@ -407,9 +407,10 @@ gui.IframeSpirit = gui.Spirit.extend ({
 	 * @param {String} url
 	 * @param {String} sign
 	 * @returns {String}
-	 */
+	 *
 	unsign : function ( url ) {
 		return gui.URL.setParam ( url, gui.PARAM_CONTEXTID, null );
 	}
+	*/
 
 });

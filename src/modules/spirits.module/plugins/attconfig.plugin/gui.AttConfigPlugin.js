@@ -77,6 +77,7 @@ gui.AttConfigPlugin = gui.Plugin.extend ({
 			}
 		} else {
 			console.error ( "No definition for \"" + name + "\": " + this.spirit.toString ());
+			console.error ( struct [ prop ]);
 		}
 	}
 

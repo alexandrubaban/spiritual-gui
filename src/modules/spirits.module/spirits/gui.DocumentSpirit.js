@@ -10,17 +10,18 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 	onconstruct : function () {
 		this._super.onconstruct ();
 		this._dimension = new gui.Dimension ();
-		this.event.add ( "message hashchange", this.window );
-		this.action.addGlobal ( gui.ACTION_DOC_FIT );
-		this._broadcastevents ();
-		if ( this.document === document ) {
-			this._constructTop ();
+		this.event.add ( "click mousedown mouseup" ); // @TODO "pointerdown" and "pointerup"
+		this.event.add ( "load message hashchange", this.window );
+		if ( window === top ) {
+			this.event.add ( "resize orientationchange", window );
 		}
-		// @TODO iframe hello.
+		/*
+		// @TODO: intend to deprecate
 		this.action.dispatchGlobal ( 
 			gui.ACTION_DOC_ONCONSTRUCT, 
 			this.window.location.href 
 		);
+*/
 	},
 
 	/**
@@ -65,10 +66,12 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 		this._super.onaction ( a );
 		this.action.$handleownaction = false;
 		switch ( a.type ) {
+			/*
 			case gui.ACTION_DOC_FIT : // relay fit, but claim ourselves as new target
 				a.consume ();
 				this.fit ( a.data === true );
 				break;
+			*/
 			case gui.$ACTION_XFRAME_VISIBILITY : 
 				this._waiting = false;
 				if ( a.data === true ) {
@@ -243,17 +246,19 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 	 * @param {Event} e
 	 */
 	_onevent : function ( e ) {
-		var topmost = !this.window.gui.hosted; // @TODO: wrong!
 		switch ( e.type ) {
+			case "click" :
+			case "mousedown" :
+			case "mouseup" :
+			case "pointerdown" :
+			case "pointerup" :
+				this._broadcastevent ( e );
+				break;
 			case "orientationchange" :
-				if ( topmost) {
-					this._onorientationchange ();
-				}
+				this._onorientationchange ();
 				break;
 			case "resize" :
-				if ( topmost ) {
-					this._onresize ();
-				}
+				this._onresize ();
 				break;
 			case "load" :
 				e.stopPropagation (); // @TODO: needed?
@@ -268,33 +273,6 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 				);
 				break;
 		}
-		// broadcast event globally?
-		var message = gui.DocumentSpirit.broadcastevents [ e.type ];
-		if ( gui.Type.isDefined ( message )) {
-			this._broadcastevent ( e, message );
-		}
-	},
-
-	/**
-	 * Setup to fire global broadcasts on common DOM events.
-	 * @see {gui.DocumentSpirit#onevent}
-	 */
-	_broadcastevents : function () {
-		Object.keys ( gui.DocumentSpirit.broadcastevents ).forEach ( function ( type ) {
-			var target = this.document;
-			switch ( type ) {
-				case "scroll" :
-				case "resize" : // ??????
-				case "popstate" :
-				case "hashchange" :
-					var win = this.window;
-					target = win === top ? win : null;
-					break;
-			}
-			if ( target ) {
-				this.event.add ( type, target );
-			}
-		}, this );
 	},
 
 	/**
@@ -302,21 +280,12 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 	 * @param {Event} e
 	 * @param {String} message
 	 */
-	_broadcastevent : function ( e, message ) {
-		switch ( e.type ) {
-				case "mousemove" :
-				case "touchmove" :
-					try {
-						gui.broadcastGlobal ( message, e );
-					} catch ( exception ) {
-						this.event.remove ( e.type, e.target );
-						throw exception;
-					}
-					break;
-				default :
-					gui.broadcastGlobal ( message, e );
-					break;
-		}
+	_broadcastevent : function ( e ) {
+		gui.broadcastGlobal (({
+			"click" : gui.BROADCAST_MOUSECLICK,
+			"mousedown" : gui.BROADCAST_MOUSEDOWN,
+			"mouseup" : gui.BROADCAST_MOUSEUP
+		})[ e.type ], e );
 	},
 
 	/**
@@ -369,43 +338,6 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 	},
 
 	/**
-	 * Dispatch document fit. Google Chrome may fail 
-	 * to refresh the scrollbar properly at this point.
-	 */
-	_dispatchFit : function () {
-		var dim = this._dimension;
-		this.action.dispatchGlobal ( gui.ACTION_DOC_FIT, {
-			width : dim.w,
-			height : dim.h
-		});
-		var win = this.window;
-		if( gui.Client.isWebKit ){
-			win.scrollBy ( 0, 1 );
-			win.scrollBy ( 0,-1 );
-		}
-	},
-
-	/**
-	 * Get current body dimension.
-	 * @returns {gui.Dimension}
-	 */
-	_getDimension : function () {
-		var rect = this.document.body.getBoundingClientRect ();
-		return new gui.Dimension ( rect.width, rect.height );
-	},
-
-	/**
-	 * Special setup for top document: Broadcast 
-	 * orientation on startup and when it changes.
-	 */
-	_constructTop : function () {
-		if ( parent === window ) {
-			this._onorientationchange ();
-			this.event.add ( "orientationchange", window );
-		}
-	},
-
-	/**
 	 * Intensive resize procedures should subscribe 
 	 * to the resize-end message as broadcasted here.
 	 * @TODO prevent multiple simultaneous windows
@@ -427,22 +359,5 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 		gui.orientation = window.innerWidth > window.innerHeight ? 1 : 0;
 		gui.broadcastGlobal ( gui.BROADCAST_ORIENTATIONCHANGE );
 	}
-
 	
-}, {}, { // Static .............................................................
-
-	/**
-	 * Mapping DOM events to broadcast messages.
-	 * @type {Map<String,String>}
-	 */
-	broadcastevents : {
-		"click" : gui.BROADCAST_MOUSECLICK,
-		"mousedown" : gui.BROADCAST_MOUSEDOWN,
-		"mouseup" : gui.BROADCAST_MOUSEUP,
-		"scroll" : gui.BROADCAST_SCROLL, // top ?
-		"resize" : gui.BROADCAST_RESIZE // top ?
-		//"hashchange" : gui.BROADCAST_HASHCHANGE, // top ?
-		//"popstate" : gui.BROADCAST_POPSTATE // top ?
-		// "mousemove" : gui.BROADCAST_MOUSEMOVE (pending simplified gui.EventSummay)
-	}
 });

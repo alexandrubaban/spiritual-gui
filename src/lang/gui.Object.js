@@ -118,7 +118,7 @@ gui.Object = {
 	 * @returns {object}
 	 */
 	lookup : function ( opath, context ) {
-		var result, struct = context || window;
+		var result, struct = context || self;
 		if ( !opath.contains ( "." )) {
 			result = struct [ opath ];
 		} else {
@@ -135,12 +135,12 @@ gui.Object = {
 	/**
 	 * Update property of object in given context based on string input.
 	 * @param {String} opath Object path eg. "my.ns.Thing.name"
-	 * @param {object} value Property value eg. "Johnson"
-	 * @param {Window} context
+	 * @param {object} value Property value eg. `"Johnson` or"` `[]`
+	 * @param @optional {Window|object} context 
 	 * @returns {object}
 	 */
 	assert : function ( opath, value, context ) {
-		var prop, struct = context;
+		var prop, struct = context || self;
 		if ( opath.contains ( "." )) {
 			var parts = opath.split ( "." );
 			prop = parts.pop ();
