@@ -67,7 +67,6 @@ gui.IframeSpirit = gui.Spirit.extend ({
 		this._super.onconstruct ();
 		this.event.add ( "message", this.window, this );
 		this._postbox = [];
-		
 	},
 
 	/**
@@ -76,13 +75,11 @@ gui.IframeSpirit = gui.Spirit.extend ({
 	onenter : function () {
 		this._super.onenter ();
 		this.action.addGlobal ([ // in order of appearance
-			//gui.ACTION_DOC_ONCONSTRUCT,
 			gui.ACTION_DOC_ONDOMCONTENT,
 			gui.ACTION_DOC_ONLOAD,
 			gui.ACTION_DOC_ONHASH,
 			gui.ACTION_DOC_ONSPIRITUALIZED,
 			gui.ACTION_DOC_UNLOAD
-			//gui.ACTION_DOC_FIT
 		]);
 		if ( this.fit ) {
 			this.css.height = 0;
@@ -104,14 +101,6 @@ gui.IframeSpirit = gui.Spirit.extend ({
 		this._super.onaction ( a );
 		this.action.$handleownaction = false;
 		switch ( a.type ) {
-			/*
-			case gui.ACTION_DOC_ONCONSTRUCT :
-				this.life.dispatch ( gui.LIFE_IFRAME_CONSTRUCT );
-				this.contentLocation = new gui.URL ( this.document, a.data );
-				this.action.remove ( a.type );
-				a.consume ();
-				break;
-			*/
 			case gui.ACTION_DOC_ONDOMCONTENT :
 				this.life.dispatch ( gui.LIFE_IFRAME_DOMCONTENT );
 				this.action.remove ( a.type );
@@ -145,12 +134,6 @@ gui.IframeSpirit = gui.Spirit.extend ({
 				]);
 				a.consume ();
 				break;
-			/*
-			case gui.ACTION_DOC_FIT :
-				this._onfit ( a.data.height );
-				a.consume ();
-				break;
-			*/
 		}
 	},
 	
@@ -202,7 +185,7 @@ gui.IframeSpirit = gui.Spirit.extend ({
 					return url.protocol + "//" + url.host;
 				}
 				return null;
-			}( this._iscontentsecured ()));
+			}( this._sandboxed ()));
 			this.element.src = src;
 		} else {
 			return this.element.src;
@@ -218,7 +201,7 @@ gui.IframeSpirit = gui.Spirit.extend ({
 	 */
 	postMessage : function ( msg ) {
 		if ( this.spiritualized ) {
-			this.contentWindow.postMessage ( msg, this.xguest || "*" );
+			this.contentWindow.postMessage ( msg, "*" );
 		} else {
 			this._postbox.push ( msg );
 		}
@@ -285,31 +268,22 @@ gui.IframeSpirit = gui.Spirit.extend ({
 	 */
 	_onmessage : function ( msg, origin, source ) {
 		if ( source === this.contentWindow ) {
-			var TEMPFIX = true;
-			if ( TEMPFIX || origin === this.xguest || origin === "null" ) {
-				if ( msg === "spiritual-ping" ) {
-					var xhost = this._iscontentsecured () ? "*" : gui.URL.origin ( this.window );
-					this.contentWindow.postMessage ( "spiritual-pong:" + xhost, this.xguest || "*" );
-				} else {
-					if ( msg.startsWith ( "spiritual-action:" )) {
-						var a = gui.Action.parse ( msg );
-						if ( a.direction === gui.Action.ASCEND ) {
-							this.action.$handleownaction = true;
-							this.action.ascendGlobal ( a.type, a.data );
-						}
-					}
+			if ( msg.startsWith ( "spiritual-action:" )) {
+				var a = gui.Action.parse ( msg );
+				if ( a.direction === gui.Action.ASCEND ) {
+					this.action.$handleownaction = true;
+					this.action.ascendGlobal ( a.type, a.data );
 				}
 			}
 		}
 	},
 
 	/**
-	 * Iframe content is sandboxed in unique origin?
+	 * Iframe is sandboxed? Returns `true` even for "allow-same-origin" setting.
 	 * @returns {boolean}
 	 */
-	_iscontentsecured : function () {
-		var sandbox = this.element.sandbox;
-		return sandbox && !sandbox.contains ( "allow-same-origin" );
+	_sandboxed : function () {
+		return this.element.sandbox.length; // && !sandbox.contains ( "allow-same-origin" );
 	},
 
 	/**
@@ -321,16 +295,6 @@ gui.IframeSpirit = gui.Spirit.extend ({
 			this.action.descendGlobal ( gui.$ACTION_XFRAME_VISIBILITY, this.life.visible );
 		}
 	},
-
-	/**
-	 * Hosting external document?
-	 * @param {String} src
-	 * @returns {boolean}
-	 *
-	_xguest : function ( src ) {
-		return this.att.get ( "sandbox" ) || gui.URL.external ( src, this.document );
-	},
-	*/
 
 	/**
 	 * Cover the iframe while loading to block flashing effects. Please note that the 
@@ -362,8 +326,11 @@ gui.IframeSpirit = gui.Spirit.extend ({
 		var iframe = doc.createElement ( "iframe" );
 		var spirit = this.possess ( iframe );
 		spirit.css.add ( "gui-iframe" );
+		/*
+		 * TODO: should be moved to src() method (but fails)!!!!!
+		 */
 		if ( src ) {
-			if ( gui.URL.external ( src, doc )) { // should be moved to src() method (but fails)!!!!!
+			if ( gui.URL.external ( src, doc )) {
 				var url = new gui.URL ( doc, src );
 				spirit.xguest = url.protocol + "//" + url.host;
 				//src = this.sign ( src, doc, spirit.$instanceid );

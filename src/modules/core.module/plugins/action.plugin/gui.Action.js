@@ -149,7 +149,7 @@ gui.Action.dispatch = function dispatch ( target, type, data, direction, global 
 		 */
 		transcend : function ( win, uri, key ) {
 			var msg = gui.Action.stringify ( action, key );
-			win.postMessage ( msg, uri );
+			win.postMessage ( msg, "*" ); // uri
 		}
 	});
 	return action;
