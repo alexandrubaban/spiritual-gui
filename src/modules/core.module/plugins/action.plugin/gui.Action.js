@@ -108,9 +108,10 @@ gui.Action.ASCEND = "ascend";
 
 /**
  * Dispatch action. The dispatching spirit will not `onaction()` its own action.
+ * @TODO Measure performance against https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent
  * @TODO Class-like thing to carry all these scoped methods...
  * @TODO support custom `gui.Action` as an argument
- * @TODO common exemplar for action, broadcast etc?
+ * @TODO common ancestor class for action, broadcast etc?
  * @param {gui.Spirit} target
  * @param {String} type
  * @param @optional {object} data
@@ -123,6 +124,7 @@ gui.Action.dispatch = function dispatch ( target, type, data, direction, global 
 	var crawler = new gui.Crawler ( gui.CRAWLER_ACTION );
 	crawler.global = global || false;
 	crawler [ direction || "ascend" ] ( target, {
+
 		/*
 		 * Evaluate action for spirit.
 		 * @param {gui.Spirit} spirit
@@ -147,7 +149,7 @@ gui.Action.dispatch = function dispatch ( target, type, data, direction, global 
 		 */
 		transcend : function ( win, uri, key ) {
 			var msg = gui.Action.stringify ( action, key );
-			win.postMessage ( msg, uri );
+			win.postMessage ( msg, "*" ); // uri
 		}
 	});
 	return action;
@@ -184,7 +186,7 @@ gui.Action.stringify = function ( a, key ) {
 };
 
 /**
- * Decode action posted from xdomain and return an action-like object.
+ * Decode action and return an action-like object.
  * @param {String} msg
  * @returns {object}
  */

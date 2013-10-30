@@ -10,14 +10,18 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 	onconstruct : function () {
 		this._super.onconstruct ();
 		this._dimension = new gui.Dimension ();
-		this.event.add ( "message", this.window );
-		this.action.addGlobal ( gui.ACTION_DOC_FIT );
-		this._broadcastevents ();
-		if ( this.document === document ) {
-			this._constructTop ();
+		this.event.add ( "click mousedown mouseup" ); // @TODO "pointerdown" and "pointerup"
+		this.event.add ( "load message hashchange", this.window );
+		if ( window === top ) {
+			this.event.add ( "resize orientationchange", window );
 		}
-		// @TODO iframe hello.
-		this.action.dispatchGlobal ( gui.ACTION_DOC_ONCONSTRUCT );
+		/*
+		// @TODO: intend to deprecate
+		this.action.dispatchGlobal ( 
+			gui.ACTION_DOC_ONCONSTRUCT, 
+			this.window.location.href 
+		);
+*/
 	},
 
 	/**
@@ -41,40 +45,16 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 	 * @param {Event} e
 	 */
 	onevent : function ( e ) {
-		this._super.onevent ( e );
-		switch ( e.type ) {
-			// top document only
-			case "orientationchange" :
-				this._onorientationchange ();
-				break;
-			default : // all documents
-				switch ( e.type ) {
-					case "resize" :
-						try {
-							if ( parent === window ) { // @TODO: gui.isTop or something...
-								try {
-									this._onresize ();
-								} catch ( normalexception ) {
-									throw ( normalexception );
-								}
-							}
-						} catch ( explorerexception ) {}
-						break;
-					case "load" :
-						e.stopPropagation ();
-						if ( !this._loaded ) {
-							this._onload (); // @TODO huh? that doesn't exist!
-						}
-						break;
-					case "message" :
-						this._onmessage ( e.data );
-						break;
-				}
-				// broadcast event globally?
-				var message = gui.DocumentSpirit.broadcastevents [ e.type ];
-				if ( gui.Type.isDefined ( message )) {
-					this._broadcastevent ( e, message );
-				}
+		/*
+		 * It appears that this try catch (in and by itself) will 
+		 * supress some weirdo permission exceptions in Explorer 9. 
+		 * @TODO: pinpoint this stuff somewhat more precisely...
+		 */
+		try {
+			this._super.onevent ( e );
+			this._onevent ( e );
+		} catch ( exception ) {
+			throw ( exception );
 		}
 	},
 
@@ -86,10 +66,12 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 		this._super.onaction ( a );
 		this.action.$handleownaction = false;
 		switch ( a.type ) {
+			/*
 			case gui.ACTION_DOC_FIT : // relay fit, but claim ourselves as new target
 				a.consume ();
 				this.fit ( a.data === true );
 				break;
+			*/
 			case gui.$ACTION_XFRAME_VISIBILITY : 
 				this._waiting = false;
 				if ( a.data === true ) {
@@ -146,7 +128,10 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 	 * Intercepted by the hosting {gui.IframeSpirit}.
 	 */
 	ondom : function () {
-		this.action.dispatchGlobal ( gui.ACTION_DOC_ONDOMCONTENT );	
+		this.action.dispatchGlobal (
+			gui.ACTION_DOC_ONDOMCONTENT,
+			this.window.location.href
+		);
 	},
 
 	/**
@@ -156,11 +141,16 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 	onload : function () {
 		if ( !this._loaded ) {
 			this._loaded = true;
-			this.action.dispatchGlobal ( gui.ACTION_DOC_ONLOAD );
+			this.action.dispatchGlobal (
+				gui.ACTION_DOC_ONLOAD,
+				this.window.location.href
+			);
+			/*
 			var that = this;
 			setTimeout ( function () {
 				that.fit ();
 			}, gui.Client.STABLETIME );
+			*/
 		} else {
 			console.warn ( "@TODO loaded twice..." );
 		}
@@ -174,7 +164,7 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 	 */
 	onunload : function () {
 		var id = this.window.gui.$contextid;
-		this.action.dispatchGlobal ( gui.ACTION_DOC_UNLOAD );
+		this.action.dispatchGlobal ( gui.ACTION_DOC_UNLOAD, this.window.location.href );
 		this.broadcast.dispatchGlobal ( gui.BROADCAST_WILL_UNLOAD, id );
 		this.broadcast.dispatchGlobal ( gui.BROADCAST_UNLOAD, id );
 	},
@@ -207,7 +197,7 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 		ids.push ( this.window.gui.$contextid );
 		var iframes = this.dom.qall ( "iframe", gui.IframeSpirit ).filter ( function ( iframe ) {
 			id = iframe.$instanceid;
-			if ( ids.indexOf ( id ) > -1 ) {
+			if ( ids.indexOf ( id ) >-1 ) {
 				return false;
 			} else {
 				ids.push ( id );
@@ -216,10 +206,10 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 		});
 		var msg = gui.Broadcast.stringify ( b );
 		iframes.forEach ( function ( iframe ) {
-			iframe.contentWindow.postMessage ( msg, "*" );
+			iframe.postMessage ( msg );
 		});
-		if ( this.window !== this.window.parent ) {
-			this.window.parent.postMessage ( msg, "*" );
+		if ( this.window.gui.hosted ) {
+			this.window.parent.postMessage ( msg, "*" ); // this.window.gui.xhost...
 		}
 	},
 	
@@ -252,25 +242,37 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 	_timeout : null,
 
 	/**
-	 * Setup to fire global broadcasts on common DOM events.
-	 * @see {gui.DocumentSpirit#onevent}
+	 * Handle event.
+	 * @param {Event} e
 	 */
-	_broadcastevents : function () {
-		Object.keys ( gui.DocumentSpirit.broadcastevents ).forEach ( function ( type ) {
-			var target = this.document;
-			switch ( type ) {
-				case "scroll" :
-				case "resize" : // ??????
-				case "popstate" :
-				case "hashchange" :
-					var win = this.window;
-					target = win === top ? win : null;
-					break;
-			}
-			if ( target ) {
-				this.event.add ( type, target );
-			}
-		}, this );
+	_onevent : function ( e ) {
+		switch ( e.type ) {
+			case "click" :
+			case "mousedown" :
+			case "mouseup" :
+			case "pointerdown" :
+			case "pointerup" :
+				this._broadcastevent ( e );
+				break;
+			case "orientationchange" :
+				this._onorientationchange ();
+				break;
+			case "resize" :
+				this._onresize ();
+				break;
+			case "load" :
+				e.stopPropagation (); // @TODO: needed?
+				break;
+			case "message" :
+				this._onmessage ( e.data, e.origin, e.source );
+				break;
+			case "hashchange" :
+				this.action.dispatchGlobal ( 
+					gui.ACTION_DOC_ONHASH, 
+					this.document.location.hash
+				);
+				break;
+		}
 	},
 
 	/**
@@ -278,21 +280,12 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 	 * @param {Event} e
 	 * @param {String} message
 	 */
-	_broadcastevent : function ( e, message ) {
-		switch ( e.type ) {
-				case "mousemove" :
-				case "touchmove" :
-					try {
-						gui.broadcastGlobal ( message, e );
-					} catch ( exception ) {
-						this.event.remove ( e.type, e.target );
-						throw exception;
-					}
-					break;
-				default :
-					gui.broadcastGlobal ( message, e );
-					break;
-		}
+	_broadcastevent : function ( e ) {
+		gui.broadcastGlobal (({
+			"click" : gui.BROADCAST_MOUSECLICK,
+			"mousedown" : gui.BROADCAST_MOUSEDOWN,
+			"mouseup" : gui.BROADCAST_MOUSEUP
+		})[ e.type ], e );
 	},
 
 	/**
@@ -301,25 +294,29 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 	 * 1. Relay broadcasts
 	 * 2. Relay descending actions
 	 * @param {String} msg
+	 * @param {String} origin
+	 * @param {Window} source
 	 */
-	_onmessage : function ( msg ) {
+	_onmessage : function ( msg, origin, source ) {
 		var pattern = "spiritual-broadcast";
 		if ( msg.startsWith ( pattern )) {
 			var b = gui.Broadcast.parse ( msg );
-			if ( this._relaybroadcast ( b.$contextids )) {
+			if ( this._relaybroadcast ( b.$contextids, origin, source )) {
 				gui.Broadcast.$dispatch ( b );
 			}
 		} else {
-			pattern = "spiritual-action";
-			if ( msg.startsWith ( pattern )) {
-				var a = gui.Action.parse ( msg );
-				if ( a.direction === gui.Action.DESCEND ) {
-					if ( a.$instanceid === this.window.gui.$contextid ) {
-						this.action.$handleownaction = true;
-						this.action.descendGlobal ( 
-							a.type, 
-							a.data
-						);
+			if ( source === this.window.parent ) {
+				pattern = "spiritual-action";
+				if ( msg.startsWith ( pattern )) {
+					var a = gui.Action.parse ( msg );
+					if ( a.direction === gui.Action.DESCEND ) {
+						//if ( a.$instanceid === this.window.gui.$contextid ) {
+							this.action.$handleownaction = true;
+							this.action.descendGlobal ( 
+								a.type, 
+								a.data
+							);
+						//}
 					}
 				}
 			}
@@ -327,51 +324,17 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 	},
 
 	/**
-	 * Should relay broadcast that has been postmessaged somwhat over-aggresively?
+	 * Should relay broadcast that has been postmessaged somewhat over-aggresively?
 	 * @param {Array<String>} ids
+	 * @param {String} origin
+	 * @param {Window} source
 	 * @returns {boolean}
 	 */
-	_relaybroadcast : function ( ids ) {
-		return [ gui.$contextid, this.window.gui.$contextid ].every ( function ( id ) {
+	_relaybroadcast : function ( ids, origin, source  ) {
+		var localids = [ gui.$contextid, this.window.gui.$contextid ];
+		return origin === this.window.gui.xhost || localids.every ( function ( id ) {
 			return ids.indexOf ( id ) < 0;
 		});
-	},
-
-	/**
-	 * Dispatch document fit. Google Chrome may fail 
-	 * to refresh the scrollbar properly at this point.
-	 */
-	_dispatchFit : function () {
-		var dim = this._dimension;
-		this.action.dispatchGlobal ( gui.ACTION_DOC_FIT, {
-			width : dim.w,
-			height : dim.h
-		});
-		var win = this.window;
-		if( gui.Client.isWebKit ){
-			win.scrollBy ( 0, 1 );
-			win.scrollBy ( 0,-1 );
-		}
-	},
-
-	/**
-	 * Get current body dimension.
-	 * @returns {gui.Dimension}
-	 */
-	_getDimension : function () {
-		var rect = this.document.body.getBoundingClientRect ();
-		return new gui.Dimension ( rect.width, rect.height );
-	},
-
-	/**
-	 * Special setup for top document: Broadcast 
-	 * orientation on startup and when it changes.
-	 */
-	_constructTop : function () {
-		if ( parent === window ) {
-			this._onorientationchange ();
-			this.event.add ( "orientationchange", window );
-		}
 	},
 
 	/**
@@ -396,22 +359,5 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 		gui.orientation = window.innerWidth > window.innerHeight ? 1 : 0;
 		gui.broadcastGlobal ( gui.BROADCAST_ORIENTATIONCHANGE );
 	}
-
 	
-}, {}, { // Static .............................................................
-
-	/**
-	 * Mapping DOM events to broadcast messages.
-	 * @type {Map<String,String>}
-	 */
-	broadcastevents : {
-		"click" : gui.BROADCAST_MOUSECLICK,
-		"mousedown" : gui.BROADCAST_MOUSEDOWN,
-		"mouseup" : gui.BROADCAST_MOUSEUP,
-		"scroll" : gui.BROADCAST_SCROLL, // top ?
-		"resize" : gui.BROADCAST_RESIZE, // top ?
-		"hashchange" : gui.BROADCAST_HASHCHANGE, // top ?
-		"popstate" : gui.BROADCAST_POPSTATE // top ?
-		// "mousemove" : gui.BROADCAST_MOUSEMOVE (pending simplified gui.EventSummay)
-	}
 });

@@ -101,6 +101,35 @@ gui.EventPlugin = ( function using ( chained ) {
 			var handler = checks [ 1 ];
 			var capture = checks [ 2 ];
 			this.remove ( type, target, handler, capture );
+		},
+
+		/**
+		 * Manhandle "transitionend" event. Seems only Safari is left now...
+		 * @param {Array<String>|String} arg
+		 * @returns {Array<String>}
+		 */
+		_breakdown : function ( arg ) {
+			return this._super._breakdown ( arg ).map ( function ( type ) {
+				return type === "transitionend" ? this._transitionend () : type;
+			}, this );
+		},
+
+		/**
+		 * Compute vendor prefixed "transitionend" event name. 
+		 * @TODO: Cache the result somehow...
+		 * @returns {String}
+		 */
+		_transitionend : function () {
+			var t, el = this.spirit.document.createElement ( "fakeelement" );
+			var transitions = {
+				"transition" : "transitionend",
+				"WebkitTransition" : "webkitTransitionEnd"
+			};
+			for ( t in transitions ) {
+				if ( el.style [ t ] !== undefined ) {
+					return transitions [ t ];
+				}
+			}
 		}
 
 	});

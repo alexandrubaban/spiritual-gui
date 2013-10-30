@@ -4,24 +4,42 @@
 gui.DOMChanger = {
 
 	/**
-	 * Declare 'spirit' as a fundamental property of things.
-	 * @param {Window} win
+	 * Tracking success with overloading `innerHTML`.
+	 * 
+	 * - Firefox, Opera and Explorer does this on an Element.prototype level
+	 * - Webkit must do this on all *instances* of Element (pending WebKit issue 13175)
+	 * - Safari on iOS fails completely and must fallback to use the jQquery module
+	 * @type {Map<String,boolean>}
 	 */
-	setup : function ( win ) {
-		var proto = win.Element.prototype;
-		if ( gui.Type.isDefined ( proto.spirit )) {
-			throw new Error ( "Spiritual loaded twice?" );
-		} else {
-			proto.spirit = null; // defineProperty fails in iOS5
-		}
+	innerhtml : {
+		global : false,
+		local : false, 
+		missing : false 
 	},
 
 	/**
-	 * Extend native DOM methods in given window scope.
+	 * Declare "spirit" as a fundamental property of things 
+	 * and extend native DOM methods in given window scope.
+	 * @TODO WeakMap<Element,gui.Spirit> in supporting agents
 	 * @param {Window} win
 	 */
 	change : function ( win ) {
-		this.upgrade ( win, gui.DOMCombos );
+		var element = win.Element.prototype;
+		if ( gui.Type.isDefined ( element.spirit )) {
+			throw new Error ( "Spiritual loaded twice?" );
+		} else {
+			element.spirit = null; // defineProperty fails in iOS5
+			switch ( win.gui.mode ) {
+				case gui.MODE_MANAGED :
+				case gui.MODE_NATIVE :
+				case gui.MODE_OPTIMIZE : 
+					this.upgrade ( win, gui.DOMCombos.getem ());
+					break;
+				case gui.MODE_JQUERY :
+					this._jquery ( win );
+					break;
+			}
+		}
 	},
 
 	/**
@@ -37,10 +55,28 @@ gui.DOMChanger = {
 	// Private ........................................................................
 
 	/**
+	 * JQuery mode: Confirm loaded JQuery 
+	 * and the "jquery" Spiritual module.
+	 * @param {Window} win
+	 * @returns {boolan}
+	 */
+	_jquery : function ( win ) {
+		var ok = false;
+		if (!( ok = gui.Type.isDefined ( win.jQuery ))) {
+			throw new Error ( "Spiritual runs in JQuery mode: Expected JQuery to be loaded first" );
+		}
+		if (!( ok = win.gui.hasModule ( "jquery" ))) {
+			throw new Error ( "Spiritual runs in JQuery mode: Expected the \"jquery\" module" );
+		}
+		return ok;
+	},
+
+	/**
 	 * Observe the document by extending Element.prototype to 
 	 * intercept DOM updates. Firefox ignores extending of 
 	 * Element.prototype, we must step down the prototype chain.
 	 * @see https://bugzilla.mozilla.org/show_bug.cgi?id=618379
+	 * @TODO Extend DocumentFragment
 	 * @TODO Support insertAdjecantHTML
 	 * @TODO Support SVG elements
 	 * @param {Window} win
@@ -108,23 +144,70 @@ gui.DOMChanger = {
 	},
 
 	/**
-	 * Overloading prototype methods and properties.
+	 * Overloading prototype methods and properties. If we cannot get an angle on innerHTML, 
+	 * we switch to JQuery mode. This is currently known to happen in Safari on iOS 5.1
 	 * @TODO Firefox creates 50-something unique functions here
+	 * @TODO Test success runtime (not rely on user agent string).
+	 * @TODO inserAdjecantHTML
 	 * @param {object} proto
 	 * @param {Window} win
 	 * @param {Map<String,function} combos
 	 */
 	_dochange : function _dochange ( proto, win, combos ) {
-		var root = win.document.documentElement;
-		gui.Object.each ( combos, function ( name, combo ) {
-			this._docombo ( proto, name, combo, root );
-		}, this );
+		switch ( gui.Client.agent ) {
+			case "explorer" : // http://msdn.microsoft.com/en-us/library/dd229916(v=vs.85).aspx
+				this.innerhtml.global = true;
+				break;
+			case "gecko" :
+			case "opera" : // @TODO Object.defineProperty supported?
+				this.innerhtml.global = true;
+				break;
+			case "webkit" :
+				if ( gui.DOMPatcher.canpatch ( win )) {
+					this.innerhtml.local = true;
+					gui.DOMPatcher.patch ( win.document );
+				} else {
+					this.innerhtml.local = false;
+					this.innerhtml.missing = true;
+				}
+				break;
+		}
+		var title = win.document.title;
+		switch ( win.gui.mode ) {
+			case gui.MODE_NATIVE :
+				if ( this.innerhtml.missing ) {
+					throw new Error ( "Spiritual native mode is not supported on this device." );
+				}
+				break;
+			case gui.MODE_OPTIMIZE :
+				if ( this.innerhtml.missing ) {
+					win.gui.mode = gui.MODE_JQUERY;
+					if ( this._jquery ( win ) && win.gui.debug ) {
+						console.log ( 
+							title + ": Spiritual runs in JQuery mode. To keep spirits " +
+							"in synch, use JQuery or Spiritual to perform DOM updates."
+						);
+					}
+				} else {
+					win.gui.mode = gui.MODE_NATIVE;
+					if ( win.gui.debug ) {
+						console.log ( title + ": Spiritual runs in native mode" );
+					}
+				}
+				break;
+		}
+		// Overloading methods? Only in native mode.
+		// @TODO insertAdjecantHTML
+		if ( win.gui.mode === gui.MODE_NATIVE ) {
+			var root = win.document.documentElement;
+			gui.Object.each ( combos, function ( name, combo ) {
+				this._docombo ( proto, name, combo, root );
+			}, this );
+		}
 	},
 
 	/**
-	 * Overload methods and setters while skipping the setters. 
-	 * Skipping the setters because of bad WebKit support :/
-	 * @see http://code.google.com/p/chromium/issues/detail?id=13175
+	 * Property setters for Firefox and Opera.
 	 * @param {object} proto
 	 * @param {String} name
 	 * @param {function} combo
@@ -133,6 +216,26 @@ gui.DOMChanger = {
 	_docombo : function ( proto, name, combo, root ) {
 		if ( this._ismethod ( name )) {
 			this._domethod ( proto, name, combo );
+		} else {
+			switch ( gui.Client.agent ) {
+				case "opera" :
+				case "gecko" :
+					//try {
+						this._doboth ( proto, name, combo, root );
+					/*
+					} catch ( exception ) { // firefox 21 is changing to IE style?
+						alert("??")
+						this._doie ( proto, name, combo );	
+					}
+					*/
+					break;
+				case "explorer" :
+					this._doie ( proto, name, combo );
+					break;
+				case "webkit" :
+					// it's complicated
+					break;
+			}
 		}
 	},
 
@@ -149,7 +252,6 @@ gui.DOMChanger = {
 			case "replaceChild" :
 			case "setAttribute" :
 			case "removeAttribute" :
-			case "insertAdjecantHTML" :
 				is = true;
 				break;
 		}
@@ -169,11 +271,8 @@ gui.DOMChanger = {
 		});
 	},
 
-
-	// Disabled .......................................................................
-
 	/**
-	 * Overload property setter for IE (disabled)
+	 * Overload property setter for IE.
 	 * @param {object} proto
 	 * @param {String} name
 	 * @param {function} combo
@@ -192,22 +291,28 @@ gui.DOMChanger = {
 	},
 
 	/**
-	 * Overload property setter for Firefox (disabled).
+	 * Overload property setter for Firefox and Opera. 
+	 * Looks like Gecko is moved towards IE setup (?)
 	 * @param {object} proto
 	 * @param {String} name
 	 * @param {function} combo
 	 * @param {Element} root
 	 */
-	_dogecko : function ( proto, name, combo, root ) {
+	_doboth : function ( proto, name, combo, root ) {
 		var getter = root.__lookupGetter__ ( name );
 		var setter = root.__lookupSetter__ ( name );
-		if ( getter ) { // firefox 20 needs a getter for this to work
+		if ( getter ) {
+			// firefox 20 needs a getter for this to work
 			proto.__defineGetter__ ( name, function () {
 				return getter.apply ( this, arguments );
 			});
+			// the setter still seems to work as expected
 			proto.__defineSetter__ ( name, combo ( function () {
 				setter.apply ( this, arguments );
 			}));
+		} else {
+			// firefox 21 can't lookup textContent getter *sometimes*
+			throw new Error ( "Can't lookup getter for " + name );
 		}
 	}
 };

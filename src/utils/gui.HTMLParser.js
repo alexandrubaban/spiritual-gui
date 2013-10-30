@@ -23,7 +23,14 @@ gui.HTMLParser = {
 		return gui.Guide.suspend ( function () {
 			var doc = document.implementation.createHTMLDocument ( "" );
 			if ( markup.toLowerCase().contains ( "<!doctype" )) {
-				doc.documentElement.innerHTML = markup;
+				try {
+					doc.documentElement.innerHTML = markup;
+				} catch ( ie9exception ) {
+					doc = new ActiveXObject ( "htmlfile" );
+					doc.open ();
+					doc.write ( markup );
+					doc.close ();
+				}
 			} else {
 				doc.body.innerHTML = markup;
 			}

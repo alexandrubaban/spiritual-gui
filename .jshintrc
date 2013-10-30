@@ -6,14 +6,16 @@
 		"require" : true,
 		"console" : true,
 		"gui" : true,
-		"alert" : true
+		"self" : true,
+		"alert" : true,
+		"ActiveXObject" : true
 	},
 	"globalstrict": false,
 	"quotmark": false,
 	"smarttabs": true,
-	"trailing": true,
+	"trailing": false,
 	"undef": true,
+	"scripturl" : true,
 	"unused": "vars",
-	"trailing": true,
 	"sub": true
 }

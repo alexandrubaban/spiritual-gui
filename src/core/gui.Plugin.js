@@ -56,7 +56,7 @@ gui.Plugin = gui.Class.create ( Object.prototype, {
 	 * Secret destructor. Called after `ondestruct`.
 	 */
 	$ondestruct : function () {
-		gui.GreatSpirit.$nukeallofit ( this, this.spirit.window );
+		gui.GreatSpirit.$nukeallofit ( this, self );
 	}
 	
 

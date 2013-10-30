@@ -89,12 +89,13 @@ gui.ActionPlugin = ( function using ( confirmed, chained ) {
 		 */
 		dispatch : confirmed ( "string", "(*)", "(string)" ) (
 			function ( type, data, direction ) {
+				var spirit = this.spirit;
+				var global = this._global;
+				this._global = false;
+				direction = direction || "ascend";
 				return gui.Action.dispatch ( 
-					this.spirit, 
-					type, 
-					data, 
-					direction || "ascend",
-					this._global 
+					spirit, type, data, 
+					direction, global
 				);
 			}
 		),

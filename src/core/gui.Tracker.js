@@ -5,19 +5,6 @@
 gui.Tracker = gui.Plugin.extend ({
 
 	/**
-	 * Bookkeeping types and handlers.
-	 * @type {Map<String,Array<object>}
-	 */
-	_trackedtypes : null,
-
-	/**
-	 * Containing window's gui.$contextid.
-	 * @TODO: Get rid of it
-	 * @type {String}
-	 */
-	_sig : null,
-
-	/**
 	 * Construction time.
 	 * @param {Spirit} spirit
 	 */
@@ -33,10 +20,9 @@ gui.Tracker = gui.Plugin.extend ({
 	 * Cleanup on destruction.
 	 */
 	ondestruct : function () {
-		var type, list;
 		this._super.ondestruct ();
 		gui.Object.each ( this._trackedtypes, function ( type, list ) {
-			list.slice ( 0 ).forEach ( function ( checks ) {
+			list.slice ().forEach ( function ( checks ) {
 				this._cleanup ( type, checks );
 			}, this );
 		}, this );
@@ -74,7 +60,22 @@ gui.Tracker = gui.Plugin.extend ({
 	_global : false,
 
 	/**
-	 * Execute operation in global mode.
+	 * Bookkeeping types and handlers.
+	 * @type {Map<String,Array<object>}
+	 */
+	_trackedtypes : null,
+
+	/**
+	 * Containing window's gui.$contextid.
+	 * @TODO: Get rid of it
+	 * @type {String}
+	 */
+	_sig : null,
+
+	/**
+	 * Execute operation in global mode. Note that sometimes it's still 
+	 * needed to manually flip the '_global' flag back to 'false' in 
+	 * order to avoid the mode leaking the into repeated (nested) calls.
 	 * @param {function} operation
 	 * @returns {object}
 	 */

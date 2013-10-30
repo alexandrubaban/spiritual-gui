@@ -55,18 +55,31 @@ gui.IframeSpirit = gui.Spirit.extend ({
 	},
 
 	/**
+	 * URL details for hosted document.
+	 * @type {gui.URL}
+	 */
+	contentLocation : null,
+
+	/**
+	 * Construction time.
+	 */
+	onconstruct : function () {
+		this._super.onconstruct ();
+		this.event.add ( "message", this.window, this );
+		this._postbox = [];
+	},
+
+	/**
 	 * Stamp SRC on startup.
 	 */
 	onenter : function () {
 		this._super.onenter ();
-		this.event.add ( "message", this.window, this );
 		this.action.addGlobal ([ // in order of appearance
-			gui.ACTION_DOC_ONCONSTRUCT,
 			gui.ACTION_DOC_ONDOMCONTENT,
 			gui.ACTION_DOC_ONLOAD,
+			gui.ACTION_DOC_ONHASH,
 			gui.ACTION_DOC_ONSPIRITUALIZED,
-			gui.ACTION_DOC_UNLOAD,
-			gui.ACTION_DOC_FIT
+			gui.ACTION_DOC_UNLOAD
 		]);
 		if ( this.fit ) {
 			this.css.height = 0;
@@ -88,11 +101,6 @@ gui.IframeSpirit = gui.Spirit.extend ({
 		this._super.onaction ( a );
 		this.action.$handleownaction = false;
 		switch ( a.type ) {
-			case gui.ACTION_DOC_ONCONSTRUCT :
-				this.life.dispatch ( gui.LIFE_IFRAME_CONSTRUCT );
-				this.action.remove ( a.type );
-				a.consume ();
-				break;
 			case gui.ACTION_DOC_ONDOMCONTENT :
 				this.life.dispatch ( gui.LIFE_IFRAME_DOMCONTENT );
 				this.action.remove ( a.type );
@@ -103,11 +111,17 @@ gui.IframeSpirit = gui.Spirit.extend ({
 				this.action.remove ( a.type );
 				a.consume ();
 				break;
+			case gui.ACTION_DOC_ONHASH :
+				var base = this.contentLocation.href.split ( "#" )[ 0 ];
+				this.contentLocation = new gui.URL ( this.document, base + a.data );
+				this.life.dispatch ( gui.LIFE_IFRAME_ONHASH );
+				a.consume ();
+				break;
 			case gui.ACTION_DOC_ONSPIRITUALIZED :
 				this._onspiritualized ();
 				this.life.dispatch ( gui.LIFE_IFRAME_SPIRITUALIZED );
 				this.action.remove ( a.type );
-				a.consume (); 
+				a.consume ();
 				break;
 			case gui.ACTION_DOC_UNLOAD :
 				this._onunload ();
@@ -120,10 +134,6 @@ gui.IframeSpirit = gui.Spirit.extend ({
 				]);
 				a.consume ();
 				break;
-			case gui.ACTION_DOC_FIT :
-				this._onfit ( a.data.height );
-				a.consume ();
-				break;
 		}
 	},
 	
@@ -133,8 +143,8 @@ gui.IframeSpirit = gui.Spirit.extend ({
 	 */
 	onevent : function ( e ) {
 		this._super.onevent ( e );
-		if ( e.type === "message" && this.xguest ) {
-			this._onmessage ( e.data );
+		if ( e.type === "message" ) {
+			this._onmessage ( e.data, e.origin, e.source );
 		}
 	},
 
@@ -166,14 +176,34 @@ gui.IframeSpirit = gui.Spirit.extend ({
 	src : function ( src ) {
 		var doc = this.document;
 		if ( gui.Type.isString ( src )) {
-			if ( gui.URL.external ( src, doc )) {
-				var url = new gui.URL ( doc, src );
-				this.xguest = url.protocol + "//" + url.host;
-				src = gui.IframeSpirit.sign ( src, doc, this.$instanceid );
-			}
+			this.contentLocation = new gui.URL ( this.document, src );
+			this.xguest = ( function ( secured ) {
+				if ( secured ) {
+					return "*";
+				} else if ( gui.URL.external ( src, doc )) {
+					var url = new gui.URL ( doc, src );
+					return url.protocol + "//" + url.host;
+				}
+				return null;
+			}( this._sandboxed ()));
 			this.element.src = src;
 		} else {
 			return this.element.src;
+		}
+	},
+
+	/**
+	 * Post message to content window. This method assumes 
+	 * that we are messaging Spiritual components and will 
+	 * buffer the messages for bulk dispatch once Spiritual 
+	 * is known to run inside the iframe.
+	 * @param {String} msg
+	 */
+	postMessage : function ( msg ) {
+		if ( this.spiritualized ) {
+			this.contentWindow.postMessage ( msg, "*" );
+		} else {
+			this._postbox.push ( msg );
 		}
 	},
 
@@ -187,11 +217,14 @@ gui.IframeSpirit = gui.Spirit.extend ({
 	_cover : null,
 
 	/**
-	 * Hosted document spiritualized.
-	 * @return {[type]} [description]
+	 * Hosted document spiritualized. 
+	 * Dispatching buffered messages.
 	 */
 	_onspiritualized : function () {
 		this.spiritualized = true;
+		while ( this._postbox.length ) {
+			this.postMessage ( this._postbox.shift ());
+		}
 		this._visibility ();
 		if ( this.cover && !this.fit ) {
 			this._coverup ( false );
@@ -233,16 +266,24 @@ gui.IframeSpirit = gui.Spirit.extend ({
 	 * @see {gui.DocumentSpirit._onmessage}
 	 * @param {String} msg
 	 */
-	_onmessage : function ( msg ) {
-		if ( this.xguest && msg.startsWith ( "spiritual-action:" )) {
-			var a = gui.Action.parse ( msg );
-			if ( a.direction === gui.Action.ASCEND ) {
-				if ( a.$instanceid === this.$instanceid ) {
+	_onmessage : function ( msg, origin, source ) {
+		if ( source === this.contentWindow ) {
+			if ( msg.startsWith ( "spiritual-action:" )) {
+				var a = gui.Action.parse ( msg );
+				if ( a.direction === gui.Action.ASCEND ) {
 					this.action.$handleownaction = true;
 					this.action.ascendGlobal ( a.type, a.data );
 				}
 			}
 		}
+	},
+
+	/**
+	 * Iframe is sandboxed? Returns `true` even for "allow-same-origin" setting.
+	 * @returns {boolean}
+	 */
+	_sandboxed : function () {
+		return this.element.sandbox.length; // && !sandbox.contains ( "allow-same-origin" );
 	},
 
 	/**
@@ -253,15 +294,6 @@ gui.IframeSpirit = gui.Spirit.extend ({
 		if ( gui.Type.isDefined ( this.life.visible )) {
 			this.action.descendGlobal ( gui.$ACTION_XFRAME_VISIBILITY, this.life.visible );
 		}
-	},
-
-	/**
-	 * Hosting external document?
-	 * @param {String} src
-	 * @returns {boolean}
-	 */
-	_xguest : function ( src ) {
-		return this.att.get ( "sandbox" ) || gui.URL.external ( src, this.document );
 	},
 
 	/**
@@ -294,14 +326,17 @@ gui.IframeSpirit = gui.Spirit.extend ({
 		var iframe = doc.createElement ( "iframe" );
 		var spirit = this.possess ( iframe );
 		spirit.css.add ( "gui-iframe" );
+		/*
+		 * TODO: should be moved to src() method (but fails)!!!!!
+		 */
 		if ( src ) {
-			if ( gui.URL.external ( src, doc )) { // should be moved to src() method (but fails)!!!!!
+			if ( gui.URL.external ( src, doc )) {
 				var url = new gui.URL ( doc, src );
 				spirit.xguest = url.protocol + "//" + url.host;
-				src = this.sign ( src, doc, spirit.$instanceid );
+				//src = this.sign ( src, doc, spirit.$instanceid );
 			}
 		} else {
-			src = this.SRC_DEFAULT;	
+			src = this.SRC_DEFAULT;
 		}
 		iframe.src = src;
 		return spirit;
@@ -324,24 +359,25 @@ gui.IframeSpirit = gui.Spirit.extend ({
 	 * @param {Document} doc
 	 * @param {String} contextid
 	 * @returns {String}
-	 */
+	 *
 	sign : function ( url, doc, contextid ) {
 		var loc = doc.location;
 		var uri = loc.protocol + "//" + loc.host;
 		var sig = uri + "/" + contextid;
 		url = gui.URL.setParam ( url, gui.PARAM_CONTEXTID, sig );
-		console.log ( "IframeSpirit", url );
 		return url;
 	},
+	*/
 
 	/**
 	 * Remove $contextid from URL (for whatever reason).
 	 * @param {String} url
 	 * @param {String} sign
 	 * @returns {String}
-	 */
-	unsign : function ( url ) {	
+	 *
+	unsign : function ( url ) {
 		return gui.URL.setParam ( url, gui.PARAM_CONTEXTID, null );
 	}
+	*/
 
 });

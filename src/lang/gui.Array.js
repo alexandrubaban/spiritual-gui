@@ -17,6 +17,7 @@ gui.Array = {
 	},
 
 	/**
+	 * @TODO: move this elsewhere
 	 * Resolve single argument into an array with one or more 
 	 * entries. Mostly because we use this setup quite often.
 	 * 

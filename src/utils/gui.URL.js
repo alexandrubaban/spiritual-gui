@@ -16,18 +16,7 @@ gui.URL = function ( doc, href ) {
 			}
 		}, this );
 		this.id = this.hash ? this.hash.substring ( 1 ) : null;
-
-		/*
-		 * @TODO: what is "location" supposed to mean?
-		 */
-		this.location = this.href.split ( "#" )[ 0 ];
-		this.external = this.location !== String ( doc.location ).split ( "#" )[ 0 ];
-		/*
-		var parts = this.href.split ( "/" );
-		parts.pop();
-		parts.push("");
-		this.pathbase = parts.join ( "/" );
-		*/
+		this.external = this.href.split ( "#" )[ 0 ] !== doc.URL.split ( "#" )[ 0 ];
 	} else {
 		throw new TypeError ( "Document expected" );
 	}
@@ -66,23 +55,22 @@ gui.URL.absolute = function ( base, href ) { // return /(^data:)|(^http[s]?:)|(^
 	} else if ( typeof base === "string" ) {
 		var stack = base.split ( "/" );
 		var parts = href.split ( "/" );
-		stack.pop();// remove current filename (or empty string) (omit if "base" is the current folder without trailing slash)
+		stack.pop ();// remove current filename (or empty string) (omit if "base" is the current folder without trailing slash)
 		parts.forEach ( function ( part ) {
 			if ( part !== "." ) {
 				if ( part === ".." ) {
 					stack.pop ();
 				}	else {
-					stack.push ( part );	
+					stack.push ( part );
 				}
 			}
 		});
-		return stack.join ( "/" );	
+		return stack.join ( "/" );
 	}
 };
 
 /**
  * Is URL external to document (as in external host)?
- * @TODO: fix IE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
  * @param {String} url
  * @param {Document} doc
  * @returns {boolean}
@@ -90,14 +78,7 @@ gui.URL.absolute = function ( base, href ) { // return /(^data:)|(^http[s]?:)|(^
 gui.URL.external = function ( src, doc ) {
 	doc = doc || document;
 	var url = new gui.URL ( doc, src );
-	if ( gui.Client.isExplorer9 ) {
-		if(gui.debug){
-			console.log ( "TODO: Fix hardcoded assesment of external URL in IE9 (always false): " + src );
-		}
-		return false;
-	} else {
-		return url.host !== doc.location.host;
-	}
+	return url.host !== doc.location.host || url.port !== doc.location.port;
 };
 
 /**
@@ -123,9 +104,11 @@ gui.URL.getParam = function ( url, name ) {
  */
 gui.URL.setParam = function ( url, name, value ) {
 	var params = [], cut, index = -1;
-	if ( url.indexOf ( "?" ) >-1 ) {
-		cut = url.split ( "?" );
-		url = cut [ 0 ];
+	var path = url.split ( "#" )[ 0 ];
+	var hash = url.split ( "#" )[ 1 ];
+	if ( path.indexOf ( "?" ) >-1 ) {
+		cut = path.split ( "?" );
+		path = cut [ 0 ];
 		params = cut [ 1 ].split ( "&" );
 		params.every ( function ( param, i ) {
 			var x = param.split ( "=" );
@@ -146,7 +129,8 @@ gui.URL.setParam = function ( url, name, value ) {
 	} else if ( index < 0 ) {
 		params [ params.length ] = [ name, value ].join ( "=" );
 	}
-	return url + ( params.length > 0 ? "?" + params.join ( "&" ) : "" );
+	params = params.length > 0 ? "?" + params.join ( "&" ) : "";
+	return path + params + ( hash ? "#" + hash : "" );
 };
 
 /**
@@ -167,11 +151,21 @@ gui.URL.parametrize = function ( baseurl, params ) {
 					break;
 				default :
 					baseurl += key + "=" + String ( value );
-					break;	
+					break;
 			}
 		});
 	}
 	return baseurl;
+};
+
+/**
+ * @TODO: fix this
+ * @param {Window} win
+ * @returns {String}
+ */
+gui.URL.origin = function ( win ) {
+	var loc = win.location;
+	return loc.origin || loc.protocol + "//" + loc.host;
 };
 
 /**
@@ -181,14 +175,13 @@ gui.URL.parametrize = function ( baseurl, params ) {
 gui.URL._createLink = function ( doc, href ) {
 	var link = doc.createElement ( "a" );
 	link.href = href || "";
-	if ( gui.Client.isExplorer ) {
+	if ( gui.Client.isExplorer ) { // IE9???
 	  var uri = gui.URL.parseUri ( link.href );
 	  Object.keys ( uri ).forEach ( function ( key ) {
 			if ( !link [ key ]) {
 				link [ key ] = uri [ key ]; // this is wrong...
 			}
 	  });
-
 	}
 	return link;
 };

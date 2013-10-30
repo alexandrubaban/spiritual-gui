@@ -41,17 +41,10 @@ gui.Spiritual.prototype = {
 	document : null,
 
 	/**
-	 * Spirit management mode. Matches one of 
-	 * 
-	 * - native
-	 * - jquery
-	 * - optimize.
-	 * - managed
-	 *  
-	 * @note This will deprecate as soon as iOS supports a mechanism for grabbing the native innerHTML setter.
+	 * Spirit management mode. Matches "native" or "managed".
 	 * @type {String}
 	 */
-	mode : "optimize", // recommended setting for iOS support
+	mode : "native",
 
 	/**
 	 * Automatically run on DOMContentLoaded? 
@@ -111,21 +104,18 @@ gui.Spiritual.prototype = {
 	 */
 	start : function () {
 		this._gone = true;
-		switch ( this.mode ) {
-			case gui.MODE_NATIVE :
-			case gui.MODE_JQUERY :
-			case gui.MODE_OPTIMIZE :
-			case gui.MODE_MANAGED :
-				gui.DOMChanger.change ( this.context );
-				break;
-		}
+		this._then = new gui.Then ();
 		this._experimental ();
-		gui.Tick.add ([ gui.$TICK_INSIDE, gui.$TICK_OUTSIDE ], this, this.$contextid );
 		if ( this._configs !== null ) {
 			this._configs.forEach ( function ( config ) {
 				this.channel ( config.select, config.klass );
 			}, this );
 		}
+		if ( !this._pingpong ) {
+			this._spinatkrampe ();
+			this._then.now ();
+		}
+		return this._then;
 	},
 
 	/**
@@ -149,20 +139,43 @@ gui.Spiritual.prototype = {
 	 * @returns {gui.Spirit}
 	 */
 	get : function ( arg ) {
-		var spirit = null;
+		var spirit, element, doc = this.document;
 		switch ( gui.Type.of ( arg )) {
 			case "string" :
 				if ( gui.KeyMaster.isKey ( arg )) {
-					spirit = this._spirits.inside [ arg ] || null;
+					spirit = this._spirits.inside [ arg ];
 				} else {
-					var element = this.document.querySelector ( arg );
+					element = doc.querySelector ( arg ) || doc.getElementById ( arg );
 					spirit = element ? element.spirit : null;
 				}
 				break;
 			case "TODO" :
 				break;
 		}
-		return spirit;
+		return spirit || null;
+	},
+
+	/**
+	 * Call function upon everything spiritualized.
+	 * @param {function} action
+	 * @param @optional {object} thisp
+	 */
+	ready : function ( action, thisp ) {
+		if ( this.spiritualized ) {
+			action.call ( thisp );
+		} else {
+			this._onreadys = this._onreadys || [];
+			this._onreadys.push ( function () {
+				action.call ( thisp );
+			});
+		}
+	},
+
+	/**
+	 * @TODO
+	 */
+	getAll : function ( arg ) {
+		console.error ( "TODO: gui.getAll" );
 	},
 
 	/**
@@ -255,19 +268,7 @@ gui.Spiritual.prototype = {
 			var indexes = [];
 			// mark as portalled
 			subgui.portalled = true;
-			/*
-			subgui._spaces = [];
-			this._spaces.forEach ( function ( ns ) {
-				var members = gui.Object.lookup ( ns, this.context );
-				if ( members.portals ) {
-					try {
-						this.namespace ( ns, members, sub );
-					} catch ( x ) {
-						alert ( x );
-					}
-				}
-			}, this );
-			*/
+			subgui.mode = this.mode;
 			// portal gui members + custom namespaces and members.
 			subgui._spaces = this._spaces.filter ( function ( ns ) {
 				var nso = gui.Object.lookup ( ns, this.context );
@@ -320,20 +321,19 @@ gui.Spiritual.prototype = {
 	 * @returns {gui.Namespace}
 	 */
 	namespace : function ( ns, members, context ) {
-		context = context || this.context;
+		context = context || self;
 		var no, spaces = context.gui._spaces;
 		if ( gui.Type.isString ( ns )) {
-			if ( spaces.indexOf ( ns ) >-1 ) {
-				ns = gui.Object.lookup ( ns, context );
-			} else {
-				spaces.push ( ns );
+			no = gui.Object.lookup ( ns, context );
+			if ( !no ) {
 				no = new gui.Namespace ( ns, context );
-				ns = gui.Object.assert ( ns, no, context );
+				no = gui.Object.assert ( ns, no, context );
+				spaces.push ( ns );
 			}
 		} else {
 			throw new TypeError ( "Expected a namespace string" );
 		}
-		return gui.Object.extend ( ns, members || {});
+		return gui.Object.extend ( no, members || {});
 	},
 	
 	/**
@@ -476,9 +476,11 @@ gui.Spiritual.prototype = {
 				spirits = gui.Object.each ( this._spirits.outside, function ( key, spirit ) {
 					return spirit;
 				});
-				spirits.forEach ( function ( spirit ) {
+				/*
+				spirits.forEach ( function ( spirit ) { // @TODO: make sure that this happens onexit (but not here)
 					gui.Spirit.$exit ( spirit );
 				});
+				*/
 				spirits.forEach ( function ( spirit ) {
 					gui.Spirit.$destruct ( spirit );
 				});
@@ -498,11 +500,7 @@ gui.Spiritual.prototype = {
 	 */
 	nameDestructAlreadyUsed : function () {
 		gui.Tick.remove ( gui.$TICK_OUTSIDE, this, this.$contextid );
-		/*
-		gui.Object.each ( this._spirits.inside, function ( id, spirit ) {
-			gui.GreatSpirit.$meet ( spirit );
-		});
-		*/
+		this.window.removeEventListener ( "message", this );
 		[ 
 			"_spiritualaid", 
 			"context", // window ?
@@ -586,11 +584,13 @@ gui.Spiritual.prototype = {
 	_construct : function ( context ) {
 		// patching features
 		this._spiritualaid.polyfill ( context );
-		// basic setup
+		// public setup
 		this.context = context;
 		this.window = context.document ? context : null;
 		this.document = context.document || null;
 		this.hosted = this.window && this.window !== this.window.parent;
+		this.$contextid = gui.KeyMaster.generateKey ();
+		// private setup
 		this._inlines = Object.create ( null );
 		this._modules = Object.create ( null );
 		this._arrivals = Object.create ( null );
@@ -601,10 +601,59 @@ gui.Spiritual.prototype = {
 			inside : Object.create ( null ), // spirits positioned in page DOM ("entered" and "attached")
 			outside : Object.create ( null ) // spirits removed from page DOM (currently "detached")
 		};
+		
+		// ping-pong quickfix...
+		// @TODO not in sandbox!
+		/*
+		if ( this.hosted ) {
+			context.addEventListener ( "message", this );
+			context.parent.postMessage ( "spiritual-ping", "*" );
+			this._pingpong = true;
+		}
+		*/
+		
+		if ( this.hosted ) {
+			this.xhost = "*";
+		}
+	},
 
-		// magic properties may be found in querystring parameters
-		// @tODO not in sandbox!
-		this._params ( this.document.location.href );
+	/**
+	 * @TODO: clean this up please.
+	 * @param {Event} e
+	 */
+	handleEvent : function ( e ) {
+		if ( e.type === "message" ) {
+			var parent = this.window.parent;
+			if ( e.source === parent && this._gotponged ( e.data )) {
+				this.window.removeEventListener ( "message", this );
+			}
+		}
+	},
+
+	/**
+	 * Got ponged with a hostname? If yes, kickstart the stuff.
+	 * @param {String} msg
+	 * @returns {boolean}
+	 */
+	_gotponged : function ( msg ) {
+		var pat = "spiritual-pong:";
+		var loc = this.window.location;
+		var org = loc.origin || loc.protocol + "//" + loc.host;
+		if ( typeof ( msg ) === "string" ) {
+			if ( msg.startsWith ( pat )) {
+				var host = msg.slice ( pat.length );
+				if ( host !== org ) {
+					this.xhost = host;
+				}
+				this._spinatkrampe ();
+				this._pingpong = false;
+				if ( this._then ) {
+					this._then.now ();
+				}
+				return true;
+			}
+		}
+		return false;
 	},
 
 	/**
@@ -641,20 +690,31 @@ gui.Spiritual.prototype = {
 	 * hostname to facilitate cross domain messaging. The $contextid equals the $instanceid of 
 	 * containing {gui.IframeSpirit}. If not present, we generate a random $contextid.
 	 * @param {String} url
-	 */
+	 *
 	_params : function ( url ) {
-		var id, xhost, param = gui.PARAM_CONTEXTID;
+		var id, xhost, splits, param = gui.PARAM_CONTEXTID;
 		if ( url.contains ( param )) {
-			var splits = gui.URL.getParam ( url, param ).split ( "/" );
+			splits = gui.URL.getParam ( url, param ).split ( "/" );
 			id = splits.pop ();
 			xhost = splits.join ( "/" );
-		} else {
+		} 
+		/*
+		 * No - document.referrer may be the parent frame of an iframe!
+		 * 
+		else if ( document.referrer.contains ( param )) {
+			splits = gui.URL.getParam ( document.referrer, param ).split ( "/" );
+			id = splits.pop ();
+			xhost = splits.join ( "/" );
+		}
+		*
+		else {
 			id = gui.KeyMaster.generateKey ();
 			xhost = null;
 		}
 		this.$contextid = id;
 		this.xhost = xhost;
 	},
+	*/
 
 	/**
 	 * Reference local objects in remote window context while collecting channel indexes.
@@ -698,17 +758,13 @@ gui.Spiritual.prototype = {
 
 	// Work in progress .............................................................
 
-	/**
-	 * @TODO action required. This methoud would enable the mutation 
-	 * observer. We should remove this whole thing from Spiritual core.
-	 */
-	_movethismethod : function () {
-		if ( this.mode === gui.MODE_JQUERY ) {
-			gui.Tick.next ( function () {  // @TODO somehow not conflict with http://stackoverflow.com/questions/11406515/domnodeinserted-behaves-weird-when-performing-dom-manipulation-on-body
-				gui.Observer.observe ( this.context ); // @idea move all of _step2 to next stack?
-			}, this );
-		} else {
-			gui.Observer.observe ( this.context );
+	$onready : function () {
+		var list = this._onreadys;
+		if ( list ) {
+			while ( list.length ) {
+				list.shift ()();
+			}
+			this._onreadys = null;
 		}
 	},
 
@@ -719,6 +775,13 @@ gui.Spiritual.prototype = {
 		this._spaces.forEach ( function ( ns ) {
 			this._questionable ( gui.Object.lookup ( ns, this.window ), ns );
 		}, this );
+	},
+
+	/**
+	 * Hail Lucifer.
+	 */
+	_spinatkrampe : function () {
+		gui.Tick.add ([ gui.$TICK_INSIDE, gui.$TICK_OUTSIDE ], this, this.$contextid );
 	},
 
 	/**

@@ -48,12 +48,10 @@
 	"modules/core.module/core.module.js",
 
 	"utils/gui.Client.js",
-	"dom/gui.DOMChanger.js",
-	"dom/gui.DOMCombos.js",
-	"dom/gui.DOMPatcher.js",
-
 	"dev/gui.Observer.js",
 	"core/gui.Guide.js",
+	"dom/gui.DOMChanger.js",
+	"dom/gui.DOMCombos.js",
 
 	"modules/spirits.module/plugins/life.plugin/gui.Life.js",
 	"modules/spirits.module/plugins/life.plugin/gui.LifePlugin.js",

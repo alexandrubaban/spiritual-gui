@@ -50,7 +50,7 @@ gui.Crawler = gui.Class.create ( Object.prototype, {
 			if ( elm.nodeType === Node.DOCUMENT_NODE ) {
 				if ( this.global ) {
 					win = elm.defaultView;
-					if ( win.parent !== win ) {
+					if ( win.gui.hosted ) { // win.parent !== win
 						/*
 						 * @TODO: iframed document might have navigated elsewhere, stamp this in localstorage
 						 * @TODO: sit down and wonder if localstorage is even available in sandboxed iframes...

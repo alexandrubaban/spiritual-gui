@@ -11,30 +11,20 @@ window.gui = {
 	portals : true,
 
 	/**
-	 * Native mode: Overloading native DOM methods.
+	 * Native mode: Automatically spiritualize and 
+	 * materialize by overriding native DOM methods.
 	 * @type {String}
 	 */
 	MODE_NATIVE : "native",
 
 	/**
-	 * jquery mode: Overloading JQuery DOM methods.
-	 * @type {String}
-	 */
-	MODE_JQUERY : "jquery",
-
-	/**
-	 * Optimized mode: try native and fallback on jquery.
-	 * @type {String}
-	 */
-	MODE_OPTIMIZE : "optimize",
-
-	/**
-	 * Managed mode.
+	 * Managed mode. Spiritualize and materialize at own risk.
 	 * @type {String}
 	 */
 	MODE_MANAGED : "managed",
 
 	/**
+	 * @TODO: leave the URL alone a see if we can postMessage these things just in time...
 	 * The {gui.IframeSpirit} will stamp this querystring parameter into any URL it loads. 
 	 * The value of the parameter matches the iframespirits '$contextid'. Value becomes the 
 	 * '$contextid' of the local 'gui' object (a {gui.Spiritual} instance). This establishes 
@@ -77,12 +67,13 @@ window.gui = {
 	/** 
 	 * Global actions
 	 */
-	ACTION_DOC_ONCONSTRUCT : "gui-action-document-construct",
+	//ACTION_DOC_ONCONSTRUCT : "gui-action-document-construct",
 	ACTION_DOC_ONDOMCONTENT : "gui-action-document-domcontent",
 	ACTION_DOC_ONLOAD : "gui-action-document-onload",
+	ACTION_DOC_ONHASH : "gui-action-document-onhash",
 	ACTION_DOC_ONSPIRITUALIZED : "gui-action-document-spiritualized",
 	ACTION_DOC_UNLOAD : "gui-action-document-unload",
-	ACTION_DOC_FIT : "gui-action-document-fit",
+	//ACTION_DOC_FIT : "gui-action-document-fit",
 
 	/**
 	 * Framework internal actions of little use.
@@ -116,8 +107,9 @@ window.gui = {
 	 */
 	LIFE_IFRAME_CONSTRUCT : "gui-life-iframe-construct",
 	LIFE_IFRAME_DOMCONTENT : "gui-life-iframe-domcontent",
-	LIFE_IFRAME_ONLOAD : "gui-life-iframe-construct",
 	LIFE_IFRAME_SPIRITUALIZED : "gui-life-iframe-spiritualized",
+	LIFE_IFRAME_ONLOAD : "gui-life-iframe-onload",
+	LIFE_IFRAME_ONHASH : "gui-life-iframe-onhash",
 	LIFE_IFRAME_UNLOAD : "gui-life-iframe-unload",
 
 	/**

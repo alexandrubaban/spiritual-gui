@@ -58,6 +58,20 @@ gui.module ( "spirits", {
 		 * @param {Event} e
 		 */
 		handleEvent : function ( e ) {
+			
+			/*
+			 * TODO: Move this code into {gui.EventPlugin}
+			 */
+			if ( e.type === "webkitTransitionEnd" ) {
+				e = {
+					type : "transitionend",
+					target : e.target,
+					propertyName : e.propertyName,
+					elapsedTime : e.elapsedTime,
+					pseudoElement : e.pseudoElement
+				};
+			}
+
 			this.onevent ( e );
 		}
 	}

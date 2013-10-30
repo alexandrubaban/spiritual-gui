@@ -1,17 +1,18 @@
 /**
- * Monitors a document for unsolicitated DOM changes in development mode.
+ * Monitors a document for unsolicitated DOM changes in development mode. 
+ * Temp patch for http://code.google.com/p/chromium/issues/detail?id=13175
  */
 gui.Observer = {
 
 	/**
-	 * Enable monitoring? Disabled due to WebKit bug.
-	 * @see https://code.google.com/p/chromium/issues/detail?id=160985
+	 * Enable monitoring?
 	 * @type {boolean}
 	 */
-	observes : false, // gui.Client.hasMutations,
+	observes : gui.Client.hasMutations,
 
 	/**
-	 * Throw exception on mutations not intercepted by the framework?
+	 * Throw exception on mutations not intercepted by the framework? 
+	 * Observers run async, so the stack trace is anyways not usable.
 	 * @type {boolean}
 	 */
 	fails : false,
@@ -21,19 +22,8 @@ gui.Observer = {
 	 * @param {Window} win
 	 */
 	observe : function ( win ) {
-		var sig = win.gui.$contextid;
-		var doc = win.document;
-		var obs = this._observers [ sig ];
-		if ( this.observes && win.gui.debug ) {
-			if ( !gui.Type.isDefined ( obs )) {
-				var Observer = this._mutationobserver ();
-				obs = this._observers [ sig ] = new Observer ( function ( mutations ) {
-					mutations.forEach ( function ( mutation ) {
-						gui.Observer._handleMutation ( mutation );
-					});
-				});
-			}
-			this._connect ( doc, true );
+		if ( win.gui.debug ) {
+			this._observe ( win );
 		}
 	},
 
@@ -99,6 +89,27 @@ gui.Observer = {
 	_observers : Object.create ( null ),
 
 	/**
+	 * Start observing.
+	 * @param {Window} win
+	 */
+	_observe : function ( win ) {
+		var sig = win.gui.$contextid;
+		var doc = win.document;
+		var obs = this._observers [ sig ];
+		if ( this.observes ) {
+			if ( !gui.Type.isDefined ( obs )) {
+				var Observer = this._mutationobserver ();
+				obs = this._observers [ sig ] = new Observer ( function ( mutations ) {
+					mutations.forEach ( function ( mutation ) {
+						gui.Observer._handleMutation ( mutation );
+					});
+				});
+			}
+			this._connect ( doc, true );
+		}
+	},
+
+	/**
 	 * Get observer.
 	 * @returns {function} MutationObserver
 	 */
@@ -147,11 +158,23 @@ gui.Observer = {
 			}
 		});
 		if ( action ) {
-			if ( mutation.target.ownerDocument.defaultView.gui.debug ) {
-				console [ this.fails ? "error" : "warn" ] (
-					"Action required: DOM mutation not intercepted, Spiritual may be out of synch." 
-				);
-			}
+			console [ this.fails ? "error" : "warn" ] ( this._message ());
 		}
+	},
+
+	/**
+	 * Compute log message.
+	 * @returns {String}
+	 */
+	_message : function () {
+		return [ 
+			"Action required: DOM mutation not intercepted, Spiritual may be out of synch.",
+			"While we wait for http://code.google.com/p/chromium/issues/detail?id=13175,",
+			"please use the these methods to replace innerHTML, textContent and outerHTML:",
+			"    gui.DOMPlugin.html(node,string)",
+			"    gui.DOMPlugin.text(node,string)",
+			"    gui.DOMPlugin.outerHtml(node,string)",
+			"Tip: You can use insertAdjecantHTML instead of innerHTML for bonus performance."
+		].join ( "\n" );
 	}
 };

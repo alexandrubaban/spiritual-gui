@@ -3,8 +3,10 @@
  * @extends {gui.Plugin}
  * @TODO add following and preceding
  * @using {gui.Combo#chained}
+ * @using {gui.Guide}
+ * @using {gui.Observer}
  */
-gui.DOMPlugin = ( function using ( chained ) {
+gui.DOMPlugin = ( function using ( chained, guide, observer ) {
 
 	return gui.Plugin.extend ({
 
@@ -38,28 +40,20 @@ gui.DOMPlugin = ( function using ( chained ) {
 		/**
 		 * Get or set element markup.
 		 * @param @optional {String} html
-		 * @param @optional {String} position Insert adjecant HTML
+		 * @param @optional {String} position
 		 * @returns {String|gui.DOMPlugin}
 		 */
 		html : chained ( function ( html, position ) {
-			var element = this.spirit.element;
-			if ( gui.Type.isString ( html )) {
-				if ( position ) {
-					element.insertAdjacentHTML ( position, html ); // @TODO static + spiritualize!
-				} else {
-					gui.DOMPlugin.html ( element, html );
-				}			
-			} else {
-				return element.innerHTML;
-			}
+			return gui.DOMPlugin.html ( this.spirit.element, html, position );
 		}),
 
 		/**
-		 * Empty spirit subtree.
-		 * @returns {gui.DOMPlugin}
+		 * Get or set element outer markup.
+		 * @param @optional {String} html
+		 * @returns {String|gui.DOMPlugin}
 		 */
-		empty : chained ( function () {
-			this.html ( "" );
+		outerHtml : chained ( function ( html ) {
+			return gui.DOMPlugin.outerHtml ( this.spirit.element, html );
 		}),
 
 		/**
@@ -68,12 +62,15 @@ gui.DOMPlugin = ( function using ( chained ) {
 		 * @returns {String|gui.DOMPlugin}
 		 */
 		text : chained ( function ( text ) {
-			var elm = this.spirit.element;
-			if ( gui.Type.isString ( text )) {
-				elm.textContent = text;
-				return this;
-			}
-			return elm.textContent;
+			return gui.DOMPlugin.text ( this.spirit.element, text );
+		}),
+
+		/**
+		 * Empty spirit subtree.
+		 * @returns {gui.DOMPlugin}
+		 */
+		empty : chained ( function () {
+			this.html ( "" );
 		}),
 
 		/**
@@ -99,27 +96,11 @@ gui.DOMPlugin = ( function using ( chained ) {
 		}),
 
 		/**
-		 * Get spirit element tagname or create an element of given tagname. 
-		 * @param @optional {String} name If present, create an element
-		 * @param @optional {String} text If present, also append a text node
-		 * @TODO Third argument for namespace? Investigate general XML-ness.
+		 * Get spirit element tagname (identicased with HTML).
+		 * @returns {String}
 		 */
-		tag : function ( name, text ) {
-			var res = null;
-			var doc = this.spirit.document;
-			var elm = this.spirit.element;
-			if ( name ) {
-				res = doc.createElement ( name );
-				// @TODO "text" > "child" and let gui.DOMPlugin handle the rest....
-				if ( gui.Type.isString ( text )) {
-					res.appendChild ( 
-						doc.createTextNode ( text )
-					);
-				}
-			} else {
-				res = elm.localName;
-			}
-			return res;
+		tag : function () {
+			return this.spirit.element.localName;
 		},
 
 		/**
@@ -171,64 +152,75 @@ gui.DOMPlugin = ( function using ( chained ) {
 	}, {}, { // Static ...............................................................
 
 		/**
-		 * Spiritual-aware innerHTML with special setup for bad WebKit.
-		 * @see http://code.google.com/p/chromium/issues/detail?id=13175
-		 * @param {Element} element
-		 * @param @optional {String} markup
+		 * Spiritual-aware innerHTML (since this is not intercepted).
+		 * @param {Element} elm
+		 * @param @optional {String} html
+		 * @param @optional {String} pos
 		 */
-		html : function ( element, markup ) {
-			var nodes, guide = gui.Guide;
-			if ( element.nodeType === Node.ELEMENT_NODE ) {
-				if ( gui.Type.isString ( markup )) {
-					nodes = gui.HTMLParser.parseToNodes ( markup, element.ownerDocument );
-					guide.materializeSub ( element );
-					guide.suspend ( function () {
-						gui.Observer.suspend ( element, function () {
-							while ( element.firstChild ) {
-								element.removeChild ( element.firstChild );
-							}
-							nodes.forEach ( function ( node ) {
-								element.appendChild ( node );
-							});
+		html : function ( elm, html, pos ) {
+			if ( gui.Type.isString ( html )) {
+				if ( pos ) {
+					elm.insertAdjacentHTML ( pos, html );
+				} else {
+					if ( this._shouldhandle ( elm )) {
+						guide.materializeSub ( elm );
+						observer.suspend ( elm, function () {
+							elm.innerHTML = html;
 						});
-					});
-					guide.spiritualizeSub ( element );
+						guide.spiritualizeSub ( elm );
+					} else {
+						elm.innerHTML = html;
+					}
 				}
 			} else {
-				// throw new TypeError ();
+				return elm.innerHTML;
 			}
-			return element.innerHTML; // @TODO skip this step on setter
 		},
 
 		/**
-		 * Spiritual-aware outerHTML with special setup for WebKit.
-		 * @TODO can outerHTML carry multiple nodes???
-		 * @param {Element} element
-		 * @param @optional {String} markup
+		 * Spiritual-aware outerHTML (since this is not intercepted).
+		 * @TODO deprecate and support "replace" value for position?
+		 * @TODO can outerHTML carry multiple root-nodes?
+		 * @param {Element} elm
+		 * @param @optional {String} html
 		 */
-		outerHtml : function ( element, markup ) {
-			var nodes, parent, res = element.outerHTML;
+		outerHtml : function ( elm, html ) {
 			var guide = gui.Guide;
-			if ( element.nodeType ) {
-				if ( gui.Type.isString ( markup )) {
-					nodes = gui.HTMLParser.parseToNodes ( markup, element.ownerDocument );
-					parent = element.parentNode;
-					guide.materialize ( element );
-					guide.suspend ( function () {
-						gui.Observer.suspend ( parent, function () {
-							while ( nodes.length ) {
-								parent.insertBefore ( nodes.pop (), element );
-							}
-							parent.removeChild ( element );
-						});
+			if ( gui.Type.isString ( html )) {
+				if ( this._shouldhandle ( elm )) {
+					guide.materialize ( elm );
+					observer.suspend ( elm, function () {
+						elm.outerHTML = html;
 					});
-					guide.spiritualizeSub ( parent ); // @TODO optimize
-					res = element; // bad API design goes here...
+					guide.spiritualize ( elm );
+				} else {
+					elm.outerHTML = html;
 				}
 			} else {
-				throw new TypeError ();
+				return elm.outerHTML;
 			}
-			return res; // @TODO skip this step on setter
+		},
+
+		/**
+		 * Spiritual-aware textContent (since this is not intercepted).
+		 * @param {Element} elm
+		 * @param @optional {String} html
+		 * @param @optional {String} position
+		 */
+		text : function ( elm, text ) {
+			var guide = gui.Guide;
+			if ( gui.Type.isString ( text )) {
+				if ( this._shouldhandle ( elm )) {
+					guide.materializeSub ( elm );
+					observer.suspend ( elm, function () {
+						elm.textContent = text;
+					});
+				} else {
+					elm.textContent = text;
+				}
+			} else {
+				return elm.textContent;
+			}
 		},
 
 		/**
@@ -241,7 +233,7 @@ gui.DOMPlugin = ( function using ( chained ) {
 			var parent = element.parentNode;
 			if ( parent ) {
 				var node = parent.firstElementChild;
-				while ( node !== null ) {
+				while ( node ) {
 					if ( node === element ) {
 						break;
 					} else {
@@ -255,7 +247,7 @@ gui.DOMPlugin = ( function using ( chained ) {
 
 		/**
 		 * Compare document position of two nodes.
-		 * @see http://www.w3.org/TR/DOM-Level-3-Core/core.html#Node3-compareDocumentPosition
+		 * @see http://mdn.io/compareDocumentPosition
 		 * @param {Node|gui.Spirit} node1
 		 * @param {Node|gui.Spirit} node2
 		 * @returns {number}
@@ -299,7 +291,6 @@ gui.DOMPlugin = ( function using ( chained ) {
 
 		/**
 		 * Is node positioned in page DOM?
-		 * @TODO comprehend https://developer.mozilla.org/en/JavaScript/Reference/Operators/Bitwise_Operators#Example:_Flags_and_bitmasks
 		 * @param {Element|gui.Spirit} node
 		 * @returns {boolean}
 		 */
@@ -368,7 +359,7 @@ gui.DOMPlugin = ( function using ( chained ) {
 				result = gui.Object.toArray ( node.querySelectorAll ( selector ));
 				if ( type ) {
 					result = result.filter ( function ( el )  {
-						return el.spirit && el.spirit instanceof type;
+						return el.spirit && ( el.spirit instanceof type );
 					}).map ( function ( el ) {
 						return el.spirit;
 					});
@@ -408,6 +399,18 @@ gui.DOMPlugin = ( function using ( chained ) {
 		},
 
 		/**
+		 * Element exists in native mode environment? Hotfix 
+		 * for bug with native getters and setters in WebKit.
+		 * @param {Element} elm
+		 * @returns {boolean}
+		 */
+		_shouldhandle : function ( elm ) {
+			var doc = elm.ownerDocument;
+			var win = doc.defaultView;
+			return win.gui.mode === gui.MODE_NATIVE;
+		},
+
+		/**
 		 * Match custom 'this' keyword in CSS selector. You can start 
 		 * selector expressions with "this>*" to find immediate child
 		 * @TODO skip 'this' and support simply ">*" and "+*" instead.
@@ -417,7 +420,16 @@ gui.DOMPlugin = ( function using ( chained ) {
 			
 	});
 
-}( gui.Combo.chained ));
+}( 
+	gui.Combo.chained, 
+	gui.Guide, 
+	gui.Observer 
+));
+
+/**
+ * Bind the "this" keyword for all static methods.
+ */
+gui.Object.bindall ( gui.DOMPlugin );
 
 /**
  * DOM query methods accept a CSS selector and an optional spirit constructor 

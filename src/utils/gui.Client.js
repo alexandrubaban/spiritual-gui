@@ -9,7 +9,7 @@ gui.Client = ( new function Client () {
 	var agent = navigator.userAgent.toLowerCase ();
 	var root = document.documentElement;
 
-	this.isExplorer = agent.contains ( "msie" );
+	this.isExplorer = agent.contains ( "msie" ) || agent.contains ( "trident" );
 	this.isExplorer9 = this.isExplorer && agent.contains ( "msie 9" ); // @TODO feature detect something
 	this.isOpera = agent.contains ( "opera" );
 	this.isWebKit = agent.contains ( "webkit" );
@@ -70,6 +70,13 @@ gui.Client = ( new function Client () {
 	 * @type {boolean}
 	 */
 	this.hasTouch = ( window.ontouchstart !== undefined || this.isChrome );
+
+	/**
+	 * Has native pointer events?
+	 * @TODO: feature detect somewhing
+	 * @type {boolean}
+	 */
+	this.hasPointers = ( this.isExplorer && !this.isExplorer9 );
 
 	/**
 	 * Supports file blob?

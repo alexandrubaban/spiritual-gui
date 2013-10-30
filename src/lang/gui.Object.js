@@ -114,11 +114,11 @@ gui.Object = {
 	/**
 	 * Lookup object for string of type "my.ns.Thing" in given context. 
 	 * @param {String} opath Object path eg. "my.ns.Thing"
-	 * @param {Window} context
+	 * @param @optional {Window} context
 	 * @returns {object}
 	 */
 	lookup : function ( opath, context ) {
-		var result, struct = context;
+		var result, struct = context || self;
 		if ( !opath.contains ( "." )) {
 			result = struct [ opath ];
 		} else {
@@ -135,22 +135,24 @@ gui.Object = {
 	/**
 	 * Update property of object in given context based on string input.
 	 * @param {String} opath Object path eg. "my.ns.Thing.name"
-	 * @param {object} value Property value eg. "Johnson"
-	 * @param {Window} context
+	 * @param {object} value Property value eg. `"Johnson` or"` `[]`
+	 * @param @optional {Window|object} context 
 	 * @returns {object}
 	 */
 	assert : function ( opath, value, context ) {
-		var prop, struct = context;
+		var prop, struct = context || self;
 		if ( opath.contains ( "." )) {
 			var parts = opath.split ( "." );
 			prop = parts.pop ();
 			parts.forEach ( function ( part ) {
-				struct = struct [ part ];
+				struct = struct [ part ] || ( struct [ part ] = {});
 			});
 		} else {
 			prop = opath;
 		}
-		struct [ prop ] = value;
+		if ( struct ) {
+			struct [ prop ] = value;
+		}
 		return value;
 	},
 
@@ -211,6 +213,7 @@ gui.Object = {
 	},
 
 	/**
+	 * @TODO: Move this to `gui.Array.from` and match ES6 `Array.from`
 	 * Convert array-like object to array. Always returns an array.
 	 * @param {object} object
 	 * @returns {Array<object>}
