@@ -15,6 +15,7 @@
 	"smarttabs": true,
 	"trailing": false,
 	"undef": true,
+	"scripturl" : true,
 	"unused": "vars",
 	"sub": true
 }
