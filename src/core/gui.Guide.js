@@ -293,6 +293,7 @@ gui.Guide = {
 				}
 			}
 			this.spiritualizeSub ( root );
+			win.gui.$onready ();
 		}
 	},
 	

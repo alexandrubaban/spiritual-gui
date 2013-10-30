@@ -156,6 +156,22 @@ gui.Spiritual.prototype = {
 	},
 
 	/**
+	 * Call function upon everything spiritualized.
+	 * @param {function} action
+	 * @param @optional {object} thisp
+	 */
+	ready : function ( action, thisp ) {
+		if ( this.spiritualized ) {
+			action.call ( thisp );
+		} else {
+			this._onreadys = this._onreadys || [];
+			this._onreadys.push ( function () {
+				action.call ( thisp );
+			});
+		}
+	},
+
+	/**
 	 * @TODO
 	 */
 	getAll : function ( arg ) {
@@ -741,6 +757,16 @@ gui.Spiritual.prototype = {
 
 
 	// Work in progress .............................................................
+
+	$onready : function () {
+		var list = this._onreadys;
+		if ( list ) {
+			while ( list.length ) {
+				list.shift ()();
+			}
+			this._onreadys = null;
+		}
+	},
 
 	/**
 	 * Experimental.
