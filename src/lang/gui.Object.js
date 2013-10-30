@@ -145,12 +145,14 @@ gui.Object = {
 			var parts = opath.split ( "." );
 			prop = parts.pop ();
 			parts.forEach ( function ( part ) {
-				struct = struct [ part ];
+				struct = struct [ part ] || ( struct [ part ] = {});
 			});
 		} else {
 			prop = opath;
 		}
-		struct [ prop ] = value;
+		if ( struct ) {
+			struct [ prop ] = value;
+		}
 		return value;
 	},
 
@@ -211,6 +213,7 @@ gui.Object = {
 	},
 
 	/**
+	 * @TODO: Move this to `gui.Array.from` and match ES6 `Array.from`
 	 * Convert array-like object to array. Always returns an array.
 	 * @param {object} object
 	 * @returns {Array<object>}

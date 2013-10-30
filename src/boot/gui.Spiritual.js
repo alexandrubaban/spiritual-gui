@@ -139,20 +139,20 @@ gui.Spiritual.prototype = {
 	 * @returns {gui.Spirit}
 	 */
 	get : function ( arg ) {
-		var spirit = null;
+		var spirit, element, doc = this.document;
 		switch ( gui.Type.of ( arg )) {
 			case "string" :
 				if ( gui.KeyMaster.isKey ( arg )) {
-					spirit = this._spirits.inside [ arg ] || null;
+					spirit = this._spirits.inside [ arg ];
 				} else {
-					var element = this.document.querySelector ( arg );
+					element = doc.querySelector ( arg ) || doc.getElementById ( arg );
 					spirit = element ? element.spirit : null;
 				}
 				break;
 			case "TODO" :
 				break;
 		}
-		return spirit;
+		return spirit || null;
 	},
 
 	/**
@@ -305,20 +305,19 @@ gui.Spiritual.prototype = {
 	 * @returns {gui.Namespace}
 	 */
 	namespace : function ( ns, members, context ) {
-		context = context || this.context;
+		context = context || self;
 		var no, spaces = context.gui._spaces;
 		if ( gui.Type.isString ( ns )) {
-			if ( spaces.indexOf ( ns ) >-1 ) {
-				ns = gui.Object.lookup ( ns, context );
-			} else {
-				spaces.push ( ns );
+			no = gui.Object.lookup ( ns, context );
+			if ( !no ) {
 				no = new gui.Namespace ( ns, context );
-				ns = gui.Object.assert ( ns, no, context );
+				no = gui.Object.assert ( ns, no, context );
+				spaces.push ( ns );
 			}
 		} else {
 			throw new TypeError ( "Expected a namespace string" );
 		}
-		return gui.Object.extend ( ns, members || {});
+		return gui.Object.extend ( no, members || {});
 	},
 	
 	/**

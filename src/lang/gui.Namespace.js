@@ -14,6 +14,7 @@ gui.Namespace = function Namespace ( ns, context ) {
 gui.Namespace.prototype = {
 
 	/**
+	 * @deprecated
 	 * Members may be portalled into subframes via the 'gui.portal' method?
 	 * @type {boolean}
 	 */
