@@ -15,13 +15,6 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 		if ( window === top ) {
 			this.event.add ( "resize orientationchange", window );
 		}
-		/*
-		// @TODO: intend to deprecate
-		this.action.dispatchGlobal ( 
-			gui.ACTION_DOC_ONCONSTRUCT, 
-			this.window.location.href 
-		);
-*/
 	},
 
 	/**
@@ -47,7 +40,7 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 	onevent : function ( e ) {
 		/*
 		 * It appears that this try catch (in and by itself) will 
-		 * supress some weirdo permission exceptions in Explorer 9. 
+		 * fix some weirdo permission exceptions in Explorer 9. 
 		 * @TODO: pinpoint this stuff somewhat more precisely...
 		 */
 		try {
@@ -265,6 +258,13 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 				break;
 			case "message" :
 				this._onmessage ( e.data, e.origin, e.source );
+				/* TEMPHACK 
+				if (e.data.indexOf('spiritual') !== -1) {
+					this._onmessage ( e.data, e.origin, e.source );
+				} else {
+					gui.Broadcast.$dispatch ({spirithack: true, global: true, data: e.data, target: null});
+				}
+				*/
 				break;
 			case "hashchange" :
 				this.action.dispatchGlobal ( 

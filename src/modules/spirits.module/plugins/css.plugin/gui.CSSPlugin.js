@@ -35,6 +35,16 @@ gui.CSSPlugin = ( function using ( chained ) {
 		}),
 
 		/**
+		 * Add or remove classname according to second argument.
+		 * @param {String} name
+		 * @param {boolean} on
+		 * @returns {gui.CSSPlugin}
+		 */
+		shift : chained ( function ( name, on ) {
+			gui.CSSPlugin.shift ( this.spirit.element, name, on );
+		}),
+
+		/**
 		 * Contains classname?
 		 * @param {String} name
 		 * @returns {boolean}
@@ -184,6 +194,21 @@ gui.CSSPlugin = ( function using ( chained ) {
 						this.add ( element, name );
 					}
 				}
+			}
+		}),
+
+		/**
+		 * Add or remove classname according to second argument.
+		 * @param {Element} element
+		 * @param {String} name
+		 * @param {boolean} on
+		 * @returns {function}
+		 */
+		shift : chained ( function ( element, name, on ) {
+			if ( on ) {
+				this.add ( element, name );
+			}	else {
+				this.remove ( element, name );
 			}
 		}),
 

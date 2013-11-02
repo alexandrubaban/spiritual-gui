@@ -172,24 +172,29 @@ gui.IframeSpirit = gui.Spirit.extend ({
 	 * Get and set the iframe source. Set in markup using <iframe gui.src="x"/> 
 	 * if you need to postpone iframe loading until the spirit gets initialized.
 	 * @param @optional {String} src
+	 * @returns @optional {String} src 
 	 */
 	src : function ( src ) {
-		var doc = this.document;
-		if ( gui.Type.isString ( src )) {
-			this.contentLocation = new gui.URL ( this.document, src );
-			this.xguest = ( function ( secured ) {
-				if ( secured ) {
-					return "*";
-				} else if ( gui.URL.external ( src, doc )) {
-					var url = new gui.URL ( doc, src );
-					return url.protocol + "//" + url.host;
-				}
-				return null;
-			}( this._sandboxed ()));
+		if ( src ) {
+			this._setupsrc ( src );	
 			this.element.src = src;
-		} else {
-			return this.element.src;
 		}
+		return this.element.src;
+	},
+
+	/**
+	 * Experimentally load some kind of blob.
+	 * @param @optional {URL} url
+	 * @param @optional {String} src
+	 */
+	url : function ( url, src ) {
+		if ( src ) {
+			this._setupsrc ( src );
+		}
+		if ( url ) {
+			this.element.src = url;
+		}
+		return this.element.src;
 	},
 
 	/**
@@ -215,6 +220,23 @@ gui.IframeSpirit = gui.Spirit.extend ({
 	 * @type {gui.CoverSpirit}
 	 */
 	_cover : null,
+
+	/**
+	 * @param {String} src
+	 */
+	_setupsrc : function ( src ) {
+		var doc = this.document;
+		this.contentLocation = new gui.URL ( doc, src );
+		this.xguest = ( function ( secured ) {
+			if ( secured ) {
+				return "*";
+			} else if ( gui.URL.external ( src, doc )) {
+				var url = new gui.URL ( doc, src );
+				return url.protocol + "//" + url.host;
+			}
+			return null;
+		}( this._sandboxed ()));
+	},
 
 	/**
 	 * Hosted document spiritualized. 
