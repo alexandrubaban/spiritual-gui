@@ -229,7 +229,6 @@ gui.Object = {
 					result = Array.map ( object, function ( thing ) {
 						return thing;
 					});
-					
 				}
 			} catch ( exception ) {}
 	  }

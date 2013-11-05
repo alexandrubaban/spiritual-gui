@@ -337,7 +337,8 @@ gui.Spiritual.prototype = {
 	},
 	
 	/**
-	 * List spiritual namespaces (returns a copy).
+	 * @deprecated
+	 * List declared namespaces.
 	 * @return {Array<String>}
 	 */
 	namespaces : function () {
@@ -772,8 +773,10 @@ gui.Spiritual.prototype = {
 	 * Experimental.
 	 */
 	_experimental : function () {
+		this.$ns = "gui";
+		gui.Object.extendmissing ( this, gui.Namespace.prototype );
 		this._spaces.forEach ( function ( ns ) {
-			this._questionable ( gui.Object.lookup ( ns, this.window ), ns );
+			gui.Object.lookup ( ns, this.window ).spacename ();
 		}, this );
 	},
 
@@ -786,7 +789,7 @@ gui.Spiritual.prototype = {
 
 	/**
 	 * Questionable.
-	 */
+	 *
 	_questionable : function ( home, name ) {
 		var key;
 		var val;
@@ -811,6 +814,7 @@ gui.Spiritual.prototype = {
 			}
 		}
 	}
+	*/
 
 };
 

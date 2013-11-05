@@ -40,6 +40,7 @@ gui.AttPlugin = ( function using ( confirmed, chained ) {
 
 		/**
 		 * Remove element attribute.
+		 * @TODO: Rename "remove" ???
 		 * @param {String} att
 		 * @returns {gui.AttPlugin}
 		 */

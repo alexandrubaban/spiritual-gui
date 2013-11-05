@@ -5,8 +5,6 @@
  * @param {Object} defs
  */
 gui.Namespace = function Namespace ( ns, context ) {
-	//gui.Namespace.validate ( context, ns, this );
-	//gui.Object.extend ( this, defs );
 	this.$context = context;
 	this.$ns = ns;
 };
@@ -26,6 +24,37 @@ gui.Namespace.prototype = {
 	 */
 	toString : function () {
 		return "[namespace " + this.$ns + "]";
+	},
+
+	/**
+	 * Compute classnames for class-type members.
+	 * @returns {gui.Namespace}
+	 */
+	spacename : function () {
+		this._spacename ( this, this.$ns );
+		return this;
+	},
+
+	/**
+	 * Name members recursively.
+	 * @TODO: Recurse on object values to name deeply nested?
+	 * @param {object|function} o
+	 * @param {String} name
+	 */
+	_spacename : function ( o, name ) {
+		var key, val;
+		for ( key in o ) {
+			if ( !o.hasOwnProperty || o.hasOwnProperty ( key )) {
+				if ( key !== "$superclass" ) {
+					if ( gui.Type.isFunction (( val = o [ key ]))) {
+						if ( val.$classname === gui.Class.ANONYMOUS ) {
+							this._spacename ( val, name + "." + key );
+							val.$classname = name + "." + key;
+						}
+					}
+				}
+			}
+		}
 	},
 
 
