@@ -511,14 +511,6 @@ gui.Object.each ({
  */
 gui.Object.each ({
 
-	preceding : function ( type ) {
-		console.error ( "TODO" );
-	},
-
-	following : function ( type ) {
-		console.error ( "TODO" );
-	},
-
 	/**
 	 * Next element or next spirit of given type.
 	 * @param @optional {function} type Spirit constructor
@@ -752,6 +744,24 @@ gui.Object.each ({
 				}
 			}
 		});
+		return result;
+	},
+
+	preceding : function ( type ) {
+		console.error ( "TODO" );
+	},
+
+	following : function ( type ) {
+		var result = [], spirit, el = this.spirit.element;
+		while (( el = el.nextElementSibling )) {
+			if ( type && ( spirit = el.spirit )) {
+				if ( spirit instanceof type ) {
+					result.push ( spirit );
+				}
+			} else {
+				result.push ( el );
+			}
+		}
 		return result;
 	}
 

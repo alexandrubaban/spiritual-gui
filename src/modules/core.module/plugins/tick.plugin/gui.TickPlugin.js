@@ -66,6 +66,16 @@ gui.TickPlugin = ( function using ( chained ) {
 		}),
 
 		/**
+		 * @param {function} action 
+		 * @param {number} time
+		 * @param @optional {object|function} thisp
+		 * @returns {gui.TickPlugin}
+		 */
+		time : chained ( function ( action, time, thisp ) {
+			gui.Tick.time ( action, time, thisp || this.spirit );
+		}),
+
+		/**
 		 * Dispatch tick after given time.
 		 * @param {String} type
 		 * @param {number} time Milliseconds (zero is setImmediate)

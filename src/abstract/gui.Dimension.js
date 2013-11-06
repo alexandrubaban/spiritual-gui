@@ -1,5 +1,5 @@
 /**
- * Something that has width and height.
+ * Something that has 2D width and height.
  * @param {number} w
  * @param {number} h
  */
@@ -27,7 +27,7 @@ gui.Dimension.prototype = {
 	 * @returns {String}
 	 */
 	toString : function () {
-		return "[object gui.Dimension(" + this.w + "," + this.h + ")]";
+		return "[object gui.Dimension]";
 	}
 };
 

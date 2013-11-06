@@ -144,8 +144,9 @@ gui.Spiritual.prototype = {
 			case "string" :
 				if ( gui.KeyMaster.isKey ( arg )) {
 					spirit = this._spirits.inside [ arg ];
-				} else {
-					element = doc.querySelector ( arg ) || doc.getElementById ( arg );
+				}
+				if ( !spirit ) {
+					element = doc.getElementById ( arg ) || doc.querySelector ( arg );
 					spirit = element ? element.spirit : null;
 				}
 				break;

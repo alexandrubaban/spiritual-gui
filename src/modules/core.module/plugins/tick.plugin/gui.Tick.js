@@ -92,6 +92,17 @@
 	};
 
 	/**
+	 * @param {function} action
+	 * @param {number} time
+	 * @param @optional {object} thisp
+	 */
+	gui.Tick.time = function ( action, time, thisp ) {
+		setTimeout ( function () {
+			action.call ( thisp );
+		}, time );
+	};
+
+	/**
 	 * Remove handler for tick.
 	 * @param {object} type String or array of strings
 	 * @param {object} handler

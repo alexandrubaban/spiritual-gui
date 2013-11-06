@@ -64,6 +64,7 @@
 	"modules/spirits.module/plugins/dom.plugin/gui.DOMPlugin.js",
 	"modules/spirits.module/plugins/event.plugin/gui.EventPlugin.js",
 	"modules/spirits.module/plugins/event.plugin/gui.IEventHandler.js",
+	"modules/spirits.module/plugins/sprite.plugin/gui.SpritePlugin.js",
 	
 	"modules/spirits.module/spirits/gui.DocumentSpirit.js",
 	"modules/spirits.module/spirits/gui.IframeSpirit.js",

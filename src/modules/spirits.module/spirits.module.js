@@ -26,7 +26,8 @@ gui.module ( "spirits", {
 		"css" : gui.CSSPlugin,
 		"dom" : gui.DOMPlugin,
 		"event" : gui.EventPlugin,
-		"life" : gui.LifePlugin
+		"life" : gui.LifePlugin,
+		"sprite" : gui.SpritePlugin
  },
 
 	/**
