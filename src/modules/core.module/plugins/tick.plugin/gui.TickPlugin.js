@@ -66,6 +66,16 @@ gui.TickPlugin = ( function using ( chained ) {
 		}),
 
 		/**
+		 * Execute action in next animation frame.
+		 * @param {function} action 
+		 * @param @optional {object|function} thisp
+		 * @returns {gui.TickPlugin}
+		 */
+		nextFrame : chained ( function ( action, thisp ) {
+			gui.Tick.nextFrame ( action, thisp || this.spirit );
+		}),
+
+		/**
 		 * @param {function} action 
 		 * @param {number} time
 		 * @param @optional {object|function} thisp

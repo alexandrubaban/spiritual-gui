@@ -81,11 +81,18 @@ gui.Object.each ({ // generating static methods
 	 * @type {String}
 	 */
 	_DISCLAIMER : "/**\n" +
-		"  * Method was overloaded by the framework. \n" +
-		"  * This is an approximation of the code :) \n" +
+		"  * Method was mutated by the framework. \n" +
+		"  * This is an approximation of the code. \n" +
 		"  */\n",
 
-		/**
+	/**
+	 * @type {String}
+	 */
+	_ASYNCERROR : "" +
+		"'this._super' only works in synchronous code. Are you using a timeout? " +
+		"Move the '_super' call to another method or use 'otherfunction.apply()'",
+
+	/**
 	 * Get tricky decorator.
 	 * @param {function} SuperC
 	 * @returns {function}
@@ -93,14 +100,37 @@ gui.Object.each ({ // generating static methods
 	_decorator : function ( SuperC ) {
 		return function ( base ) {
 			return function () {
-				var sub = gui.Super.$subject;
-				gui.Super.$subject = this;
-				this._super = SuperC.$super;
-				var result = base.apply ( this, arguments );
-				gui.Super.$subject = sub;
-				return result;
+				return gui.Super._try ( this, base, arguments, SuperC );
 			};
 		};
+	},
+
+	/**
+	 * Attempt to base apply method of superclass to instance with given arguments.
+	 * @param {object} that
+	 * @param {function} base
+	 * @param {Arguments} args
+	 * @param {function} SuperC
+	 * @returns {object}
+	 */
+	_try : function ( that, base, args, SuperC ) {
+		var res, sub = gui.Super.$subject;
+		if ( that ) {
+			gui.Super.$subject = that;
+			that._super = SuperC.$super;
+			res = base.apply ( that, args );
+			gui.Super.$subject = sub;
+		} else {
+			gui.Super._fail ();
+		}
+		return res;
+	},
+
+	/**
+	 * Fail on async execution given the tricky setup above.
+	 */
+	_fail : function () {
+		throw new Error ( gui.Super._ASYNCERROR );
 	}
 
 }, function ( name, value ) {

@@ -55,6 +55,13 @@ gui.SpritePlugin = gui.Plugin.extend ({
 		this._pos = new gui.Position ();
 	},
 
+	/**
+	 * Reset transformations.
+	 */
+	reset : function () {
+		this.spirit.css.set ( "-beta-transform", "" );
+	},
+
 
 	// Private ...............................................
 
@@ -69,7 +76,7 @@ gui.SpritePlugin = gui.Plugin.extend ({
 	 */
 	_apply : function () {
 		var pos = this._pos;
-		var set = [ pos.x, pos.y, pos.z ];
+		var set = [ pos.x, pos.y, pos.z ].map ( Math.round );
 		this.spirit.css.set ( "-beta-transform",
 			"translate3d(" + set.join ( "px," ) + "px)"
 		);

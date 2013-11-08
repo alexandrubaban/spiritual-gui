@@ -9,7 +9,8 @@
 		"self" : true,
 		"alert" : true,
 		"ActiveXObject" : true,
-		"setImmediate" : true
+		"setImmediate" : true,
+		"requestAnimationFrame" : true
 	},
 	"globalstrict": false,
 	"quotmark": false,

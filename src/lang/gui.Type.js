@@ -87,7 +87,9 @@ gui.Type = {
 	 * @returns {boolean}
 	 */
 	isConstructor : function ( what ) {
-		return this.isFunction ( what ) && what.prototype && Object.keys ( what.prototype ).length;
+		return this.isFunction ( what ) && 
+			this.isObject ( what.prototype ) && 
+			Object.keys ( what.prototype ).length;
 	},
 
 	/**

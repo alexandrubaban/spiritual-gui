@@ -81,7 +81,7 @@
 
 	/**
 	 * Schedule action for next available execution stack.
-	 * @TODO: deprecate setImmedate polyfix and kove the fix here
+	 * @TODO: deprecate setImmedate polyfix and do the fix here
 	 * @param {function} action
 	 * @param @optional {object} thisp
 	 */
@@ -92,12 +92,26 @@
 	};
 
 	/**
+	 * Schedule action for next animation frame.
+	 * @TODO: deprecate requestAnimationFrame polyfix and do the fix here
+	 * @param {function} action
+	 * @param @optional {object} thisp
+	 * returns {number}
+	 */
+	gui.Tick.nextFrame = function ( action, thisp ) {
+		return requestAnimationFrame ( function ( timestamp ) {
+			action.call ( thisp, timestamp );
+		});
+	};
+
+	/**
 	 * @param {function} action
 	 * @param {number} time
 	 * @param @optional {object} thisp
+	 * returns {number}
 	 */
 	gui.Tick.time = function ( action, time, thisp ) {
-		setTimeout ( function () {
+		return setTimeout ( function () {
 			action.call ( thisp );
 		}, time );
 	};
