@@ -54,6 +54,7 @@ gui.Class = {
 	$constructor : function () {
 		var constructor = this.$onconstruct || this.onconstruct;
 		var nonenumprop = gui.Property.nonenumerable;
+		var returnvalue = this;
 		window.Object.defineProperties ( this, {
 			"$instanceid" : nonenumprop ({
 				value: gui.KeyMaster.generateKey ()
@@ -64,9 +65,9 @@ gui.Class = {
 			})
 		});
 		if ( gui.Type.isFunction ( constructor )) {
-			constructor.apply ( this, arguments );
+			returnvalue = constructor.apply ( this, arguments );
 		}
-		return this;
+		return returnvalue || this;
 	},
 	
 

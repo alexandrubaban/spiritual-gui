@@ -90,12 +90,12 @@ gui.Arguments = {
 		var needs = !xpect.startsWith ( "(" );
 		var split = this._xtract ( xpect, !needs ).split ( "|" );
 		var input = gui.Type.of ( arg );
-		var match = ( xpect === "*" 
-			|| ( !needs && input === "undefined" ) 
-			|| ( !needs && split.indexOf ( "*" ) >-1 ) 
-			|| split.indexOf ( input ) >-1 );
+		var match = ( xpect === "*" || 
+				( !needs && input === "undefined" ) || 
+				( !needs && split.indexOf ( "*" ) >-1 ) || 
+				split.indexOf ( input ) >-1 );
 		if ( !match && this._validating ) {
-			this._error ( index, xpect, input );
+			this._error ( index, xpect, input, arg );
 		}
 		return match;
 	},
@@ -106,11 +106,11 @@ gui.Arguments = {
 	 * @param {string} xpect
 	 * @param {string} input
 	 */
-	_error : function ( index, xpect, input ) {
+	_error : function ( index, xpect, input, arg ) {
 		console.error ( 
 			"Argument " + index + ": " + 
 			"Expected " + xpect + 
-			", got " + input
+			", got " + input + ": " + arg
 		);
 	}
 };
