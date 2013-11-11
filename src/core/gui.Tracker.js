@@ -44,7 +44,7 @@ gui.Tracker = gui.Plugin.extend ({
 	 * @returns {boolean}
 	 */
 	contains : function ( arg ) {
-		return this._breakdown ( arg ).every ( function ( type ) {
+		return gui.Array.make ( arg ).every ( function ( type ) {
 			return this._trackedtypes [ type ];
 		}, this );
 	},
@@ -194,6 +194,7 @@ gui.Tracker = gui.Plugin.extend ({
 	 * @returns {Array<String>}
 	 */
 	_breakdown : function ( arg ) {
+		/*
 		var result = null;
 		switch ( gui.Type.of ( arg )) {
 			case "array" :
@@ -204,6 +205,8 @@ gui.Tracker = gui.Plugin.extend ({
 				break;
 		}
 		return result;
+		*/
+		return gui.Array.make ( arg );
 	},
 
 	/**

@@ -213,25 +213,12 @@ gui.Object = {
 	},
 
 	/**
-	 * @TODO: Move this to `gui.Array.from` and match ES6 `Array.from`
-	 * Convert array-like object to array. Always returns an array.
+	 * @deprecated
+	 * Convert array-like object to array.
 	 * @param {object} object
 	 * @returns {Array<object>}
 	 */
-	toArray : function ( object ) {
-		var result = [];
-		if ( gui.Type.isArray ( object )) {
-			result = object;
-		} else {
-			try {
-				if ( gui.Type.isDefined ( object.length ) && ( "0" in Object ( object ))) {
-					// @TODO: investigate all round usefulness of [].slice.call ( object )
-					result = Array.map ( object, function ( thing ) {
-						return thing;
-					});
-				}
-			} catch ( exception ) {}
-	  }
-		return result;
+	toArray : function ( ) {
+		console.error ( "deprecated" );
 	}
 };

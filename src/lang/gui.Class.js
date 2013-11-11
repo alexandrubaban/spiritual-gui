@@ -337,9 +337,17 @@ gui.Object.each ({
 	 * @param {object} object
 	 * @returns {boolean}
 	 */
-	isInstance : function ( object ) {
+	is : function ( object ) {
 		return gui.Type.isObject ( object ) && ( object instanceof this );
+	},
+
+	/**
+	 * Deprecated API.
+	 */
+	isInstance : function () {
+		console.error ( "isInstance is derecated" );
 	}
+
 
 }, function ( name, method ) {
 	gui.Class [ name ] = method;

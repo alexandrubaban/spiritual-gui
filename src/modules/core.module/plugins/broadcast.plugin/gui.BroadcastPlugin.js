@@ -17,7 +17,7 @@ gui.BroadcastPlugin = ( function using ( chained, confirmed ) {
 			chained ( function ( arg, handler ) {
 				handler = handler ? handler : this.spirit;
 				var sig = this._global ? null : this._sig;
-				this._breakdown ( arg ).forEach ( function ( type ) {
+				gui.Array.make ( arg ).forEach ( function ( type ) {
 					if ( this._addchecks ( type, [ handler, this._global ])) {
 						if ( this._global ) {
 							gui.Broadcast.addGlobal ( type, handler );
@@ -39,7 +39,7 @@ gui.BroadcastPlugin = ( function using ( chained, confirmed ) {
 			chained ( function ( arg, handler ) {
 				handler = handler ? handler : this.spirit;
 				var sig = this._global ? null : this._sig;
-				this._breakdown ( arg ).forEach ( function ( type ) {
+				gui.Array.make ( arg ).forEach ( function ( type ) {
 					if ( this._removechecks ( type, [ handler, this._global ])) {
 						if ( this._global ) {
 							gui.Broadcast.removeGlobal ( type, handler );
@@ -63,7 +63,7 @@ gui.BroadcastPlugin = ( function using ( chained, confirmed ) {
 				var global = this._global;
 				var sig = global ? null : this._sig;
 				this._global = false;
-				this._breakdown ( arg ).forEach ( function ( type ) {
+				gui.Array.make ( arg ).forEach ( function ( type ) {
 					if ( global ) {
 						result = gui.Broadcast.dispatchGlobal ( this.spirit, type, data );
 					} else {

@@ -8,7 +8,7 @@ gui.Arguments = {
 	 * Ignores action if no match.
 	 */
 	provided : function ( /* type1,type2,type3... */ ) {
-		var types = gui.Object.toArray ( arguments );
+		var types = gui.Array.from ( arguments );
 		return function ( action ) {
 			return function () {
 				if ( gui.Arguments._match ( arguments, types )) {
@@ -23,7 +23,7 @@ gui.Arguments = {
 	 * Throws an exception if no match.
 	 */
 	confirmed : function ( /* type1,type2,type3... */ ) {
-		var types = gui.Object.toArray ( arguments );
+		var types = gui.Array.from ( arguments );
 		return function ( action ) {
 			return function () {
 				if ( gui.Arguments._validate ( arguments, types )) {

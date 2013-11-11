@@ -31,7 +31,7 @@ gui.ActionPlugin = ( function using ( confirmed, chained ) {
 			chained ( function ( arg, handler ) {
 				handler = handler ? handler : this.spirit;
 				if ( gui.Interface.validate ( gui.IActionHandler, handler )) {
-					this._breakdown ( arg ).forEach ( function ( type ) {
+					gui.Array.make ( arg ).forEach ( function ( type ) {
 						this._addchecks ( type, [ handler, this._global ]);
 					}, this );
 				}
@@ -48,7 +48,7 @@ gui.ActionPlugin = ( function using ( confirmed, chained ) {
 			chained ( function ( arg, handler ) {
 				handler = handler ? handler : this.spirit;
 				if ( gui.Interface.validate ( gui.IActionHandler, handler )) {
-					this._breakdown ( arg ).forEach ( function ( type ) {
+					gui.Array.make ( arg ).forEach ( function ( type ) {
 						this._removechecks ( type, [ handler, this._global ]);
 					}, this );
 				}

@@ -356,7 +356,7 @@ gui.DOMPlugin = ( function using ( chained, guide, observer ) {
 		qall : function ( node, selector, type ) {
 			var result = [];
 			return this._qualify ( node, selector )( function ( node, selector ) {
-				result = gui.Object.toArray ( node.querySelectorAll ( selector ));
+				result = gui.Array.from ( node.querySelectorAll ( selector ));
 				if ( type ) {
 					result = result.filter ( function ( el )  {
 						return el.spirit && ( el.spirit instanceof type );
@@ -641,7 +641,7 @@ gui.Object.each ({
 	 * @returns {Array<Element|gui.Spirit>}
 	 */
 	children : function ( type ) {
-		var result = gui.Object.toArray ( this.spirit.element.children );
+		var result = gui.Array.from ( this.spirit.element.children );
 		if ( type ) {
 			result = result.filter ( function ( elm ) {
 				return elm.spirit && elm.spirit instanceof type;
@@ -864,7 +864,7 @@ gui.Object.each ({
 	 */
 }, function mixin ( name, method ) {
 	gui.DOMPlugin.mixin ( name, function ( things ) {
-		var elms = Array.map ( gui.Array.toArray ( things ), function ( thing ) {
+		var elms = Array.map ( gui.Array.make ( things ), function ( thing ) {
 			return thing && thing instanceof gui.Spirit ? thing.element : thing;
 		}).filter ( function ( thing ) { // @TODO IE9 may sometimes for some reason throw and array in here :/ must investigate!!!
 			return thing && gui.Type.isNumber ( thing.nodeType ); // first check added for FF which now may fail as well :/

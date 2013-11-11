@@ -18,7 +18,7 @@ gui.TickPlugin = ( function using ( chained ) {
 		add : chained ( function ( arg, handler, one ) {
 			handler = handler ? handler : this.spirit;
 			if ( gui.Interface.validate ( gui.ITickHandler, handler )) {
-				this._breakdown ( arg ).forEach ( function ( type ) {
+				gui.Array.make ( arg ).forEach ( function ( type ) {
 					if ( this._addchecks ( type, [ handler, this._global ])) {
 						this._add ( type, handler, false );
 					}
@@ -35,7 +35,7 @@ gui.TickPlugin = ( function using ( chained ) {
 		remove : chained ( function ( arg, handler ) {
 			handler = handler ? handler : this.spirit;
 			if ( gui.Interface.validate ( gui.ITickHandler, handler )) {
-				this._breakdown ( arg ).forEach ( function ( type ) {
+				gui.Array.make ( arg ).forEach ( function ( type ) {
 					if ( this._removechecks ( type, [ handler, this._global ])) {
 						this._remove ( type, handler );
 					}
