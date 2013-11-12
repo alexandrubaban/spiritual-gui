@@ -435,354 +435,367 @@ gui.Object.bindall ( gui.DOMPlugin );
  * DOM query methods accept a CSS selector and an optional spirit constructor 
  * as arguments. They return a spirit, an element or an array of either.
  */
-gui.Object.each ({
+gui.DOMPlugin.mixin (
+	gui.Object.map ({
 
-	/**
-	 * Get first descendant element matching selector. Optional type argument returns 
-	 * spirit for first element to be associated to spirit of this type. Note that 
-	 * this may not be the first element to match the selector. Also note that type 
-	 * performs slower than betting on <code>this.dom.q ( "tagname" ).spirit</code>
-	 * @param {String} selector
-	 * @param @optional {function} type Spirit constructor (eg. gui.Spirit)
-	 * @returns {Element|gui.Spirit}
-	 */
-	q : function ( selector, type ) {
-		return gui.DOMPlugin.q ( this.spirit.element, selector, type );
-	},
+		/**
+		 * Get first descendant element matching selector. Optional type argument returns 
+		 * spirit for first element to be associated to spirit of this type. Note that 
+		 * this may not be the first element to match the selector. Also note that type 
+		 * performs slower than betting on <code>this.dom.q ( "tagname" ).spirit</code>
+		 * @param {String} selector
+		 * @param @optional {function} type Spirit constructor (eg. gui.Spirit)
+		 * @returns {Element|gui.Spirit}
+		 */
+		q : function ( selector, type ) {
+			return gui.DOMPlugin.q ( this.spirit.element, selector, type );
+		},
 
-	/**
-	 * Get list of all descendant elements that matches a selector. Optional type  
-	 * arguments returns instead all associated spirits to match the given type.
-	 * @param {String} selector
-	 * @param @optional {function} type Spirit constructor
-	 * @returns {Array<Element|gui.Spirit>}
-	 */
-	qall : function ( selector, type ) {
-		return gui.DOMPlugin.qall ( this.spirit.element, selector, type );
-	},
+		/**
+		 * Get list of all descendant elements that matches a selector. Optional type  
+		 * arguments returns instead all associated spirits to match the given type.
+		 * @param {String} selector
+		 * @param @optional {function} type Spirit constructor
+		 * @returns {Array<Element|gui.Spirit>}
+		 */
+		qall : function ( selector, type ) {
+			return gui.DOMPlugin.qall ( this.spirit.element, selector, type );
+		},
 
-	/**
-	 * Same as q, but scoped from the document root. Use wisely.
-	 * @param {String} selector
-	 * @param @optional {function} type Spirit constructor
-	 * returns {Element|gui.Spirit}
-	 */
-	qdoc : function ( selector, type ) {
-		var root = this.spirit.document.documentElement;
-		return root.spirit.dom.q.apply ( root.spirit.dom, arguments );
-	},
+		/**
+		 * Same as q, but scoped from the document root. Use wisely.
+		 * @param {String} selector
+		 * @param @optional {function} type Spirit constructor
+		 * returns {Element|gui.Spirit}
+		 */
+		qdoc : function ( selector, type ) {
+			var root = this.spirit.document.documentElement;
+			return root.spirit.dom.q.apply ( root.spirit.dom, arguments );
+		},
 
-	/**
-	 * Same as qall, but scoped from the document root. Use wisely.
-	 * @param {String} selector
-	 * @param @optional {function} type Spirit constructor
-	 * @returns {Array<Element|gui.Spirit>}
-	 */
-	qdocall : function ( selector, type ) {
-		var root = this.spirit.document.documentElement;
-		return root.spirit.dom.qall.apply ( root.spirit.dom, arguments );
-	}
-
-	/**
-	 * Adding methods to gui.DOMPlugin.prototype
-	 * @param {String} name
-	 * @param {function} method
-	 */
-}, function mixin ( name, method ) {
-	gui.DOMPlugin.mixin ( name, function () {
-		var selector = arguments [ 0 ], type = arguments [ 1 ];
-		if ( gui.Type.isString ( selector )) {
-			if ( arguments.length === 1 || gui.Type.isFunction ( type )) {
-				return method.apply ( this, arguments );
-			} else {
-				type = gui.Type.of ( type );
-				throw new TypeError ( "Unknown spirit for query: " + name + "(" + selector + "," + type + ")" );
-			}
-		} else {
-			throw new TypeError ( "Bad selector for query: " + name + "(" + selector + ")" );
+		/**
+		 * Same as qall, but scoped from the document root. Use wisely.
+		 * @param {String} selector
+		 * @param @optional {function} type Spirit constructor
+		 * @returns {Array<Element|gui.Spirit>}
+		 */
+		qdocall : function ( selector, type ) {
+			var root = this.spirit.document.documentElement;
+			return root.spirit.dom.qall.apply ( root.spirit.dom, arguments );
 		}
-	});
-});
+
+	}, function ( name, base ) {
+		return function () {
+			var selector = arguments [ 0 ], type = arguments [ 1 ];
+			if ( gui.Type.isString ( selector )) {
+				if ( arguments.length === 1 || gui.Type.isFunction ( type )) {
+					return base.apply ( this, arguments );
+				} else {
+					type = gui.Type.of ( type );
+					throw new TypeError ( "Unknown spirit for query: " + name + "(" + selector + "," + type + ")" );
+				}
+			} else {
+				throw new TypeError ( "Bad selector for query: " + name + "(" + selector + ")" );
+			}
+		};
+	})
+);
 
 /**
  * DOM navigation methods accept an optional spirit constructor as 
  * argument. They return a spirit, an element or an array of either.
  * @TODO: Support two arguments + arguments magic for all of these :/
  */
-gui.Object.each ({
+gui.DOMPlugin.mixin (
+	gui.Object.map ({
 
-	/**
-	 * Next element or next spirit of given type.
-	 * @param @optional {function} type Spirit constructor
-	 * @returns {Element|gui.Spirit}
-	 */
-	next : function ( type ) {	
-		var result = null, 
-			spirit = null,
-			el = this.spirit.element;
-		if ( type ) {
-			while (( el = el.nextElementSibling ) !== null ) {
-				spirit = el.spirit;
-				if ( spirit !== null && spirit instanceof type ) {
-					result = spirit;
-					break;
-				}
-			}
-		} else {
-			result = el.nextElementSibling;
-		}
-		return result;
-	},
-
-	/**
-	 * Previous element or previous spirit of given type.
-	 * @param @optional {function} type Spirit constructor
-	 * @returns {Element|gui.Spirit}
-	 */
-	previous : function ( type ) {
-		var result = null,
-			spirit = null,
-			el = this.spirit.element;
-		if ( type ) {
-			while (( el = el.previousElementSibling ) !== null ) {
-				spirit = el.spirit;
-				if ( spirit !== null && spirit instanceof type ) {
-					result = spirit;
-					break;
-				}
-			}
-		} else {
-			result = el.previousElementSibling;
-		}
-		return result;
-	},
-
-	/**
-	 * First element or first spirit of type.
-	 * @param @optional {function} type Spirit constructor
-	 * @returns {Element|gui.Spirit}
-	 */
-	first : function ( type ) {
-		var result = null,
-			spirit = null,
-			el = this.spirit.element.firstElementChild;
-		if ( type ) {
-			while ( result === null && el !== null ) {
-				spirit = el.spirit;
-				if ( spirit !== null && spirit instanceof type ) {
-					result = spirit;
-				}
-				el = el.nextElementSibling;
-			}
-		} else {
-			result = el; 
-		}
-		return result;
-	},
-
-	/**
-	 * Last element or last spirit of type.
-	 * @param @optional {function} type Spirit constructor
-	 * @returns {Element|gui.Spirit}
-	 */
-	last : function ( type ) {
-		var result = null,
-			spirit = null,
-			el = this.spirit.element.lastElementChild;
-		if ( type ) {
-			while ( result === null && el !== null ) {
-				spirit = el.spirit;
-				if ( spirit !== null && spirit instanceof type ) {
-					result = spirit;
-				}
-				el = el.previoustElementSibling;
-			}
-		} else {
-			result = el; 
-		}
-		return result;
-	},
-
-	/**
-	 * Parent parent or parent spirit of type.
-	 * @param @optional {function} type Spirit constructor
-	 * @returns {Element|gui.Spirit}
-	 */
-	parent : function ( type ) {
-		var result = this.spirit.element.parentNode;
-		if ( type ) {
-			var spirit = result.spirit;
-			if ( spirit && spirit instanceof type ) {
-				result = spirit;
-			} else {
-				result = null;
-			}
-		}
-		return result;
-	},
-
-	/**
-	 * Child element or child spirit of type.
-	 * @param @optional {function} type Spirit constructor
-	 * @returns {Element|gui.Spirit}
-	 */
-	child : function ( type ) {
-		var result = this.spirit.element.firstElementChild;
-		if ( type ) {
-			result = this.children ( type )[ 0 ] || null;
-		}
-		return result;
-	},
-
-	/**
-	 * Children elements or children spirits of type.
-	 * @TODO just use this.element.children :)
-	 * @param @optional {function} type Spirit constructor
-	 * @returns {Array<Element|gui.Spirit>}
-	 */
-	children : function ( type ) {
-		var result = gui.Array.from ( this.spirit.element.children );
-		if ( type ) {
-			result = result.filter ( function ( elm ) {
-				return elm.spirit && elm.spirit instanceof type;
-			}).map ( function ( elm ) {
-				return elm.spirit;
-			});
-		}
-		return result;
-	},
-
-	/**
-	 * First ancestor element (parent!) or first ancestor spirit of type.
-	 * @param @optional {function} type Spirit constructor
-	 * @returns {Element|gui.Spirit}
-	 */
-	ancestor : function ( type ) {
-		var result = this.parent ();
-		if ( type ) {
-			result = null;
-			new gui.Crawler ().ascend ( this.spirit.element, {
-				handleSpirit : function ( spirit ) {
-					if ( spirit instanceof type ) {
+		/**
+		 * Next element or next spirit of given type.
+		 * @param @optional {function} type Spirit constructor
+		 * @returns {Element|gui.Spirit}
+		 */
+		next : function ( type ) {	
+			var result = null, 
+				spirit = null,
+				el = this.spirit.element;
+			if ( type ) {
+				while (( el = el.nextElementSibling ) !== null ) {
+					spirit = el.spirit;
+					if ( spirit !== null && spirit instanceof type ) {
 						result = spirit;
-						return gui.Crawler.STOP;
+						break;
 					}
 				}
-			});
-		}
-		return result;
-	},
+			} else {
+				result = el.nextElementSibling;
+			}
+			return result;
+		},
 
-	/**
-	 * First ancestor elements or ancestor spirits of type.
-	 * @param @optional {function} type Spirit constructor
-	 * @returns {Array<Element|gui.Spirit>}
-	 */
-	ancestors : function ( type ) {
-		var result = [];
-		var crawler = new gui.Crawler ();
-		if ( type ) {	
-			crawler.ascend ( this.element, {
-				handleSpirit : function ( spirit ) {
-					if ( spirit instanceof type ) {
-						result.push ( spirit );
+		/**
+		 * Previous element or previous spirit of given type.
+		 * @param @optional {function} type Spirit constructor
+		 * @returns {Element|gui.Spirit}
+		 */
+		previous : function ( type ) {
+			var result = null,
+				spirit = null,
+				el = this.spirit.element;
+			if ( type ) {
+				while (( el = el.previousElementSibling ) !== null ) {
+					spirit = el.spirit;
+					if ( spirit !== null && spirit instanceof type ) {
+						result = spirit;
+						break;
 					}
 				}
-			});
-		} else {
-			crawler.ascend ( this.element, {
-				handleElement : function ( el ) {
-					result.push ( el );
-				}
-			});
-		}
-		return result;
-	},
+			} else {
+				result = el.previousElementSibling;
+			}
+			return result;
+		},
 
-	/**
-	 * First descendant element (first child!) first descendant spirit of type.
-	 * @param @optional {function} type Spirit constructor
-	 * @returns {Element|gui.Spirit}
-	 */
-	descendant : function ( type ) {
-		var result = this.child ();
-		var me = this.spirit.element;
-		if ( type ) {
-			new gui.Crawler ().descend ( me, {
-				handleSpirit : function ( spirit ) {
-					if ( spirit instanceof type ) {
-						if ( spirit.element !== me ) {
+		/**
+		 * First element or first spirit of type.
+		 * @param @optional {function} type Spirit constructor
+		 * @returns {Element|gui.Spirit}
+		 */
+		first : function ( type ) {
+			var result = null,
+				spirit = null,
+				el = this.spirit.element.firstElementChild;
+			if ( type ) {
+				while ( result === null && el !== null ) {
+					spirit = el.spirit;
+					if ( spirit !== null && spirit instanceof type ) {
+						result = spirit;
+					}
+					el = el.nextElementSibling;
+				}
+			} else {
+				result = el; 
+			}
+			return result;
+		},
+
+		/**
+		 * Last element or last spirit of type.
+		 * @param @optional {function} type Spirit constructor
+		 * @returns {Element|gui.Spirit}
+		 */
+		last : function ( type ) {
+			var result = null,
+				spirit = null,
+				el = this.spirit.element.lastElementChild;
+			if ( type ) {
+				while ( result === null && el !== null ) {
+					spirit = el.spirit;
+					if ( spirit !== null && spirit instanceof type ) {
+						result = spirit;
+					}
+					el = el.previoustElementSibling;
+				}
+			} else {
+				result = el; 
+			}
+			return result;
+		},
+
+		/**
+		 * Parent parent or parent spirit of type.
+		 * @param @optional {function} type Spirit constructor
+		 * @returns {Element|gui.Spirit}
+		 */
+		parent : function ( type ) {
+			var result = this.spirit.element.parentNode;
+			if ( type ) {
+				var spirit = result.spirit;
+				if ( spirit && spirit instanceof type ) {
+					result = spirit;
+				} else {
+					result = null;
+				}
+			}
+			return result;
+		},
+
+		/**
+		 * Child element or child spirit of type.
+		 * @param @optional {function} type Spirit constructor
+		 * @returns {Element|gui.Spirit}
+		 */
+		child : function ( type ) {
+			var result = this.spirit.element.firstElementChild;
+			if ( type ) {
+				result = this.children ( type )[ 0 ] || null;
+			}
+			return result;
+		},
+
+		/**
+		 * Children elements or children spirits of type.
+		 * @TODO just use this.element.children :)
+		 * @param @optional {function} type Spirit constructor
+		 * @returns {Array<Element|gui.Spirit>}
+		 */
+		children : function ( type ) {
+			var result = gui.Array.from ( this.spirit.element.children );
+			if ( type ) {
+				result = result.filter ( function ( elm ) {
+					return elm.spirit && elm.spirit instanceof type;
+				}).map ( function ( elm ) {
+					return elm.spirit;
+				});
+			}
+			return result;
+		},
+
+		/**
+		 * First ancestor element (parent!) or first ancestor spirit of type.
+		 * @param @optional {function} type Spirit constructor
+		 * @returns {Element|gui.Spirit}
+		 */
+		ancestor : function ( type ) {
+			var result = this.parent ();
+			if ( type ) {
+				result = null;
+				new gui.Crawler ().ascend ( this.spirit.element, {
+					handleSpirit : function ( spirit ) {
+						if ( spirit instanceof type ) {
 							result = spirit;
 							return gui.Crawler.STOP;
 						}
 					}
-				}
-			});
-		}
-		return result;
-	},
+				});
+			}
+			return result;
+		},
 
-	/**
-	 * All descendant elements or all descendant spirits of type.
-	 * @param @optional {function} type Spirit constructor
-	 * @returns {Array<Element|gui.Spirit>}
-	 */
-	descendants : function ( type ) {
-		var result = [];
-		var me = this.spirit.element;
-		new gui.Crawler ().descend ( me, {
-			handleElement : function ( element ) {
-				if ( !type && element !== me ) {
-					result.push ( element );
-				}
-			},
-			handleSpirit : function ( spirit ) {
-				if ( type && spirit instanceof type ) {
-					if ( spirit.element !== me ) {
-						result.push ( spirit );
+		/**
+		 * First ancestor elements or ancestor spirits of type.
+		 * @param @optional {function} type Spirit constructor
+		 * @returns {Array<Element|gui.Spirit>}
+		 */
+		ancestors : function ( type ) {
+			var result = [];
+			var crawler = new gui.Crawler ();
+			if ( type ) {	
+				crawler.ascend ( this.element, {
+					handleSpirit : function ( spirit ) {
+						if ( spirit instanceof type ) {
+							result.push ( spirit );
+						}
+					}
+				});
+			} else {
+				crawler.ascend ( this.element, {
+					handleElement : function ( el ) {
+						result.push ( el );
+					}
+				});
+			}
+			return result;
+		},
+
+		/**
+		 * First descendant element (first child!) first descendant spirit of type.
+		 * @param @optional {function} type Spirit constructor
+		 * @returns {Element|gui.Spirit}
+		 */
+		descendant : function ( type ) {
+			var result = this.child ();
+			var me = this.spirit.element;
+			if ( type ) {
+				new gui.Crawler ().descend ( me, {
+					handleSpirit : function ( spirit ) {
+						if ( spirit instanceof type ) {
+							if ( spirit.element !== me ) {
+								result = spirit;
+								return gui.Crawler.STOP;
+							}
+						}
+					}
+				});
+			}
+			return result;
+		},
+
+		/**
+		 * All descendant elements or all descendant spirits of type.
+		 * @param @optional {function} type Spirit constructor
+		 * @returns {Array<Element|gui.Spirit>}
+		 */
+		descendants : function ( type ) {
+			var result = [];
+			var me = this.spirit.element;
+			new gui.Crawler ().descend ( me, {
+				handleElement : function ( element ) {
+					if ( !type && element !== me ) {
+						result.push ( element );
+					}
+				},
+				handleSpirit : function ( spirit ) {
+					if ( type && spirit instanceof type ) {
+						if ( spirit.element !== me ) {
+							result.push ( spirit );
+						}
 					}
 				}
-			}
-		});
-		return result;
-	},
+			});
+			return result;
+		},
 
-	preceding : function ( type ) {
-		console.error ( "TODO" );
-	},
-
-	following : function ( type ) {
-		var result = [], spirit, el = this.spirit.element;
-		while (( el = el.nextElementSibling )) {
-			if ( type && ( spirit = el.spirit )) {
-				if ( spirit instanceof type ) {
-					result.push ( spirit );
+		/**
+		 * Get following sibling elements or spirits of type.
+		 * @param @optional {function} type
+		 * @returns {Array<element|gui.Spirit>}
+		 */
+		following : function ( type ) {
+			var result = [], spirit, el = this.spirit.element;
+			while (( el = el.nextElementSibling )) {
+				if ( type && ( spirit = el.spirit )) {
+					if ( spirit instanceof type ) {
+						result.push ( spirit );
+					}
+				} else {
+					result.push ( el );
 				}
-			} else {
-				result.push ( el );
 			}
-		}
-		return result;
-	}
+			return result;
+		},
 
-	/**
-	 * Adding methods to gui.DOMPlugin.prototype
-	 * @TODO test for undefined type (spelling mistake etc.)
-	 * @param {String} name
-	 * @param {function} method
-	 */
-}, function mixin ( name, method ) {
-	gui.DOMPlugin.mixin ( name, function ( type ) {
-		if ( !gui.Type.isDefined ( type ) || gui.Type.isFunction ( type )) {
-			return method.apply ( this, arguments );
-		} else {
-			throw new TypeError ( 
-				"Unknown spirit for query: " + name + 
-				"(" + gui.Type.of ( type ) + ")" 
-			);
+		/**
+		 * Get preceding sibling elements or spirits of type.
+		 * @param @optional {function} type
+		 * @returns {Array<element|gui.Spirit>}
+		 */
+		preceding : function ( type ) {
+			var result = [], spirit, el = this.spirit.element;
+			while (( el = el.previousElementSibling )) {
+				if ( type && ( spirit = el.spirit )) {
+					if ( spirit instanceof type ) {
+						result.push ( spirit );
+					}
+				} else {
+					result.push ( el );
+				}
+			}
+			return result;
 		}
-	});
-});
+
+	}, function map ( name, base ) {
+		return function ( Type ) {
+			if ( !gui.Type.isDefined ( Type ) || gui.Type.isFunction ( Type )) {
+				return base.apply ( this, arguments );
+			} else {
+				throw new TypeError ( 
+					"Unknown spirit for query: " + name + 
+					"(" + gui.Type.of ( Type ) + ")" 
+				);
+			}
+		};
+	})
+);
 
 
 /**
@@ -791,87 +804,88 @@ gui.Object.each ({
  * this.something = this.dom.append ( gui.SomeThingSpirit.summon ( this.document )); // imagine 15 more
  * @TODO Go for compliance with DOM4 method matches (something about textnoding string arguments)
  */
-gui.Object.each ({
+gui.DOMPlugin.mixin (
+	gui.Object.map ({
 
-	/**
-	 * Append spirit OR element OR array of either.
-	 * @param {object} things Complicated argument
-	 * @returns {object} Returns the argument
-	 */
-	append : function ( things ) {
-		var els = things, element = this.spirit.element;
-		els.forEach ( function ( el ) {
-			element.appendChild ( el );
-		});
-	},
+		/**
+		 * Append spirit OR element OR array of either.
+		 * @param {object} things Complicated argument
+		 * @returns {object} Returns the argument
+		 */
+		append : function ( things ) {
+			var els = things, element = this.spirit.element;
+			els.forEach ( function ( el ) {
+				element.appendChild ( el );
+			});
+		},
 
-	/**
-	 * Prepend spirit OR element OR array of either.
-	 * @param {object} things Complicated argument
-	 * @returns {object} Returns the argument
-	 */
-	prepend : function ( things ) {
-		var els = things, element = this.spirit.element, first = element.firstChild;
-		els.reverse ().forEach ( function ( el ) {
-			element.insertBefore ( el, first );
-		});
-	},
+		/**
+		 * Prepend spirit OR element OR array of either.
+		 * @param {object} things Complicated argument
+		 * @returns {object} Returns the argument
+		 */
+		prepend : function ( things ) {
+			var els = things, element = this.spirit.element, first = element.firstChild;
+			els.reverse ().forEach ( function ( el ) {
+				element.insertBefore ( el, first );
+			});
+		},
 
-	/**
-	 * Insert spirit OR element OR array of either before this spirit.
-	 * @param {object} things Complicated argument
-	 * @returns {object} Returns the argument
-	 */
-	before : function ( things ) {
-		var els = things, target = this.spirit.element, parent = target.parentNode;
-		els.reverse ().forEach ( function ( el ) {
-			parent.insertBefore ( el, target );
-		});
-	},
+		/**
+		 * Insert spirit OR element OR array of either before this spirit.
+		 * @param {object} things Complicated argument
+		 * @returns {object} Returns the argument
+		 */
+		before : function ( things ) {
+			var els = things, target = this.spirit.element, parent = target.parentNode;
+			els.reverse ().forEach ( function ( el ) {
+				parent.insertBefore ( el, target );
+			});
+		},
 
-	/**
-	 * Insert spirit OR element OR array of either after this spirit.
-	 * @param {object} things Complicated argument
-	 * @returns {object} Returns the argument
-	 */
-	after : function ( things ) {
-		var els = things, target = this.spirit.element, parent = target.parentNode;
-		els.forEach ( function ( el ) {
-			parent.insertBefore ( el, target.nextSibling );
-		});
-	},
+		/**
+		 * Insert spirit OR element OR array of either after this spirit.
+		 * @param {object} things Complicated argument
+		 * @returns {object} Returns the argument
+		 */
+		after : function ( things ) {
+			var els = things, target = this.spirit.element, parent = target.parentNode;
+			els.forEach ( function ( el ) {
+				parent.insertBefore ( el, target.nextSibling );
+			});
+		},
 
-	/**
-	 * Replace the spirit with something else. This may nuke the spirit.
-	 * Note that this method is called on the spirit, not on the parent.
-	 * @param {object} things Complicated argument. 
-	 * @returns {object} Returns the argument
-	 */
-	replace : function ( things ) {
-		this.after ( things );
-		this.remove ();
-	}
-
-	/**
-	 * Adding methods to gui.DOMPlugin.prototype. These methods come highly overloaded.
-	 * 
-	 * 1. Convert arguments to array of one or more elements
-	 * 2. Confirm array of elements (exception supressed pending IE9 issue)
-	 * 3. Invoke the method
-	 * 4. Return the input
-	 * @param {String} name
-	 * @param {function} method
-	 */
-}, function mixin ( name, method ) {
-	gui.DOMPlugin.mixin ( name, function ( things ) {
-		var elms = Array.map ( gui.Array.make ( things ), function ( thing ) {
-			return thing && thing instanceof gui.Spirit ? thing.element : thing;
-		}).filter ( function ( thing ) { // @TODO IE9 may sometimes for some reason throw and array in here :/ must investigate!!!
-			return thing && gui.Type.isNumber ( thing.nodeType ); // first check added for FF which now may fail as well :/
-		});
-		if ( elms.length ) {
-			method.call ( this, elms );
+		/**
+		 * Replace the spirit with something else. This may nuke the spirit.
+		 * Note that this method is called on the spirit, not on the parent.
+		 * @param {object} things Complicated argument. 
+		 * @returns {object} Returns the argument
+		 */
+		replace : function ( things ) {
+			this.after ( things );
+			this.remove ();
 		}
-		return things;
-	});
-});
+
+	}, function map ( name, base ) {
+
+		/*
+		 * 1. Convert arguments to array of one or more elements
+		 * 2. Confirm array of elements (exception supressed pending IE9 issue)
+		 * 3. Invoke the base
+		 * 4. Return the input
+		 * @param {String} name
+		 * @param {function} base
+		 */
+		return function ( things ) {
+			var elms = Array.map ( gui.Array.make ( things ), function ( thing ) {
+				return thing && thing instanceof gui.Spirit ? thing.element : thing;
+			}).filter ( function ( thing ) { // @TODO IE9 may sometimes for some reason throw an array in here :/ must investigate!!!
+				return thing && gui.Type.isNumber ( thing.nodeType ); // first check added for FF which now may fail as well :/
+			});
+			if ( elms.length ) {
+				base.call ( this, elms );
+			}
+			return things;
+		};
+	})
+);

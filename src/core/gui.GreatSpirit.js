@@ -22,15 +22,45 @@ gui.GreatSpirit = {
 		return "[object gui.GreatSpirit]";
 	},
 
+	/**
+	 * Nukefication moved to next tick. This will minimize chaos, 
+	 * but does imply that for the duration of this tick, methods 
+	 * might be called on spirits that don't exist in the DOM. 
+	 * @TODO: Flag for this behavior (defaulting to off)?
+	 */
+	ontick : function ( t ) {
+		var spirit, spirits = this._spirits.slice ();
+		if ( t.type === gui.$TICK_DESTRUCT ) {
+			while (( spirit = spirits.shift ())) {
+				this.$nuke ( spirit );
+			}
+			this._spirits = [];
+		}
+	},
+
 
 	// Secret ..........................................................................
 
 	/**
+	 * Schedule to nuke the spirit.
+	 * @TODO: on `window.unload` nuke the spirit now
+	 * @param {gui.Spirit} spirit
+	 */
+	$meet : function ( spirit ) {
+		this._spirits.push ( spirit );
+		gui.Tick.dispatch ( gui.$TICK_DESTRUCT, 0 );
+	},
+
+	/**
+	 * Nuke that spirit.
+	 * 
 	 * - Nuke lazy plugins so that we don't accidentally instantiate them
 	 * - Destruct remaining plugins, saving the {gui.Life} plugin for last
 	 * - Replace all properties with an accessor to throw an exception
+	 * 
+	 * @param {gui.Spirit} spirit
 	 */
-	$meet : function ( spirit ) {
+	$nuke : function ( spirit ) {
 		var prefixes = [], plugins = spirit.life.plugins;
 		gui.Object.each ( plugins, function ( prefix, instantiated ) {
 			if ( instantiated ) {
@@ -147,6 +177,12 @@ gui.GreatSpirit = {
 	// Private ..........................................................................
 
 	/**
+	 * Spirits scheduled for destruction.
+	 * @type {Array<gui.Spirit>}
+	 */
+	_spirits : [],
+
+	/**
 	 * In debug mode, throw a more qualified "attempt to handle destructed spirit".
 	 * @param {object} thing
 	 * @param {String} prop
@@ -164,3 +200,5 @@ gui.GreatSpirit = {
 		});
 	},
 };
+
+gui.Tick.add ( gui.$TICK_DESTRUCT, gui.GreatSpirit );

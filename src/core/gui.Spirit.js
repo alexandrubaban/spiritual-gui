@@ -151,7 +151,7 @@ gui.Spirit = gui.Class.create ( Object.prototype, {
 	},
 
 	/**
-	 * Secret destructor. Invoked after `ondestruct`.
+	 * Secret destructor. Invoked before `ondestruct`.
 	 */
 	$ondestruct : function () {},
 

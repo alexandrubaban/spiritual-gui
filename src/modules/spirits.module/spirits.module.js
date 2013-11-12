@@ -74,7 +74,11 @@ gui.module ( "spirits", {
 			}
 
 			this.onevent ( e );
-		}
+		},
+
+		$ondestruct : gui.Combo.before ( function () {
+			this.handleEvent = function () {};
+		})( gui.Spirit.prototype.$ondestruct )
 	}
 
 });

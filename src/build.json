@@ -34,7 +34,6 @@
 	"core/gui.Spirit.js",
 	"core/gui.Plugin.js",
 	"core/gui.Tracker.js",
-	"core/gui.GreatSpirit.js",
 
 	"modules/core.module/plugins/action.plugin/gui.Action.js",
 	"modules/core.module/plugins/action.plugin/gui.ActionPlugin.js",
@@ -52,6 +51,7 @@
 	"core/gui.Guide.js",
 	"dom/gui.DOMChanger.js",
 	"dom/gui.DOMCombos.js",
+	"core/gui.GreatSpirit.js",
 
 	"modules/spirits.module/plugins/life.plugin/gui.Life.js",
 	"modules/spirits.module/plugins/life.plugin/gui.LifePlugin.js",

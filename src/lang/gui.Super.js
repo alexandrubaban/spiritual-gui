@@ -100,20 +100,20 @@ gui.Object.each ({ // generating static methods
 	_decorator : function ( SuperC ) {
 		return function ( base ) {
 			return function () {
-				return gui.Super._try ( this, base, arguments, SuperC );
+				return gui.Super._super ( this, base, arguments, SuperC );
 			};
 		};
 	},
 
 	/**
-	 * Attempt to base apply method of superclass to instance with given arguments.
+	 * Attempt to apply base method of superclass to instance.
 	 * @param {object} that
 	 * @param {function} base
 	 * @param {Arguments} args
 	 * @param {function} SuperC
 	 * @returns {object}
 	 */
-	_try : function ( that, base, args, SuperC ) {
+	_super : function ( that, base, args, SuperC ) {
 		var res, sub = gui.Super.$subject;
 		if ( that ) {
 			gui.Super.$subject = that;
@@ -127,7 +127,7 @@ gui.Object.each ({ // generating static methods
 	},
 
 	/**
-	 * Fail on async execution given the tricky setup above.
+	 * Fails on async execution given the tricky setup above.
 	 */
 	_fail : function () {
 		throw new Error ( gui.Super._ASYNCERROR );

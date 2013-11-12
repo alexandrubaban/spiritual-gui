@@ -4,6 +4,7 @@
  * @TODO Evaluate static stuff first so that proto can declare vals as static props 
  * @TODO Check if static stuff shadows recurring static (vice versa) and warn about it.
  * @TODO It's possible for a prototype to be a prototype, investigate this inception
+ * @TODO Assign uppercase properties as constants
  */
 gui.Class = {
 
@@ -47,7 +48,7 @@ gui.Class = {
 	// Secret ...............................................................................
 
 	/**
-	 * The 'this' keyword around here points to the instance via 'apply'.
+	 * The `this` keyword around here points to the instance via `apply`.
 	 * @param {object} instance
 	 * @param {Arguments} arg
 	 */
@@ -87,11 +88,11 @@ gui.Class = {
 
 	/**
 	 * Self-executing function creates a string property _BODY 
-	 * which we can as constructor body for classes. The $name 
+	 * which we can as constructor body for classes. The `$name` 
 	 * will be substituted for the class name. Note that if 
-	 * called without the 'new' keyword, the function acts 
+	 * called without the `new` keyword, the function acts 
 	 * as a shortcut the the MyClass.extend method (against 
-	 * convention, which is to silently imply the 'new' keyword).
+	 * convention, which is to silently imply the `new` keyword).
 	 * @type {String}
 	 */
 	_BODY : ( function ( $name ) {
@@ -220,12 +221,12 @@ gui.Class = {
 	},
 
 	/**
-	 * Setup standard static methods for extension and mixins.
+	 * Setup standard static methods for extension, mixin and instance checking.
 	 * @param {function} C
 	 * @returns {function}
 	 */
 	_interface : function ( C ) {
-		[ "extend", "mixin", "isInstance" ].forEach ( function ( method ) {
+		[ "extend", "mixin", "is" ].forEach ( function ( method ) {
 			C [ method ] = this [ method ];
 		}, this );
 		return C;
@@ -312,24 +313,35 @@ gui.Object.each ({
 	},
 
 	/**
-	 * Mixin something on prototype while checking for naming collision.
-	 * This method is called on the class constructor: MyClass.mixin()
-	 * @TODO http://www.nczonline.net/blog/2012/12/11/are-your-mixins-ecmascript-5-compatible
-	 * @param {String} name
-	 * @param {object} value
-	 * @param @optional {boolean} override Disable collision detection
+	 * Mixin something.
+	 * @param {object} proto
+	 * @param {object} recurring
+	 * @param {object} statics
+	 * @returns {function}
 	 */
-	mixin : function ( name, value, override ) {
-		if ( !gui.Type.isDefined ( this.prototype [ name ]) || override ) {
-			this.prototype [ name ] = value;
-			gui.Class.descendantsAndSelf ( this, function ( C ) {
-				if ( C.$super ) { // mixed in method gets added to the _super objects...
-					gui.Super.generateStub ( C.$super, C.prototype, name );
+	mixin : function ( proto, recurring, statics ) {
+		Array.forEach ( arguments, function ( mixins, i ) {
+			if ( mixins ) {
+				if ( i === 0 ) {
+					gui.Object.each ( mixins, function ( name, value ) {
+						this.prototype [ name ] = value;
+						gui.Class.descendantsAndSelf ( this, function ( C ) {
+							if ( C.$super ) {
+								gui.Super.generateStub ( C.$super, C.prototype, name );
+							}
+						});
+					}, this );
+				} else {
+					gui.Object.each ( mixins, function ( name, value ) {
+						this [ name ] = value;
+						if ( i === 1 ) {
+							this.$recurring [ name ] =  value;
+						}
+					}, this );
 				}
-			});
-		} else {
-			console.error ( "Mixin naming collision in " + this + ": " + name );
-		}
+			}
+		}, this );
+		return this;
 	},
 
 	/**
@@ -345,7 +357,7 @@ gui.Object.each ({
 	 * Deprecated API.
 	 */
 	isInstance : function () {
-		console.error ( "isInstance is derecated" );
+		console.error ( "Deprecated API is derecated" );
 	}
 
 

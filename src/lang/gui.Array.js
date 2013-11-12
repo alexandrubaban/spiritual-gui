@@ -19,7 +19,7 @@ gui.Array = {
 	 * Converts a single argument that is an array-like object or list into a fresh array.
 	 * https://gist.github.com/rwaldron/1074126
 	 * @param {object} arg
-	 * @return {Array}
+	 * @returns {Array}
 	 */
 	from : ( function () {
 		return ( Array.from ) || function ( arg ) {

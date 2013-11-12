@@ -1,5 +1,5 @@
 /**
- * Spirit of the root HTML element.
+ * Spirit of the HTML element.
  * @extends {gui.Spirit}
  */
 gui.DocumentSpirit = gui.Spirit.extend ({
@@ -59,12 +59,6 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 		this._super.onaction ( a );
 		this.action.$handleownaction = false;
 		switch ( a.type ) {
-			/*
-			case gui.ACTION_DOC_FIT : // relay fit, but claim ourselves as new target
-				a.consume ();
-				this.fit ( a.data === true );
-				break;
-			*/
 			case gui.$ACTION_XFRAME_VISIBILITY : 
 				this._waiting = false;
 				if ( a.data === true ) {
@@ -138,12 +132,6 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 				gui.ACTION_DOC_ONLOAD,
 				this.window.location.href
 			);
-			/*
-			var that = this;
-			setTimeout ( function () {
-				that.fit ();
-			}, gui.Client.STABLETIME );
-			*/
 		} else {
 			console.warn ( "@TODO loaded twice..." );
 		}
@@ -160,21 +148,6 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 		this.action.dispatchGlobal ( gui.ACTION_DOC_UNLOAD, this.window.location.href );
 		this.broadcast.dispatchGlobal ( gui.BROADCAST_WILL_UNLOAD, id );
 		this.broadcast.dispatchGlobal ( gui.BROADCAST_UNLOAD, id );
-	},
-
-	/**
-	 * TODO: rename to "seamless" or "fitiframe" ?
-	 * Dispatch fitness info. Please invoke this method whenever 
-	 * height changes: Parent iframes will resize to fit content.
-	 */
-	fit : function ( force ) {
-		if ( this._loaded || force ) {
-			var dim = this._getDimension ();
-			if ( !gui.Dimension.isEqual ( this._dimension, dim )) {
-				this._dimension = dim;
-				this._dispatchFit ();
-			}
-		}
 	},
 
 	/**
@@ -258,13 +231,6 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 				break;
 			case "message" :
 				this._onmessage ( e.data, e.origin, e.source );
-				/* TEMPHACK 
-				if (e.data.indexOf('spiritual') !== -1) {
-					this._onmessage ( e.data, e.origin, e.source );
-				} else {
-					gui.Broadcast.$dispatch ({spirithack: true, global: true, data: e.data, target: null});
-				}
-				*/
 				break;
 			case "hashchange" :
 				this.action.dispatchGlobal ( 
@@ -278,7 +244,6 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 	/**
 	 * Fire global broadcast on DOM event.
 	 * @param {Event} e
-	 * @param {String} message
 	 */
 	_broadcastevent : function ( e ) {
 		gui.broadcastGlobal (({
@@ -310,13 +275,11 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 				if ( msg.startsWith ( pattern )) {
 					var a = gui.Action.parse ( msg );
 					if ( a.direction === gui.Action.DESCEND ) {
-						//if ( a.$instanceid === this.window.gui.$contextid ) {
-							this.action.$handleownaction = true;
-							this.action.descendGlobal ( 
-								a.type, 
-								a.data
-							);
-						//}
+						this.action.$handleownaction = true;
+						this.action.descendGlobal ( 
+							a.type, 
+							a.data
+						);
 					}
 				}
 			}

@@ -150,26 +150,43 @@ gui.Spiritual.prototype = {
 					spirit = element ? element.spirit : null;
 				}
 				break;
-			case "TODO" :
+			case "function" :
+				var sp, spirits = this._spirits.inside;
+				if ( gui.Type.isSpiritConstructor ( arg )) {
+					Object.keys ( this._spirits.inside ).some ( function ( key ) {
+						if ((( sp = spirits [ key ]).constructor === arg )) {
+							spirit = sp;
+							return true;
+						}
+					});
+				}
 				break;
+			case "undefined" :
+				throw new TypeError ();
 		}
 		return spirit || null;
 	},
 
 	/**
 	 * Call function upon everything spiritualized.
-	 * @param {function} action
+	 * @todo support `onready` object handler
+	 * @param @optional {function} action
 	 * @param @optional {object} thisp
+	 * @returns {boolean} True when ready already
 	 */
 	ready : function ( action, thisp ) {
-		if ( this.spiritualized ) {
-			action.call ( thisp );
-		} else {
-			this._onreadys = this._onreadys || [];
-			this._onreadys.push ( function () {
+		var is = this.spiritualized;
+		if ( arguments.length ) {
+			if ( is ) {
 				action.call ( thisp );
-			});
+			} else {
+				this._onreadys = this._onreadys || [];
+				this._onreadys.push ( function () {
+					action.call ( thisp );
+				});
+			}
 		}
+		return is;
 	},
 
 	/**
@@ -760,7 +777,11 @@ gui.Spiritual.prototype = {
 
 	// Work in progress .............................................................
 
+	/**
+	 * Called by the {gui.Guide} when document was initially spiritualized.
+	 */
 	$onready : function () {
+		this.spiritualized = true;
 		var list = this._onreadys;
 		if ( list ) {
 			while ( list.length ) {

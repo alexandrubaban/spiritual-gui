@@ -115,9 +115,10 @@ window.gui = {
 	/**
 	 * Tick types (timed events)
 	 */
-	TICK_DOC_FIT : "gui-tick-document-fit", // @TODO: this in DocumentSpirit
+	TICK_DOC_FIT : "gui-tick-document-fit", // @TODO: deprecated
 	$TICK_INSIDE : "gui-tick-spirits-inside",
 	$TICK_OUTSIDE : "gui-tick-spirits-outside",
+	$TICK_DESTRUCT : "gui-tick-spirits-destruct",
 
 	/**
 	 * Crawler types

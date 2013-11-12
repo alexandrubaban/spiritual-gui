@@ -10,7 +10,7 @@ gui.Object = {
 	 * @param {object} props
 	 */
 	create : function ( proto, props ) {
-		var resolved = Object.create ( null );
+		var resolved = {};
 		Object.keys ( props ).forEach ( function ( prop ) {
 			resolved [ prop ] = {
 				value : props [ prop ],
@@ -57,15 +57,15 @@ gui.Object = {
   },
 
   /**
+   * @deprecated : There's an 'Object.mixin' thing now...
    * Mixin something with collision detection.
-   * @TODO There's an 'Object.mixin' thing now...
    * @TODO bypass extend?
    * @param {object]} target
    * @param {String} key
    * @param {object} value
    * @param {boolean} override
    * @returns {object}
-   */
+   *
   mixin : function ( target, key, value, override ) {
 		if ( !gui.Type.isDefined ( target [ key ]) || override ) {
 			target [ key ] = value; // @TODO: warning when target is gui.Class (super support)
@@ -74,13 +74,14 @@ gui.Object = {
 		}
 		return target;
 	},
+	*/
 
   /**
    * Copy object.
    * @returns {object}
    */
   copy : function ( source ) {
-		return this.extend ( Object.create ( null ), source );
+		return this.extend ({}, source );
   },
 
   /**
@@ -112,28 +113,48 @@ gui.Object = {
 	},
 
 	/**
-	 * Lookup object for string of type "my.ns.Thing" in given context. 
+	 * Create new object by passing all property 
+	 * names and values through a resolver call.
+	 * @param {object} source
+	 * @param {function} domap
+	 * @returns {object}
+	 */
+	map : function ( source, domap ) {
+		var result = {};
+		this.each ( source, function ( key, value ) {
+			result [ key ] = domap ( key, value );
+		});
+		return result;
+	},
+
+	/**
+	 * Lookup object for string of type "my.ns.Thing" in given context or this window.
 	 * @param {String} opath Object path eg. "my.ns.Thing"
 	 * @param @optional {Window} context
 	 * @returns {object}
 	 */
 	lookup : function ( opath, context ) {
 		var result, struct = context || self;
-		if ( !opath.contains ( "." )) {
-			result = struct [ opath ];
+		if ( gui.Type.isString ( opath )) {
+			if ( !opath.contains ( "." )) {
+				result = struct [ opath ];
+			} else {
+				var parts = opath.split ( "." );
+				parts.every ( function ( part ) {
+					struct = struct [ part ];
+					return gui.Type.isDefined ( struct );
+				});
+				result = struct;
+			}
 		} else {
-			var parts = opath.split ( "." );
-			parts.every ( function ( part ) {
-				struct = struct [ part ];
-				return gui.Type.isDefined ( struct );
-			});
-			result = struct;
+			throw new TypeError ( "Expected an string, got " + gui.Type.of ( opath ));
 		}
 		return result;
 	},
 
 	/**
 	 * Update property of object in given context based on string input.
+	 * @todo Rename "declare"
 	 * @param {String} opath Object path eg. "my.ns.Thing.name"
 	 * @param {object} value Property value eg. `"Johnson` or"` `[]`
 	 * @param @optional {Window|object} context 
