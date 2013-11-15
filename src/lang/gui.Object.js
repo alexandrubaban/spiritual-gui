@@ -32,15 +32,17 @@ gui.Object = {
 	 * @returns {object}
 	 */
 	extend : function ( target, source, loose ) {
+		var hiding = this._hiding;
 		if ( gui.Type.isObject ( source )) {
 			Object.keys ( source ).forEach ( function ( key ) {
 				if ( !loose || !gui.Type.isDefined ( target [ key ])) {
 					var desc = Object.getOwnPropertyDescriptor ( source, key );
+					desc = hiding ? gui.Object._hide ( desc ) : desc;
 					Object.defineProperty ( target, key, desc );
 				}
-			});
+			}, this );
 		} else {
-			throw new TypeError ( "Expected an object, got " + gui.Type.of ( source ));
+			throw new TypeError ( "Expected  object, got " + gui.Type.of ( source ));
 		}
     return target;
   },
@@ -55,26 +57,6 @@ gui.Object = {
   extendmissing : function ( target, source ) {
 		return this.extend ( target, source, true );
   },
-
-  /**
-   * @deprecated : There's an 'Object.mixin' thing now...
-   * Mixin something with collision detection.
-   * @TODO bypass extend?
-   * @param {object]} target
-   * @param {String} key
-   * @param {object} value
-   * @param {boolean} override
-   * @returns {object}
-   *
-  mixin : function ( target, key, value, override ) {
-		if ( !gui.Type.isDefined ( target [ key ]) || override ) {
-			target [ key ] = value; // @TODO: warning when target is gui.Class (super support)
-		} else {
-			console.error ( "Mixin naming collision in " + target + ": " + key );
-		}
-		return target;
-	},
-	*/
 
   /**
    * Copy object.
@@ -147,7 +129,7 @@ gui.Object = {
 				result = struct;
 			}
 		} else {
-			throw new TypeError ( "Expected an string, got " + gui.Type.of ( opath ));
+			throw new TypeError ( "Expected string, got " + gui.Type.of ( opath ));
 		}
 		return result;
 	},
@@ -234,12 +216,41 @@ gui.Object = {
 	},
 
 	/**
-	 * @deprecated
-	 * Convert array-like object to array.
-	 * @param {object} object
-	 * @returns {Array<object>}
+   * Sugar for creating non-enumerable function properties (methods). 
+   * To be be used in combination with `gui.Object.extend` for effect.
+   * `mymethod : gui.Object.hidden ( function () {})' 
+   * @param {function} method
+   * @return {function}
+   */
+  hidden : function ( method ) {
+		gui.Object._hiding = true;
+		method.$hidden = true;
+		return method;
+  },
+
+
+	// Private ...........................................
+	 
+	 /**
+	  * Hiding any methods from inspection? 
+	  * Otherwise economize a function call.
+	  * @see {edb.Object#extend}
+	  * @type {boolean}
+	  */
+	_hiding : false,
+
+	/**
+	 * Modify method descriptor to hide from inspection. 
+	 * Do note that the method may still be called upon.
+	 * @param {object} desc
+	 * @returns {object}
 	 */
-	toArray : function ( ) {
-		console.error ( "deprecated" );
+	_hide : function ( desc ) {
+		if ( desc.value && gui.Type.isFunction ( desc.value )) {
+			if ( desc.value.$hidden && desc.configurable ) {
+				desc.enumerable = false;	
+			}
+		}
+		return desc;
 	}
 };

@@ -99,8 +99,8 @@ gui.Object.each ({ // generating static methods
 	 */
 	_decorator : function ( SuperC ) {
 		return function ( base ) {
-			return function () {
-				return gui.Super._super ( this, base, arguments, SuperC );
+			return function supercall () {
+				return gui.Super._supercall ( this, base, arguments, SuperC );
 			};
 		};
 	},
@@ -113,7 +113,7 @@ gui.Object.each ({ // generating static methods
 	 * @param {function} SuperC
 	 * @returns {object}
 	 */
-	_super : function ( that, base, args, SuperC ) {
+	_supercall : function ( that, base, args, SuperC ) {
 		var res, sub = gui.Super.$subject;
 		if ( that ) {
 			gui.Super.$subject = that;

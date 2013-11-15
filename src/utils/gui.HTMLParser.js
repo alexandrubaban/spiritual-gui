@@ -1,5 +1,5 @@
 /**
- * Parsing markup strings to DOM objects.
+ * Parsing markup strings to DOM nodes.
  */
 gui.HTMLParser = {
 
@@ -9,6 +9,56 @@ gui.HTMLParser = {
 	 */
 	toString : function () {
 		return "[object gui.HTMLParser]";
+	},
+
+	/**
+	 * Parse to element.
+	 * @param {String} markup
+	 * @param @optional {Document} targetdoc
+	 * @returns {Node}
+	 */
+	parse : function ( markup, targetdoc ) {
+		return this.parseAll ( markup, targetdoc )[ 0 ] || null;
+	},
+
+	/**
+	 * Parse to array of one or more elements.
+	 * @param {String} markup
+	 * @param @optional {Document} targetdoc
+	 * @returns {Array<Element>}
+	 */
+	parseAll : function ( markup, targetdoc ) {
+		return this.parseToNodes ( markup, targetdoc ).filter ( function ( node ) {
+			return node.nodeType === Node.ELEMENT_NODE;
+		});
+	},
+
+	/**
+	 * Parse to node.
+	 * @param {String} markup
+	 * @param @optional {Document} targetdoc
+	 * @returns {Node}
+	 */
+	parseToNode : function ( markup, targetdoc ) {
+		return this.parseToNodes ( markup, targetdoc )[ 0 ] || null;
+	},
+
+	/**
+	 * Parse to array of one or more nodes.
+	 * @param {String} markup
+	 * @param @optional {Document} targetdoc
+	 * @returns {Array<Node>}
+	 */
+	parseToNodes : function ( markup, targetdoc ) {
+		var elm, doc = this._document || 
+			( this._document = document.implementation.createHTMLDocument ( "" ));
+		return gui.Guide.suspend ( function () {
+			doc.body.innerHTML = this._insaneitize ( markup );
+			elm = doc.querySelector ( "." + this._classname ) || doc.body;
+			return Array.map ( elm.childNodes, function ( node ) {
+				return ( targetdoc || document ).importNode ( node, true );
+			});
+		}, this );
 	},
 
 	/**
@@ -36,24 +86,6 @@ gui.HTMLParser = {
 			}
 			return doc;
 		});
-	},
-
-	/**
-	 * Parse to array of one or more nodes.
-	 * @param {String} markup
-	 * @param @optional {Document} targetdoc
-	 * @returns {Array<Node>}
-	 */
-	parseToNodes : function ( markup, targetdoc ) {
-		var elm, doc = this._document || 
-			( this._document = document.implementation.createHTMLDocument ( "" ));
-		return gui.Guide.suspend ( function () {
-			doc.body.innerHTML = this._insaneitize ( markup );
-			elm = doc.querySelector ( "." + this._classname ) || doc.body;
-			return Array.map ( elm.childNodes, function ( node ) {
-				return targetdoc ? targetdoc.importNode ( node, true ) : node;
-			});
-		}, this );
 	},
 
 

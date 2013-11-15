@@ -87,6 +87,7 @@ gui.Class = {
 	ANONYMOUS	 : "Anonymous",
 
 	/**
+	 * @TODO Memoize this!
 	 * Self-executing function creates a string property _BODY 
 	 * which we can as constructor body for classes. The `$name` 
 	 * will be substituted for the class name. Note that if 
@@ -196,7 +197,23 @@ gui.Class = {
 				C [ key ] = val;
 			}
 		});
-		gui.Property.extendall ( protos, C.prototype ); // @TODO what about base?
+
+		/*
+		gui.Object.each ( protos, function ( name, value ) {
+			if ( gui.Type.isFunction ( value )) {
+				var m = protos [ name ];
+				protos [ name ] = function () {
+					try {
+						return m.apply ( this, arguments );
+					} catch ( x ) {
+						//console.error ( this + "." + name + "(" + arguments.join (",") + ")" );
+					}
+				};
+			}
+		});
+*/
+
+		gui.Property.extendall ( protos, C.prototype );
 		gui.Super.support ( SuperC, C, protos );
 		C = this._classname ( C, name );
 		return C;

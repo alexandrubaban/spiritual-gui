@@ -4,7 +4,7 @@
 gui.Function = {
 
 	/**
-	 * Create named function.
+	 * Create named function. This may not be the most optimized thing to compile.
 	 * @see https://mail.mozilla.org/pipermail/es-discuss/2009-March/008954.html
 	 * @see http://wiki.ecmascript.org/doku.php?id=strawman:name_property_of_functions
 	 * @param @optional {String} name
@@ -90,6 +90,7 @@ gui.Function = {
 	},
 
 	/**
+	 * SOON DEPRECATED.
 	 * Method was already decorated with something that looks 
 	 * somewhat identical? We need this to bypass a setup where 
 	 * modules in shared frames would redecorate stuff on init.
@@ -102,7 +103,8 @@ gui.Function = {
 		var result = true;
 		var string = decorator.toString ();
 		var decoed = target.$decorators || ( function () {
-			return ( target.$decorators = Object.create ( null ));
+			target.$decorators = Object.create ( null );
+			return target.$decorators;
 		}());
 		if (( result = decoed [ name ] !== string )) {
 			decoed [ name ] = string;

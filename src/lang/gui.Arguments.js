@@ -28,6 +28,8 @@ gui.Arguments = {
 			return function () {
 				if ( gui.Arguments._validate ( arguments, types )) {
 					return action.apply ( this, arguments );
+				} else {
+					gui.Arguments._abort ( this );
 				}
 			};
 		};
@@ -41,6 +43,12 @@ gui.Arguments = {
 	 * @type {boolean}
 	 */
 	_validating : false,
+
+	/**
+	 * Error repporting.
+	 * @type {Array<String>}
+	 */
+	_bugsummary : null,
 
 	/**
 	 * Use this to check the runtime signature of a function call: 
@@ -95,22 +103,25 @@ gui.Arguments = {
 				( !needs && split.indexOf ( "*" ) >-1 ) || 
 				split.indexOf ( input ) >-1 );
 		if ( !match && this._validating ) {
-			this._error ( index, xpect, input, arg );
+			this._bugsummary = [ index, xpect, input ];
 		}
 		return match;
 	},
 
 	/**
-	 * Report validation error for argument at index.
-	 * @param {number} index
-	 * @param {string} xpect
-	 * @param {string} input
+	 * Throw exception.
+	 * @TODO: Rig up to report offended methods name.
+	 * @param {object} that
+	 * @param {Array<String>} report
 	 */
-	_error : function ( index, xpect, input, arg ) {
-		console.error ( 
-			"Argument " + index + ": " + 
-			"Expected " + xpect + 
-			", got " + input + ": " + arg
-		);
+	_abort : function ( that ) {
+		var summ = this._bugsummary;
+		var name = that.constructor.$classname || String ( that );
+		throw new TypeError ([
+			"Bad argument " + summ.shift (),
+			"for " + name + ":",
+			"Expected " + summ.shift () + ",",
+			"got " + summ.shift (),
+		].join ( " " ));
 	}
 };
