@@ -197,22 +197,6 @@ gui.Class = {
 				C [ key ] = val;
 			}
 		});
-
-		/*
-		gui.Object.each ( protos, function ( name, value ) {
-			if ( gui.Type.isFunction ( value )) {
-				var m = protos [ name ];
-				protos [ name ] = function () {
-					try {
-						return m.apply ( this, arguments );
-					} catch ( x ) {
-						//console.error ( this + "." + name + "(" + arguments.join (",") + ")" );
-					}
-				};
-			}
-		});
-*/
-
 		gui.Property.extendall ( protos, C.prototype );
 		gui.Super.support ( SuperC, C, protos );
 		C = this._classname ( C, name );
@@ -314,7 +298,7 @@ gui.Class = {
 
 // Class members .............................................................................
 
-gui.Object.each ({
+gui.Object.extend ( gui.Class, {
 
 	/**
 	 * Create subclass. This method is called on the class constructor: MyClass.extend()
@@ -376,16 +360,13 @@ gui.Object.each ({
 	isInstance : function () {
 		console.error ( "Deprecated API is derecated" );
 	}
-
-
-}, function ( name, method ) {
-	gui.Class [ name ] = method;
+	
 });
 
 
 // Class navigation .........................................................................
 
-gui.Object.each ({
+gui.Object.extend ( gui.Class, {
 
 	/**
 	 * Return superclass. If action is provided, return an array of the results 
@@ -486,6 +467,4 @@ gui.Object.each ({
 		return this.ancestors ( C, action, thisp, results );
 	}
 
-}, function ( name, method ) {
-	gui.Class [ name ] = method;
 });
