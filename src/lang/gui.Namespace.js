@@ -42,6 +42,17 @@ gui.Namespace.prototype = {
 	 * @param {String} name
 	 */
 	_spacename : function ( o, name ) {
+		gui.Object.each ( o, function ( key, value ) {
+			if ( key !== "$superclass" && gui.Type.isConstructor ( value )) {
+				if ( value.$classname === gui.Class.ANONYMOUS ) {
+					value.$classname = name + "." + key;
+					this._spacename ( value, name + "." + key );
+				}
+			}
+		}, this );
+		/*
+		 * Why did we do it like this? 
+		 *
 		var key, val;
 		for ( key in o ) {
 			if ( !o.hasOwnProperty || o.hasOwnProperty ( key )) {
@@ -55,6 +66,7 @@ gui.Namespace.prototype = {
 				}
 			}
 		}
+		*/
 	},
 
 

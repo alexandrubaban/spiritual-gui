@@ -210,15 +210,6 @@ gui.Spirit = gui.Class.create ( Object.prototype, {
 	 * @type {boolean}
 	 */
 	portals : true,
-	
-	/**
-	 * It was fun.
-	 * @deprecated
-	 */
-	infuse : function () {
-		console.warn ( "Spirit.infuse() is deprecated. Use Spirit.extend()" );
-		return this.extend.apply ( this, arguments );
-	},
 
 	/**
 	 * Create DOM element and associate gui.Spirit instance.
@@ -239,7 +230,7 @@ gui.Spirit = gui.Class.create ( Object.prototype, {
 	},
 
 	/**
-	 * Extends spirit and plugins (mutating plugins) plus updates getters/setters.
+	 * Extends spirit and plugins (mutating plugins).
 	 * @TODO: validate that user isn't declaring non-primitives on the prototype (log warning).
 	 * @param {object} extension 
 	 * @param {object} recurring 
@@ -247,15 +238,12 @@ gui.Spirit = gui.Class.create ( Object.prototype, {
 	 * @returns {gui.Spirit}
 	 */
 	extend : function () {
-		
 		var args = [], def, br = gui.Class.breakdown ( arguments );
 		[ "name", "protos", "recurring", "statics" ].forEach ( function ( key ) {
 			if (( def = br [ key ])) {
-				//args.push ( key === "recurring" ? gui.Spirit.$longhand ( def ) : def );
 				args.push ( def );
 			}
 		}, this );
-		
 		var C = gui.Class.extend.apply ( this, args );
 		C.$plugins = gui.Object.copy ( this.$plugins );
 		var b = gui.Class.breakdown ( arguments );

@@ -160,6 +160,11 @@ gui.Class = {
 		C = this._internals ( C, SuperC );
 		C = this._interface ( C );
 		C = this._classname ( C, name );
+		gui.Property.accessor ( C.prototype, "$classname", {
+			getter : function () {
+				return this.constructor.$classname;
+			}
+		});
 		return C;
 	},
 
@@ -250,7 +255,7 @@ gui.Class = {
 		};
 		/*
 		 * TODO: apparently needs to be moved to the instance (in constructor)!
-		 */
+		 *
 		[ C, C.prototype ].forEach ( function ( thing ) {
 			Object.defineProperty ( thing, "displayName",
 				gui.Property.nonenumerable ({
@@ -259,6 +264,7 @@ gui.Class = {
 				})
 			);
 		});
+		*/
 		return C;
 	},
 

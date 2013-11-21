@@ -68,7 +68,8 @@ gui.Object = {
 
   /**
 	 * Call function for each own key in object (exluding the prototype stuff) 
-	 * with key and value as arguments. Returns array of function call results.
+	 * with key and value as arguments. Returns array of function call results. 
+	 * Function results that are `undefined` get's filtered out of this list.
 	 * @param {object} object
 	 * @param {function} func
 	 * @param @optional {object} thisp
@@ -76,6 +77,8 @@ gui.Object = {
 	each : function ( object, func, thisp ) {
 		return Object.keys ( object ).map ( function ( key ) {
 			return func.call ( thisp, key, object [ key ]);
+		}).filter ( function ( result ) {
+			return result !== undefined;
 		});
 	},
 
@@ -96,15 +99,20 @@ gui.Object = {
 
 	/**
 	 * Create new object by passing all property 
-	 * names and values through a resolver call.
+	 * names and values through a resolver call. 
+	 * Eliminate values that map to `undefined`.
 	 * @param {object} source
 	 * @param {function} domap
+	 * @param @optional {object} thisp
 	 * @returns {object}
 	 */
-	map : function ( source, domap ) {
-		var result = {};
+	map : function ( source, domap, thisp ) {
+		var result = {}, mapping;
 		this.each ( source, function ( key, value ) {
-			result [ key ] = domap ( key, value );
+			mapping = domap.call ( thisp, key, value );
+			if ( mapping !== undefined ) {
+				result [ key ] = mapping;
+			}
 		});
 		return result;
 	},
