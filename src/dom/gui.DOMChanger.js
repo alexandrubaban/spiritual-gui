@@ -4,7 +4,7 @@
 gui.DOMChanger = {
 
 	/**
-	 * Declare 'spirit' as a fundamental property of things.
+	 * Declare `spirit` as a fundamental property of things.
 	 * @param {Window} win
 	 */
 	setup : function ( win ) {
