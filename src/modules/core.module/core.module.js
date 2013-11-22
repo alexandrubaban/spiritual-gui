@@ -1,7 +1,7 @@
 /**
  * It's the core module.
  */
-gui.module ( "core", {
+gui.module ( "core@wunderbyte.com", {
 
 	/**
 	 * Assign plugins to all spirits.

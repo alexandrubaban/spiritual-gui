@@ -67,7 +67,10 @@ gui.DocumentSpirit = gui.Spirit.extend ({
 					this.visibility.off ();
 				}
 				a.consume ();
-				if ( this.window.gui.hasModule ( "flex" )){
+				/*
+				 * @TODO: move this into flex module
+				 */
+				if ( this.window.gui.hasModule ( "flex@wunderbyte.com" )){
 					this.flex.reflex ();
 				}
 				break;

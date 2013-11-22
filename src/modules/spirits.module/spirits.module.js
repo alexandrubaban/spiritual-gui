@@ -1,7 +1,7 @@
 /**
  * It's the spirits module.
  */
-gui.module ( "spirits", {
+gui.module ( "spirits@wunderbyte.com", {
 
 	/**
 	 * Channel spirits for CSS selectors.
