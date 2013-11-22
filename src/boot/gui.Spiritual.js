@@ -144,31 +144,49 @@ gui.Spiritual.prototype = {
 			case "string" :
 				if ( gui.KeyMaster.isKey ( arg )) {
 					spirit = this._spirits.inside [ arg ];
-				} else {
-					element = doc.querySelector ( arg ) || doc.getElementById ( arg );
+				}
+				if ( !spirit ) {
+					element = doc.getElementById ( arg ) || doc.querySelector ( arg );
 					spirit = element ? element.spirit : null;
 				}
 				break;
-			case "TODO" :
+			case "function" :
+				var sp, spirits = this._spirits.inside;
+				if ( gui.Type.isSpiritConstructor ( arg )) {
+					Object.keys ( this._spirits.inside ).some ( function ( key ) {
+						if ((( sp = spirits [ key ]).constructor === arg )) {
+							spirit = sp;
+							return true;
+						}
+					});
+				}
 				break;
+			case "undefined" :
+				throw new TypeError ();
 		}
 		return spirit || null;
 	},
 
 	/**
 	 * Call function upon everything spiritualized.
-	 * @param {function} action
+	 * @todo support `onready` object handler
+	 * @param @optional {function} action
 	 * @param @optional {object} thisp
+	 * @returns {boolean} True when ready already
 	 */
 	ready : function ( action, thisp ) {
-		if ( this.spiritualized ) {
-			action.call ( thisp );
-		} else {
-			this._onreadys = this._onreadys || [];
-			this._onreadys.push ( function () {
+		var is = this.spiritualized;
+		if ( arguments.length ) {
+			if ( is ) {
 				action.call ( thisp );
-			});
+			} else {
+				this._onreadys = this._onreadys || [];
+				this._onreadys.push ( function () {
+					action.call ( thisp );
+				});
+			}
 		}
+		return is;
 	},
 
 	/**
@@ -337,7 +355,8 @@ gui.Spiritual.prototype = {
 	},
 	
 	/**
-	 * List spiritual namespaces (returns a copy).
+	 * @deprecated
+	 * List declared namespaces.
 	 * @return {Array<String>}
 	 */
 	namespaces : function () {
@@ -758,7 +777,11 @@ gui.Spiritual.prototype = {
 
 	// Work in progress .............................................................
 
+	/**
+	 * Called by the {gui.Guide} when document was initially spiritualized.
+	 */
 	$onready : function () {
+		this.spiritualized = true;
 		var list = this._onreadys;
 		if ( list ) {
 			while ( list.length ) {
@@ -772,8 +795,10 @@ gui.Spiritual.prototype = {
 	 * Experimental.
 	 */
 	_experimental : function () {
+		this.$ns = "gui";
+		gui.Object.extendmissing ( this, gui.Namespace.prototype );
 		this._spaces.forEach ( function ( ns ) {
-			this._questionable ( gui.Object.lookup ( ns, this.window ), ns );
+			gui.Object.lookup ( ns, this.window ).spacename ();
 		}, this );
 	},
 
@@ -786,7 +811,7 @@ gui.Spiritual.prototype = {
 
 	/**
 	 * Questionable.
-	 */
+	 *
 	_questionable : function ( home, name ) {
 		var key;
 		var val;
@@ -811,6 +836,7 @@ gui.Spiritual.prototype = {
 			}
 		}
 	}
+	*/
 
 };
 

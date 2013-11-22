@@ -1,5 +1,5 @@
 /**
- * Something that has position and width and height.
+ * Something that has 2D position and width and height.
  * @param {number} x
  * @param {number} y
  * @param {number} w
@@ -43,11 +43,11 @@ gui.Geometry.prototype = {
 	 * @returns {String}
 	 */
 	toString : function () {
-		return "[object gui.Geometry(" + this.x + "," + this.y +"," + this.w +"," + this.h + ")]";
+		return "[object gui.Geometry]";
 	},
 
 	/**
-	 * Intersects another geometry?
+	 * Intersects another (2D) geometry?
 	 * @param {gui.Geometry} geo
 	 */
 	hitTest : function ( geo ) {

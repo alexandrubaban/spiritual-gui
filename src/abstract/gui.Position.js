@@ -2,10 +2,12 @@
  * Something that has position.
  * @param {number} x
  * @param {number} y
+ * @param {number} z
  */
-gui.Position = function ( x, y ) {
+gui.Position = function ( x, y, z ) {
 	this.x = x || 0;
 	this.y = y || 0;
+	this.z = z || 0;
 };
 
 gui.Position.prototype = {
@@ -23,11 +25,17 @@ gui.Position.prototype = {
 	y : 0,
 
 	/**
+	 * Z position.
+	 * @type {number}
+	 */
+	z : 0,	
+
+	/**
 	 * Identification.
 	 * @returns {String}
 	 */
 	toString : function () {
-		return "[object gui.Position(" + this.x + "," + this.y + ")]";
+		return "[object gui.Position]";
 	},
 
 	/**
@@ -35,7 +43,7 @@ gui.Position.prototype = {
 	 * @returns {gui.Position}
 	 */
 	clone : function () {
-		return new gui.Position ( this.x, this.y );
+		return new gui.Position ( this.x, this.y, this.z );
 	}
 };
 

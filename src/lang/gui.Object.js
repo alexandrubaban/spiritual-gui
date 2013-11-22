@@ -10,7 +10,7 @@ gui.Object = {
 	 * @param {object} props
 	 */
 	create : function ( proto, props ) {
-		var resolved = Object.create ( null );
+		var resolved = {};
 		Object.keys ( props ).forEach ( function ( prop ) {
 			resolved [ prop ] = {
 				value : props [ prop ],
@@ -32,15 +32,17 @@ gui.Object = {
 	 * @returns {object}
 	 */
 	extend : function ( target, source, loose ) {
+		var hiding = this._hiding;
 		if ( gui.Type.isObject ( source )) {
 			Object.keys ( source ).forEach ( function ( key ) {
 				if ( !loose || !gui.Type.isDefined ( target [ key ])) {
 					var desc = Object.getOwnPropertyDescriptor ( source, key );
+					desc = hiding ? gui.Object._hide ( desc ) : desc;
 					Object.defineProperty ( target, key, desc );
 				}
-			});
+			}, this );
 		} else {
-			throw new TypeError ( "Expected an object, got " + gui.Type.of ( source ));
+			throw new TypeError ( "Expected  object, got " + gui.Type.of ( source ));
 		}
     return target;
   },
@@ -57,35 +59,17 @@ gui.Object = {
   },
 
   /**
-   * Mixin something with collision detection.
-   * @TODO There's an 'Object.mixin' thing now...
-   * @TODO bypass extend?
-   * @param {object]} target
-   * @param {String} key
-   * @param {object} value
-   * @param {boolean} override
-   * @returns {object}
-   */
-  mixin : function ( target, key, value, override ) {
-		if ( !gui.Type.isDefined ( target [ key ]) || override ) {
-			target [ key ] = value; // @TODO: warning when target is gui.Class (super support)
-		} else {
-			console.error ( "Mixin naming collision in " + target + ": " + key );
-		}
-		return target;
-	},
-
-  /**
    * Copy object.
    * @returns {object}
    */
   copy : function ( source ) {
-		return this.extend ( Object.create ( null ), source );
+		return this.extend ({}, source );
   },
 
   /**
 	 * Call function for each own key in object (exluding the prototype stuff) 
-	 * with key and value as arguments. Returns array of function call results.
+	 * with key and value as arguments. Returns array of function call results. 
+	 * Function results that are `undefined` get's filtered out of this list.
 	 * @param {object} object
 	 * @param {function} func
 	 * @param @optional {object} thisp
@@ -93,6 +77,8 @@ gui.Object = {
 	each : function ( object, func, thisp ) {
 		return Object.keys ( object ).map ( function ( key ) {
 			return func.call ( thisp, key, object [ key ]);
+		}).filter ( function ( result ) {
+			return result !== undefined;
 		});
 	},
 
@@ -112,28 +98,53 @@ gui.Object = {
 	},
 
 	/**
-	 * Lookup object for string of type "my.ns.Thing" in given context. 
+	 * Create new object by passing all property 
+	 * names and values through a resolver call. 
+	 * Eliminate values that map to `undefined`.
+	 * @param {object} source
+	 * @param {function} domap
+	 * @param @optional {object} thisp
+	 * @returns {object}
+	 */
+	map : function ( source, domap, thisp ) {
+		var result = {}, mapping;
+		this.each ( source, function ( key, value ) {
+			mapping = domap.call ( thisp, key, value );
+			if ( mapping !== undefined ) {
+				result [ key ] = mapping;
+			}
+		});
+		return result;
+	},
+
+	/**
+	 * Lookup object for string of type "my.ns.Thing" in given context or this window.
 	 * @param {String} opath Object path eg. "my.ns.Thing"
 	 * @param @optional {Window} context
 	 * @returns {object}
 	 */
 	lookup : function ( opath, context ) {
 		var result, struct = context || self;
-		if ( !opath.contains ( "." )) {
-			result = struct [ opath ];
+		if ( gui.Type.isString ( opath )) {
+			if ( !opath.contains ( "." )) {
+				result = struct [ opath ];
+			} else {
+				var parts = opath.split ( "." );
+				parts.every ( function ( part ) {
+					struct = struct [ part ];
+					return gui.Type.isDefined ( struct );
+				});
+				result = struct;
+			}
 		} else {
-			var parts = opath.split ( "." );
-			parts.every ( function ( part ) {
-				struct = struct [ part ];
-				return gui.Type.isDefined ( struct );
-			});
-			result = struct;
+			throw new TypeError ( "Expected string, got " + gui.Type.of ( opath ));
 		}
 		return result;
 	},
 
 	/**
 	 * Update property of object in given context based on string input.
+	 * @todo Rename "declare"
 	 * @param {String} opath Object path eg. "my.ns.Thing.name"
 	 * @param {object} value Property value eg. `"Johnson` or"` `[]`
 	 * @param @optional {Window|object} context 
@@ -213,26 +224,41 @@ gui.Object = {
 	},
 
 	/**
-	 * @TODO: Move this to `gui.Array.from` and match ES6 `Array.from`
-	 * Convert array-like object to array. Always returns an array.
-	 * @param {object} object
-	 * @returns {Array<object>}
+   * Sugar for creating non-enumerable function properties (methods). 
+   * To be be used in combination with `gui.Object.extend` for effect.
+   * `mymethod : gui.Object.hidden ( function () {})' 
+   * @param {function} method
+   * @return {function}
+   */
+  hidden : function ( method ) {
+		gui.Object._hiding = true;
+		method.$hidden = true;
+		return method;
+  },
+
+
+	// Private ................................................
+	 
+	 /**
+	  * Hiding any methods from inspection? 
+	  * Otherwise economize a function call.
+	  * @see {edb.Object#extend}
+	  * @type {boolean}
+	  */
+	_hiding : false,
+
+	/**
+	 * Modify method descriptor to hide from inspection. 
+	 * Do note that the method may still be called upon.
+	 * @param {object} desc
+	 * @returns {object}
 	 */
-	toArray : function ( object ) {
-		var result = [];
-		if ( gui.Type.isArray ( object )) {
-			result = object;
-		} else {
-			try {
-				if ( gui.Type.isDefined ( object.length ) && ( "0" in Object ( object ))) {
-					// @TODO: investigate all round usefulness of [].slice.call ( object )
-					result = Array.map ( object, function ( thing ) {
-						return thing;
-					});
-					
-				}
-			} catch ( exception ) {}
-	  }
-		return result;
+	_hide : function ( desc ) {
+		if ( desc.value && gui.Type.isFunction ( desc.value )) {
+			if ( desc.value.$hidden && desc.configurable ) {
+				desc.enumerable = false;	
+			}
+		}
+		return desc;
 	}
 };

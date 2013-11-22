@@ -92,7 +92,7 @@ gui.Client = ( new function Client () {
 
 	/**
 	 * Is mobile device? Not to be confused with this.hasTouch
-	 * @TODO gui.Observerice entity?
+	 * @TODO rename to isTouchDevice or something :/
 	 * @type {boolean}
 	 */
 	this.isMobile = ( function () {

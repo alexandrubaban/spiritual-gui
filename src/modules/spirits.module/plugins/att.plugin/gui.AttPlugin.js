@@ -40,6 +40,7 @@ gui.AttPlugin = ( function using ( confirmed, chained ) {
 
 		/**
 		 * Remove element attribute.
+		 * @TODO: Rename "remove" ???
 		 * @param {String} att
 		 * @returns {gui.AttPlugin}
 		 */
@@ -85,7 +86,7 @@ gui.AttPlugin = ( function using ( confirmed, chained ) {
 			chained ( function ( arg, handler ) {
 				handler = handler ? handler : this.spirit;
 				if ( gui.Interface.validate ( gui.IAttHandler, handler )) {
-					this._breakdown ( arg ).forEach ( function ( type ) {
+					gui.Array.make ( arg ).forEach ( function ( type ) {
 						this._addchecks ( type, [ handler ]);
 						this._onadd ( type );
 					}, this );
@@ -103,7 +104,7 @@ gui.AttPlugin = ( function using ( confirmed, chained ) {
 			chained ( function ( arg, handler ) {
 				handler = handler ? handler : this.spirit;
 				if ( gui.Interface.validate ( gui.IAttHandler, handler )) {
-					this._breakdown ( arg ).forEach ( function ( type ) {
+					gui.Array.make ( arg ).forEach ( function ( type ) {
 						this._removechecks ( type, [ handler ]);
 					}, this );
 				}
@@ -281,7 +282,7 @@ gui.AttPlugin = ( function using ( confirmed, chained ) {
 		 * @returns {Array<Attr>}
 		 */
 		all : function ( elm ) {
-			return gui.Object.toArray ( elm.attributes );
+			return gui.Array.from ( elm.attributes );
 		},
 
 		/**

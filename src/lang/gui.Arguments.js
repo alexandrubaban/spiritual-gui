@@ -8,7 +8,7 @@ gui.Arguments = {
 	 * Ignores action if no match.
 	 */
 	provided : function ( /* type1,type2,type3... */ ) {
-		var types = gui.Object.toArray ( arguments );
+		var types = gui.Array.from ( arguments );
 		return function ( action ) {
 			return function () {
 				if ( gui.Arguments._match ( arguments, types )) {
@@ -23,11 +23,13 @@ gui.Arguments = {
 	 * Throws an exception if no match.
 	 */
 	confirmed : function ( /* type1,type2,type3... */ ) {
-		var types = gui.Object.toArray ( arguments );
+		var types = gui.Array.from ( arguments );
 		return function ( action ) {
 			return function () {
 				if ( gui.Arguments._validate ( arguments, types )) {
 					return action.apply ( this, arguments );
+				} else {
+					gui.Arguments._abort ( this );
 				}
 			};
 		};
@@ -41,6 +43,12 @@ gui.Arguments = {
 	 * @type {boolean}
 	 */
 	_validating : false,
+
+	/**
+	 * Error repporting.
+	 * @type {Array<String>}
+	 */
+	_bugsummary : null,
 
 	/**
 	 * Use this to check the runtime signature of a function call: 
@@ -90,27 +98,30 @@ gui.Arguments = {
 		var needs = !xpect.startsWith ( "(" );
 		var split = this._xtract ( xpect, !needs ).split ( "|" );
 		var input = gui.Type.of ( arg );
-		var match = ( xpect === "*" 
-			|| ( !needs && input === "undefined" ) 
-			|| ( !needs && split.indexOf ( "*" ) >-1 ) 
-			|| split.indexOf ( input ) >-1 );
+		var match = ( xpect === "*" || 
+				( !needs && input === "undefined" ) || 
+				( !needs && split.indexOf ( "*" ) >-1 ) || 
+				split.indexOf ( input ) >-1 );
 		if ( !match && this._validating ) {
-			this._error ( index, xpect, input );
+			this._bugsummary = [ index, xpect, input ];
 		}
 		return match;
 	},
 
 	/**
-	 * Report validation error for argument at index.
-	 * @param {number} index
-	 * @param {string} xpect
-	 * @param {string} input
+	 * Throw exception.
+	 * @TODO: Rig up to report offended methods name.
+	 * @param {object} that
+	 * @param {Array<String>} report
 	 */
-	_error : function ( index, xpect, input ) {
-		console.error ( 
-			"Argument " + index + ": " + 
-			"Expected " + xpect + 
-			", got " + input
-		);
+	_abort : function ( that ) {
+		var summ = this._bugsummary;
+		var name = that.constructor.$classname || String ( that );
+		throw new TypeError ([
+			"Bad argument " + summ.shift (),
+			"for " + name + ":",
+			"Expected " + summ.shift () + ",",
+			"got " + summ.shift (),
+		].join ( " " ));
 	}
 };

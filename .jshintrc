@@ -8,7 +8,9 @@
 		"gui" : true,
 		"self" : true,
 		"alert" : true,
-		"ActiveXObject" : true
+		"ActiveXObject" : true,
+		"setImmediate" : true,
+		"requestAnimationFrame" : true
 	},
 	"globalstrict": false,
 	"quotmark": false,

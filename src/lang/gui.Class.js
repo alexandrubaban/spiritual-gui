@@ -4,6 +4,7 @@
  * @TODO Evaluate static stuff first so that proto can declare vals as static props 
  * @TODO Check if static stuff shadows recurring static (vice versa) and warn about it.
  * @TODO It's possible for a prototype to be a prototype, investigate this inception
+ * @TODO Assign uppercase properties as constants
  */
 gui.Class = {
 
@@ -47,13 +48,14 @@ gui.Class = {
 	// Secret ...............................................................................
 
 	/**
-	 * The 'this' keyword around here points to the instance via 'apply'.
+	 * The `this` keyword around here points to the instance via `apply`.
 	 * @param {object} instance
 	 * @param {Arguments} arg
 	 */
 	$constructor : function () {
 		var constructor = this.$onconstruct || this.onconstruct;
 		var nonenumprop = gui.Property.nonenumerable;
+		var returnvalue = this;
 		window.Object.defineProperties ( this, {
 			"$instanceid" : nonenumprop ({
 				value: gui.KeyMaster.generateKey ()
@@ -64,9 +66,9 @@ gui.Class = {
 			})
 		});
 		if ( gui.Type.isFunction ( constructor )) {
-			constructor.apply ( this, arguments );
+			returnvalue = constructor.apply ( this, arguments );
 		}
-		return this;
+		return returnvalue || this;
 	},
 	
 
@@ -85,12 +87,13 @@ gui.Class = {
 	ANONYMOUS	 : "Anonymous",
 
 	/**
+	 * @TODO Memoize this!
 	 * Self-executing function creates a string property _BODY 
-	 * which we can as constructor body for classes. The $name 
+	 * which we can as constructor body for classes. The `$name` 
 	 * will be substituted for the class name. Note that if 
-	 * called without the 'new' keyword, the function acts 
+	 * called without the `new` keyword, the function acts 
 	 * as a shortcut the the MyClass.extend method (against 
-	 * convention, which is to silently imply the 'new' keyword).
+	 * convention, which is to silently imply the `new` keyword).
 	 * @type {String}
 	 */
 	_BODY : ( function ( $name ) {
@@ -157,6 +160,11 @@ gui.Class = {
 		C = this._internals ( C, SuperC );
 		C = this._interface ( C );
 		C = this._classname ( C, name );
+		gui.Property.accessor ( C.prototype, "$classname", {
+			getter : function () {
+				return this.constructor.$classname;
+			}
+		});
 		return C;
 	},
 
@@ -194,7 +202,7 @@ gui.Class = {
 				C [ key ] = val;
 			}
 		});
-		gui.Property.extendall ( protos, C.prototype ); // @TODO what about base?
+		gui.Property.extendall ( protos, C.prototype );
 		gui.Super.support ( SuperC, C, protos );
 		C = this._classname ( C, name );
 		return C;
@@ -219,12 +227,12 @@ gui.Class = {
 	},
 
 	/**
-	 * Setup standard static methods for extension and mixins.
+	 * Setup standard static methods for extension, mixin and instance checking.
 	 * @param {function} C
 	 * @returns {function}
 	 */
 	_interface : function ( C ) {
-		[ "extend", "mixin", "isInstance" ].forEach ( function ( method ) {
+		[ "extend", "mixin", "is" ].forEach ( function ( method ) {
 			C [ method ] = this [ method ];
 		}, this );
 		return C;
@@ -247,7 +255,7 @@ gui.Class = {
 		};
 		/*
 		 * TODO: apparently needs to be moved to the instance (in constructor)!
-		 */
+		 *
 		[ C, C.prototype ].forEach ( function ( thing ) {
 			Object.defineProperty ( thing, "displayName",
 				gui.Property.nonenumerable ({
@@ -256,6 +264,7 @@ gui.Class = {
 				})
 			);
 		});
+		*/
 		return C;
 	},
 
@@ -295,7 +304,7 @@ gui.Class = {
 
 // Class members .............................................................................
 
-gui.Object.each ({
+gui.Object.extend ( gui.Class, {
 
 	/**
 	 * Create subclass. This method is called on the class constructor: MyClass.extend()
@@ -311,24 +320,35 @@ gui.Object.each ({
 	},
 
 	/**
-	 * Mixin something on prototype while checking for naming collision.
-	 * This method is called on the class constructor: MyClass.mixin()
-	 * @TODO http://www.nczonline.net/blog/2012/12/11/are-your-mixins-ecmascript-5-compatible
-	 * @param {String} name
-	 * @param {object} value
-	 * @param @optional {boolean} override Disable collision detection
+	 * Mixin something.
+	 * @param {object} proto
+	 * @param {object} recurring
+	 * @param {object} statics
+	 * @returns {function}
 	 */
-	mixin : function ( name, value, override ) {
-		if ( !gui.Type.isDefined ( this.prototype [ name ]) || override ) {
-			this.prototype [ name ] = value;
-			gui.Class.descendantsAndSelf ( this, function ( C ) {
-				if ( C.$super ) { // mixed in method gets added to the _super objects...
-					gui.Super.generateStub ( C.$super, C.prototype, name );
+	mixin : function ( proto, recurring, statics ) {
+		Array.forEach ( arguments, function ( mixins, i ) {
+			if ( mixins ) {
+				if ( i === 0 ) {
+					gui.Object.each ( mixins, function ( name, value ) {
+						this.prototype [ name ] = value;
+						gui.Class.descendantsAndSelf ( this, function ( C ) {
+							if ( C.$super ) {
+								gui.Super.generateStub ( C.$super, C.prototype, name );
+							}
+						});
+					}, this );
+				} else {
+					gui.Object.each ( mixins, function ( name, value ) {
+						this [ name ] = value;
+						if ( i === 1 ) {
+							this.$recurring [ name ] =  value;
+						}
+					}, this );
 				}
-			});
-		} else {
-			console.error ( "Mixin naming collision in " + this + ": " + name );
-		}
+			}
+		}, this );
+		return this;
 	},
 
 	/**
@@ -336,18 +356,23 @@ gui.Object.each ({
 	 * @param {object} object
 	 * @returns {boolean}
 	 */
-	isInstance : function ( object ) {
+	is : function ( object ) {
 		return gui.Type.isObject ( object ) && ( object instanceof this );
-	}
+	},
 
-}, function ( name, method ) {
-	gui.Class [ name ] = method;
+	/**
+	 * Deprecated API.
+	 */
+	isInstance : function () {
+		console.error ( "Deprecated API is derecated" );
+	}
+	
 });
 
 
 // Class navigation .........................................................................
 
-gui.Object.each ({
+gui.Object.extend ( gui.Class, {
 
 	/**
 	 * Return superclass. If action is provided, return an array of the results 
@@ -448,6 +473,4 @@ gui.Object.each ({
 		return this.ancestors ( C, action, thisp, results );
 	}
 
-}, function ( name, method ) {
-	gui.Class [ name ] = method;
 });

@@ -1,7 +1,7 @@
 /**
  * It's the spirits module.
  */
-gui.module ( "spirits", {
+gui.module ( "spirits@wunderbyte.com", {
 
 	/**
 	 * Channel spirits for CSS selectors.
@@ -26,7 +26,8 @@ gui.module ( "spirits", {
 		"css" : gui.CSSPlugin,
 		"dom" : gui.DOMPlugin,
 		"event" : gui.EventPlugin,
-		"life" : gui.LifePlugin
+		"life" : gui.LifePlugin,
+		"sprite" : gui.SpritePlugin
  },
 
 	/**
@@ -73,7 +74,11 @@ gui.module ( "spirits", {
 			}
 
 			this.onevent ( e );
-		}
+		},
+
+		$ondestruct : gui.Combo.before ( function () {
+			this.handleEvent = function () {};
+		})( gui.Spirit.prototype.$ondestruct )
 	}
 
 });

@@ -29,7 +29,7 @@ gui.EventPlugin = ( function using ( chained ) {
 			}
 			if ( gui.Interface.validate ( gui.IEventHandler, handler )) {
 				var checks = [ target, handler, capture ];
-				this._breakdown ( arg ).forEach ( function ( type ) {
+				gui.Array.make ( arg ).forEach ( function ( type ) {
 					if ( this._addchecks ( type, checks )) {
 						target.addEventListener ( type, handler, capture );
 					}
@@ -54,7 +54,7 @@ gui.EventPlugin = ( function using ( chained ) {
 			}
 			if ( gui.Interface.validate ( gui.IEventHandler, handler )) {
 				var checks = [ target, handler, capture ];
-				this._breakdown ( arg ).forEach ( function ( type ) {
+				gui.Array.make ( arg ).forEach ( function ( type ) {
 					if ( this._removechecks ( type, checks )) {
 						target.removeEventListener ( type, handler, capture );
 					}
@@ -78,7 +78,7 @@ gui.EventPlugin = ( function using ( chained ) {
 				target = target.element;
 			}
 			var checks = [ target, handler, capture ];
-			this._breakdown ( arg ).forEach ( function ( type ) {
+			gui.Array.make ( arg ).forEach ( function ( type ) {
 				if ( this._contains ( type, checks )) {
 					this.add ( type, target, handler, capture );
 				} else {

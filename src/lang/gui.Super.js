@@ -1,5 +1,5 @@
 /**
- * Det er bare super.
+ * Simplistic support for pseudokeyword 'this._super'. 
  * @param {function} C
  */
 gui.Super = function Super ( C ) {
@@ -11,11 +11,11 @@ gui.Super.prototype = Object.create ( null );
 
 // Static .......................................................................
 
-gui.Object.each ({ // generating static methods
+gui.Object.extend ( gui.Super, {
 
 	/**
-	 * Instance of gui.Class which is now invoking _super()
-	 * @type {object}
+	 * Class instance which is now invoking _super()
+	 * @type {gui.Class}
 	 */
 	$subject : null,
 
@@ -64,10 +64,12 @@ gui.Object.each ({ // generating static methods
 		gui.Object.each ( protos, function ( key, base ) {
 			if ( gui.Type.isMethod ( base )) {
 				proto [ key ] = combo ( base );
-				proto [ key ].toString = function () {
-					var original = base.toString ().replace ( /\t/g, "  " );
-					return gui.Super._DISCLAIMER + original;
-				};
+				if ( gui.debug ) {
+					proto [ key ].toString = function () {
+						var original = base.toString ().replace ( /\t/g, "  " );
+						return gui.Super._DISCLAIMER + original;
+					};
+				}
 			}
 		}, this );
 	},
@@ -81,28 +83,51 @@ gui.Object.each ({ // generating static methods
 	 * @type {String}
 	 */
 	_DISCLAIMER : "/**\n" +
-		"  * Method was overloaded by the framework. \n" +
-		"  * This is an approximation of the code :) \n" +
+		"  * Method was mutated by the framework. \n" +
+		"  * This is an approximation of the code. \n" +
 		"  */\n",
 
-		/**
+	/**
+	 * Excuses.
+	 * @type {String}
+	 */
+	_ERROR : "" +
+		"Lost the track in 'this._super'. Super doesn't work well in asynchronous code, are we using " +
+		"a timeout? Perhaps move the 'this._super' call to another method or use 'othermethod.apply(this)'",
+
+	/**
 	 * Get tricky decorator.
 	 * @param {function} SuperC
 	 * @returns {function}
 	 */
 	_decorator : function ( SuperC ) {
 		return function ( base ) {
-			return function () {
-				var sub = gui.Super.$subject;
-				gui.Super.$subject = this;
-				this._super = SuperC.$super;
-				var result = base.apply ( this, arguments );
-				gui.Super.$subject = sub;
-				return result;
+			return function supercall () {
+				return gui.Super._supercall ( this, base, arguments, SuperC );
 			};
 		};
+	},
+
+	/**
+	 * Attempt to apply base method of superclass to instance.
+	 * Fails on async execution given the fishy setup we have.
+	 * @param {object} that
+	 * @param {function} base
+	 * @param {Arguments} args
+	 * @param {function} SuperC
+	 * @returns {object}
+	 */
+	_supercall : function ( that, base, args, SuperC ) {
+		var res, sub = gui.Super.$subject;
+		if ( that ) {
+			gui.Super.$subject = that;
+			that._super = SuperC.$super;
+			res = base.apply ( that, args );
+			gui.Super.$subject = sub;
+		} else {
+			throw new ReferenceError ( gui.Super._ERROR );
+		}
+		return res;
 	}
 
-}, function ( name, value ) {
-	gui.Super [ name ] = value;
 });

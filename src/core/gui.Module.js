@@ -65,9 +65,12 @@ gui.Module = gui.Class.create ( Object.prototype, {
 	$onconstruct : function ( context ) {
 		var base = context.gui.Spirit;
 		if ( gui.Type.isObject ( this.mixins )) {
+			base.mixin ( this.mixins );
+			/*
 			gui.Object.each ( this.mixins, function ( name, value ) {
 				base.mixin ( name, value );
 			});
+			*/
 		}
 		if ( gui.Type.isObject ( this.plugins )) {
 			gui.Object.each ( this.plugins, function ( prefix, plugin ) {

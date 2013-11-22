@@ -97,7 +97,7 @@ gui.LifePlugin = gui.Tracker.extend ({
 	 */
 	add : function ( arg, handler ) {		
 		handler = handler ? handler : this.spirit;
-		this._breakdown ( arg ).forEach ( function ( type ) {
+		gui.Array.make ( arg ).forEach ( function ( type ) {
 			if ( this._addchecks ( type, [ handler ])) {
 				if ( !this._handlers [ type ]) {
 					this._handlers [ type ] = [];
@@ -116,7 +116,7 @@ gui.LifePlugin = gui.Tracker.extend ({
 	 */
 	remove : function ( arg, handler ) {
 		handler = handler ? handler : this.spirit;
-		this._breakdown ( arg ).forEach ( function ( type ) {
+		gui.Array.make ( arg ).forEach ( function ( type ) {
 			if ( this._removechecks ( type, [ handler ])) {
 				var index = this._handlers [ type ].indexOf ( type );
 				gui.Array.remove ( this._handlers [ type ], index );

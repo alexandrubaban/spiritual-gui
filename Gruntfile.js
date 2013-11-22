@@ -6,7 +6,7 @@ module.exports = function ( grunt ) {
 
 	"use strict";
 	
-	[ "grunt-spiritual" ].forEach ( grunt.loadNpmTasks );
+	[ "grunt-spiritual-build" ].forEach ( grunt.loadNpmTasks );
 	grunt.initConfig ({
 		spiritual : {
 			gui : {
